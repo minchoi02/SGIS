@@ -1,0 +1,124 @@
+package kostat.sop.ServiceAPI.sbr.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import kostat.sop.ServiceAPI.api.common.ThemeCdCommon;
+import kostat.sop.ServiceAPI.common.util.StringUtil;
+import kostat.sop.ServiceAPI.controller.service.MapService;
+import kostat.sop.ServiceAPI.controller.view.AdministStatsController;
+import kostat.sop.ServiceAPI.controller.view.MapController;
+import kostat.sop.ServiceAPI.sbr.service.SbrStatsService;
+import kostat.sop.ServiceAPI.sbr.vo.SbrVo;
+
+
+/**
+ * 1. 기능 : 행정통계시각화 대쉬보드 컨트롤러.
+ * <p>
+ * 2. 처리개요 :
+ * <p>
+ * 3. 주의사항 :
+ * <p>
+ *
+ * <pre>
+ *  <b>History:</b>
+ *     2021.08.17	hjh	초기 작성
+ * </pre>
+ *
+ * @author 최종 수정자 : hjh
+ * @version 1.0
+ * @see
+ *      <p/>
+ */
+
+@Controller
+@RequestMapping(value = "/view/sbrStats")
+public class SbrStatsController {
+	
+	private final Log logger = LogFactory.getLog(SbrStatsController.class);
+	
+	@Resource(name="mapService")
+	private MapService mapService;
+	
+	// 2020년 SGIS고도화 3차(테마코드) 시작 - 테마코드 공통기능 빈객체 추가 (pse)
+	//@Resource(name = "themeCdCommon")
+	//private ThemeCdCommon themeCdCommon;
+	// 2020년 SGIS고도화 3차(테마코드) 끝
+	
+	@Resource(name = "sbrStatsService")
+	private SbrStatsService sbrStatsService;
+	
+	
+	/**
+	 * 기업생태분석지도 > 프레임 > Main
+	 *
+	 * @param request
+	 * @param response
+	 * @return /view/sbrStats/sbrMain
+	 * @throws Exception 
+	 */
+	@RequestMapping(value = "/sbrStatsMain")
+	public ModelAndView main(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+
+		List<Map<String, Object>> allThemeCdInfo = sbrStatsService.selectAllCensusThemeInfo();
+		request.setAttribute("allThemeCdInfo", allThemeCdInfo);
+		return new ModelAndView("sbr/sbrStatsMain");
+	}
+	
+	/**
+	 * 임시 제이슨제이터
+	 * 
+	 *
+	 * @param request
+	 * @param response
+	 * @return /view/sbrStats/sbrMain
+	 * @throws Exception 
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/codeList", produces="application/json;charset=UTF-8")
+	public List<Map<String, Object>> getCodeList(HttpServletRequest request, HttpServletResponse response, ModelMap model, SbrVo sbrVo) throws Exception {
+		return sbrStatsService.getCodeList(sbrVo);
+	}
+	
+	
+	/**
+	 * 임시 제이슨제이터
+	 * 
+	 *
+	 * @param request
+	 * @param response
+	 * @return /view/sbrStats/sbrMain
+	 * @throws Exception 
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/sbrStatsJsonData", produces="application/json;charset=UTF-8")
+	public String maindata(HttpServletRequest request, HttpServletResponse response, ModelMap model, SbrVo sbrVo) throws Exception {
+		System.out.println("데이터 확인  : " + sbrVo.toString());
+		return sbrStatsService.getDdata();
+	}
+	
+	@ResponseBody
+	@RequestMapping(value = "/sbrStatsCompanyCount", produces="application/json;charset=UTF-8")
+	public List<Map<String, String>> getTimeSeriesData(HttpServletRequest request, HttpServletResponse response, ModelMap model) throws Exception {
+		System.out.println("시계열차트 데이터 확인 : ");
+
+		return sbrStatsService.getCompanyCountByAll();
+	}
+	
+	
+	
+
+}

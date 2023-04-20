@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns:p="http://www.springframework.org/schema/p"
+xsi:schemaLocation="http://www.springframework.org/schema/beans    http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+	<bean id="base.stringPool" class="com.neighborsystem.durian.pool.string.SbPool">
+		<constructor-arg index="0" type="int" value="100"/>
+	</bean>
+	
+    <bean name="httpPool" class="com.neighborsystem.durian.pool.http.HttpPool">
+        <!-- host -->
+        <constructor-arg index="0" type="String" value="localhost"/>
+        <!-- port -->
+        <constructor-arg index="1" type="int" value="80"/>
+        <!-- maxTotalCount -->
+        <constructor-arg index="2" type="int" value="100"/>
+        <!-- maxCountPerHost -->
+        <constructor-arg index="3" type="int" value="5"/>
+        <!-- protocol -->
+        <constructor-arg index="4" type="String" value="http"/>
+    </bean>
+    
+    <bean id="apsHttpClient" class="kostat.sop.OpenAPI3.common.controller.ApsHttpClient">        
+        <!-- TBS APS -->
+        <property name="apsAddress" value="http://sgis.kostat.go.kr/"/>       
+    </bean>
+    
+    <bean id="properties" class="kostat.sop.OpenAPI3.common.controller.Properties">  
+        <property name="sqlSessionFactory" ref="db.dataSource" />
+        
+        <property name="year_list" ref="stats_year_list"/>
+		<property name="area_type_list" ref="stats_area_type_list"/>
+		<property name="low_search_list" ref="stats_low_search_list"/>
+		<property name="bnd_year_list" ref="stats_bnd_year_list"/>
+		
+		<property name="gender_list" ref="stats_gender_list"/>
+		<property name="edu_level_list" ref="stats_edu_level_list"/>
+		<property name="study_level_list" ref="stats_study_level_list"/>
+		
+		<property name="household_type_list" ref="stats_household_type_list"/>
+		<property name="house_type_list" ref="stats_house_type_list"/>
+		<property name="const_year_list" ref="stats_const_year_list"/>
+		
+		<property name="oga_div_list" ref="stats_oga_div_list"/>
+		
+		<property name="defult_bnd_year" ref="stats_defult_bnd_year"/>
+		<property name="java_script_file_path" ref="java_script_file_path"/>
+		<property name="company_year_list" ref="company_year_list"/>
+		<property name="bnd_cd_list" ref="stats_bnd_cd_list"/>
+
+		<property name="data_portal_service_key" ref="data_portal_service_key"/>
+		<property name="data_portal_secret_key" ref="data_portal_secret_key"/>
+    </bean>
+    
+    <bean name="projectionFactory" class="kostat.sop.OpenAPI3.common.coord.ProjectionFactory">
+    	<property name="proj4Codes">
+    		<map>
+    		<!--  2015 SGIS+ 추가분 -->
+    			<entry key="EPSG:5185" value="+proj=tmerc +lat_0=38 +lon_0=125 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs"></entry>
+    			<entry key="EPSG:5181" value="+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=500000 +ellps=GRS80 +units=m +no_defs"></entry>
+    			<entry key="EPSG:5186" value="+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs"></entry>
+    			<entry key="EPSG:5187" value="+proj=tmerc +lat_0=38 +lon_0=129 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs"></entry>
+    			<entry key="EPSG:5188" value="+proj=tmerc +lat_0=38 +lon_0=131 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs"></entry>
+    			<entry key="EPSG:900913" value="+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs"></entry>
+    			
+    			<!-- 2014 SOP 좌표변환 -->
+    			<entry key="EPSG:4162" value="+proj=longlat +ellps=bessel +no_defs"></entry>
+    			<entry key="EPSG:4004" value="+proj=longlat +ellps=bessel +no_defs"></entry>
+    			<entry key="EPSG:4326" value="+proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs"></entry>
+    			<entry key="EPSG:4166" value="+proj=longlat +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +no_defs"></entry>
+    			<entry key="EPSG:5179" value="+proj=tmerc +lat_0=38 +lon_0=127.5 +ellps=GRS80 +x_0=1000000 +y_0=2000000 +k=0.9996 +units=m +no_defs"></entry>
+    			<entry key="EPSG:32652" value="+proj=utm +zone=52 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"></entry>
+    			
+    			<!-- TM 중부, 서부, 동부 2015년도에 삭제 -->
+    			<entry key="EPSG:2096" value="+proj=tmerc +lat_0=38 +lon_0=129.002890277778 +k=1 +x_0=200000 +y_0=500000 +ellps=bessel +units=m +no_defs +towgs84=-115.80,474.99,674.11,1.16,-2.31,-1.63,6.43"></entry>
+    			<entry key="EPSG:2097" value="+proj=tmerc +lat_0=38 +lon_0=127.002890277778 +k=1 +x_0=200000 +y_0=500000 +ellps=bessel +units=m +no_defs +towgs84=-115.80,474.99,674.11,1.16,-2.31,-1.63,6.43"></entry>
+    			<entry key="EPSG:2098" value="+proj=tmerc +lat_0=38 +lon_0=125.002890277778 +k=1 +x_0=200000 +y_0=500000 +ellps=bessel +units=m +no_defs +towgs84=-115.80,474.99,674.11,1.16,-2.31,-1.63,6.43"></entry>
+    			
+    		</map>
+    	</property>
+    </bean>
+    
+    <beans profile="neighborTest">
+    
+		<bean id="geoSearch" class="kostat.sop.OpenAPI3.search.GeocodeSearching">  
+		<!-- 2016.09.09 성능개선으로 인한 수정. -->
+			<constructor-arg index="0" value="/home/sop/indexdata/geocoording_20160322"/>
+			<!-- constructor-arg index="0" value="/root/00.Current.Project\[2012.03.09].통계청/2015/etc/Index-lucene/geocoording_20160322"/ -->
+<!-- 2015.09.21 개발서버 프로퍼티 -->
+<!-- <property name="IndexPath" value="/home/sop/indexdata/indexgeo_20150428"/> -->
+<!-- 2016.01.06 개발서버 프로퍼티 -->
+			<!-- property name="indexPath" value="/home/sop/indexdata/geocoording_20160322"/ -->
+		</bean>
+		
+		<bean id="poiSearch" class="kostat.sop.OpenAPI3.search.POISearching">  
+		<!-- 2016.09.09 성능개선으로 인한 수정. -->
+			<constructor-arg index="0" value="/DATA/index/2016/poi"/>
+<!--  2015.09.21 개발서버 프로퍼티 -->
+			<!-- property name="indexPath" value="/home/sop/indexdata/index_poi_20160223"/ -->
+		</bean>
+		<bean id="searchHandler" class="kostat.sop.OpenAPI3.search.handler.SearchingHandler" />
+    </beans>
+    
+    <beans profile="productTest">
+    	<!-- 운영 테스트 서버는 인텍스 적용되지 않음. -->
+        <bean id="geoSearch" class="kostat.sop.OpenAPI3.search.GeocodeSearching">  
+			<constructor-arg index="0" value=""/>
+        	<!-- property name="indexPath" value=""/ -->
+    	</bean>
+    
+	    <bean id="poiSearch" class="kostat.sop.OpenAPI3.search.POISearching">  
+			<constructor-arg index="0" value="/DATA/index/2016/poi"/>
+			<!-- property name="indexPath" value=""/ -->
+	    </bean>
+		<bean id="searchHandler" class="kostat.sop.OpenAPI3.search.handler.SearchingHandler" />
+    </beans>
+    
+	<beans profile="productSibum">
+	<!-- 2016.03.08 설정 -->
+        <bean id="geoSearch" class="kostat.sop.OpenAPI3.search.GeocodeSearching">  
+			<constructor-arg index="0" value="/DATA/index/2016/geocode"/>
+        	<!--  property name="indexPath" value="/DATA/index/2015/geocode"/ -->
+    	</bean>
+    
+	    <bean id="poiSearch" class="kostat.sop.OpenAPI3.search.POISearching">  
+			<constructor-arg index="0" value="/DATA/index/2016/poi"/>
+			<!-- property name="indexPath" value="/DATA/index/2015/poi"/ -->
+	    </bean>
+		<bean id="searchHandler" class="kostat.sop.OpenAPI3.search.handler.SearchingHandler" />
+    </beans>
+</beans>

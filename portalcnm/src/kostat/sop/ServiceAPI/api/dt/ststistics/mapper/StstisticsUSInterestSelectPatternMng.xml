@@ -1,0 +1,459 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ststisticsUSInterestSelectPattern"> 
+	
+	<!-- 관심주제 선택패턴에 표출할 데이터를 조회한다 -->
+	<select id="getStstisticsUSSelectPatternGeneral"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		select 
+			row_number() over(order by  T2.lfe_cycle_slctn_cnt,T2.stat_dstnc_slctn_cnt) as row_num
+			, T2.lfe_cycle_slctn_cnt
+			, T2.stat_dstnc_slctn_cnt
+			, nvl(T1.count,0) as count
+			, nvl(trunc((T1.count/total*100),1),0) as percentage 
+		from
+		(
+			select 1,lfe_cycle_slctn_cnt, stat_dstnc_slctn_cnt, count(*) count, sum(count(*)) over (partition by 1) total
+			from 
+				SRV_DT_CTLG_SLCTN_KWRD_LIST
+			<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+		    where
+				TO_CHAR(use_ts) >= #{startDate}
+				AND
+				TO_CHAR(use_ts) <![CDATA[<=]]> #{endDate}
+			</if> 
+			group by 
+				 lfe_cycle_slctn_cnt,
+				 stat_dstnc_slctn_cnt
+		) T1
+		RIGHT JOIN
+		(
+			select 0 as lfe_cycle_slctn_cnt, 0 as stat_dstnc_slctn_cnt from dual
+			UNION ALL
+			select 0 as lfe_cycle_slctn_cnt, 1 as stat_dstnc_slctn_cnt from dual
+			UNION ALL
+			select 0 as lfe_cycle_slctn_cnt, 2 as stat_dstnc_slctn_cnt from dual
+			UNION ALL
+			select 1 as lfe_cycle_slctn_cnt, 0 as stat_dstnc_slctn_cnt from dual
+			UNION ALL
+			select 1 as lfe_cycle_slctn_cnt, 1 as stat_dstnc_slctn_cnt from dual
+			UNION ALL
+			select 1 as lfe_cycle_slctn_cnt, 2 as stat_dstnc_slctn_cnt from dual
+			UNION ALL
+			select 2 as lfe_cycle_slctn_cnt, 0 as stat_dstnc_slctn_cnt from dual
+			UNION ALL
+			select 2 as lfe_cycle_slctn_cnt, 1 as stat_dstnc_slctn_cnt from dual
+			UNION ALL
+			select 2 as lfe_cycle_slctn_cnt, 2 as stat_dstnc_slctn_cnt from dual
+		) T2
+		ON 
+			T1.lfe_cycle_slctn_cnt = T2.lfe_cycle_slctn_cnt
+			AND
+			T1.stat_dstnc_slctn_cnt = T2.stat_dstnc_slctn_cnt
+	</select>
+	
+	
+	<!-- 관심주제 선택패턴 상세에서 [ 생애주기 & 생애주기 ]에 표출할 데이터를 조회한다 -->
+	<select id="getStstisticsUSSelectPatternDetailLife"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT 
+			rn row_num
+			, lfe_cycle_1_id
+			, lfe_cycle_1_name
+			, lfe_cycle_2_id
+			, lfe_cycle_2_name
+			, COUNT
+			, PERCENTAGE 
+		FROM 
+		(
+			SELECT 
+				rownum rn
+				, lfe_cycle_1_id
+				, lfe_cycle_1_name
+				, lfe_cycle_2_id
+				, lfe_cycle_2_name
+				, COUNT
+				, TRUNC((COUNT/TOTAL*100),2) PERCENTAGE 
+			FROM
+			(
+				select 
+					1
+					/*,nvl(lfe_cycle_1_id,'') lfe_cycle_1_id*/
+					,lfe_cycle_1_id
+					,CASE
+						WHEN lfe_cycle_1_id = 'LFECYCLE_INFANT_CHILD' THEN '영유아/어린이'
+						WHEN lfe_cycle_1_id = 'LFECYCLE_YNGBGS' THEN '청소년'
+						WHEN lfe_cycle_1_id = 'LFECYCLE_YGMN' THEN '청년'
+						WHEN lfe_cycle_1_id = 'LFECYCLE_ADULT' THEN '중년'
+						WHEN lfe_cycle_1_id = 'LFECYCLE_ODSN' THEN '노년'
+						WHEN lfe_cycle_1_id = 'LFECYCLE_PREGNAN_CHLDBRTH_CHLDCR_FEMALE' THEN '임신·출산·육아여성'
+						WHEN lfe_cycle_1_id = 'LFECYCLE_PSN_1_FAMILY' THEN '1인가구'
+						/*WHEN nvl(lfe_cycle_1_id,'') = '' THEN '선택 안함'*/
+						ELSE '선택 안함'
+					END AS lfe_cycle_1_name
+					,CASE
+						WHEN lfe_cycle_1_id = 'LFECYCLE_INFANT_CHILD' THEN 1
+						WHEN lfe_cycle_1_id = 'LFECYCLE_YNGBGS' THEN 2
+						WHEN lfe_cycle_1_id = 'LFECYCLE_YGMN' THEN 3
+						WHEN lfe_cycle_1_id = 'LFECYCLE_ADULT' THEN 4
+						WHEN lfe_cycle_1_id = 'LFECYCLE_ODSN' THEN 5
+						WHEN lfe_cycle_1_id = 'LFECYCLE_PREGNAN_CHLDBRTH_CHLDCR_FEMALE' THEN 6
+						WHEN lfe_cycle_1_id = 'LFECYCLE_PSN_1_FAMILY' THEN 7
+						/*WHEN nvl(lfe_cycle_1_id,'') = '' THEN 8*/
+						ELSE 8
+					END AS disp_rank_for_1
+					/*,nvl(lfe_cycle_2_id,'') lfe_cycle_2_id*/
+					,lfe_cycle_2_id
+					,CASE
+						WHEN lfe_cycle_2_id = 'LFECYCLE_INFANT_CHILD' THEN '영유아/어린이'
+						WHEN lfe_cycle_2_id = 'LFECYCLE_YNGBGS' THEN '청소년'
+						WHEN lfe_cycle_2_id = 'LFECYCLE_YGMN' THEN '청년'
+						WHEN lfe_cycle_2_id = 'LFECYCLE_ADULT' THEN '중년'
+						WHEN lfe_cycle_2_id = 'LFECYCLE_ODSN' THEN '노년'
+						WHEN lfe_cycle_2_id = 'LFECYCLE_PREGNAN_CHLDBRTH_CHLDCR_FEMALE' THEN '임신·출산·육아여성'
+						WHEN lfe_cycle_2_id = 'LFECYCLE_PSN_1_FAMILY' THEN '1인가구'
+						/*WHEN nvl(lfe_cycle_2_id,'') = '' THEN '선택 안함'*/
+						ELSE '선택 안함'
+					END AS lfe_cycle_2_name
+					,CASE
+						WHEN lfe_cycle_2_id = 'LFECYCLE_INFANT_CHILD' THEN 1
+						WHEN lfe_cycle_2_id = 'LFECYCLE_YNGBGS' THEN 2
+						WHEN lfe_cycle_2_id = 'LFECYCLE_YGMN' THEN 3
+						WHEN lfe_cycle_2_id = 'LFECYCLE_ADULT' THEN 4
+						WHEN lfe_cycle_2_id = 'LFECYCLE_ODSN' THEN 5
+						WHEN lfe_cycle_2_id = 'LFECYCLE_PREGNAN_CHLDBRTH_CHLDCR_FEMALE' THEN 6
+						WHEN lfe_cycle_2_id = 'LFECYCLE_PSN_1_FAMILY' THEN 7
+						/*WHEN nvl(lfe_cycle_2_id,'') = '' THEN 8*/
+						ELSE 8
+					END AS disp_rank_for_2
+					, COUNT(*) COUNT
+					, SUM(COUNT(*)) OVER (PARTITION BY 1) TOTAL
+				FROM
+					SRV_DT_CTLG_SLCTN_KWRD_LIST
+				<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+				WHERE 
+					TO_CHAR(use_ts) >=  #{startDate}
+					AND
+					TO_CHAR(use_ts) <![CDATA[<=]]> #{endDate}
+				</if>
+				GROUP BY
+					LFE_CYCLE_1_ID, LFE_CYCLE_2_ID
+				ORDER BY 
+					disp_rank_for_1,disp_rank_for_2
+			)
+			where 
+				rownum <![CDATA[<=]]> #{paging.endRows}
+		)
+		where rn >= #{paging.startRows}
+	</select>
+	
+	
+	<!-- 관심주제 선택패턴 상세에서 [ 통계거리 & 통계거리 ]에 표출할 데이터를 조회한다 -->
+	<select id="getStstisticsUSSelectPatternDetailDstnc"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT 
+			rn row_num
+			, stat_dstnc_1_id
+			, stat_dstnc_1_name
+			, stat_dstnc_2_id
+			, stat_dstnc_2_name
+			, COUNT
+			, PERCENTAGE
+		FROM 
+		(
+			select 
+				ROWNUM RN
+				, stat_dstnc_1_id
+				, stat_dstnc_1_name
+				, stat_dstnc_2_id
+				, stat_dstnc_2_name
+				, count
+				, TRUNC((COUNT/TOTAL*100),2) PERCENTAGE 
+			from (
+				select 
+					1
+					/*, nvl(stat_dstnc_1_id,'') stat_dstnc_1_id*/
+					,stat_dstnc_1_id
+					, CASE
+						WHEN stat_dstnc_1_id = 'DSTNC_FD' THEN '먹거리'
+						WHEN stat_dstnc_1_id = 'DSTNC_HOUSE' THEN '살거리'
+						WHEN stat_dstnc_1_id = 'DSTNC_JOB' THEN '일거리'
+						WHEN stat_dstnc_1_id = 'DSTNC_TRNSPORT' THEN '탈거리'
+						WHEN stat_dstnc_1_id = 'DSTNC_PLY' THEN '보고놀거리'
+						WHEN stat_dstnc_1_id = 'DSTNC_EDU' THEN '배울거리'
+						WHEN stat_dstnc_1_id = 'DSTNC_HEALTH' THEN '건강거리'
+						WHEN stat_dstnc_1_id = 'DSTNC_SAFE' THEN '안전거리'
+						/*WHEN nvl(stat_dstnc_1_id,'') = '' THEN '선택 안함'*/
+						ELSE '선택 안함'
+					END AS stat_dstnc_1_name
+					,CASE
+						WHEN stat_dstnc_1_id = 'DSTNC_FD' THEN 1
+						WHEN stat_dstnc_1_id = 'DSTNC_HOUSE' THEN 2
+						WHEN stat_dstnc_1_id = 'DSTNC_JOB' THEN 3
+						WHEN stat_dstnc_1_id = 'DSTNC_TRNSPORT' THEN 4
+						WHEN stat_dstnc_1_id = 'DSTNC_PLY' THEN 5
+						WHEN stat_dstnc_1_id = 'DSTNC_EDU' THEN 6
+						WHEN stat_dstnc_1_id = 'DSTNC_HEALTH' THEN 7
+						WHEN stat_dstnc_1_id = 'DSTNC_SAFE' THEN 8
+						/*WHEN nvl(stat_dstnc_1_id,'') = '' THEN 9*/
+						ELSE 9	
+					END AS disp_rank_for_1
+					/*, nvl(stat_dstnc_2_id,'') stat_dstnc_2_id*/
+					,stat_dstnc_2_id
+					, CASE
+						WHEN stat_dstnc_2_id = 'DSTNC_HOUSE' THEN '살거리'
+						WHEN stat_dstnc_2_id = 'DSTNC_FD' THEN '먹거리'
+						WHEN stat_dstnc_2_id = 'DSTNC_JOB' THEN '일거리'
+						WHEN stat_dstnc_2_id = 'DSTNC_TRNSPORT' THEN '탈거리'
+						WHEN stat_dstnc_2_id = 'DSTNC_PLY' THEN '보고놀거리'
+						WHEN stat_dstnc_2_id = 'DSTNC_EDU' THEN '배울거리'
+						WHEN stat_dstnc_2_id = 'DSTNC_HEALTH' THEN '건강거리'
+						WHEN stat_dstnc_2_id = 'DSTNC_SAFE' THEN '안전거리'
+						/*WHEN nvl(stat_dstnc_2_id,'') = '' THEN '선택 안함'*/
+						ELSE '선택 안함'
+					END AS stat_dstnc_2_name
+					,CASE
+						WHEN stat_dstnc_2_id = 'DSTNC_HOUSE' THEN 1
+						WHEN stat_dstnc_2_id = 'DSTNC_FD' THEN 2
+						WHEN stat_dstnc_2_id = 'DSTNC_JOB' THEN 3
+						WHEN stat_dstnc_2_id = 'DSTNC_TRNSPORT' THEN 4
+						WHEN stat_dstnc_2_id = 'DSTNC_PLY' THEN 5
+						WHEN stat_dstnc_2_id = 'DSTNC_EDU' THEN 6
+						WHEN stat_dstnc_2_id = 'DSTNC_HEALTH' THEN 7
+						WHEN stat_dstnc_2_id = 'DSTNC_SAFE' THEN 8
+						/*WHEN nvl(stat_dstnc_2_id,'') = '' THEN 9*/
+						ELSE 9
+					END AS disp_rank_for_2
+					, COUNT(*) count
+					, SUM(COUNT(*)) OVER (PARTITION BY 1) total
+				from 
+					SRV_DT_CTLG_SLCTN_KWRD_LIST
+				<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+				where 
+					TO_CHAR(use_ts) >= #{startDate}
+					AND
+					TO_CHAR(use_ts) <![CDATA[<=]]> #{endDate}
+				</if>
+				group by 
+					stat_dstnc_1_id,stat_dstnc_2_id
+				order by 
+					disp_rank_for_1, disp_rank_for_2
+			) 
+			where 
+				rownum <![CDATA[<=]]> #{paging.endRows}
+		)
+		where rn >= #{paging.startRows}
+	</select>
+	
+	
+	<!-- 관심주제 선택패턴 상세에서 [ 생애주기 & 통계거리 ]에 표출할 데이터를 조회한다 -->
+	<!-- 쿼리가 장황하지만 사실은 위에서 본  [ 통계거리 & 통계거리 ], [ 생애주기 & 생애주기 ]에 사용하는 쿼리의 내용을 합친 것이다.-->
+	<select id="getStstisticsUSSelectPatternDetailLifeAndDstnc"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		select 
+			lfe_cycle_1_id, lfe_cycle_1_name, lfe_cycle_2_id, lfe_cycle_2_name
+			, stat_dstnc_1_id, stat_dstnc_1_name, stat_dstnc_2_id, stat_dstnc_2_name
+			, count
+			, PERCENTAGE
+		from
+		(
+			select 
+				rownum rn
+				,lfe_cycle_1_id, lfe_cycle_1_name, lfe_cycle_2_id, lfe_cycle_2_name
+				, stat_dstnc_1_id, stat_dstnc_1_name, stat_dstnc_2_id, stat_dstnc_2_name
+				, count
+				, TRUNC((COUNT/TOTAL*100),2) PERCENTAGE 
+			from 
+			(
+				select
+					1
+					/*,nvl(lfe_cycle_1_id,'') lfe_cycle_1_id*/
+					,lfe_cycle_1_id
+					,CASE
+						WHEN lfe_cycle_1_id = 'LFECYCLE_INFANT_CHILD' THEN '영유아/어린이'
+						WHEN lfe_cycle_1_id = 'LFECYCLE_YNGBGS' THEN '청소년'
+						WHEN lfe_cycle_1_id = 'LFECYCLE_YGMN' THEN '청년'
+						WHEN lfe_cycle_1_id = 'LFECYCLE_ADULT' THEN '중년'
+						WHEN lfe_cycle_1_id = 'LFECYCLE_ODSN' THEN '노년'
+						WHEN lfe_cycle_1_id = 'LFECYCLE_PREGNAN_CHLDBRTH_CHLDCR_FEMALE' THEN '임신·출산·육아여성'
+						WHEN lfe_cycle_1_id = 'LFECYCLE_PSN_1_FAMILY' THEN '1인가구'
+						/*WHEN nvl(lfe_cycle_1_id,'') = '' THEN '선택 안함'*/
+						ELSE '선택 안함'
+					END AS lfe_cycle_1_name
+					,CASE
+						WHEN lfe_cycle_1_id = 'LFECYCLE_INFANT_CHILD' THEN 1
+						WHEN lfe_cycle_1_id = 'LFECYCLE_YNGBGS' THEN 2
+						WHEN lfe_cycle_1_id = 'LFECYCLE_YGMN' THEN 3
+						WHEN lfe_cycle_1_id = 'LFECYCLE_ADULT' THEN 4
+						WHEN lfe_cycle_1_id = 'LFECYCLE_ODSN' THEN 5
+						WHEN lfe_cycle_1_id = 'LFECYCLE_PREGNAN_CHLDBRTH_CHLDCR_FEMALE' THEN 6
+						WHEN lfe_cycle_1_id = 'LFECYCLE_PSN_1_FAMILY' THEN 7
+						/*WHEN nvl(lfe_cycle_1_id,'') = '' THEN 8*/
+						ELSE 8
+					END AS disp_rank_for_life_1
+					/*,nvl(lfe_cycle_2_id,'') lfe_cycle_2_id*/
+					,lfe_cycle_2_id
+					,CASE
+						WHEN lfe_cycle_2_id = 'LFECYCLE_INFANT_CHILD' THEN '영유아/어린이'
+						WHEN lfe_cycle_2_id = 'LFECYCLE_YNGBGS' THEN '청소년'
+						WHEN lfe_cycle_2_id = 'LFECYCLE_YGMN' THEN '청년'
+						WHEN lfe_cycle_2_id = 'LFECYCLE_ADULT' THEN '중년'
+						WHEN lfe_cycle_2_id = 'LFECYCLE_ODSN' THEN '노년'
+						WHEN lfe_cycle_2_id = 'LFECYCLE_PREGNAN_CHLDBRTH_CHLDCR_FEMALE' THEN '임신·출산·육아여성'
+						WHEN lfe_cycle_2_id = 'LFECYCLE_PSN_1_FAMILY' THEN '1인가구'
+						/*WHEN nvl(lfe_cycle_2_id,'') = '' THEN '선택 안함'*/
+						ELSE '선택 안함'
+					END AS lfe_cycle_2_name
+					,CASE
+						WHEN lfe_cycle_2_id = 'LFECYCLE_INFANT_CHILD' THEN 1
+						WHEN lfe_cycle_2_id = 'LFECYCLE_YNGBGS' THEN 2
+						WHEN lfe_cycle_2_id = 'LFECYCLE_YGMN' THEN 3
+						WHEN lfe_cycle_2_id = 'LFECYCLE_ADULT' THEN 4
+						WHEN lfe_cycle_2_id = 'LFECYCLE_ODSN' THEN 5
+						WHEN lfe_cycle_2_id = 'LFECYCLE_PREGNAN_CHLDBRTH_CHLDCR_FEMALE' THEN 6
+						WHEN lfe_cycle_2_id = 'LFECYCLE_PSN_1_FAMILY' THEN 7
+						/*WHEN nvl(lfe_cycle_2_id,'') = '' THEN 8*/
+						ELSE 8
+					END AS disp_rank_for_life_2
+					/*, nvl(stat_dstnc_1_id, '') stat_dstnc_1_id*/
+					,stat_dstnc_1_id
+					, CASE
+						WHEN stat_dstnc_1_id = 'DSTNC_FD' THEN '먹거리'
+						WHEN stat_dstnc_1_id = 'DSTNC_HOUSE' THEN '살거리'
+						WHEN stat_dstnc_1_id = 'DSTNC_JOB' THEN '일거리'
+						WHEN stat_dstnc_1_id = 'DSTNC_TRNSPORT' THEN '탈거리'
+						WHEN stat_dstnc_1_id = 'DSTNC_PLY' THEN '보고놀거리'
+						WHEN stat_dstnc_1_id = 'DSTNC_EDU' THEN '배울거리'
+						WHEN stat_dstnc_1_id = 'DSTNC_HEALTH' THEN '건강거리'
+						WHEN stat_dstnc_1_id = 'DSTNC_SAFE' THEN '안전거리'
+						/*WHEN nvl(stat_dstnc_1_id,'') = '' THEN '선택 안함'*/
+						ELSE '선택 안함'
+					END AS stat_dstnc_1_name
+					,CASE
+						WHEN stat_dstnc_1_id = 'DSTNC_FD' THEN 1
+						WHEN stat_dstnc_1_id = 'DSTNC_HOUSE' THEN 2
+						WHEN stat_dstnc_1_id = 'DSTNC_JOB' THEN 3
+						WHEN stat_dstnc_1_id = 'DSTNC_TRNSPORT' THEN 4
+						WHEN stat_dstnc_1_id = 'DSTNC_PLY' THEN 5
+						WHEN stat_dstnc_1_id = 'DSTNC_EDU' THEN 6
+						WHEN stat_dstnc_1_id = 'DSTNC_HEALTH' THEN 7
+						WHEN stat_dstnc_1_id = 'DSTNC_SAFE' THEN 8
+						/*WHEN stat_dstnc_1_id = '' THEN 9*/
+						ELSE 9
+					END AS disp_rank_for_dstnc_1
+					/*, nvl(stat_dstnc_2_id,'') stat_dstnc_2_id*/
+					, stat_dstnc_2_id
+					, CASE
+						WHEN stat_dstnc_2_id = 'DSTNC_HOUSE' THEN '살거리'
+						WHEN stat_dstnc_2_id = 'DSTNC_FD' THEN '먹거리'
+						WHEN stat_dstnc_2_id = 'DSTNC_JOB' THEN '일거리'
+						WHEN stat_dstnc_2_id = 'DSTNC_TRNSPORT' THEN '탈거리'
+						WHEN stat_dstnc_2_id = 'DSTNC_PLY' THEN '보고놀거리'
+						WHEN stat_dstnc_2_id = 'DSTNC_EDU' THEN '배울거리'
+						WHEN stat_dstnc_2_id = 'DSTNC_HEALTH' THEN '건강거리'
+						WHEN stat_dstnc_2_id = 'DSTNC_SAFE' THEN '안전거리'
+						/*WHEN nvl(stat_dstnc_2_id,'') = '' THEN '선택 안함'*/
+						ELSE '선택 안함'
+					END AS stat_dstnc_2_name
+					,CASE
+						WHEN stat_dstnc_2_id = 'DSTNC_HOUSE' THEN 1
+						WHEN stat_dstnc_2_id = 'DSTNC_FD' THEN 2
+						WHEN stat_dstnc_2_id = 'DSTNC_JOB' THEN 3
+						WHEN stat_dstnc_2_id = 'DSTNC_TRNSPORT' THEN 4
+						WHEN stat_dstnc_2_id = 'DSTNC_PLY' THEN 5
+						WHEN stat_dstnc_2_id = 'DSTNC_EDU' THEN 6
+						WHEN stat_dstnc_2_id = 'DSTNC_HEALTH' THEN 7
+						WHEN stat_dstnc_2_id = 'DSTNC_SAFE' THEN 8
+						/*WHEN nvl(stat_dstnc_2_id,'') = '' THEN 9*/
+						ELSE 9
+					END AS disp_rank_for_dstnc_2
+					 , count(*) count
+					 , sum(count(*)) over(partition by 1) total
+				from 
+					SRV_DT_CTLG_SLCTN_KWRD_LIST
+				<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+				where 
+					TO_CHAR(use_ts) >= #{startDate}
+					AND
+					TO_CHAR(use_ts) <![CDATA[<=]]> #{endDate}
+				</if>
+				group by 
+					lfe_cycle_1_id, lfe_cycle_2_id, stat_dstnc_1_id, stat_dstnc_2_id
+				order by 
+					disp_rank_for_life_1, disp_rank_for_life_2, disp_rank_for_dstnc_1 ,disp_rank_for_dstnc_2
+			) 
+			where 
+				rownum <![CDATA[<=]]> #{paging.endRows}
+		)
+		where rn >= #{paging.startRows}
+	</select>
+	
+	
+	<!-- 생애주기, 통계거리의 총 행수를 구한다 -->
+	<select id="getDetailLifeAndDstncTotal"  parameterType="java.util.HashMap" resultType="Integer">
+	select 
+		count(*) total
+	from
+	(
+		select
+			lfe_cycle_1_id
+			,lfe_cycle_2_id
+			, stat_dstnc_1_id
+			, stat_dstnc_2_id
+		from 
+			SRV_DT_CTLG_SLCTN_KWRD_LIST
+		<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+		where 
+			TO_CHAR(use_ts) >= #{startDate}
+			AND
+			TO_CHAR(use_ts) <![CDATA[<=]]> #{endDate}
+		</if>
+		group by 
+			lfe_cycle_1_id, lfe_cycle_2_id, stat_dstnc_1_id, stat_dstnc_2_id
+	)
+	</select>
+	
+	
+	<!-- 생애주기, 통계거리의 총 행수를 구한다 -->
+	<select id="getDetailLifeTotal"  parameterType="java.util.HashMap" resultType="Integer">
+	select 
+	count(*) total
+	from 
+	(
+		select 
+			lfe_cycle_1_id
+			,lfe_cycle_2_id
+		FROM
+			SRV_DT_CTLG_SLCTN_KWRD_LIST
+		<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+		where 
+			TO_CHAR(use_ts) >= #{startDate}
+			AND
+			TO_CHAR(use_ts) <![CDATA[<=]]> #{endDate}
+		</if>
+		GROUP BY
+			LFE_CYCLE_1_ID, LFE_CYCLE_2_ID	
+	)
+	</select>
+	
+	
+	<!-- 생애주기, 통계거리의 총 행수를 구한다 -->
+	<select id="getDetailDstncTotal"  parameterType="java.util.HashMap" resultType="Integer">
+	select 
+		count(*) total
+	from
+	(
+		select 
+			stat_dstnc_1_id
+			, stat_dstnc_2_id
+		from 
+			SRV_DT_CTLG_SLCTN_KWRD_LIST
+		<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+		where 
+			TO_CHAR(use_ts) >= #{startDate}
+			AND
+			TO_CHAR(use_ts) <![CDATA[<=]]> #{endDate}
+		</if>
+		group by 
+			stat_dstnc_1_id,stat_dstnc_2_id
+	)
+	</select>
+	
+	
+</mapper>

@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="statsMeMap_WorkRoad">
+<!-- My통계로 데이터 수집 일자리 맵 -->	
+
+	<!-- Insert 카탈로그 데이터마트 일자리 맵 : 일자리 통계분석: 비정규직 근로자 비율 제외 쿼리 -->
+	<insert id="insertSrvDtCtlgDtwrh_WorkRoad_StatsAnals_1" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , SIDO_CD
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , 'color' AS MAP_TY	/* 지도 유형 */
+			 , 'sido' AS AREA_BNDRY_SE	/* 지역 경계 구분 */
+			 , #{stat_data_base_year} AS BASE_YEAR	/* 기준 년도 */
+			 , C1 AS ADM_CD	/* 지역코드 */
+			 , C1 AS SIDO_CD	/* 시도코드 */
+			 , UNIT_NM AS UNIT	/* 단위 */
+			 , CASE WHEN UNIT_NM = '%' THEN '율'
+			   		WHEN UNIT_NM = '개' THEN '수'
+			   		WHEN UNIT_NM = '건' THEN '수'
+				    WHEN UNIT_NM = '명' THEN '인구'
+				    WHEN INSTR(UNIT_NM,'명') > 0 THEN '인구'
+				    WHEN INSTR(UNIT_NM,'원') > 0 THEN '금액'
+				    WHEN INSTR(UNIT_NM,'호') > 0 THEN '세대'
+			   		 END AS UNIT_NM		/* 단위명 */
+			 , #{stat_data_base_year_orginl} AS TOOLTIP_CN	/* 툴팁 내용 */
+			 , DT AS STATS_DTA_CO	/* 통계 자료 건수 */
+		  FROM SRV_DT_KOSIS_DATA WITH(NOLOCK)
+		 WHERE 1=1
+		   AND C1 NOT IN ('00', 'T10')
+		   AND LINK_ID = #{link_id}
+		   AND PRD_DE LIKE #{stat_data_base_year} || '%'
+		   <if test='link_id == "I3114" or link_id == "I3104" or link_id == "I3112"'>
+		   		AND C2 = '0'
+		   </if>
+		   <if test='link_id == "I3117"'>
+		   		AND C2 = '00'
+		   </if>
+		   <if test='link_id == "E3224" or link_id == "E3219" or link_id == "E3218" or link_id == "E3208" or link_id == "I3207" or link_id == "I3206" or link_id == "I3306"'>
+		   		AND ITM_ID = #{itm_id}
+		   </if>
+		   <if test='link_id == "I3402"'>
+		   		AND ITM_ID = #{itm_id}
+		   		AND C2 = 'Z10'
+		   </if>
+		 ORDER BY C1
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 일자리 맵 : 일자리 통계분석: 비정규직 근로자 비율 쿼리 -->
+	<insert id="insertSrvDtCtlgDtwrh_WorkRoad_StatsAnals_2" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , SIDO_CD
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+  	    SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , 'color' AS MAP_TY	/* 지도 유형 */
+			 , 'sido' AS AREA_BNDRY_SE	/* 지역 경계 구분 */
+			 , #{stat_data_base_year} AS BASE_YEAR	/* 기준 년도 */
+			 , C1 AS ADM_CD	/* 지역코드 */
+			 , C1 AS SIDO_CD	/* 시도코드 */
+			 , '%' AS UNIT	/* 단위 */
+			 , '비율' AS UNIT_NM	/* 단위명 */
+			 , #{stat_data_base_year_orginl} AS TOOLTIP_CN	/* 툴팁 내용 */
+			 , DT AS STATS_DTA_CO	/* 통계 자료 건수 */
+	 	 FROM (SELECT TO_CHAR(TRUNC(T03.DT / T01.DT * 100, 1)) AS DT
+				   	, T01.C1
+				   	, T01.C1_NM
+				   	, SUBSTR(T01.PRD_DE, 1, 4) PRD_DE
+				   	, T01.PRD_DE AS O_PRD_DE
+	    		 FROM (SELECT PRD_DE, DT, C1, C1_NM
+						 FROM SRV_DT_KOSIS_DATA WITH(NOLOCK)
+			   			WHERE LINK_ID = 'I3306'
+				 		  AND ITM_ID = 'T01' 
+			 		  ) T01
+				 LEFT JOIN (SELECT PRD_DE, DT, C1, C1_NM
+					 		  FROM SRV_DT_KOSIS_DATA WITH(NOLOCK) 				
+							 WHERE LINK_ID = 'I3306'
+					  		   AND ITM_ID = 'T03' 
+				  		   ) T03 
+			   			ON T01.PRD_DE = T03.PRD_DE
+		 			   AND T01.C1 = T03.C1 
+		 			   AND T01.PRD_DE LIKE #{stat_data_base_year} || '%'
+	   		  )
+ 		WHERE PRD_DE LIKE #{stat_data_base_year} || '%'
+   		  AND C1 NOT IN ('00')
+ 		ORDER BY C1
+	</insert>
+	
+	<!-- Select 카탈로그 데이터마트 일자리 맵 : 일자리 보기 코드조회 -->
+	<select id="selectSrvDtCtlgDtwrh_WorkRoad_JobViewCd" parameterType="hashmap" resultType="hashmap">
+		SELECT A.STAT_DATA_ID
+		     , A.STAT_DATA_NM
+		   	 , A.M_CLASS_NM
+		   	 , B.*
+		  FROM SRV_DT_CTLG_DATA_LIST A WITH(NOLOCK)
+		 INNER JOIN CMM_CD_COMCD B WITH(NOLOCK) ON B.S_CLASS_CD_NM = REPLACE(REPLACE(A.STAT_DATA_NM,' 일자리보기',''),'경력관계없음','관계없음')
+		 WHERE 1=1
+		   AND A.MENU_NM = '일자리 맵'
+		   AND A.SRV_NM = '일자리보기'
+		   AND (
+		      	(A.M_CLASS_NM = '기업형태' AND B.B_CLASS_CD = 'ENTTYP')
+		      	 OR (A.M_CLASS_NM = '직종분류' AND B.B_CLASS_CD = 'RCRJSS' AND LEN(B.S_CLASS_CD) = 2)
+		      	 OR (A.M_CLASS_NM = '고용형태' AND B.B_CLASS_CD = 'EMPTYP')
+		      	 OR (A.M_CLASS_NM = '학력' AND B.B_CLASS_CD = 'ACDMCR')
+		      	 OR (A.M_CLASS_NM = '경력' AND B.B_CLASS_CD = 'CAREER')
+		      	 OR (A.M_CLASS_NM = '산업분류' AND B.B_CLASS_CD = 'INDCLA' AND LEN(B.S_CLASS_CD) = 1)
+		   	   )
+		   AND A.STAT_DATA_ID = #{stat_data_id}
+		 ORDER BY A.STAT_DATA_ID
+	</select>
+	
+	<!-- Insert 카탈로그 데이터마트 일자리 맵 : 일자리 보기 -->
+	<insert id="insertSrvDtCtlgDtwrh_WorkRoad_JobView" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+		  	 , SIDO_CD
+		  	 , SGG_CD
+		  	 , EMDONG_CD
+		  	 , X_COOR
+		  	 , Y_COOR
+		  	 , POI_SE_NM
+		  	 , POI_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , 'poi' AS MAP_TY	/* 지도유형 */
+			 , 'all' AS AREA_BNDRY_SE	/* 지역경계구분 */
+			 , MCD.CREATE_DT AS BASE_YEAR	/* 기준년도 */
+			 , T.SIDO_CD || T.SGG_CD || T.EMDONG_CD AS ADM_CD	/* 지역코드 */
+			 , NULL AS ADM_NM	/* 지역명 */
+			 , T.SIDO_CD AS SIDO_CD	/* 시도코드 */
+			 , T.SGG_CD AS SGG_CD	/* 시군구코드 */
+			 , T.EMDONG_CD AS EMDONG_CD	/* 읍면동코드 */
+			 , T.X AS X_COOR	/* X 좌표 */
+			 , T.Y AS Y_COOR	/* Y 좌표 */
+			 , '1' AS POI_SE_NM	/* 점(POI) 구분 */
+			 , T.CORP_NM AS POI_NM	/* 점(POI) 명 */
+			 , NULL AS UNIT	/* 단위 */
+			 , NULL AS UNIT_NM	/* 단위 명 */
+			 , T.RECRU_NM AS TOOLTIP_CN	/* 툴팁내용 */
+			 , NULL AS STATS_DTA_CO	/* 통계자료건수 */
+		  FROM SRV_DT_JOB_SM T WITH(NOLOCK)
+		 INNER JOIN (SELECT MAX(CREATE_DT) AS CREATE_DT 
+					   FROM SRV_DT_JOB_SM S1 WITH(NOLOCK)
+					) MCD ON MCD.CREATE_DT = T.CREATE_DT
+		 <!-- 
+		  LEFT OUTER JOIN CMM_CD_COMCD CR WITH(NOLOCK) ON T.CAREER = CR.S_CLASS_CD AND CR.B_CLASS_CD = 'CAREER'		/* 경력 */
+		  LEFT OUTER JOIN CMM_CD_COMCD AM WITH(NOLOCK) ON T.ACDMCR = AM.S_CLASS_CD AND AM.B_CLASS_CD = 'ACDMCR'		/* 학력 */
+		  LEFT OUTER JOIN CMM_CD_COMCD WG WITH(NOLOCK) ON T.WAGE_TYPE = WG.S_CLASS_CD AND WG.B_CLASS_CD = 'WAGETY'		/* 임금형태 (WAGE_TYPE) */
+		  LEFT OUTER JOIN CMM_CD_COMCD ET WITH(NOLOCK) ON T.EMPLYM_TYPE = ET.S_CLASS_CD AND ET.B_CLASS_CD = 'EMPTYP'	/* 고용형태 (EMPLYM_TYPE) */
+		  LEFT OUTER JOIN CMM_CD_COMCD WT WITH(NOLOCK) ON T.WORK_TYPE = WT.S_CLASS_CD AND WT.B_CLASS_CD = 'WORKTY'		/* 근무형태 (WORK_TYPE) */
+		  LEFT OUTER JOIN CMM_CD_COMCD IC WITH(NOLOCK) ON T.INDUST_CLASS = IC.S_CLASS_CD AND IC.B_CLASS_CD = 'INDCLA'  /* 산업분류 (INDUST_CLASS) */
+		 -->  
+		 WHERE 1=1
+		   AND T.CLOS_DT <![CDATA[>=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+		   <if test='b_class_cd != null and b_class_cd != ""'>
+		   	<choose>
+		   		<!-- 기업형태 -->
+		   		<when test='b_class_cd == "ENTTYP"'>
+		   			AND T.ENTRPRS_TYPE = #{s_class_cd}
+		   		</when>
+		   		<!-- 직종분류 (모집직종) -->
+		   		<when test='b_class_cd == "RCRJSS"'>
+		   			AND T.RCRIT_JSSFC LIKE #{s_class_cd} || '%'
+		   		</when>
+		   		<!-- 고용형태 -->
+		   		<when test='b_class_cd == "EMPTYP"'>
+		   			AND T.EMPLYM_TYPE = #{s_class_cd}
+		   		</when>
+		   		<!-- 학력 -->
+		   		<when test='b_class_cd == "ACDMCR"'>
+		   			AND T.ACDMCR = #{s_class_cd}
+		   		</when>
+		   		<!-- 경력 -->
+		   		<when test='b_class_cd == "CAREER"'>
+		   			AND T.CAREER = #{s_class_cd}
+		   		</when>
+		   		<!-- 산업분류 -->
+		   		<when test='b_class_cd == "INDCLA"'>
+		   			AND T.INDUST_CLASS LIKE #{s_class_cd} || '%'
+		   		</when>
+		   	</choose>
+		   </if>
+	</insert>
+</mapper>

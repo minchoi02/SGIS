@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="srvAreaMng"> 
+	<select id="getSrvareaFactypeLclasList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT 
+			FACTYPE_LCLAS_CD
+			,FACTYPE_LCLAS_NM
+		FROM SRV_DT_SRVAREA_FACTYPE_LCLAS
+		WHERE USE_YN = 'Y'
+		<if test="factypeLclasCd != null and factypeLclasCd !=''">
+		  AND FACTYPE_LCLAS_CD = #{factypeLclasCd}
+		</if>
+		ORDER BY ORDER_NO
+	</select>
+	
+	<select id="getSrvAreaFacilityTypeList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		WITH POI_TEMP AS (
+			SELECT 
+				TEMP1.FACTYPE_CD
+				,COUNT(TEMP2.KSIC_5_CD) AS POI_CNT
+			FROM SRV_DT_SRVAREA_FACTYPE TEMP1
+			left outer JOIN SRV_DT_SRVAREA_POIMAPPING TEMP2
+			ON TEMP1.FACTYPE_CD = TEMP2.FACTYPE_CD
+			GROUP BY TEMP1.FACTYPE_CD
+		),
+		CORP_TEMP AS (
+			SELECT 
+				TEMP3.FACTYPE_CD
+				,COUNT(TEMP4.UPPER_FACTYPE_CD) AS CORP_CNT
+			FROM SRV_DT_SRVAREA_FACTYPE TEMP3
+			left outer JOIN SRV_DT_SRVAREA_CORPMAPPING TEMP4
+			ON TEMP3.UPPER_FACTYPE_CD = TEMP4.UPPER_FACTYPE_CD
+			GROUP BY TEMP3.FACTYPE_CD
+		)
+		SELECT 
+			ROW_NUMBER() OVER(ORDER BY T1.ORDER_NO ASC) AS RNUM
+			,T2.FACTYPE_LCLAS_NM AS UPPER_FACTYPE_NM
+			,T1.FACTYPE_CD
+			,T1.FACTYPE_NM
+			,(CASE WHEN POI_TEMP.POI_CNT = 0 THEN 'N' ELSE 'Y' END) AS POI_YN
+			,(CASE WHEN CORP_TEMP.CORP_CNT = 0 THEN 'N' ELSE 'Y' END) AS CORP_YN	
+			,T1.SRV_YN
+			,T1.USE_YN
+		FROM SRV_DT_SRVAREA_FACTYPE T1
+		JOIN SRV_DT_SRVAREA_FACTYPE_LCLAS T2
+		ON T1.UPPER_FACTYPE_CD = T2.FACTYPE_LCLAS_CD
+		LEFT OUTER JOIN POI_TEMP ON T1.FACTYPE_CD = POI_TEMP.FACTYPE_CD 
+		LEFT OUTER JOIN CORP_TEMP ON T1.FACTYPE_CD = CORP_TEMP.FACTYPE_CD 
+		WHERE 
+		 1=1
+		 <if test="factypeLclasCd != null and factypeLclasCd !=''">
+		 AND T2.FACTYPE_LCLAS_CD = #{factypeLclasCd}
+		 </if>
+		 <if test="factypeNm != null and factypeNm !=''">
+		 AND T1.FACTYPE_NM LIKE '%'|| #{factypeNm}||'%'
+		 </if>
+	</select>
+	
+	<select id="getSrvAreaFacilityTypeDetailData"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT 
+			T1.FACTYPE_NM
+			,T1.FACTYPE_CD
+			,T2.FACTYPE_LCLAS_CD AS UPPER_FACTYPE_CD
+			,T1.PPLTN_STAT_DFLT_SLCTN AS STAT_DFLT_DT
+			,T3.S_CLASS_CD_NM
+			,T1.SRV_YN
+			,T1.USE_YN
+			,T1.ORDER_NO
+			,T1.SRV_DIV AS HASH_TAG
+		FROM SRV_DT_SRVAREA_FACTYPE T1
+		JOIN SRV_DT_SRVAREA_FACTYPE_LCLAS T2
+		ON T1.UPPER_FACTYPE_CD = T2.FACTYPE_LCLAS_CD
+		LEFT OUTER JOIN CMM_CD_COMCD T3
+		ON T3.S_CLASS_CD = T1.PPLTN_STAT_DFLT_SLCTN
+		<if test="factypeCd != null and factypeCd !=''">
+		WHERE T1.FACTYPE_CD = #{factypeCd}
+		</if>
+	</select>
+	
+	<select id="getStatDfltList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT
+			S_CLASS_CD AS DFLT_CD
+			, S_CLASS_CD_NM AS DFLT_NM
+		FROM CMM_CD_COMCD
+		WHERE B_CLASS_CD = 'SRVA01'
+		ORDER BY S_CLASS_CD_ORDER
+	</select>
+	
+	<select id="getCorpType01"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		select distinct ksic_1_cd, ksic_1_nm from CMM_CD_CORPCLASS where CLASS_DEG = 10 
+	</select>
+	
+	<select id="getCorpType02"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		select distinct ksic_2_cd, ksic_2_nm 
+		from CMM_CD_CORPCLASS 
+		where CLASS_DEG = 10 
+			<if test="ksic1Cd != null and ksic1Cd !=''">
+			and ksic_1_cd = #{ksic1Cd}
+			</if>
+	</select>
+	
+	<select id="getCorpType03"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		select distinct ksic_3_cd, ksic_3_nm 
+		from CMM_CD_CORPCLASS 
+		where CLASS_DEG = 10 
+		<if test="ksic1Cd != null and ksic1Cd !=''">
+			and ksic_1_cd = #{ksic1Cd}
+		</if>
+		<if test="ksic2Cd != null and ksic2Cd !=''">
+			and ksic_2_cd = #{ksic2Cd}
+		</if>
+	</select>
+	
+	<select id="getCorpType04"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		select distinct ksic_4_cd, ksic_4_nm 
+		from CMM_CD_CORPCLASS 
+		where CLASS_DEG = 10
+		<if test="ksic1Cd != null and ksic1Cd !=''">
+			and ksic_1_cd = #{ksic1Cd}
+		</if>
+		<if test="ksic2Cd != null and ksic2Cd !=''">
+			and ksic_2_cd = #{ksic2Cd}
+		</if>
+		<if test="ksic3Cd != null and ksic3Cd !=''">
+			and ksic_3_cd = #{ksic3Cd}
+		</if>
+	</select>
+	
+	<select id="getPopupFacilityTypeList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT 
+			T2.FACTYPE_LCLAS_NM AS UPPER_FACTYPE_NM
+			,T1.FACTYPE_CD
+			,T1.FACTYPE_NM
+		FROM SRV_DT_SRVAREA_FACTYPE T1
+		JOIN SRV_DT_SRVAREA_FACTYPE_LCLAS T2
+		ON T1.UPPER_FACTYPE_CD = T2.FACTYPE_LCLAS_CD
+		WHERE T1.SRV_YN = 'Y'
+		 <if test="factypeLclasCd != null and factypeLclasCd !=''">
+		 AND T2.FACTYPE_LCLAS_CD = #{factypeLclasCd}
+		 </if>
+		 <if test="factypeNm != null and factypeNm !=''">
+		 AND T1.FACTYPE_NM LIKE '%'|| #{factypeNm}||'%'
+		 </if>
+	</select>
+	
+	<select id="getPopupUpperCorpList" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+	    select distinct ksic_1_cd
+			,ksic_1_nm
+			,ksic_2_cd
+			,ksic_2_nm
+			,ksic_3_cd
+			,ksic_3_nm
+		from CMM_CD_CORPCLASS 
+		where CLASS_DEG = 10
+			and ksic_3_cd not in (select distinct ksic_3_cd from SRV_DT_SRVAREA_CORPMAPPING)
+			<if test="ksic1Cd != null and ksic1Cd !=''">
+			 	and ksic_1_cd = #{ksic1Cd}
+			</if>
+			<if test="ksic2Cd != null and ksic2Cd !=''">
+				and ksic_2_cd = #{ksic2Cd}
+			</if>
+			<if test="ksic3Nm != null and ksic3Nm !=''">
+				and ksic_3_nm like '%'|| #{ksic3Nm}||'%'
+			</if>
+	</select>
+	
+	<select id="getPopupFacilityCorpList" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+	    select distinct
+			ksic_1_cd
+			,ksic_1_nm
+			,ksic_2_cd
+			,ksic_2_nm
+			,ksic_3_cd
+			,ksic_3_nm
+			,ksic_4_cd
+			,ksic_4_nm
+			,ksic_5_cd
+			,ksic_5_nm
+		from CMM_CD_CORPCLASS 
+		where CLASS_DEG = 10
+			<if test="ksic1Cd != null and ksic1Cd !=''">
+			 	and ksic_1_cd = #{ksic1Cd}
+			</if>
+			<if test="ksic2Cd != null and ksic2Cd !=''">
+				and ksic_2_cd = #{ksic2Cd}
+			</if>
+			<if test="ksic3Cd != null and ksic3Cd !=''">
+				and ksic_3_cd = #{ksic3Cd}
+			</if>
+			<if test="ksic4Cd != null and ksic4Cd !=''">
+				and ksic_4_cd = #{ksic4Cd}
+			</if>
+			<if test="ksic5Nm != null and ksic5Nm !=''">
+				and ksic_5_nm like '%'|| #{ksic5Nm}||'%'
+			</if>
+	</select>
+	
+	<select id="getPopupUpperCorpMappingList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		select 
+			distinct
+			T3.ksic_1_cd
+			,T3.ksic_1_nm
+			,T3.ksic_2_cd
+			,T3.ksic_2_nm
+			,T3.ksic_3_cd
+			,T3.ksic_3_nm
+		from SRV_DT_SRVAREA_FACTYPE T1
+		left outer join SRV_DT_SRVAREA_CORPMAPPING T2
+		on T1.upper_factype_cd = T2.upper_factype_cd
+		inner join CMM_CD_CORPCLASS T3
+		on T2.ksic_2_cd = T3.ksic_2_cd and T2.ksic_3_cd = T3.ksic_3_cd and T3.class_deg = T2.class_deg
+		where
+			1=1
+			<if test="ksic1Cd != null and ksic1Cd !=''">
+			 	and T3.ksic_1_cd = #{ksic1Cd}
+			</if>
+			<if test="ksic2Cd != null and ksic2Cd !=''">
+				and T3.ksic_2_cd = #{ksic2Cd}
+			</if>
+			<if test="ksic3Word != null and ksic3Word !=''">
+				and T3.ksic_3_nm like '%'|| #{ksic3Word}||'%'
+			</if>
+			<if test="upperFactypeCd != null and upperFactypeCd !=''">
+				and T1.upper_factype_cd = #{upperFactypeCd}
+			</if>
+	</select>
+	
+	<select id="getPopupFacilityPoiMappingList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		select 
+			distinct
+			T3.ksic_1_cd
+			,T3.ksic_1_nm
+			,T3.ksic_2_cd
+			,T3.ksic_2_nm
+			,T3.ksic_3_cd
+			,T3.ksic_3_nm
+			,T3.ksic_4_cd
+			,T3.ksic_4_nm
+			,T3.ksic_5_cd
+			,T3.ksic_5_nm
+		from SRV_DT_SRVAREA_FACTYPE T1
+		left outer join SRV_DT_SRVAREA_POIMAPPING T2
+		on T1.factype_cd = T2.factype_cd
+		inner join CMM_CD_CORPCLASS T3
+		on T2.ksic_5_cd = T3.ksic_5_cd and T3.class_deg = T2.class_deg
+		where
+			1=1
+			<if test="ksic1Cd != null and ksic1Cd !=''">
+			 	and T3.ksic_1_cd = #{ksic1Cd}
+			</if>
+			<if test="ksic2Cd != null and ksic2Cd !=''">
+				and T3.ksic_2_cd = #{ksic2Cd}
+			</if>
+			<if test="ksic3Cd != null and ksic3Cd !=''">
+				and T3.ksic_3_cd = #{ksic3Cd}
+			</if>
+			<if test="ksic4Cd != null and ksic4Cd !=''">
+				and T3.ksic_4_cd = #{ksic4Cd}
+			</if>
+			<if test="ksic3Word != null and ksic3Word !=''">
+				and T3.ksic_3_nm like '%'|| #{ksic3Word}||'%'
+			</if>
+			<if test="ksic5Word != null and ksic5Word !=''">
+				and T3.ksic_5_nm like '%'|| #{ksic5Word}||'%'
+			</if>
+			<if test="upperFactypeCd != null and upperFactypeCd !=''">
+				and T1.upper_factype_cd = #{upperFactypeCd}
+			</if>
+			<if test="factypeCd != null and factypeCd !=''">
+				and T1.FACTYPE_CD = #{factypeCd}
+			</if>
+	</select>
+	
+	<update id="insertSrvAreaFacilityTypeMng" parameterType="java.util.HashMap">
+	    INSERT INTO SRV_DT_SRVAREA_FACTYPE (
+        	FACTYPE_CD
+        	, FACTYPE_NM
+        	, UPPER_FACTYPE_CD
+        	, PPLTN_STAT_DFLT_SLCTN
+        	, SRV_YN
+        	, USE_YN
+        	, SRV_DIV
+        	, ORDER_NO
+        	, MOD_TS
+        	, MOD_MANAGER_ID
+        ) VALUES (
+        	(SELECT 'SA' || LPAD(TO_NUMBER(SUBSTR(max(FACTYPE_CD), 3, 4))+1,4,'0') FROM SRV_DT_SRVAREA_FACTYPE)
+        	, #{factypeNm}
+        	, #{upperFactypeCd}
+        	, #{statDfltDt}
+        	, #{srvYn}
+			, #{useYn}
+			, #{hashTag}
+			, #{orderNo}
+        	, SYSDATE
+        	, #{modManagerId}
+        )
+	</update>
+	
+	<update id="editSrvAreaFacilityTypeMng" parameterType="java.util.HashMap">
+	    UPDATE 	
+	 		SRV_DT_SRVAREA_FACTYPE
+	 	SET 	
+			FACTYPE_NM = #{factypeNm}
+			, UPPER_FACTYPE_CD = #{upperFactypeCd}
+			, PPLTN_STAT_DFLT_SLCTN = #{ppltnStatDfltSlctn}
+			, USE_YN = #{useYn}
+			, SRV_YN = #{srvYn}
+			, SRV_DIV = #{hashTag}
+			, ORDER_NO = #{orderNo}
+			, MOD_TS = SYSDATE
+			, MOD_MANAGER_ID = #{modManagerId}
+		WHERE 	FACTYPE_CD = #{factypeCd}
+	</update>
+	
+	<delete id="removeCorpMapping" parameterType="java.util.HashMap" >
+	    DELETE FROM SRV_DT_SRVAREA_CORPMAPPING
+	    WHERE UPPER_FACTYPE_CD = #{factypeCd}
+	</delete>
+	
+	<delete id="removePoiMapping" parameterType="java.util.HashMap" >
+	    DELETE FROM SRV_DT_SRVAREA_POIMAPPING
+	    WHERE FACTYPE_CD = #{factypeCd}
+	</delete>
+	
+	<update id="registerCorpMappingMng" parameterType="java.util.HashMap" >
+	    INSERT INTO SRV_DT_SRVAREA_CORPMAPPING (
+	    	CLASS_DEG
+	    	, KSIC_2_CD
+	    	, KSIC_3_CD
+	    	, UPPER_FACTYPE_CD
+	    	, MOD_TS
+	    	, MOD_MANAGER_ID
+	    ) VALUES (
+	    	#{classDeg}
+	    	, #{ksic2Cd}
+        	, #{ksic3Cd}
+        	, #{factypeCd}
+        	, SYSDATE
+        	, #{modManagerId}
+	    )
+	</update>
+	
+	<update id="registerPoiMappingMng" parameterType="java.util.HashMap" >
+	    INSERT INTO SRV_DT_SRVAREA_POIMAPPING (
+	    	FACTYPE_CD
+	    	, CLASS_DEG
+	    	, KSIC_5_CD
+	    	, MOD_TS
+	    	, MOD_MANAGER_ID
+	    ) VALUES (
+	    	#{factypeCd}
+	    	, #{classDeg}
+	    	, #{ksic5Cd}
+	    	, SYSDATE
+        	, #{modManagerId}
+	    )
+	</update>
+	
+	<select id="getfactypeCdExists"  parameterType="java.util.HashMap" resultType="int">
+		/** getStstisticsUSLifeCycleIsExists start ... **/
+		SELECT 	COUNT(FACTYPE_CD) 
+		FROM	SRV_DT_SRVAREA_FACTYPE
+		WHERE	FACTYPE_CD = #{factypeCd}
+	</select>
+	
+	
+	<select id="checkCorpMapping" parameterType="java.util.HashMap" resultType="int">
+	    SELECT COUNT(UPPER_FACTYPE_CD) 
+	    FROM SRV_DT_SRVAREA_CORPMAPPING
+		WHERE CLASS_DEG = #{classDeg}
+			and KSIC_2_CD = #{ksic2Cd}
+			and KSIC_3_CD = #{ksic3Cd}
+	</select>
+	
+	<update id="defaultScopeMappingMng" parameterType="java.util.HashMap" >
+	    INSERT INTO SRV_DT_SRVAREA_SCOPEMAPPING (
+	    	FACTYPE_CD
+			, SCOPE_TYPE
+			, SCOPE_CD
+			, DFLT_SLCTN_YN
+			, ORDER_NO
+			, USE_YN
+	    ) VALUES (
+	    	#{factypeCd}
+	    	, #{scopeType}
+        	, #{scopeCd}
+        	, #{dfltSlctnYn}
+        	, #{orderNo}
+        	, #{useYn}
+	    )
+	</update>
+	
+	<select id="getfactypeCd" parameterType="java.util.HashMap" resultType="String">
+	    SELECT max(FACTYPE_CD) AS FACTYPE_CD
+	    FROM SRV_DT_SRVAREA_FACTYPE
+		WHERE FACTYPE_NM = #{factypeNm}
+	</select>
+</mapper>

@@ -1,0 +1,135 @@
+<!--
+	/**************************************************************************************************************************
+	* Program Name	: 행정통계시각화 대쉬보드 > 보고서 출력
+	* File Name		: administStatsPrint.html
+	* Comment		:
+	* History		:
+	*	2021.08.03	hjh	신규
+	**************************************************************************************************************************/
+-->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="format-detection" content="telephone=no" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<title>출력</title>
+
+<link rel="stylesheet" type="text/css" href="/css/jquery-ui-1.10.4.custom.css" />
+<link rel="stylesheet" type="text/css" href="/js/plugins/jquery-easyui-1.4/sop.css" />
+<link rel="stylesheet" type="text/css" href="/css/reportForm.css" />
+<link rel="stylesheet" type="text/css" href="/css/common.css" />
+<link rel="stylesheet" type="text/css" href="/css/wheelcolorpicker.css" />
+
+
+<link rel="stylesheet" href="/css/totSurv/style.css" />
+<link rel="stylesheet" href="/css/totSurv/common.css" />
+<script type="text/javascript" src="/js/plugins/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="/js/plugins/jquery-easyui-1.4/sop-src.js"></script>
+
+<script type="text/javascript" src="/js/administStats/report/administStatsPrint.js"></script>
+
+<!-- 보고서 js -->
+<script src="/js/plugins/imageCapture/rgbcolor.js"></script>
+<script src="/js/plugins/imageCapture/canvg.js"></script>
+<script src="/js/plugins/imageCapture/html2canvas.js"></script>
+<script src="/js/plugins/imageCapture/html2canvas.svg.js"></script>
+<script type="text/javascript" src="/js/plugins/html2pdf/dist/html2pdf.bundle.js"></script>
+
+<style type="text/css" media="print">
+@page {
+	size: auto;
+	margin: 10mm;
+}
+
+body {
+	margin: 0;
+}
+</style>
+<style type="text/css">
+html, body {
+	min-width: 100%;
+	overflow: auto;
+}
+
+div.printArea {
+	margin: 0px 16.5px;
+	width: auto;
+}
+
+div.screenShotArea {
+	margin: 15px auto;
+	text-align: center;
+}
+
+div.screenShotArea>img {
+	width: 97%;
+}
+</style>
+
+</head>
+<body>
+	<div id="paintDiv">
+		<div id="wrap">
+			<div class="printArea">
+				<div id="totSurvReportForm">
+					<!-- 총조사시각화 리포트 -->
+					<div class="pntPage">
+						<h1 class="pntHeader">
+							<img src="/img/common/logoPlus.png" alt="SGIS 스마트플랫폼">
+						</h1>
+						<div class="pntBtn">
+							<a href="javascript:$administStatsPrint.ui.reportPdfDown();" id="pdfdown">PDF</a>
+							<a href="javascript:$administStatsPrint.ui.reportPrint();">인쇄</a>
+							<a href="javascript:$administStatsPrint.ui.reportClose();">닫기</a>
+						</div>
+						<p class="pntURI">통계지리정보서비스 (https://sgis.kostat.go.kr)</p>
+
+						<div id="hiddenReport">
+							<div class="screenShotArea">
+								<img id="dashPrintImg">
+							</div>
+						</div>
+
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+
+	<div class="commonTotSurvBack_modal" id="totSurv_popup_back" style="display: none;"></div>
+	<div id="totSurv_popup_alert" class="commonTotSurvPopupWrap" style="left: calc(50% - 120px); top: calc(50% - 120px); width: 330px; display: none;">
+		<!-- 2020-10-13 [신예리] 공통팝업 영역 위치 수정 -->
+		<div class="commonTotSurvPopTit" style="background-color: #363A46;">
+			<h1>알림 팝업</h1>
+			<button type="button" class="commonTotSurvPopcloseBtn" id="totSurv_popup_alert_close" title="팝업 닫기"></button>
+		</div>
+		<div class="commonTotSurvPopCon">
+			<p class="commonTotSurvPopContxt" id="totSurv_popup_alert_message">비밀 번호를 입력하세요.</p>
+			<div class="commonTotSurvPopBtnBoxCurrent">
+				<button class="commonTotSurvPopOk" id="totSurv_popup_alert_ok" type="button">확인</button>
+			</div>
+		</div>
+	</div>
+
+
+	<!-- 확인 팝업 START -->
+	<div id="totSurv_popup_confirm" class="commonTotSurvPopupWrap" style="left: calc(50% - 120px); top: 100px; width: 330px; display: none;">
+		<div class="commonTotSurvPopTit" style="background-color: #363A46;">
+			<h1>알림 팝업</h1>
+			<button type="button" class="commonTotSurvPopcloseBtn" id="totSurv_popup_confirm_close" title="팝업 닫기"></button>
+		</div>
+		<div class="commonTotSurvPopCon">
+			<p class="commonTotSurvPopContxt" id="totSurv_popup_confirm_message"></p>
+			<div class="commonTotSurvPopBtnBoxCurrent">
+				<button id="totSurv_popup_confirm_ok" class="commonTotSurvPopOk" type="button">확인</button>
+				<button id="totSurv_popup_confirm_cancel" class="commonTotSurvPopCancle" type="button">취소</button>
+			</div>
+		</div>
+	</div>
+	<!-- 확인 팝업 END -->
+
+</body>
+</html>

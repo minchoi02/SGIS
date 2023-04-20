@@ -1,0 +1,500 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="boundary">
+
+	<!--19년반영 시작-->
+	<select id="hadmarea" parameterType="hashmap" resultType="hashmap">
+	<if test=' zoom_level != null and zoom_level == "100"'>
+		SELECT                                              
+				SIDO_CD||SGG_CD AS adm_cd                   
+				, SIDO_NM||' '||SGG_NM AS adm_nm            
+				, round(X_COOR) AS x                        
+				, round(y_COOR) AS y                        
+			<if test='strFormat != null '>                  
+				, st_asbinary(lighten_bord) geometry        
+			</if>                                           
+			<if test='strFormat == null '>                  
+				, st_astext(lighten_bord) geometry          
+			</if>      
+			
+		FROM
+			<!-- 2019년반영 djlee-->
+			SRV_PG_ATDRCBORD   with (nolock)    
+		WHERE                                               
+				BASE_YEAR = #{year}    
+				AND SIDO_CD = #{sido_cd}                    
+				<if test='sgg_cd != null '>                     
+					AND SGG_CD = #{sgg_cd}                      
+				</if>  
+		<if test='mapMode == "white" '>
+				UNION
+				SELECT                                              
+					SIDO_CD||SGG_CD AS adm_cd                   
+					, SIDO_NM||' '||SGG_NM AS adm_nm            
+					, round(X_COOR) AS x                        
+					, round(y_COOR) AS y                        
+				<if test='strFormat != null '>                  
+					, st_asbinary(lighten_bord) geometry        
+				</if>                                           
+				<if test='strFormat == null '>                  
+					, st_astext(lighten_bord) geometry          
+				</if>      
+				
+			FROM
+				<choose>
+			    	<when test="eventType != null and eventType == '01'">
+			      		SRV_PG_SGGBORD  with (nolock) 
+			    	</when>
+			    	<otherwise>
+			      		SRV_PG_ATDRCBORD   with (nolock) 
+			    	</otherwise>
+				</choose>         
+			WHERE                                               
+					BASE_YEAR = #{year}    
+					AND SIDO_CD <![CDATA[<>]]> #{sido_cd}                    
+					<if test='sgg_cd != null '>                     
+						AND SGG_CD <![CDATA[<>]]> #{sgg_cd}                      
+					</if>  
+			AND 	Y_COOR BETWEEN TO_NUMBER(#{centery}) - (TO_NUMBER(#{neLatLngy}) - TO_NUMBER(#{centery})) - 10000 AND  TO_NUMBER(#{centery}) + (TO_NUMBER(#{neLatLngy}) - TO_NUMBER(#{centery})) +10000                   
+		</if>
+	</if>                                                   
+	                                                        
+	<if test='zoom_level == null or zoom_level != "100"'>   
+		<if test='adm_length == "0" '>                      
+			SELECT                                          
+					SIDO_CD AS adm_cd                      
+					, SIDO_NM AS adm_nm                     
+					, round(X_COOR) AS x                    
+					, round(y_COOR) AS y                    
+				<if test='strFormat != null '>              
+					, st_asbinary(lighten_bord) geometry   
+				</if>                                       
+				<if test='strFormat == null '>              
+					, st_astext(lighten_bord) geometry      
+				</if>                                       
+			FROM                                            
+					SRV_PG_SIDOBORD with (nolock)                       
+			WHERE                                          
+					BASE_YEAR = #{year}                    
+		</if>                                              
+		                                                    
+		<if test='adm_length == "0" '>                      
+			SELECT                                          
+					SIDO_CD AS adm_cd                       
+					, SIDO_NM AS adm_nm                     
+					, round(X_COOR) AS x                    
+					, round(y_COOR) AS y                    
+				<if test='strFormat != null '>             
+					, st_asbinary(lighten_bord) geometry   >
+				</if>                                       
+				<if test='strFormat == null '>              
+					, st_astext(lighten_bord) geometry      
+				</if>                                       
+			FROM                                            
+					SRV_PG_SIDOBORD  with (nolock)                        
+			WHERE                                           
+					BASE_YEAR = #{year}                     
+		</if>                                               
+			<if test='adm_length == "2" '>
+			<!-- mng_s 김건민 20190213 -->
+				<if test='low_search == 99'>
+					SELECT b.sido_nm, 
+						a.sigungu_cd
+						,a.sigungu_nm
+						,st_asbinary(a.geom) geometry
+						,a.base_year
+					FROM srv_cnt_sigungu_pg_hst_2016 with (nolock) a , 
+					(select sido_cd, sido_nm from srv_pg_sidobord with (nolock) where base_year = case when #{year} <![CDATA[<]]> '2000' then '2000' else #{year} end ) b
+					WHERE b.sido_cd = left(a.sigungu_cd, 2) and 
+					a. base_year = #{year} and a.tonghab = 'N'
+					order by sigungu_cd
+
+				</if>
+				<if test='low_search == 100'>
+					SELECT b.sido_nm, 
+						a.sigungu_cd
+						,a.sigungu_nm
+						,st_asbinary(a.geom) geometry
+						,a.base_year
+					FROM srv_cnt_sigungu_pg_hst_2016 with (nolock) a , 
+					(select sido_cd, sido_nm from srv_pg_sidobord with (nolock) where base_year = case when #{year} <![CDATA[<]]> '2000' then '2000' else #{year} end ) b
+					WHERE b.sido_cd = left(a.sigungu_cd, 2) and 
+					<if test = 'year == 2005'>
+						a. base_year = #{year} and a.tonghab = 'Y'
+					</if>
+					<if test = 'year != 2005'>
+						a. base_year = #{year} and a.tonghab = 'N'
+					</if>
+					order by sigungu_cd
+
+				</if>
+				<if test='low_search != "99" and low_search != "100"'>
+				Select 
+						SIDO_CD AS adm_cd
+						, SIDO_NM AS adm_nm
+						, round(X_COOR) AS x
+						, round(y_COOR) AS y
+					<if test='strFormat != null '>
+						, st_asbinary(lighten_bord) geometry  
+					</if>
+					<if test='strFormat == null '>
+						, st_astext(lighten_bord) geometry  
+					</if>
+				FROM 
+						SRV_PG_SIDOBORD with (nolock) 
+				WHERE 
+						BASE_YEAR = #{year}
+						AND SIDO_CD = #{sido_cd}
+				</if>
+			<!-- mng_s 김건민 20190213 -->
+			</if>
+			<if test='adm_length == "5" '>
+				/** 시군구  **/
+				SELECT  
+						SIDO_CD||SGG_CD AS ADM_CD
+						, SIDO_NM||' '||SGG_NM AS ADM_NM
+						, ROUND(X_COOR) AS X
+						, ROUND(Y_COOR) AS Y
+					<if test='strFormat != null '>
+						, ST_ASBINARY(LIGHTEN_BORD) GEOMETRY  
+					</if>
+					<if test='strFormat == null '>
+						, ST_ASTEXT(LIGHTEN_BORD) GEOMETRY  
+					</if>
+				FROM 
+						SRV_PG_SGGBORD with (nolock) 
+				WHERE  
+					BASE_YEAR = #{year} 
+					AND SIDO_CD = #{sido_cd} 
+					<if test='sgg_cd != null '>
+						<choose>
+					    	<when test="interactiveLike != null and interactiveLike == 'true'">
+					      		AND SGG_CD like lpad(#{sgg_cd},2) || '%'
+					    	</when>
+					    	<otherwise>
+					      		AND SGG_CD = #{sgg_cd}
+					    	</otherwise>
+						</choose>
+					</if>
+				<if test='mapMode == "white" '>
+					UNION
+					SELECT  
+						SIDO_CD||SGG_CD AS ADM_CD
+						, SIDO_NM||' '||SGG_NM AS ADM_NM
+						, ROUND(X_COOR) AS X
+						, ROUND(Y_COOR) AS Y
+					<if test='strFormat != null '>
+						, ST_ASBINARY(LIGHTEN_BORD) GEOMETRY  
+					</if>
+					<if test='strFormat == null '>
+						, ST_ASTEXT(LIGHTEN_BORD) GEOMETRY  
+					</if>
+				FROM 
+						SRV_PG_SGGBORD  with (nolock)
+				WHERE 	BASE_YEAR = #{year} 
+				AND 	SIDO_CD <![CDATA[<>]]> #{sido_cd} 
+					<if test='sgg_cd != null '>
+						<choose>
+					    	<when test="interactiveLike != null and interactiveLike == 'true'">
+					      		AND SGG_CD NOT LIKE LPAD(#{sgg_cd},2) || '%'
+					    	</when>
+					    	<otherwise>
+					      		AND SGG_CD <![CDATA[<>]]> #{sgg_cd}
+					    	</otherwise>
+						</choose>
+					</if>
+				AND 	Y_COOR BETWEEN TO_NUMBER(#{centery}) - (TO_NUMBER(#{neLatLngy}) - TO_NUMBER(#{centery})) - 10000 AND  TO_NUMBER(#{centery}) + (TO_NUMBER(#{neLatLngy}) - TO_NUMBER(#{centery})) +10000                   
+				</if>
+			</if>
+			<if test='adm_length == "7" '>
+			/** length 7 asd  **/
+				SELECT  
+						SIDO_CD||SGG_CD||EMDONG_CD AS adm_cd
+						, SIDO_NM||' '||SGG_NM||' '||EMDONG_NM AS adm_nm
+						, round(X_COOR) AS x
+						, round(y_COOR) AS y
+					<if test='strFormat != null '>
+						, st_asbinary(lighten_bord) geometry  
+					</if>
+					<if test='strFormat == null '>
+						, st_astext(lighten_bord) geometry  
+					</if>
+				FROM 
+						SRV_PG_ADMBORD with (nolock) 
+				WHERE
+						BASE_YEAR = #{year} 
+						AND SIDO_CD = #{sido_cd} <!-- 2019년반영 -->
+					<if test='sgg_cd != null '>
+						<!-- 생활 업종 , 기술 업종은 자치구코드가 넘어오지 않아 따로 분기하지 않습니다. -->
+						<if test='sgg_cd.substring(2,3).equals("0") '>
+							<choose>
+						    	<when test="interactiveLike != null and interactiveLike == 'true'">
+						      		AND SGG_CD like lpad(#{sgg_cd},2) || '%'
+						    	</when>
+						    	<otherwise>
+						      		AND SGG_CD = #{sgg_cd}
+						    	</otherwise>
+							</choose>
+						</if>
+						<if test='!sgg_cd.substring(2,3).equals("0") '>
+							AND SGG_CD = #{sgg_cd}
+						</if>
+					</if>
+					<if test='emdong_cd != null '>
+						AND EMDONG_CD = #{emdong_cd}
+					</if>
+					<if test='mapMode == "white" '>  
+						UNION
+							SELECT  
+							SIDO_CD||SGG_CD||EMDONG_CD AS adm_cd
+							, SIDO_NM||' '||SGG_NM||' '||EMDONG_NM AS adm_nm
+							, round(X_COOR) AS x
+							, round(y_COOR) AS y
+						<if test='strFormat != null '>
+							, st_asbinary(lighten_bord) geometry  
+						</if>
+						<if test='strFormat == null '>
+							, st_astext(lighten_bord) geometry  
+						</if>
+					FROM 
+							SRV_PG_ADMBORD  with (nolock)
+					WHERE
+							BASE_YEAR = #{year} 
+						<if test='sgg_cd != null '>
+							<!-- 생활 업종 , 기술 업종은 자치구코드가 넘어오지 않아 따로 분기하지 않습니다. -->
+							<if test='sgg_cd.substring(2,3).equals("0") '>
+								<choose>
+							    	<when test="interactiveLike != null and interactiveLike == 'true'">
+							      		AND SGG_CD NOT LIKE LPAD(#{sgg_cd},2) || '%'
+							    	</when>
+							    	<otherwise>
+							      		AND SGG_CD <![CDATA[<>]]> #{sgg_cd}
+							    	</otherwise>
+								</choose>
+							</if>
+							<if test='!sgg_cd.substring(2,3).equals("0") '>
+								AND SGG_CD <![CDATA[<>]]> #{sgg_cd}
+							</if>
+						</if>
+						<if test='emdong_cd != null '>
+							AND EMDONG_CD <![CDATA[<>]]> #{emdong_cd}
+						</if>
+						AND Y_COOR BETWEEN TO_NUMBER(#{centery}) - (TO_NUMBER(#{neLatLngy}) - TO_NUMBER(#{centery})) - 1000 AND  TO_NUMBER(#{centery}) + (TO_NUMBER(#{neLatLngy}) - TO_NUMBER(#{centery})) +1000                   
+					</if>
+			</if>
+			<!-- 2017. 03. 28 개발팀 수정요청 -->
+			<if test='adm_length == "13"'>
+				SELECT
+						TOT_REG_CD AS ADM_CD
+						, B.ADDR AS ADM_NM
+						, 0 AS X
+						, 0 AS Y
+					<if test='strFormat != null '>
+						, st_asbinary(bord) geometry  
+					</if>
+					<if test='strFormat == null '>
+						, st_astext(bord) geometry  
+					</if>
+				FROM 
+						SRV_PG_TOTREGBORD with (nolock) A
+						INNER JOIN
+						SRV_PG_ADMBORD with (nolock) B
+						ON A.BASE_YEAR = B.BASE_YEAR AND A.SIDO_CD = B.SIDO_CD AND A.SGG_CD = B.SGG_CD AND A.EMDONG_CD = B.EMDONG_CD
+				WHERE
+						A.BASE_YEAR = #{year}
+						AND A.BASE_YEAR = B.BASE_YEAR 
+						AND A.SIDO_CD = #{sido_cd}
+						AND A.SIDO_CD = B.SIDO_CD
+						AND A.SGG_CD = #{sgg_cd} 
+						AND A.SGG_CD = B.SGG_CD
+					<if test='emdong_cd != null '>
+						AND A.EMDONG_CD = #{emdong_cd}
+						AND A.EMDONG_CD = B.EMDONG_CD
+					</if>
+			</if>
+		</if>
+	</select>
+
+	<!-- 2020년수정변경 시작 (ggm) -->
+	<select id="hadmareaForBorough" parameterType="hashmap" resultType="hashmap">
+		<if test='low_search == "2"'>
+			SELECT
+					TOT_REG_CD AS ADM_CD
+					, B.ADDR AS ADM_NM
+					, 0 AS X
+					, 0 AS Y
+				<if test='strFormat != null '>
+					, st_asbinary(bord) geometry  
+				</if>
+				<if test='strFormat == null '>
+					, st_astext(bord) geometry  
+				</if>
+			FROM 
+					SRV_PG_TOTREGBORD with (nolock) A
+					INNER JOIN
+					SRV_PG_ADMBORD with (nolock) B
+					ON A.BASE_YEAR = B.BASE_YEAR AND A.SIDO_CD = B.SIDO_CD AND A.SGG_CD = B.SGG_CD AND A.EMDONG_CD = B.EMDONG_CD
+			WHERE
+					A.BASE_YEAR = #{year}
+					AND A.BASE_YEAR = B.BASE_YEAR 
+					AND A.SIDO_CD = #{sido_cd}
+					AND A.SIDO_CD = B.SIDO_CD					
+					AND A.SGG_CD like #{sgg_cd_nonSelf} || '%'					
+<!-- 					AND A.SGG_CD = #{sgg_cd}  -->
+					AND A.SGG_CD = B.SGG_CD
+				<if test='emdong_cd != null '>
+					AND A.EMDONG_CD = #{emdong_cd}
+					AND A.EMDONG_CD = B.EMDONG_CD
+				</if>
+		</if>
+		<if test='low_search != "2"'>	
+			SELECT  
+					SIDO_CD||SGG_CD AS adm_cd
+					, SIDO_NM||' '||SGG_NM AS adm_nm
+					, round(X_COOR) AS x
+					, round(y_COOR) AS y
+				<if test='strFormat != null '>
+					, st_asbinary(lighten_bord) geometry  
+				</if>
+				<if test='strFormat == null '>
+					, st_astext(lighten_bord) geometry  
+				</if>
+			FROM 
+					SRV_PG_ATDRCBORD with (nolock) 
+			WHERE  
+					BASE_YEAR = #{year} 
+					AND SIDO_CD = #{sido_cd} 
+				<if test='sgg_cd != null '>
+					AND SGG_CD = #{sgg_cd}
+				</if>
+		</if>	
+	</select>
+	<!-- 2020년수정변경 끝 -->	
+	<!-- SGIS_4 경계추가 시작(행정구역 그리드경계) -->
+	<select id="bnd_gridarea" parameterType="hashmap" resultType="hashmap">
+		<!-- 줌레벨 변경시 함께 수정할 파일은 stats.xsql, interactiveMap.js -->
+		<!-- 행정구역 그리드의 경우 줌 0~3까지는 전국으로 보면된다. -->
+		<if test='zoom == "0" '>
+			select grid_100k_cd adm_cd, grid_100k_cd adm_nm
+				<if test='strFormat != null '>
+					, st_asbinary(bord) geometry  
+				</if>
+				<if test='strFormat == null '>
+					, st_astext(bord) geometry 
+				</if>
+			from srv_pg_grid_100k_bord with (nolock) grid
+		</if>
+		<if test='  zoom=="1" or  zoom=="2" or zoom=="3" '>
+			select grid_10k_cd adm_cd, grid_10k_cd adm_nm
+				<if test='strFormat != null '>
+					, st_asbinary(bord) geometry  
+				</if>
+				<if test='strFormat == null '>
+					, st_astext(bord) geometry 
+				</if>
+			from srv_pg_grid_10k_bord with (nolock) grid
+		</if>
+		<if test='  zoom == "4" or zoom=="5"  '>
+			select grid_10k_cd adm_cd, grid_10k_cd adm_nm
+				<if test='strFormat != null '>
+					, st_asbinary(bord) geometry  
+				</if>
+				<if test='strFormat == null '>
+					, st_astext(bord) geometry 
+				</if>
+			from srv_pg_sidobord with (nolock) bord, srv_pg_grid_10k_bord with (nolock) grid
+			where st_intersects(bord.lighten_bord, grid.bord) = 1 
+				and bord.sido_cd = #{sido_cd} 
+				and bord.base_year = #{year}
+		</if>
+		<if test=' zoom=="6" or zoom == "7"'>
+			select grid_1k_cd adm_cd , grid_1k_cd adm_nm
+				<if test='strFormat != null '>
+					, st_asbinary(bord) geometry  
+				</if>
+				<if test='strFormat == null '>
+					, st_astext(bord) geometry 
+				</if>
+			from srv_pg_sggbord with (nolock) bord, srv_pg_grid_1k_bord with (nolock) grid
+			where st_intersects(bord.lighten_bord, grid.bord) = 1 and bord.sido_cd = #{sido_cd} 
+				and bord.sgg_cd = #{sgg_cd} and bord.base_year = #{year}
+		</if>
+		<if test='zoom == "8"'>
+			select grid_500m_cd adm_cd , grid_500m_cd adm_nm
+				<if test='strFormat != null '>
+					, st_asbinary(bord) geometry  
+				</if>
+				<if test='strFormat == null '>
+					, st_astext(bord) geometry 
+				</if>
+			from srv_pg_sggbord with (nolock) bord, srv_pg_grid_500m_bord with (nolock) grid
+			where st_intersects(bord.lighten_bord, grid.bord) = 1 and bord.sido_cd = #{sido_cd} 
+				and bord.sgg_cd = #{sgg_cd} and bord.base_year = #{year}
+		</if>
+		<!--  
+		<if test='zoom == "9" or zoom=="10"'>
+			select grid_500m_cd adm_cd , grid_500m_cd adm_nm
+				<if test='strFormat != null '>
+					, st_asbinary(bord) geometry  
+				</if>
+				<if test='strFormat == null '>
+					, st_astext(bord) geometry 
+				</if>
+			from srv_pg_admbord with (nolock) bord, srv_pg_grid_500m_bord with (nolock) grid
+			where st_intersects(bord.lighten_bord, grid.bord) = 1 and bord.sido_cd = #{sido_cd} and bord.sgg_cd = #{sgg_cd} 
+				and bord.emdong_cd = #{emdong_cd} and bord.base_year = #{year}
+		</if>
+		-->
+		<if test='zoom == "9" or zoom=="10" or zoom == "11" or zoom=="12" or zoom == "13" '>
+			select grid_100m_cd adm_cd , grid_100m_cd adm_nm
+				<if test='strFormat != null '>
+					, st_asbinary(bord) geometry  
+				</if>
+				<if test='strFormat == null '>
+					, st_astext(bord) geometry 
+				</if>
+			from srv_pg_admbord with (nolock) bord, srv_pg_grid_100m_bord with (nolock) grid
+			where st_intersects(bord.lighten_bord, grid.bord) = 1 and bord.sido_cd = #{sido_cd} and bord.sgg_cd = #{sgg_cd} 
+				and bord.emdong_cd = #{emdong_cd} and bord.base_year = #{year}
+		</if>
+	</select>
+	<!-- mng_s 행정구역 그리드 adm_cd 값 가져오기 20180212 -->
+	<select id="bnd_grid_adm_cd" parameterType="hashmap" resultType="string">
+		<!-- 줌레벨 변경시 함께 수정할 파일은 stats.xsql, interactiveMap.js -->
+		<!-- 행정구역 그리드의 경우 줌 0~3까지는 전국으로 보면된다. -->
+		<if test='zoom == "0" '>
+			select '00' from dual
+		</if>
+		<if test='  zoom=="1" or  zoom=="2" or zoom=="3" '>
+			select min(sido_cd) as bnd_grid_adm_cd
+			from srv_pg_sidobord with (nolock) bord, srv_pg_grid_10k_bord with (nolock) grid
+			where st_intersects(bord.lighten_bord, grid.bord) = 1 
+				and grid.grid_10k_cd = #{adm_cd} and bord.base_year = #{year}
+		</if>
+		<if test='  zoom == "4" or zoom=="5"  '>
+			select min(sido_cd||sgg_cd) as bnd_grid_adm_cd
+			from srv_pg_sggbord with (nolock) bord, srv_pg_grid_10k_bord with (nolock) grid
+			where st_intersects(bord.lighten_bord, grid.bord) = 1 
+				and grid.grid_10k_cd = #{adm_cd} and bord.base_year = #{year}
+		</if>
+		<if test=' zoom=="6" or zoom == "7"'>
+			select max(sido_cd||sgg_cd||emdong_cd) as bnd_grid_adm_cd
+			from srv_pg_admbord with (nolock) bord, srv_pg_grid_1k_bord with (nolock) grid
+			where st_intersects(bord.lighten_bord, grid.bord) = 1 
+				and grid.grid_1k_cd = #{adm_cd} and bord.base_year = #{year}
+		</if>
+		<if test=' zoom=="8" '>
+			select max(sido_cd||sgg_cd||emdong_cd) as bnd_grid_adm_cd
+			from srv_pg_admbord with (nolock) bord, srv_pg_grid_500m_bord with (nolock) grid
+			where st_intersects(bord.lighten_bord, grid.bord) = 1 
+				and grid.grid_500m_cd = #{adm_cd} and bord.base_year = #{year}
+		</if>
+		<if test=' zoom == "9" or zoom=="10" or zoom == "11" or zoom=="12" or zoom == "13" '>
+			select max(sido_cd||sgg_cd||emdong_cd) as bnd_grid_adm_cd
+			from srv_pg_admbord with (nolock) bord, srv_pg_grid_100m_bord with (nolock) grid
+			where st_intersects(bord.lighten_bord, grid.bord) = 1 
+				and grid.grid_100m_cd = #{adm_cd} and bord.base_year = #{year}
+		</if>		
+	</select>
+	<!-- SGIS_4 경계추가 끝(행정구역 그리드경계) -->	
+</mapper>

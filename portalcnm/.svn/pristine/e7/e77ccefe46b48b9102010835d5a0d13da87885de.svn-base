@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns:p="http://www.springframework.org/schema/p"
+xsi:schemaLocation="http://www.springframework.org/schema/beans    http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+	<bean id="base.stringPool" class="com.neighborsystem.durian.pool.string.SbPool">
+		<constructor-arg index="0" type="int" value="100"/>
+	</bean> 
+	
+    <bean name="httpPool" class="com.neighborsystem.durian.pool.http.HttpPool">
+        <!-- host -->
+        <constructor-arg index="0" type="String" value="localhost"/>
+        <!-- port -->
+        <constructor-arg index="1" type="int" value="80"/>
+        <!-- maxTotalCount -->
+        <constructor-arg index="2" type="int" value="100"/>
+        <!-- maxCountPerHost -->
+        <constructor-arg index="3" type="int" value="5"/>
+        <!-- protocol -->
+        <constructor-arg index="4" type="String" value="http"/>
+    </bean>
+    
+    <bean id="apsHttpClient" class="kostat.sop.ServiceAPI.common.controller.ApsHttpClient">        
+        <!-- TBS APS -->
+        <property name="apsAddress" value="http://sgis.kostat.go.kr/"/>       
+    </bean>
+    
+    <!-- 19년반영 시작 -->
+    <bean name="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"> 
+    	<property name="maxUploadSize" value="10000000"></property> 
+    </bean>
+    <bean id="downloadView" class="kostat.sop.ServiceAPI.api.common.StstisticsDownView"></bean>
+    <bean id="excelView" class="kostat.sop.ServiceAPI.api.common.StstisticsExcelView"></bean>
+    <!-- 19년반영  끝-->
+    
+ 	
+</beans>

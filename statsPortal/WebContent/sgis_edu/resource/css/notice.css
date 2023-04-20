@@ -1,0 +1,52 @@
+/* 소식듣기 */
+
+/* 목록 */
+.tbl tbody tr:nth-of-type(2n){background: rgba(245,248,255,0.5);}
+.tbl th, .tbl td{padding: 12px 7px;}
+.tbl td{color:rgba(24,24,24,0.6); font-size: 1.4rem;}
+.tbl .title a{display:inline-block; max-width:calc(100% - 25px); vertical-align: middle; font-size:1.6rem; color:rgba(24,24,24,0.8); overflow: hidden; white-space: nowrap; text-overflow: ellipsis;}
+.tbl tr.new .title a::before{content:"new"; display: inline-flex; justify-content: center; align-items: center; height:24px; font-size:1.4rem; font-weight: 600; color:#ffa22b; margin-right: 5px; padding: 0 7px; border-radius: 50px; vertical-align: middle;background:rgb(255,162, 43, 0.2);}
+.tbl tr.atch .title::after{content:""; display: inline-block; margin-left: 5px; vertical-align: middle; width:17px; height:17px; background: url(/sgis_edu/resource/images/icon_atch.png)no-repeat 50%;}
+.tbl .cate02{color:#02bfa0;}
+.tbl .writer span{display: inline-block; width: 95%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; vertical-align: middle;}
+.tbl .state span{display: inline-block; font-size: 1.3rem; width:65px; height: 25px; line-height: 25px; vertical-align: middle; color: rgba(24,24,24,0.5); border:1px solid #cfcfcf; background: #fff; border-radius: 5px;}
+.tbl .state.complete span{border-color:transparent; background: rgba(0,104,255,0.15); color:#0068FF;}
+
+/* 상세 */
+.view h3{margin-bottom: 20px;}
+.view .viewHead{display: flex; align-items: center; min-height:65px; background: #ebeef4; padding:10px 40px; border-radius: 10px 10px 0 0;}
+.view .viewHead span:not(.title){font-size:1.4rem; color:rgba(24,24,24,0.6);}
+.view .viewHead span~span{margin-left: 30px;}
+.view .viewHead .title{max-width: 65%; font-size:1.8rem;}
+.view .viewHead .title+span{margin-left: auto;}
+.view .viewHead .writer::before{content:"ID"; display: inline-block; vertical-align: middle; margin-right: 7px; font-weight: 600; color:rgba(24, 24, 24, 0.2); font-size:1.3rem;}
+.view .viewHead .date::before{content:""; display: inline-block; vertical-align: middle; width:20px; height:18px; margin-right: 5px; background: url(/sgis_edu/resource/images/icon_time.png)no-repeat 50% 1px;}
+.view .viewHead .viewer::before{content:""; display: inline-block; vertical-align: middle; width:20px; height:18px; margin-right: 5px; background: url(/sgis_edu/resource/images/icon_view.png)no-repeat 50% 1px/16px;}
+.view .viewWrap.cata01 .viewHead::before{content:"일반문의"; font-size:1.4rem; color:rgba(24,24,24,0.6); margin-right: 20px;}
+.view .viewWrap.cata02 .viewHead::before{content:"개선요청"; font-size:1.4rem; color:#02bfa0; margin-right: 20px;}
+.view .viewBody{padding:30px 40px; border-bottom: 1px solid #e5e5e5;}
+.view .viewBody:last-of-type{height:506px; max-height: 506px;}
+.view .answer{display: flex; padding:30px 40px; background: rgba(194,194,194,0.1);}
+.view .answer::before{content:"답변완료"; width:65px; height: 25px; line-height: 25px; margin-right: 30px; text-align: center; background: rgba(0,104,255,0.15); color:#0068FF; font-size: 1.3rem; vertical-align: middle; border-radius: 5px;}
+.view .viewWrap div p{font-family: 'notoSansKR', sans-serif; font-size:1.5rem; color: rgba(24,24,24,0.8); line-height: 2em;}
+.view .atch{display:none; padding:15px 40px; border-bottom: 1px solid #e5e5e5;}
+.view .atch.on{display:block;}
+.view .atch a:hover{text-decoration: underline;}
+.view .atch a::before{content:""; display: inline-block; margin-right: 5px; vertical-align: middle; width:17px; height:17px; background: url(/sgis_edu/resource/images/icon_atch.png)no-repeat 50%;  }
+.view .atch+.viewBody{max-height:440px;}
+
+/* 생성 */
+form li{position: relative;}
+form .scrt img{width:120px; height:40px;}
+form .refresh{font-size: 0; vertical-align: middle; width:40px; height:40px; border-radius: 7px; border:1px solid #c2c2c2;}
+form .refresh::before{content:""; display: block; margin: 0 auto; width:20px; height:20px; background: url(/sgis_edu/resource/images/icon_refresh.png)no-repeat 50%/20px; opacity: .5; transition-duration: .2s;}
+form .refresh:hover::before{opacity: 1;}
+form .btnAtch{background: #efefef; border-radius: 7px; padding:5px 15px; color: rgba(24,24,24,0.6); transition-duration: .2s;}
+form .btnAtch:hover{background: #e1e1e1;}
+form .btnAtch+span{display:none; margin-left: 10px;}
+form .btnAtch+span.on{display: inline-block;}
+form .btnDel{margin-left: 5px;}
+form .maxLength{position: absolute; bottom:7px; right:15px; color:rgba(24,24,24,0.5); font-size: 1.4rem; opacity: 1; transition-duration: .2s;}
+form input:focus+.maxLength, form textarea:focus+.maxLength{opacity: 0;}
+
+.view .btnRight,.write .btnRight{margin-top: 25px;}

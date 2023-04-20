@@ -1,0 +1,251 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@include file="/WEB-INF/jsp/includes/taglib.jsp"%>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<title>오늘의 구인현황</title>
+<meta name="title" content="일자리 맵">
+<!-- 하단 리스트 Swiper -->
+<link rel="stylesheet" href="${ctx }/resources/m2020/css/subpage.css" />
+<link rel="stylesheet" href="${ctx }/resources/m2021/css/catchmentArea/navStyle.css" />
+<link rel="stylesheet" href="${ctx }/resources/m2020/plugins/swiper.css" />
+<script src="${ctx }/resources/m2020/plugins/swiper.min.js" type="text/javascript"></script>
+<!-- 하단 리스트 위 아래 Swipe 이벤트 -->
+<script src="${ctx }/resources/m2020/plugins/jquery.touchSwipe.min.js" type="text/javascript"></script>
+<script src="${ctx }/resources/m2020/js/workroad/todayStatusMap.js"></script>
+
+<!-- 2020.08.28[한광희] 메인 화면 카드 link 추가로 인한 페이지 전역변수 START -->
+<script type="text/javascript">
+	var areaType = '<c:out value="${areaType}"/>';
+</script>
+<!-- 2020.08.28[한광희] 메인 화면 카드 link 추가로 인한 페이지 전역변수 END -->
+</head>
+<body>
+	<div class="contentBox">
+		<!-- 지도 영역 START -->
+		<div class="MapArea">
+			<div class="Map" style="overflow: hidden; position: fixed; top: 60px; width: 100%;">
+				<div id="map"></div>
+			</div>
+		</div>
+		<!-- 지도 영역 END -->
+		
+		<!-- 메뉴 버튼 Swiper START -->
+		<div class="nav-2022">
+			<div class="leftCol">
+				<span class="btnNavThematic">오늘의 구인현황
+					<svg width="12" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 8C6.71875 8 6.46875 7.90625 6.28125 7.71875L1.28125 2.71875C0.875 2.34375 0.875 1.6875 1.28125 1.3125C1.65625 0.90625 2.3125 0.90625 2.6875 1.3125L7 5.59375L11.2812 1.3125C11.6562 0.90625 12.3125 0.90625 12.6875 1.3125C13.0938 1.6875 13.0938 2.34375 12.6875 2.71875L7.6875 7.71875C7.5 7.90625 7.25 8 7 8Z" /></svg>
+				</span>
+				<!-- <span class="maptit03">총인구(명)</span> -->
+			</div>
+			<!-- <div class="rightCol">
+				<div class="listTitle" id="myNeighberhoodJobListPopup_open">
+					<span id="myNeighberhoodJobList2Gubun">내 주변 채용공고</span> 
+					<span id="myNeighberhoodJobList2Count" class="rowCount">-</span> 건
+				</div>
+				<div id="myNeighberhoodJobSearch">일자리상세검색</div>
+			</div> -->
+		</div>
+		<div class="nav-layer">
+			<ul>
+				<li><a href="${ctx }/m2020/map/workroad/myNeighberhoodJobMap.sgis">내주변일자리</a></li>
+				<li class="on3"><a href="${ctx }/m2020/map/workroad/todayStatusMap.sgis">오늘의구인현황</a></li> <!-- 2022-11-24 class 추가  -->
+				<li><a href="${ctx }/m2020/map/workroad/statsAnlsMap.sgis">일자리통계정보</a></li>
+				
+			</ul>
+		</div>
+		
+		<%-- <div class="swiper-container Tabarea mlr16">
+			<div class="swiper-wrapper Tab-wrapper">
+				<div class="swiper-slide Tabbtn"><a href="${ctx }/m2020/map/workroad/myNeighberhoodJobMap.sgis">내주변일자리</a></div>
+				<div class="swiper-slide Tabbtn on2">오늘의구인현황</div>
+				<div class="swiper-slide Tabbtn"><a href="${ctx }/m2020/map/workroad/statsAnlsMap.sgis">일자리통계정보</a></div>
+			</div>
+		</div> --%>
+		<!-- Initialize Swiper -->
+		<script>
+			var swiper = new Swiper('.swiper-container', {
+				slidesPerView : 3.2,
+				spaceBetween : 10,
+				pagination : {
+					el : '.swiper-pagination',
+					clickable : true,
+				},
+			});
+			srvLogWrite('O0', '05', '01', '00', '', '');
+		</script>
+		<!-- 메뉴 버튼 Swiper END -->
+				
+		<!-- 오늘의 구인현황 START-->
+		<div class="resultWrap">
+				<div class="currenPositionWrap">
+					<div class="databtnWrap">  
+						<!-- 범례 --> 
+						<button onclick="#" id="legendInfoBtn" class="databtn02" title="범례 버튼">
+							<svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<g clip-path="url(#clip0_999_8968)">
+								<path d="M8.50033 1.4165L1.41699 4.95817L8.50033 8.49984L15.5837 4.95817L8.50033 1.4165Z" stroke="#222222" stroke-linecap="round" stroke-linejoin="round"/>
+								<path d="M1.41699 12.0415L8.50033 15.5832L15.5837 12.0415" stroke="#222222" stroke-linecap="round" stroke-linejoin="round"/>
+								<path d="M1.41699 8.5L8.50033 12.0417L15.5837 8.5" stroke="#222222" stroke-linecap="round" stroke-linejoin="round"/>
+								</g>
+								<defs>
+								<clipPath id="clip0_999_8968">
+								<rect width="17" height="17" fill="white"/>
+								</clipPath>
+								</defs>
+							</svg><br />범례
+						</button> 
+
+						<!-- 범례 tooltip START --> 
+						<div class="tooltipbox" style="top: -50px; right: 45px;">
+							<div class="tooltipbox_row">
+								<button type="button" class="syncBtn" id="reverseBtn"></button>
+								<div class="color_checkbox" id="color_range">
+									<!-- 색상선택 영역 -->
+								</div>
+								<button class="ColorRangeClose" id="dataRemarks_close" type="button" title="닫기"></button> <!-- 2020.09.08[신예리] 범례 닫기 버튼 추가 -->
+							</div>
+							<div class="tooltipbox_row"> 
+								<div id="color_list" class="color_checkbox">
+									<!-- 색상 범위 영역 -->
+								</div>
+								<p style="margin-left: 10px;"></p>
+							</div> 
+						</div>
+						<!-- 범례 tooltip END -->
+					</div>					
+				</div>
+		
+			<div class="Btnarea" id="todayStatusDetailBtn"> 
+				<button type="button" class="swiperBtn" name="button" title="결과 목록 토글 버튼"><h2 class="tit" id="todayStatusAreaTit">오늘의 구인현황(현위치 기준)</h2> <!-- 2020.08.28[한광희] 현재위치명을 표현하도록 수정 --></button> <!-- 2020.09.11 [신예리] 웹접근성 문제로 인한 text 추가 -->
+				<div class="gridWrap" id="list_div" style="height: 80px;">
+				<div style="display: flex;flex-direction: row;  margin-top: 5px; padding: 0 15px; ">
+				<div class="tjCom" style="flex: 1 50%;">				
+					<div style="margin-left: 65px;">
+						<p class="tjTitle">구인업체 수</p>
+						<p id="main_all_corp_cnt" class="tjTotalNum comColor">-</p>
+					</div>  
+				</div>
+				<div class="tjJobseeker" style="flex: 1 50%;">				
+					 <div style="margin-left: 65px;">
+						<p class="tjTitle">구인자수</p>
+						<p id="main_all_rcrit_psn_cnt" class="tjTotalNum jobColor">-</p>
+					</div>
+				</div>
+				</div> 
+				</div>
+			</div>
+			<!-- <div class="result_list" id="result_list" style="bottom: 0 !important;">
+				<h2 class="tit" id="todayStatusAreaTit">오늘의 구인현황(현위치 기준)</h2> 2020.08.28[한광희] 현재위치명을 표현하도록 수정
+				<div class="gridWrap" id="list_div" style="height: 100px;">
+				<div style="display: flex;flex-direction: row;  margin-top: 10px; padding: 0 15px; ">
+				<div class="tjCom" style="flex: 1 50%;">				
+					<div style="margin-left: 65px;">
+						<p class="tjTitle">구인업체 수</p>
+						<p id="main_all_corp_cnt" class="tjTotalNum comColor">-</p>
+					</div>  
+				</div>
+				<div class="tjJobseeker" style="flex: 1 50%;">				
+					 <div style="margin-left: 65px;">
+						<p class="tjTitle">구인자수</p>
+						<p id="main_all_rcrit_psn_cnt" class="tjTotalNum jobColor">-</p>
+					</div>
+				</div>
+				</div> 
+				</div>
+			</div> -->
+		</div>
+		<!-- 오늘의 구인현황 END-->
+	</div>
+	
+	 <!-- 오늘의 구인현황 상세 START -->
+    <div id="todayStatusDetailPopup" style=" border-top: 3px solid #112B48; background-color: white; position: fixed; right: 0; bottom:0; height:calc(100% - 300px); width: 100%; overflow: auto; z-index: 1500; display: none;">
+	  <div id="todayStatusDetailPopup_close" style="width: 100%; height: 40px; display: flex; flex-direction: row; background-color: #fff; align-items: center;">
+		<span style="color: #4f4f4f; text-align: center; align-items: center; flex: auto; font-size:14px; font-weight:bold;">오늘의 구인현황</span>
+		<!-- <button class="btnclose" type="button" id="todayStatusDetailPopup_close"></button>	 --> <!-- 2020.09.09[신예리] 이전 버튼 추가로 인한 닫기 버튼 주석 -->	
+	  </div>
+	  <div class="Content" style="background-color: #ffffff;">
+	    <div class="contentBox" style="background-color: #ffffff;">
+	      <div class="todayGraphArea">
+	        <div class="filterWrap">
+	          <ul>
+	            <li style="margin-right: 5px;">
+	              <select id="todayStatusDetailSidoCd">
+	                <option value="99" data-coor-x="990480.875" data-coor-y="1815839.375">전국</option>
+	              </select>
+	            </li>
+	            <li>
+	              <select id="todayStatusDetailSggCd"></select>
+	            </li>
+	          </ul>
+	        </div>
+	        <div class="weekGraphTitle bb" id="today">05월 15일기준</div>	<!-- 2020.09.22[한광희] 일자리맵 상세화면 수정 --><!-- 2020.09.22[신예리] 일자리맵 상세화면 class 추가 및 background-color값 삭제-->
+	        <div id="todayStatusChart"></div>
+	        <div class="todayChart">
+	          <table width="100%" border="0">
+	            <colgroup>
+	            <col class="td1">
+	            <col class="td2">
+	            <col class="td3">
+	            <col class="td4">
+	            <col class="td5">
+	            <col class="td6">
+	            <col class="td7">
+	            </colgroup>
+	            <tr>
+	              <td class="td1">전체구인</td>
+	              <td class="td2_1" id="all_corp_cnt">-</td>
+	              <td class="td3" id="all_corp_cnt_c_rate_img"></td>
+	              <td class="td4" id="all_corp_cnt_c_rate">-</td>
+	              <td class="td2_1" id="all_rcrit_psn_cnt">-</td>
+	              <td class="td3" id="all_rcrit_psn_cnt_c_rate_img"></td>
+	              <td class="td4" id="all_rcrit_psn_cnt_c_rate">-</td>
+	            </tr>
+	            <tr>
+	              <td class="td1">신규등록</td>
+	              <td class="td2" id="new_corp_cnt">-</td>
+	              <td class="td3" id="new_corp_cnt_c_rate_img"></td>
+	              <td class="td4" id="new_corp_cnt_c_rate">-</td>
+	              <td class="td2" id="new_rcrit_psn_cnt">-</td>
+	              <td class="td3" id="new_rcrit_psn_cnt_c_rate_img"></td>
+	              <td class="td4" id="new_rcrit_psn_cnt_c_rate">-</td>
+	            </tr>
+	            <tr>
+	              <td class="td1">종료마감</td>
+	              <td class="td2" id="clos_corp_cnt">-</td>
+	              <td class="td3" id="clos_corp_cnt_c_rate_img"></td>
+	              <td class="td4" id="clos_corp_cnt_c_rate">-</td>
+	              <td class="td2" id="clos_rcrit_psn_cnt">-</td>
+	              <td class="td3" id="clos_rcrit_psn_cnt_c_rate_img"></td>
+	              <td class="td4" id="clos_rcrit_psn_cnt_c_rate">-</td>
+	            </tr>
+	          </table>
+	        </div>
+	        <div class="dataInfo">
+	        (자료출처: 워크넷&인크루트&사람인)	<!-- 2020.09.01[한광희] 오늘의 구인현황 특수문자 사이 공백 제거 -->
+	        <div style="margin-left: auto;">
+	        	<span class="td_up">▲전일대비증가</span>
+	        	<span class="td_down" style="margin-left: 5px;">▼전일대비감소</span> 
+	        </div>
+	        </div>
+	      </div>
+	      <!-- 요일별 구인현황 영역 START -->
+	      <!-- 2020.09.21[한광희] 서비스 명칭 변경 START -->
+	      <div class="weekGraphTitle bb">최근 10일간 전체 구인현황 <!-- 2020.09.22[신예리] 일자리맵 상세화면 class 추가 -->
+	      	<!-- <span id="today" class="mrl10">(5월 15일기준.10일단위)</span> -->
+	      </div>
+	      <!-- 2020.09.21[한광희] 서비스 명칭 변경 END -->
+	      <div id="weekStatusChart" style="margin-bottom: 70px;"></div> <!-- 2020.09.09[신예리] 이전 버튼 추가로 인한 화면 잘림 때문에 margin-bottom 추가 -->
+	      <!-- 요일별 구인현황 영역 END -->
+	    </div>
+	    <!-- 2020.09.09[신예리] 이전 버튼 추가 START -->
+	  	<div class="sfbFooter"> 
+			<button id="todayStatusDetailPopup_close" class="btn_search" type="button" style="width: 100px;" onclick="">닫기</button>
+		</div>
+		<!-- 2020.09.09[신예리] 이전 버튼 추가 END -->
+	  </div>
+    </div>
+    <!-- 오늘의 구인현황 상세 END -->
+</body>
+</html>

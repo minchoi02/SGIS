@@ -1,0 +1,596 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="statsMeMap_BizStatsMap_Lvlh">
+<!-- My통계로 데이터 수집 업종통계지도: 생활업종통계지도 -->	
+	
+	<!-- Select One 테마코드 -->
+	<select id="selectOneCmmCdTheme" parameterType="hashmap" resultType="hashmap">
+		select
+			a.*
+		from
+			cmm_cd_theme a with(nolock)
+		where 1=1
+			and trim(a.b_theme_cd_nm) = #{b_theme_cd_nm}
+			and trim(a.s_theme_cd_nm) = #{s_theme_cd_nm}
+	</select>
+	
+	<!-- Select One 개업현황 서비스 코드 -->
+	<select id="selectOneSrvPtLocaldata" parameterType="hashmap" resultType="hashmap">
+		select
+			top 1
+			a.service_code
+			,a.service_nm
+		from
+			srv_pt_localdata a with(nolock)
+		where
+			trim(a.service_nm) = #{service_nm}
+	</select>
+	
+	<!-- Insert 카탈로그 데이터마트 업종통계지도: 생활업종통계지도 1 -->
+	<insert id="insertSrvDtCtlgDtwrh_BizStatsMap_Lvlh_1" parameterType="hashmap">
+		insert into srv_dt_ctlg_dtwrh
+		(
+			stat_data_id
+			,stats_dta_sn
+			,map_ty
+			,area_bndry_se
+			,base_year
+			,adm_cd
+			,adm_nm
+			,sido_cd
+			,sgg_cd
+			,emdong_cd
+			,x_coor
+			,y_coor
+			,poi_se_nm
+			,poi_nm
+			,unit
+			,unit_nm
+			,tooltip_cn
+			,stats_dta_co
+		)
+		select
+			#{stat_data_id} as stat_data_id
+			,${stats_dta_sn}+rownum as stats_dta_sn
+			,'color' as map_ty
+			,'sido' as area_bndry_se
+			,a.base_year as base_year
+			,trim(a.sido_cd) as adm_cd
+			,null as adm_nm
+			,trim(a.sido_cd) as sido_cd
+			,null as sgg_cd
+			,null as emdong_cd
+			,null as x_coor
+			,null as y_coor
+			,null as poi_se_nm
+			,null as poi_nm
+			,'개' as unit
+			,'수' as unit_nm
+			,null as tooltip_cn
+			,a.corp_cnt as stats_dta_co
+		from
+			srv_dt_sidolifebiz_corp_2020 a with(nolock) /* 2020.10.23[심창무] 테마코드 테이블 변경 */
+		where 1=1
+			and a.base_year = #{stat_data_base_year}
+			and a.theme_cd = #{theme_cd}
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 업종통계지도: 생활업종통계지도 2 -->
+	<insert id="insertSrvDtCtlgDtwrh_BizStatsMap_Lvlh_2" parameterType="hashmap">
+		insert into srv_dt_ctlg_dtwrh
+		(
+			stat_data_id
+			,stats_dta_sn
+			,map_ty
+			,area_bndry_se
+			,base_year
+			,adm_cd
+			,adm_nm
+			,sido_cd
+			,sgg_cd
+			,emdong_cd
+			,x_coor
+			,y_coor
+			,poi_se_nm
+			,poi_nm
+			,unit
+			,unit_nm
+			,tooltip_cn
+			,stats_dta_co
+		)
+		select
+			#{stat_data_id} as stat_data_id
+			,${stats_dta_sn}+rownum as stats_dta_sn
+			,'color' as map_ty
+			,'sgg' as area_bndry_se
+			,a.base_year as base_year
+			,trim(a.sido_cd)||trim(a.sgg_cd) as adm_cd
+			,null as adm_nm
+			,trim(a.sido_cd) as sido_cd
+			,trim(a.sgg_cd) as sgg_cd
+			,null as emdong_cd
+			,null as x_coor
+			,null as y_coor
+			,null as poi_se_nm
+			,null as poi_nm
+			,'개' as unit
+			,'수' as unit_nm
+			,null as tooltip_cn
+			,a.corp_cnt as stats_dta_co
+		from
+			srv_dt_bizcategorymap_sgg a with(nolock)
+		where 1=1
+			and a.base_year = #{stat_data_base_year}
+			and a.theme_cd = #{theme_cd}
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 업종통계지도: 생활업종통계지도 3 -->
+	<insert id="insertSrvDtCtlgDtwrh_BizStatsMap_Lvlh_3" parameterType="hashmap">
+		insert into srv_dt_ctlg_dtwrh
+		(
+			stat_data_id
+			,stats_dta_sn
+			,map_ty
+			,area_bndry_se
+			,base_year
+			,adm_cd
+			,adm_nm
+			,sido_cd
+			,sgg_cd
+			,emdong_cd
+			,x_coor
+			,y_coor
+			,poi_se_nm
+			,poi_nm
+			,unit
+			,unit_nm
+			,tooltip_cn
+			,stats_dta_co
+		)
+		with w_srv_dt_corpthemereg as (
+			select 
+				substr(a.tot_reg_cd, 0, 7) as adm_cd
+				,a.base_year
+				,sum(a.corp_cnt) as cnt
+			from 
+				srv_dt_corpthemereg a with(nolock)
+			where 1=1
+				and a.base_year = '${stat_data_base_year}'
+				and a.theme_cd = '${theme_cd}'
+			group by
+				substr(a.tot_reg_cd, 0, 7)
+				,a.base_year
+		)
+		select
+			#{stat_data_id} as stat_data_id
+			,${stats_dta_sn}+rownum as stats_dta_sn
+			,'heat' as map_ty
+			,'sido' as area_bndry_se
+			,a.base_year as base_year
+			,a.adm_cd as adm_cd
+			,null as adm_nm
+			,substr(a.adm_cd, 1, 2) as sido_cd
+			,substr(a.adm_cd, 3, 3) as sgg_cd
+			,substr(a.adm_cd, 6, 2) as emdong_cd
+			,round(b.x_coor) as x_coor
+			,round(b.y_coor) as y_coor
+			,null as poi_se_nm
+			,null as poi_nm
+			,null as unit
+			,null as unit_nm
+			,null as tooltip_cn
+			,a.cnt as stats_dta_co
+		from
+			w_srv_dt_corpthemereg a
+			inner join srv_pg_admbord b with(nolock) on b.base_year = '${bnd_year}' and b.sido_cd||b.sgg_cd||b.emdong_cd = a.adm_cd
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 업종통계지도: 생활업종통계지도 4 -->
+	<insert id="insertSrvDtCtlgDtwrh_BizStatsMap_Lvlh_4" parameterType="hashmap">
+		insert into srv_dt_ctlg_dtwrh
+		(
+			stat_data_id
+			,stats_dta_sn
+			,map_ty
+			,area_bndry_se
+			,base_year
+			,adm_cd
+			,adm_nm
+			,sido_cd
+			,sgg_cd
+			,emdong_cd
+			,x_coor
+			,y_coor
+			,poi_se_nm
+			,poi_nm
+			,unit
+			,unit_nm
+			,tooltip_cn
+			,stats_dta_co
+		)
+		with w_srv_dt_corpthemereg as (
+			select 
+				a.tot_reg_cd as adm_cd
+				,a.base_year
+				,sum(a.corp_cnt) as cnt
+			from 
+				srv_dt_corpthemereg a with(nolock)
+			where 1=1
+				and a.base_year = '${stat_data_base_year}'
+				and a.theme_cd = '${theme_cd}'
+			group by
+				a.tot_reg_cd
+				,a.base_year
+		)
+		select
+			#{stat_data_id} as stat_data_id
+			,${stats_dta_sn}+rownum as stats_dta_sn
+			,'heat' as map_ty
+			,'sgg' as area_bndry_se
+			,a.base_year as base_year
+			,a.adm_cd as adm_cd
+			,null as adm_nm
+			,substr(a.adm_cd, 1, 2) as sido_cd
+			,substr(a.adm_cd, 3, 3) as sgg_cd
+			,substr(a.adm_cd, 6, 2) as emdong_cd
+			,round(c.x_coor) as x_coor
+			,round(c.y_coor) as y_coor
+			,null as poi_se_nm
+			,null as poi_nm
+			,null as unit
+			,null as unit_nm
+			,null as tooltip_cn
+			,a.cnt as stats_dta_co
+		from
+			w_srv_dt_corpthemereg a
+			inner join (select max(base_year) as base_year from srv_pg_totregbord with(nolock)) b on 1=1
+			inner join srv_pg_totregbord c with(nolock) on c.base_year = b.base_year and c.tot_reg_cd = a.adm_cd
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 업종통계지도: 생활업종통계지도 5 -->
+	<insert id="insertSrvDtCtlgDtwrh_BizStatsMap_Lvlh_5" parameterType="hashmap">
+		insert into srv_dt_ctlg_dtwrh
+		(
+			stat_data_id
+			,stats_dta_sn
+			,map_ty
+			,area_bndry_se
+			,base_year
+			,adm_cd
+			,adm_nm
+			,sido_cd
+			,sgg_cd
+			,emdong_cd
+			,x_coor
+			,y_coor
+			,poi_se_nm
+			,poi_nm
+			,unit
+			,unit_nm
+			,tooltip_cn
+			,stats_dta_co
+		)
+		select
+			#{stat_data_id} as stat_data_id
+			,${stats_dta_sn}+rownum as stats_dta_sn
+			,'heat' as map_ty
+			,'emdong' as area_bndry_se
+			,a.base_year as base_year
+			,b.tot_reg_cd as adm_cd
+			,null as adm_nm
+			,substr(b.tot_reg_cd, 1, 2) as sido_cd
+			,substr(b.tot_reg_cd, 3, 3) as sgg_cd
+			,substr(b.tot_reg_cd, 6, 2) as emdong_cd
+			,round(st_x(b.pt)) as x_coor
+			,round(st_y(b.pt)) as y_coor
+			,null as poi_se_nm
+			,null as poi_nm
+			,null as unit
+			,null as unit_nm
+			,null as tooltip_cn
+			,1 as stats_dta_co
+		from
+			<choose>
+				<when test='stat_data_base_year != null and stat_data_base_year lte "2005"'>
+					srv_dt_corpcensus_8 a with(nolock)
+				</when>
+				<when test='stat_data_base_year != null and stat_data_base_year lte "2016"'>
+					srv_dt_corpcensus_9 a with(nolock)
+				</when>
+				<otherwise>
+					srv_dt_corpcensus_10 a with(nolock)
+				</otherwise>
+			</choose>
+			inner join srv_pt_bd b with(nolock) on b.sufid = a.sufid
+			inner join srv_pg_censusbd c with(nolock) on c.sufid = a.sufid
+			inner join cmm_cd_theme d with(nolock) on d.theme_cd = a.theme_cd
+		where 1=1
+			and a.base_year = #{stat_data_base_year}
+			and a.theme_cd = #{theme_cd}
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 업종통계지도: 생활업종통계지도 6 -->
+	<insert id="insertSrvDtCtlgDtwrh_BizStatsMap_Lvlh_6" parameterType="hashmap">
+		insert into srv_dt_ctlg_dtwrh
+		(
+			stat_data_id
+			,stats_dta_sn
+			,map_ty
+			,area_bndry_se
+			,base_year
+			,adm_cd
+			,adm_nm
+			,sido_cd
+			,sgg_cd
+			,emdong_cd
+			,x_coor
+			,y_coor
+			,poi_se_nm
+			,poi_nm
+			,unit
+			,unit_nm
+			,tooltip_cn
+			,stats_dta_co
+		)
+		with w_srv_dt_corpthemereg as (
+			select 
+				substr(a.tot_oa_cd, 0, 7) as adm_cd
+				,left(a.apvpermymd, 4) as base_year
+				,count(*) as cnt
+			from 
+				srv_pt_localdata a with(nolock)
+			where 1=1
+				and left(a.apvpermymd, 4) = '${stat_data_base_year}'
+				and a.service_code = '${service_code}'
+			group by
+				substr(a.tot_oa_cd, 0, 7)
+				,left(a.apvpermymd, 4)
+		)
+		select
+			#{stat_data_id} as stat_data_id
+			,${stats_dta_sn}+rownum as stats_dta_sn
+			,'heat' as map_ty
+			,'sido' as area_bndry_se
+			,a.base_year as base_year
+			,a.adm_cd as adm_cd
+			,null as adm_nm
+			,substr(a.adm_cd, 1, 2) as sido_cd
+			,substr(a.adm_cd, 3, 3) as sgg_cd
+			,substr(a.adm_cd, 6, 2) as emdong_cd
+			,round(c.x_coor) as x_coor
+			,round(c.y_coor) as y_coor
+			,null as poi_se_nm
+			,null as poi_nm
+			,null as unit
+			,null as unit_nm
+			,null as tooltip_cn
+			,a.cnt as stats_dta_co
+		from
+			w_srv_dt_corpthemereg a
+			inner join (select max(base_year) as base_year from srv_pg_admbord with(nolock)) b on 1=1
+			inner join srv_pg_admbord c with(nolock) on c.base_year = b.base_year and c.sido_cd||c.sgg_cd||c.emdong_cd = a.adm_cd
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 업종통계지도: 생활업종통계지도 7 -->
+	<insert id="insertSrvDtCtlgDtwrh_BizStatsMap_Lvlh_7" parameterType="hashmap">
+		insert into srv_dt_ctlg_dtwrh
+		(
+			stat_data_id
+			,stats_dta_sn
+			,map_ty
+			,area_bndry_se
+			,base_year
+			,adm_cd
+			,adm_nm
+			,sido_cd
+			,sgg_cd
+			,emdong_cd
+			,x_coor
+			,y_coor
+			,poi_se_nm
+			,poi_nm
+			,unit
+			,unit_nm
+			,tooltip_cn
+			,stats_dta_co
+		)
+		with w_srv_dt_corpthemereg as (
+			select 
+				a.tot_oa_cd as adm_cd
+				,left(a.apvpermymd, 4) as base_year
+				,count(*) as cnt
+			from 
+				srv_pt_localdata a with(nolock)
+			where 1=1
+				and left(a.apvpermymd, 4) = '${stat_data_base_year}'
+				and a.service_code = '${service_code}'
+			group by
+				a.tot_oa_cd
+				,left(a.apvpermymd, 4)
+		)
+		select
+			#{stat_data_id} as stat_data_id
+			,${stats_dta_sn}+rownum as stats_dta_sn
+			,'heat' as map_ty
+			,'sgg' as area_bndry_se
+			,a.base_year as base_year
+			,a.adm_cd as adm_cd
+			,null as adm_nm
+			,substr(a.adm_cd, 1, 2) as sido_cd
+			,substr(a.adm_cd, 3, 3) as sgg_cd
+			,substr(a.adm_cd, 6, 2) as emdong_cd
+			,round(c.x_coor) as x_coor
+			,round(c.y_coor) as y_coor
+			,null as poi_se_nm
+			,null as poi_nm
+			,null as unit
+			,null as unit_nm
+			,null as tooltip_cn
+			,a.cnt as stats_dta_co
+		from
+			w_srv_dt_corpthemereg a
+			inner join (select max(base_year) as base_year from srv_pg_totregbord with(nolock)) b on 1=1
+			inner join srv_pg_totregbord c with(nolock) on c.base_year = b.base_year and c.tot_reg_cd = a.adm_cd
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 업종통계지도: 생활업종통계지도 8 -->
+	<insert id="insertSrvDtCtlgDtwrh_BizStatsMap_Lvlh_8" parameterType="hashmap">
+		insert into srv_dt_ctlg_dtwrh
+		(
+			stat_data_id
+			,stats_dta_sn
+			,map_ty
+			,area_bndry_se
+			,base_year
+			,adm_cd
+			,adm_nm
+			,sido_cd
+			,sgg_cd
+			,emdong_cd
+			,x_coor
+			,y_coor
+			,poi_se_nm
+			,poi_nm
+			,unit
+			,unit_nm
+			,tooltip_cn
+			,stats_dta_co
+		)
+		select
+			#{stat_data_id} as stat_data_id
+			,${stats_dta_sn}+rownum as stats_dta_sn
+			,'heat' as map_ty
+			,'emdong' as area_bndry_se
+			,left(a.apvpermymd, 4) as base_year
+			,a.tot_oa_cd as adm_cd
+			,null as adm_nm
+			,substr(a.tot_oa_cd, 1, 2) as sido_cd
+			,substr(a.tot_oa_cd, 3, 3) as sgg_cd
+			,substr(a.tot_oa_cd, 6, 2) as emdong_cd
+			,a.coord_x as x_coor
+			,a.coord_y as y_coor
+			,null as poi_se_nm
+			,null as poi_nm
+			,null as unit
+			,null as unit_nm
+			,null as tooltip_cn
+			,1 as stats_dta_co
+		from
+			srv_pt_localdata a with(nolock)
+		where 1=1
+			and left(a.apvpermymd, 4) = #{stat_data_base_year}
+			and a.service_code = #{service_code}
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 업종통계지도: 생활업종통계지도 9 -->
+	<insert id="insertSrvDtCtlgDtwrh_BizStatsMap_Lvlh_9" parameterType="hashmap">
+		insert into srv_dt_ctlg_dtwrh
+		(
+			stat_data_id
+			,stats_dta_sn
+			,map_ty
+			,area_bndry_se
+			,base_year
+			,adm_cd
+			,adm_nm
+			,sido_cd
+			,sgg_cd
+			,emdong_cd
+			,x_coor
+			,y_coor
+			,poi_se_nm
+			,poi_nm
+			,unit
+			,unit_nm
+			,tooltip_cn
+			,stats_dta_co
+		)
+		select
+			#{stat_data_id} as stat_data_id
+			,${stats_dta_sn}+rownum as stats_dta_sn
+			,'poi' as map_ty
+			,'all' as area_bndry_se
+			,a.base_year as base_year
+			,b.tot_reg_cd as adm_cd
+			,null as adm_nm
+			,substr(b.tot_reg_cd, 1, 2) as sido_cd
+			,substr(b.tot_reg_cd, 3, 3) as sgg_cd
+			,substr(b.tot_reg_cd, 6, 2) as emdong_cd
+			,round(st_x(b.pt)) as x_coor
+			,round(st_y(b.pt)) as y_coor
+			,'5' as poi_se_nm
+			,a.corp_nm||'$'||d.b_theme_cd_nm||'/'||d.s_theme_cd_nm as poi_nm
+			,null as unit
+			,null as unit_nm
+			,null as tooltip_cn
+			,null as stats_dta_co
+		from
+			<choose>
+				<when test='stat_data_base_year != null and stat_data_base_year lte "2005"'>
+					srv_dt_corpcensus_8 a with(nolock)
+				</when>
+				<when test='stat_data_base_year != null and stat_data_base_year lte "2016"'>
+					srv_dt_corpcensus_9 a with(nolock)
+				</when>
+				<otherwise>
+					srv_dt_corpcensus_10 a with(nolock)
+				</otherwise>
+			</choose>
+			inner join srv_pt_bd b with(nolock) on b.sufid = a.sufid
+			inner join srv_pg_censusbd c with(nolock) on c.sufid = a.sufid
+			inner join cmm_cd_theme d with(nolock) on d.theme_cd = a.theme_cd
+		where 1=1
+			and a.base_year = #{stat_data_base_year}
+			and a.theme_cd = #{theme_cd}
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 업종통계지도: 생활업종통계지도 10 -->
+	<insert id="insertSrvDtCtlgDtwrh_BizStatsMap_Lvlh_10" parameterType="hashmap">
+		insert into srv_dt_ctlg_dtwrh
+		(
+			stat_data_id
+			,stats_dta_sn
+			,map_ty
+			,area_bndry_se
+			,base_year
+			,adm_cd
+			,adm_nm
+			,sido_cd
+			,sgg_cd
+			,emdong_cd
+			,x_coor
+			,y_coor
+			,poi_se_nm
+			,poi_nm
+			,unit
+			,unit_nm
+			,tooltip_cn
+			,stats_dta_co
+		)
+		select
+			#{stat_data_id} as stat_data_id
+			,${stats_dta_sn}+rownum as stats_dta_sn
+			,'poi' as map_ty
+			,'all' as area_bndry_se
+			,left(a.apvpermymd, 4) as base_year
+			,a.tot_oa_cd as adm_cd
+			,a.sitewhladdr as adm_nm
+			,substr(a.tot_oa_cd, 1, 2) as sido_cd
+			,substr(a.tot_oa_cd, 3, 3) as sgg_cd
+			,substr(a.tot_oa_cd, 6, 2) as emdong_cd
+			,a.coord_x as x_coor
+			,a.coord_y as y_coor
+			,'5' as poi_se_nm
+			,a.bplcnm||'$'||a.service_nm as poi_nm
+			,null as unit
+			,null as unit_nm
+			,null as tooltip_cn
+			,null as stats_dta_co
+		from
+			srv_pt_localdata a with(nolock)
+		where 1=1
+			and left(a.apvpermymd, 4) = #{stat_data_base_year}
+			and a.service_code = #{service_code}
+	</insert>
+	
+</mapper>

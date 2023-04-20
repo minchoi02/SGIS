@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="sysSts">
+    <select id="getManageStatusCount" resultType="hashMap">
+		SELECT qna_cnt, down_cnt, dat_cnt, join_cnt, reserve
+		  FROM (
+				SELECT COUNT(*) AS qna_cnt
+				  FROM QNA
+				 WHERE ANS_ID IS NULL 
+			   ) QNA,
+		       (
+				SELECT COUNT(*) AS down_cnt
+				  FROM data_trans_req
+				 WHERE procs_state_cd = 'REQ' 
+			   ) DOWN,
+		       (
+				SELECT COUNT(*) AS dat_cnt
+				  FROM REQUEST_GRANT
+				 WHERE ( GRANT_YN = 'N' OR (GRANT_YN != 'Y' AND GRANT_YN != 'T' AND GRANT_YN != 'X') )
+			   ) DAT,
+		       (
+				SELECT COUNT(*) AS join_cnt
+				  FROM MEMBER
+				 WHERE GRANT_YN = 'O' AND delete_yn = 'N' 
+			   ) MEM,
+			   (
+			   SELECT reserve
+                 FROM restriction
+                WHERE restriction_cd = 'USER_DAUM_MAPPNIG_YN'
+			   ) DAUM
+    </select>
+	
+	<select id="selectCollectJobHistory" parameterType="string" resultType="hashMap">
+		SELECT
+			collect.colct_mth_div_cd,
+			type_cd.colct_name,
+			result.job_progrs_state_cd,
+			TO_CHAR(result.start_dt,'YYYY-MM-DD HH24:MI') start_dt,
+			TO_CHAR(result.end_dt,'YYYY-MM-DD HH24:MI') end_dt
+		FROM data_colct_result collect
+		INNER JOIN data_job_project_result result
+		ON
+			collect.job_setup_seq = result.job_setup_seq
+			AND collect.execute_id = result.project_result_id
+		INNER JOIN data_colct_type_cd type_cd
+		ON
+			collect.colct_mth_div_cd = type_cd.colct_value
+		ORDER BY result.start_dt DESC
+		LIMIT 5
+	</select>
+	 
+    <select id="selectMemberSts" resultType="hashMap">
+        SELECT
+			user_nm
+			,(CASE WHEN grant_yn = 'Y' THEN '승인' WHEN grant_yn = 'X' THEN '반려' ELSE '요청' END) AS grant_yn
+			,to_char(reg_ts, 'YYYY-MM-DD HH24:MI:SS') AS reg_ts
+        FROM member
+		WHERE grant_yn = 'O' and delete_yn = 'N'
+		ORDER BY user_no DESC
+    </select>
+
+    <select id="selectReqTransDataSts" resultType="hashMap">
+		SELECT
+			 (SELECT user_nm FROM member WHERE user_id = a.user_id) AS user_nm
+			 , to_char(a.req_dt, 'YYYY-MM-DD HH24:MI:SS') AS reg_ts
+			 , '요청' AS grant_yn
+		FROM 
+			data_trans_req a
+		WHERE 
+			a.procs_state_cd = 'REQ'
+		ORDER BY a.req_seq DESC
+		LIMIT 2        
+    </select>
+    
+    <!-- 공지사항 게시물 목록 -->
+    <select id="selectNotice5" resultType="hashMap">
+		SELECT 
+			 title 
+			 , TO_CHAR(reg_ts,'YYYY-MM-DD') AS reg_ts
+		FROM notice 
+	    ORDER BY post_no DESC
+	    LIMIT 5
+    </select>
+    
+    <!-- QNA 게시물 목록 -->
+    <select id="selectQNA5" resultType="hashMap">
+		SELECT 
+			 title 
+			 , TO_CHAR(reg_ts,'YYYY-MM-DD') AS reg_ts
+		FROM qna 
+	    ORDER BY post_no DESC
+	    LIMIT 5
+    </select>
+     
+    <!-- 공유 게시물 목록 -->
+    <select id="selectPopNotice5" resultType="hashMap">
+		SELECT 
+			 left(content, 50) title
+			 , TO_CHAR(reg_ts,'YYYY-MM-DD') AS reg_ts
+		FROM share_board 
+		WHERE content is not null and content != ''
+	    ORDER BY share_board_no DESC
+	    LIMIT 5
+    </select>   
+</mapper>

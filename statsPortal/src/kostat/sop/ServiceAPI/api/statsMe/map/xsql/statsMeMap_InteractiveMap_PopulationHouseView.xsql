@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="statsMeMap_InteractiveMap_PopulationHouseView">
+<!-- My통계로 데이터 수집 대화형 통계지도:인구주택총조사 -->	
+	
+	<!-- Insert 카탈로그 데이터마트 대화형 통계지도:인구주택총조사:인구 -->
+	<insert id="insertSrvDtCtlgDtwrh_InteractiveMap_PopulationHouseView_Pop" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+		  	 , SIDO_CD
+		  	 , SGG_CD
+		  	 , EMDONG_CD
+		  	 , X_COOR
+		  	 , Y_COOR
+		  	 , POI_SE_NM
+		  	 , POI_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , X.MAP_TY	/* 지도유형 */
+			 , X.AREA_BNDRY_SE	/* 지역경계구분 */
+			 , #{base_year} AS BASE_YEAR	/* 기준년도 */
+			 , X.ADM_CD	/* 지역코드 */
+			 , X.ADM_NM	/* 지역명 */
+			 , X.SIDO_CD	/* 시도코드 */
+			 , X.SGG_CD	/* 시군구코드 */
+			 , X.EMDONG_CD	/* 읍면동코드 */
+			 , X.X_COOR	/* X 좌표 */
+			 , X.Y_COOR	/* Y 좌표 */
+			 , X.POI_SE_NM	/* 점(POI) 구분 */
+			 , X.POI_NM	/* 점(POI) 명 */
+			 , X.UNIT	/* 단위 */
+			 , X.UNIT_NM	/* 단위 명 */
+			 , X.TOOLTIP_CN	/* 툴팁내용 */
+			 , X.STATS_DTA_CO	/* 통계자료건수 */
+		  FROM (<!-- 시도 -->
+		  		SELECT 'color' AS MAP_TY
+					 , 'sido' AS AREA_BNDRY_SE
+					 , SIDO_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SIDO_CD
+					 , NULL AS SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , '명' AS UNIT
+					 , '인구' AS UNIT_NM
+					 , #{stat_data_base_year} || '년 인구' AS TOOLTIP_CN
+					 , SUM(PPLTN_CNT) AS STATS_DTA_CO
+				  FROM SRV_DT_POPSGG_${stat_data_base_year} WITH(NOLOCK)
+				 WHERE 1=1
+				   AND AGE <![CDATA[>=]]> ${age_from}
+				   <if test='age_to != null and age_to != "" and age_to != undefined'>
+				   AND AGE <![CDATA[<=]]> ${age_to}
+				   </if>
+				   <if test='gender != null and gender != "" and gender != undefined'>
+				   AND GENDER = #{gender}
+				   </if>
+				 GROUP BY SIDO_CD
+				 <!-- 시군구 -->
+				 UNION ALL
+				SELECT 'color' AS MAP_TY
+					 , 'sgg' AS AREA_BNDRY_SE
+					 , SIDO_CD || SGG_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SIDO_CD
+					 , SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , '명' AS UNIT
+					 , '인구' AS UNIT_NM
+					 , #{stat_data_base_year} || '년 인구' AS TOOLTIP_CN
+					 , SUM(PPLTN_CNT) AS STATS_DTA_CO
+				  FROM SRV_DT_POPSGG_${stat_data_base_year} WITH(NOLOCK)
+				 WHERE 1=1
+				   AND AGE <![CDATA[>=]]> ${age_from}
+				   <if test='age_to != null and age_to != "" and age_to != undefined'>
+				   AND AGE <![CDATA[<=]]> ${age_to}
+				   </if>
+				   <if test='gender != null and gender != "" and gender != undefined'>
+				   AND GENDER = #{gender}
+				   </if>
+				 GROUP BY SIDO_CD, SGG_CD
+				 <!-- 읍면동 -->
+				 UNION ALL
+				SELECT 'color' AS MAP_TY
+					 , 'emdong' AS AREA_BNDRY_SE
+					 , SUBSTR(TOT_REG_CD, 1, 7) AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , '명' AS UNIT
+					 , '인구' AS UNIT_NM
+					 , #{stat_data_base_year} || '년 인구' AS TOOLTIP_CN
+					 , SUM(PPLTN_CNT) AS STATS_DTA_CO
+				  FROM SRV_DT_POPSREG_${stat_data_base_year} WITH(NOLOCK)
+				 WHERE 1=1
+				   AND AGE <![CDATA[>=]]> ${age_from}
+				   <if test='age_to != null and age_to != "" and age_to != undefined'>
+				   AND AGE <![CDATA[<=]]> ${age_to}
+				   </if>
+				   <if test='gender != null and gender != "" and gender != undefined'>
+				   AND GENDER = #{gender}
+				   </if>
+				 GROUP BY SUBSTR(TOT_REG_CD, 1, 7), SUBSTR(TOT_REG_CD, 1, 2), SUBSTR(TOT_REG_CD, 3, 3), SUBSTR(TOT_REG_CD, 6, 2)
+				 <!-- 소지역 -->
+				 UNION ALL
+				SELECT 'color' AS MAP_TY
+					 , 'totreg' AS AREA_BNDRY_SE
+					 , TOT_REG_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , '명' AS UNIT
+					 , '인구' AS UNIT_NM
+					 , #{stat_data_base_year} || '년 인구' AS TOOLTIP_CN
+					 , SUM(PPLTN_CNT) AS STATS_DTA_CO
+				  FROM SRV_DT_POPSREG_${stat_data_base_year} WITH(NOLOCK)
+				 WHERE 1=1
+				   AND AGE <![CDATA[>=]]> ${age_from}
+				   <if test='age_to != null and age_to != "" and age_to != undefined'>
+				   AND AGE <![CDATA[<=]]> ${age_to}
+				   </if>
+				   <if test='gender != null and gender != "" and gender != undefined'>
+				   AND GENDER = #{gender}
+				   </if>
+				 GROUP BY TOT_REG_CD, SUBSTR(TOT_REG_CD, 1, 2), SUBSTR(TOT_REG_CD, 3, 3), SUBSTR(TOT_REG_CD, 6, 2)
+		  	   ) X
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 대화형 통계지도:인구주택총조사:가구 -->
+	<insert id="insertSrvDtCtlgDtwrh_InteractiveMap_PopulationHouseView_Family" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+		  	 , SIDO_CD
+		  	 , SGG_CD
+		  	 , EMDONG_CD
+		  	 , X_COOR
+		  	 , Y_COOR
+		  	 , POI_SE_NM
+		  	 , POI_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , X.MAP_TY	/* 지도유형 */
+			 , X.AREA_BNDRY_SE	/* 지역경계구분 */
+			 , #{base_year} AS BASE_YEAR	/* 기준년도 */
+			 , X.ADM_CD	/* 지역코드 */
+			 , X.ADM_NM	/* 지역명 */
+			 , X.SIDO_CD	/* 시도코드 */
+			 , X.SGG_CD	/* 시군구코드 */
+			 , X.EMDONG_CD	/* 읍면동코드 */
+			 , X.X_COOR	/* X 좌표 */
+			 , X.Y_COOR	/* Y 좌표 */
+			 , X.POI_SE_NM	/* 점(POI) 구분 */
+			 , X.POI_NM	/* 점(POI) 명 */
+			 , X.UNIT	/* 단위 */
+			 , X.UNIT_NM	/* 단위 명 */
+			 , X.TOOLTIP_CN	/* 툴팁내용 */
+			 , X.STATS_DTA_CO	/* 통계자료건수 */
+		  FROM (<!-- 시도 -->
+		  		SELECT 'color' AS MAP_TY
+					 , 'sido' AS AREA_BNDRY_SE
+					 , SIDO_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SIDO_CD
+					 , NULL AS SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , '가구' AS UNIT
+					 , '가구수' AS UNIT_NM
+					 , #{stat_data_base_year} || '년 가구수' AS TOOLTIP_CN
+					 , SUM(FAMILY_CNT) AS STATS_DTA_CO
+				  FROM SRV_DT_FAMILYSGG_${stat_data_base_year} WITH(NOLOCK)
+				 WHERE 1=1
+				   AND RD_HOUSEHOLD_TYPE = 'A0'
+				 GROUP BY SIDO_CD
+				 <!-- 시군구 -->
+				 UNION ALL
+				SELECT 'color' AS MAP_TY
+					 , 'sgg' AS AREA_BNDRY_SE
+					 , SIDO_CD || SGG_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SIDO_CD
+					 , SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , '가구' AS UNIT
+					 , '가구수' AS UNIT_NM
+					 , #{stat_data_base_year} || '년 가구수' AS TOOLTIP_CN
+					 , SUM(FAMILY_CNT) AS STATS_DTA_CO
+				  FROM SRV_DT_FAMILYSGG_${stat_data_base_year} WITH(NOLOCK)
+				 WHERE 1=1
+				   AND RD_HOUSEHOLD_TYPE = 'A0'
+				 GROUP BY SIDO_CD, SGG_CD
+				 <!-- 읍면동 -->
+				 UNION ALL
+				SELECT 'color' AS MAP_TY
+					 , 'emdong' AS AREA_BNDRY_SE
+					 , SUBSTR(TOT_REG_CD, 1, 7) AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , '가구' AS UNIT
+					 , '가구수' AS UNIT_NM
+					 , #{stat_data_base_year} || '년 가구수' AS TOOLTIP_CN
+					 , SUM(FAMILY_CNT) AS STATS_DTA_CO
+				  FROM SRV_DT_FAMILYREG_${stat_data_base_year} WITH(NOLOCK)
+				 WHERE 1=1
+				   AND RD_HOUSEHOLD_TYPE = 'A0'
+				 GROUP BY SUBSTR(TOT_REG_CD, 1, 7), SUBSTR(TOT_REG_CD, 1, 2), SUBSTR(TOT_REG_CD, 3, 3), SUBSTR(TOT_REG_CD, 6, 2)
+				 <!-- 소지역 -->
+				 UNION ALL
+				SELECT 'color' AS MAP_TY
+					 , 'totreg' AS AREA_BNDRY_SE
+					 , TOT_REG_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , '가구' AS UNIT
+					 , '가구수' AS UNIT_NM
+					 , #{stat_data_base_year} || '년 가구수' AS TOOLTIP_CN
+					 , SUM(FAMILY_CNT) AS STATS_DTA_CO
+				  FROM SRV_DT_FAMILYREG_${stat_data_base_year} WITH(NOLOCK)
+				 WHERE 1=1
+				   AND RD_HOUSEHOLD_TYPE = 'A0'
+				 GROUP BY TOT_REG_CD, SUBSTR(TOT_REG_CD, 1, 2), SUBSTR(TOT_REG_CD, 3, 3), SUBSTR(TOT_REG_CD, 6, 2)
+		  	   ) X
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 대화형 통계지도:인구주택총조사:가구격자 -->
+	<insert id="insertSrvDtCtlgDtwrh_InteractiveMap_PopulationHouseView_FamilyGrid" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+		  	 , SIDO_CD
+		  	 , SGG_CD
+		  	 , EMDONG_CD
+		  	 , X_COOR
+		  	 , Y_COOR
+		  	 , POI_SE_NM
+		  	 , POI_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , X.MAP_TY	/* 지도유형 */
+			 , X.AREA_BNDRY_SE	/* 지역경계구분 */
+			 , #{base_year} AS BASE_YEAR	/* 기준년도 */
+			 , X.ADM_CD	/* 지역코드 */
+			 , X.ADM_NM	/* 지역명 */
+			 , NULL AS SIDO_CD	/* 시도코드 */
+			 , NULL AS SGG_CD	/* 시군구코드 */
+			 , NULL AS EMDONG_CD	/* 읍면동코드 */
+			 , NULL AS X_COOR	/* X 좌표 */
+			 , NULL AS Y_COOR	/* Y 좌표 */
+			 , NULL AS POI_SE_NM	/* 점(POI) 구분 */
+			 , NULL AS POI_NM	/* 점(POI) 명 */
+			 , X.UNIT	/* 단위 */
+			 , X.UNIT_NM	/* 단위 명 */
+			 , X.TOOLTIP_CN	/* 툴팁내용 */
+			 , X.STATS_DTA_CO	/* 통계자료건수 */
+		  FROM (SELECT 'color' AS MAP_TY	/* 지도유형 */
+					 , GRID_LEVEL_DIV AS AREA_BNDRY_SE	/* 지역경계구분 */
+					 , GRID_CD AS ADM_CD	/* 지역코드 */
+					 , GRID_CD AS ADM_NM	/* 지역명 */
+					 , '가구' AS UNIT			/* 단위 */
+			 		 , '가구수' AS UNIT_NM		/* 단위 명 */
+					 , #{stat_data_base_year} || '년 가구수' AS TOOLTIP_CN	/* 툴팁내용 */
+					 , SUM(FAMILY_CNT) AS STATS_DTA_CO	/* 통계자료건수 */
+				  FROM SRV_DT_GRID_FAMILY_2015_MT WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year}
+		   		   AND RD_HOUSEHOLD_TYPE = 'A0'
+				 GROUP BY GRID_LEVEL_DIV, GRID_CD 
+		  	   ) X
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 대화형 통계지도:인구주택총조사:주택 -->
+	<insert id="insertSrvDtCtlgDtwrh_InteractiveMap_PopulationHouseView_House" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+		  	 , SIDO_CD
+		  	 , SGG_CD
+		  	 , EMDONG_CD
+		  	 , X_COOR
+		  	 , Y_COOR
+		  	 , POI_SE_NM
+		  	 , POI_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , X.MAP_TY	/* 지도유형 */
+			 , X.AREA_BNDRY_SE	/* 지역경계구분 */
+			 , #{base_year} AS BASE_YEAR	/* 기준년도 */
+			 , X.ADM_CD	/* 지역코드 */
+			 , X.ADM_NM	/* 지역명 */
+			 , X.SIDO_CD	/* 시도코드 */
+			 , X.SGG_CD	/* 시군구코드 */
+			 , X.EMDONG_CD	/* 읍면동코드 */
+			 , X.X_COOR	/* X 좌표 */
+			 , X.Y_COOR	/* Y 좌표 */
+			 , X.POI_SE_NM	/* 점(POI) 구분 */
+			 , X.POI_NM	/* 점(POI) 명 */
+			 , X.UNIT	/* 단위 */
+			 , X.UNIT_NM	/* 단위 명 */
+			 , X.TOOLTIP_CN	/* 툴팁내용 */
+			 , X.STATS_DTA_CO	/* 통계자료건수 */
+		  FROM (<!-- 시도 -->
+		  		SELECT 'color' AS MAP_TY
+					 , 'sido' AS AREA_BNDRY_SE
+					 , SIDO_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SIDO_CD
+					 , NULL AS SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , '호' AS UNIT
+					 , '주택수' AS UNIT_NM
+					 , #{stat_data_base_year} || '년 주택수' AS TOOLTIP_CN
+					 , SUM(RESID_CNT) AS STATS_DTA_CO
+				  FROM SRV_DT_HOUSESGG_${stat_data_base_year} WITH(NOLOCK)
+				 WHERE 1=1
+				   AND HOUSE_YN = 'Y'
+				 GROUP BY SIDO_CD
+				 <!-- 시군구 -->
+				 UNION ALL
+				SELECT 'color' AS MAP_TY
+					 , 'sgg' AS AREA_BNDRY_SE
+					 , SIDO_CD || SGG_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SIDO_CD
+					 , SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , '호' AS UNIT
+					 , '주택수' AS UNIT_NM
+					 , #{stat_data_base_year} || '년 주택수' AS TOOLTIP_CN
+					 , SUM(RESID_CNT) AS STATS_DTA_CO
+				  FROM SRV_DT_HOUSESGG_${stat_data_base_year} WITH(NOLOCK)
+				 WHERE 1=1
+				   AND HOUSE_YN = 'Y'
+				 GROUP BY SIDO_CD, SGG_CD
+				 <!-- 읍면동 -->
+				 UNION ALL
+				SELECT 'color' AS MAP_TY
+					 , 'emdong' AS AREA_BNDRY_SE
+					 , SUBSTR(TOT_REG_CD, 1, 7) AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , '호' AS UNIT
+					 , '주택수' AS UNIT_NM
+					 , #{stat_data_base_year} || '년 주택수' AS TOOLTIP_CN
+					 , SUM(RESID_CNT) AS STATS_DTA_CO
+				  FROM SRV_DT_HOUSEREG_${stat_data_base_year} WITH(NOLOCK)
+				 WHERE 1=1
+				   AND HOUSE_YN = 'Y'
+				 GROUP BY SUBSTR(TOT_REG_CD, 1, 7), SUBSTR(TOT_REG_CD, 1, 2), SUBSTR(TOT_REG_CD, 3, 3), SUBSTR(TOT_REG_CD, 6, 2)
+				 <!-- 소지역 -->
+				 UNION ALL
+				SELECT 'color' AS MAP_TY
+					 , 'totreg' AS AREA_BNDRY_SE
+					 , TOT_REG_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , '호' AS UNIT
+					 , '주택수' AS UNIT_NM
+					 , #{stat_data_base_year} || '년 주택수' AS TOOLTIP_CN
+					 , SUM(RESID_CNT) AS STATS_DTA_CO
+				  FROM SRV_DT_HOUSEREG_${stat_data_base_year} WITH(NOLOCK)
+				 WHERE 1=1
+				   AND HOUSE_YN = 'Y'
+				 GROUP BY TOT_REG_CD, SUBSTR(TOT_REG_CD, 1, 2), SUBSTR(TOT_REG_CD, 3, 3), SUBSTR(TOT_REG_CD, 6, 2)
+		  	   ) X
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 대화형 통계지도:인구주택총조사:주택격자 -->
+	<insert id="insertSrvDtCtlgDtwrh_InteractiveMap_PopulationHouseView_HouseGrid" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , X.MAP_TY	/* 지도유형 */
+			 , X.AREA_BNDRY_SE	/* 지역경계구분 */
+			 , #{base_year} AS BASE_YEAR	/* 기준년도 */
+			 , X.ADM_CD	/* 지역코드 */
+			 , X.ADM_NM	/* 지역명 */
+			 , X.UNIT	/* 단위 */
+			 , X.UNIT_NM	/* 단위 명 */
+			 , X.TOOLTIP_CN	/* 툴팁내용 */
+			 , X.STATS_DTA_CO	/* 통계자료건수 */
+		  FROM (SELECT 'color' AS MAP_TY	/* 지도유형 */
+					 , GRID_LEVEL_DIV AS AREA_BNDRY_SE	/* 지역경계구분 */
+					 , GRID_CD AS ADM_CD	/* 지역코드 */
+					 , GRID_CD AS ADM_NM	/* 지역명 */
+					 , '호' AS UNIT
+			 		 , '주택수' AS UNIT_NM
+					 , #{stat_data_base_year} || '년 주택수' AS TOOLTIP_CN	/* 툴팁내용 */
+					 , SUM(RESID_CNT) AS STATS_DTA_CO	/* 통계자료건수 */
+				  FROM SRV_DT_GRID_HOUSE_2015_MT WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year}
+				   AND HOUSE_YN = 'Y'
+				 GROUP BY GRID_LEVEL_DIV, GRID_CD 
+		  	   ) X
+	</insert>
+	
+</mapper>

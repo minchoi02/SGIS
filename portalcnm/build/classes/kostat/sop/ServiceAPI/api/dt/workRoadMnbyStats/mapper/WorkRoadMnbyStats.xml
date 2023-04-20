@@ -1,0 +1,503 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 2021.06.09[hjh] 일자리 월별 집계 -->
+<mapper namespace="WorkRoadMnbyStats">
+
+	<sql id="SelectSearchWorkRoadMnbyStats">
+		SELECT
+			t1.reg_ym
+			, t1.sido_cd
+			, t3.sido_nm
+			<choose>
+				<when test='"EMDONG".equals(SEARCH_ADDR_CD)'><!-- 조회단위: 읍면동 -->
+					, t1.sgg_cd
+					, t3.sgg_nm
+					, t1.emdong_cd
+					, t3.emdong_nm
+				</when>
+				<when test='"SGG".equals(SEARCH_ADDR_CD)'><!-- 조회단위: 시군구 -->
+					, t1.sgg_cd
+					, t3.sgg_nm
+					, '-' AS emdong_nm
+				</when>
+				<otherwise>
+					, '-' AS sgg_nm
+					, '-' AS emdong_nm
+				</otherwise>
+			</choose>
+			, t1.bndry_year AS stdr_bndry_year
+			, nvl(t1.corp_cnt, 0) AS stdr_corp_cnt
+			, nvl(t1.rcrit_psn_cnt, 0) AS stdr_rcrit_psn_cnt
+			, nvl(t2.bndry_year, '-') AS cmpr_bndry_year
+			, nvl(t2.corp_cnt, 0) AS cmpr_corp_cnt
+			, nvl(t2.rcrit_psn_cnt, 0) AS cmpr_rcrit_psn_cnt
+		FROM
+			(
+				SELECT
+					reg_ym
+					, bndry_year
+					, sido_cd
+					<choose>
+						<when test='"EMDONG".equals(SEARCH_ADDR_CD)'><!-- 조회단위: 읍면동 -->
+							, sgg_cd
+							, emdong_cd
+							, corp_cnt
+							, rcrit_psn_cnt
+						</when>
+						<otherwise><!-- 조회단위: 시도/시군구 -->
+							<if test='"SGG".equals(SEARCH_ADDR_CD)'><!-- 조회단위: 시군구 -->
+								, sgg_cd
+							</if>
+							, sum(corp_cnt) AS corp_cnt
+							, sum(rcrit_psn_cnt) AS rcrit_psn_cnt
+						</otherwise>
+					</choose>
+				FROM
+					srv_dt_job_mnby_sm
+				WHERE
+					1 = 1
+					<choose>
+						<when test='"P".equals(SEARCH_STDR_SE)'><!-- 기준구분: 과거 -->
+							AND bndry_year = (
+								SELECT
+									bndry_year
+								FROM (
+										SELECT
+											bndry_year
+											, RANK() OVER(
+												ORDER BY
+													bndry_year DESC
+											) AS rk
+										FROM
+											srv_dt_job_mnby_sm
+										GROUP BY
+											bndry_year
+									)
+								WHERE
+									1 = 1
+									AND rk = 2
+							)
+						</when>
+						<otherwise><!-- 기준구분: 현재 -->
+							AND bndry_year = (
+								SELECT
+									max(bndry_year)
+								FROM
+									srv_dt_job_mnby_sm
+							)
+						</otherwise>
+					</choose>
+				<if test='!"EMDONG".equals(SEARCH_ADDR_CD)'><!-- 조회단위: 시도/시군구 -->
+					GROUP BY
+						reg_ym
+						, bndry_year
+						, sido_cd
+						<if test='"SGG".equals(SEARCH_ADDR_CD)'><!-- 조회단위: 시군구 -->
+							, sgg_cd
+						</if>
+				</if>
+			) t1
+		LEFT OUTER JOIN (
+				SELECT
+					reg_ym
+					, bndry_year
+					, sido_cd
+					<choose>
+						<when test='"EMDONG".equals(SEARCH_ADDR_CD)'><!-- 조회단위: 읍면동 -->
+							, sgg_cd
+							, emdong_cd
+							, corp_cnt
+							, rcrit_psn_cnt
+						</when>
+						<otherwise>
+							<if test='"SGG".equals(SEARCH_ADDR_CD)'><!-- 조회단위: 시군구 -->
+								, sgg_cd
+							</if>
+							, sum(corp_cnt) AS corp_cnt
+							, sum(rcrit_psn_cnt) AS rcrit_psn_cnt
+						</otherwise>
+					</choose>
+				FROM
+					srv_dt_job_mnby_sm
+				WHERE
+					1 = 1
+					<choose>
+						<when test='"P".equals(SEARCH_STDR_SE)'><!-- 기준구분: 과거 -->
+							AND bndry_year = (
+								SELECT
+									max(bndry_year)
+								FROM
+									srv_dt_job_mnby_sm
+							)
+						</when>
+						<otherwise><!-- 기준구분: 현재 -->
+							AND bndry_year = (
+								SELECT
+									bndry_year
+								FROM (
+										SELECT
+											bndry_year
+											, RANK() OVER(
+												ORDER BY
+													bndry_year DESC
+											) AS rk
+										FROM
+											srv_dt_job_mnby_sm
+										GROUP BY
+											bndry_year
+									)
+								WHERE
+									1 = 1
+									AND rk = 2
+							)
+						</otherwise>
+					</choose>
+				<if test='!"EMDONG".equals(SEARCH_ADDR_CD)'><!-- 조회단위: 시도/시군구 -->
+					GROUP BY
+						reg_ym
+						, bndry_year
+						, sido_cd
+						<if test='"SGG".equals(SEARCH_ADDR_CD)'><!-- 조회단위: 시군구 -->
+							, sgg_cd
+						</if>
+				</if>
+			) t2 ON
+				t1.reg_ym = t2.reg_ym
+				AND t1.sido_cd = t2.sido_cd
+			<choose>
+				<when test='"EMDONG".equals(SEARCH_ADDR_CD)'><!-- 조회단위: 읍면동 -->
+					AND t1.sgg_cd = t2.sgg_cd
+					AND t1.emdong_cd = t2.emdong_cd
+				</when>
+				<when test='"SGG".equals(SEARCH_ADDR_CD)'><!-- 조회단위: 시군구 -->
+					AND t1.sgg_cd = t2.sgg_cd
+				</when>
+			</choose>
+		<choose>
+			<when test='"EMDONG".equals(SEARCH_ADDR_CD)'><!-- 조회단위: 읍면동 -->
+				LEFT OUTER JOIN srv_pg_admbord t3 ON
+					t1.sido_cd = t3.sido_cd
+					AND t1.sgg_cd = t3.sgg_cd
+					AND t1.emdong_cd = t3.emdong_cd
+					AND t1.bndry_year = t3.base_year
+			</when>
+			<when test='"SGG".equals(SEARCH_ADDR_CD)'><!-- 조회단위: 시군구 -->
+				LEFT OUTER JOIN srv_pg_sggbord t3 ON
+					t1.sido_cd = t3.sido_cd
+					AND t1.sgg_cd = t3.sgg_cd
+					AND t1.bndry_year = t3.base_year
+			</when>
+			<otherwise><!-- 조회단위: 시도 -->
+				LEFT OUTER JOIN srv_pg_sidobord t3 ON
+					t1.sido_cd = t3.sido_cd
+					AND t1.bndry_year = t3.base_year
+			</otherwise>
+		</choose>
+		WHERE
+			1 = 1
+			<include refid="WhereSearchWorkRoadMnbyStats" />
+	</sql>
+
+	<sql id="WhereSearchWorkRoadMnbyStats">
+		<if test='SEARCH_REG_YEAR != null and SEARCH_REG_YEAR != ""'>
+			<choose>
+				<when test='SEARCH_REG_MONTH == null or SEARCH_REG_MONTH == ""'>
+					AND t1.reg_ym LIKE #{SEARCH_REG_YEAR} || '%'
+				</when>
+				<otherwise>
+					AND t1.reg_ym = #{SEARCH_REG_YEAR} || #{SEARCH_REG_MONTH}
+				</otherwise>
+			</choose>
+		</if>
+		<if test='SEARCH_SIDO_CD != null and SEARCH_SIDO_CD != ""'>
+			AND t1.sido_cd = #{SEARCH_SIDO_CD}
+		</if>
+		<if test='SEARCH_SGG_CD != null and SEARCH_SGG_CD != ""'>
+			AND t1.sgg_cd = #{SEARCH_SGG_CD}
+		</if>
+		<if test='SEARCH_EMDONG_CD != null and SEARCH_EMDONG_CD != ""'>
+			AND t1.emdong_cd = #{SEARCH_EMDONG_CD}
+		</if>
+	</sql>
+
+	<sql id="WhereSearchWorkRoadMnbyStats2">
+		<if test='(SEARCH_CORP_CNT_MTCH_YN != null and SEARCH_CORP_CNT_MTCH_YN != "") or (SEARCH_RCRIT_PSN_CNT_MTCH_YN != null and SEARCH_RCRIT_PSN_CNT_MTCH_YN != "")'>
+			<trim prefix="AND (" suffix=")">
+				<if test='SEARCH_CORP_CNT_MTCH_YN != null and SEARCH_CORP_CNT_MTCH_YN != ""'>
+					r1.stdr_corp_cnt
+					<if test='"Y".equals(SEARCH_CORP_CNT_MTCH_YN)'>
+						<![CDATA[=]]>
+					</if>
+					<if test='"N".equals(SEARCH_CORP_CNT_MTCH_YN)'>
+						<![CDATA[<>]]>
+					</if>
+					r1.cmpr_corp_cnt
+				</if>
+				<choose>
+					<when test='(SEARCH_LOGIC_OPRTOR == null or SEARCH_LOGIC_OPRTOR == "") and (SEARCH_CORP_CNT_MTCH_YN != null and SEARCH_CORP_CNT_MTCH_YN != "" and SEARCH_RCRIT_PSN_CNT_MTCH_YN != null and SEARCH_RCRIT_PSN_CNT_MTCH_YN != "")'>
+						OR
+					</when>
+					<when test='(SEARCH_LOGIC_OPRTOR != null and SEARCH_LOGIC_OPRTOR != "") and (SEARCH_RCRIT_PSN_CNT_MTCH_YN == null or SEARCH_RCRIT_PSN_CNT_MTCH_YN == "")'>
+					</when>
+					<when test='SEARCH_LOGIC_OPRTOR != null and SEARCH_LOGIC_OPRTOR != ""'>
+						<if test='"A".equals(SEARCH_LOGIC_OPRTOR)'>
+							AND
+						</if>
+						<if test='"O".equals(SEARCH_LOGIC_OPRTOR)'>
+							OR
+						</if>
+					</when>
+				</choose>
+				<if test='SEARCH_RCRIT_PSN_CNT_MTCH_YN != null and SEARCH_RCRIT_PSN_CNT_MTCH_YN != ""'>
+					r1.stdr_rcrit_psn_cnt
+					<if test='"Y".equals(SEARCH_RCRIT_PSN_CNT_MTCH_YN)'>
+						<![CDATA[=]]>
+					</if>
+					<if test='"N".equals(SEARCH_RCRIT_PSN_CNT_MTCH_YN)'>
+						<![CDATA[<>]]>
+					</if>
+					r1.cmpr_rcrit_psn_cnt
+				</if>
+			</trim>
+		</if>
+	</sql>
+
+	<!-- 일자리 월별 집계 건수 조회 -->
+	<select id="searchWorkRoadMnbyStatsCount" parameterType="hashmap" resultType="int">
+		SELECT
+			count(*) AS cnt
+		FROM
+			(
+				SELECT
+					r1.*
+				FROM
+					(
+						<include refid="SelectSearchWorkRoadMnbyStats" />
+					) r1
+				WHERE
+					1 = 1
+					<include refid="WhereSearchWorkRoadMnbyStats2" />
+			)
+	</select>
+
+	<!-- 일자리 월별 집계 목록 조회 -->
+	<select id="searchWorkRoadMnbyStats" parameterType="Map" resultType="Map">
+		SELECT
+			*
+		FROM
+			(
+				SELECT
+					r1.*
+					, ROW_NUMBER() OVER(
+						ORDER BY
+							r1.reg_ym desc
+							, r1.sido_cd
+							<choose>
+								<when test='"EMDONG".equals(SEARCH_ADDR_CD)'><!-- 조회단위: 읍면동 -->
+									, r1.sgg_nm
+									, r1.emdong_nm
+								</when>
+								<when test='"SGG".equals(SEARCH_ADDR_CD)'><!-- 조회단위: 시군구 -->
+									, r1.sgg_nm
+								</when>
+							</choose>
+					) AS row_num
+				FROM
+					(
+						<include refid="SelectSearchWorkRoadMnbyStats" />
+					) r1
+				WHERE
+					1 = 1
+					<include refid="WhereSearchWorkRoadMnbyStats2" />
+			)
+		WHERE
+			1 = 1
+			<if test='START_INDEX != null and START_INDEX != ""'>
+				AND row_num <![CDATA[>=]]> #{START_INDEX}
+			</if>
+			<if test='END_INDEX != null and END_INDEX != ""'>
+				AND row_num <![CDATA[<=]]> #{END_INDEX}
+			</if>
+		ORDER BY
+			row_num
+	</select>
+
+	<!-- 일자리 월별 집계 등록년 목록 조회 -->
+	<select id="getWorkRoadMnbyStatsRegYearList" parameterType="Map" resultType="Map">
+		SELECT
+			substring(reg_ym, 1, 4) AS reg_year
+		FROM
+			srv_dt_job_mnby_sm
+		GROUP BY
+			substring(reg_ym, 1, 4)
+		ORDER BY
+			substring(reg_ym, 1, 4) DESC
+	</select>
+
+	<!-- 일자리 월별 집계 등록월 목록 조회 -->
+	<select id="getWorkRoadMnbyStatsRegMonthList" parameterType="Map" resultType="Map">
+		SELECT
+			substring(reg_ym, 5, 2) AS reg_month
+		FROM
+			srv_dt_job_mnby_sm
+		WHERE
+			1 = 1
+			<if test='SEARCH_REG_YEAR != null and SEARCH_REG_YEAR != ""'>
+				AND reg_ym LIKE #{SEARCH_REG_YEAR} || '%'
+			</if>
+		GROUP BY
+			reg_ym
+		ORDER BY
+			reg_ym DESC
+	</select>
+
+	<!-- 일자리 월별 집계 경계 비교 목록 조회 -->
+	<select id="getWorkRoadMnbyStatsCmprList" parameterType="Map" resultType="Map">
+		SELECT
+			t1.create_ym
+			, t1.bndry_year
+			, t1.sido_cd
+			, t2.sido_nm
+			<choose>
+				<when test='EMDONG_CD != null and EMDONG_CD != ""'><!-- 조회단위: 읍면동 -->
+					, t1.sgg_cd
+					, t2.sgg_nm
+					, t1.emdong_cd
+					, t2.emdong_nm
+				</when>
+				<when test='SGG_CD != null and SGG_CD != ""'><!-- 조회단위: 시군구 -->
+					, t1.sgg_cd
+					, t2.sgg_nm
+					, '-' AS emdong_nm
+				</when>
+				<otherwise>
+					, '-' AS sgg_nm
+					, '-' AS emdong_nm
+				</otherwise>
+			</choose>
+			, sum(t1.corp_cnt) AS corp_cnt
+			, sum(t1.rcrit_psn_cnt) AS rcrit_psn_cnt
+		FROM
+			(
+				SELECT
+					s1.create_ym
+					, s1.bndry_year
+					, s1.sido_cd
+					, s1.sgg_cd
+					, s1.emdong_cd
+					, s1.corp_cnt
+					, s1.rcrit_psn_cnt
+				FROM
+					srv_dt_job_mnby_sm_bndry s1
+				WHERE
+					1 = 1
+					AND s1.create_ym = #{CREATE_YM}
+					AND (
+							(
+								s1.sido_cd = #{SIDO_CD}
+								<choose>
+									<when test='EMDONG_CD != null and EMDONG_CD != ""'><!-- 조회단위: 읍면동 -->
+										AND s1.sgg_cd = #{SGG_CD}
+										AND s1.emdong_cd = #{EMDONG_CD}
+									</when>
+									<when test='SGG_CD != null and SGG_CD != ""'><!-- 조회단위: 시군구 -->
+										AND s1.sgg_cd = #{SGG_CD}
+									</when>
+								</choose>
+							)
+						OR
+							(
+								s1.past_sido_cd = #{SIDO_CD}
+								<choose>
+									<when test='EMDONG_CD != null and EMDONG_CD != ""'><!-- 조회단위: 읍면동 -->
+										AND s1.past_sgg_cd = #{SGG_CD}
+										AND s1.past_emdong_cd = #{EMDONG_CD}
+									</when>
+									<when test='SGG_CD != null and SGG_CD != ""'><!-- 조회단위: 시군구 -->
+										AND s1.past_sgg_cd = #{SGG_CD}
+									</when>
+								</choose>
+							)
+					)
+				UNION ALL
+				SELECT
+					s2.create_ym
+					, s2.past_bndry_year
+					, s2.past_sido_cd
+					, s2.past_sgg_cd
+					, s2.past_emdong_cd
+					, s2.corp_cnt
+					, s2.rcrit_psn_cnt
+				FROM
+					srv_dt_job_mnby_sm_bndry s2
+				WHERE
+					1 = 1
+					AND s2.create_ym = #{CREATE_YM}
+					AND (
+						(
+							s2.sido_cd = #{SIDO_CD}
+							<choose>
+								<when test='EMDONG_CD != null and EMDONG_CD != ""'><!-- 조회단위: 읍면동 -->
+									AND s2.sgg_cd = #{SGG_CD}
+									AND s2.emdong_cd = #{EMDONG_CD}
+								</when>
+								<when test='SGG_CD != null and SGG_CD != ""'><!-- 조회단위: 시군구 -->
+									AND s2.sgg_cd = #{SGG_CD}
+								</when>
+							</choose>
+						)
+						OR
+						(
+							s2.past_sido_cd = #{SIDO_CD}
+							<choose>
+								<when test='EMDONG_CD != null and EMDONG_CD != ""'><!-- 조회단위: 읍면동 -->
+									AND s2.past_sgg_cd = #{SGG_CD}
+									AND s2.past_emdong_cd = #{EMDONG_CD}
+								</when>
+								<when test='SGG_CD != null and SGG_CD != ""'><!-- 조회단위: 시군구 -->
+									AND s2.past_sgg_cd = #{SGG_CD}
+								</when>
+							</choose>
+						)
+					)
+			) t1
+		<choose>
+			<when test='EMDONG_CD != null and EMDONG_CD != ""'><!-- 조회단위: 읍면동 -->
+				LEFT OUTER JOIN srv_pg_admbord t2 ON
+					t1.sido_cd = t2.sido_cd
+					AND t1.sgg_cd = t2.sgg_cd
+					AND t1.emdong_cd = t2.emdong_cd
+					AND t1.bndry_year = t2.base_year
+			</when>
+			<when test='SGG_CD != null and SGG_CD != ""'><!-- 조회단위: 시군구 -->
+				LEFT OUTER JOIN srv_pg_sggbord t2 ON
+					t1.sido_cd = t2.sido_cd
+					AND t1.sgg_cd = t2.sgg_cd
+					AND t1.bndry_year = t2.base_year
+			</when>
+			<otherwise><!-- 조회단위: 시도 -->
+				LEFT OUTER JOIN srv_pg_sidobord t2 ON
+					t1.sido_cd = t2.sido_cd
+					AND t1.bndry_year = t2.base_year
+			</otherwise>
+		</choose>
+			GROUP BY
+				t1.create_ym
+				, t1.bndry_year
+				, t1.sido_cd
+				, t2.sido_nm
+				<choose>
+					<when test='EMDONG_CD != null and EMDONG_CD != ""'><!-- 조회단위: 읍면동 -->
+						, t1.sgg_cd
+						, t2.sgg_nm
+						, t1.emdong_cd
+						, t2.emdong_nm
+				</when>
+				<when test='SGG_CD != null and SGG_CD != ""'><!-- 조회단위: 시군구 -->
+					, t1.sgg_cd
+					, t2.sgg_nm
+				</when>
+			</choose>
+	</select>
+
+</mapper>

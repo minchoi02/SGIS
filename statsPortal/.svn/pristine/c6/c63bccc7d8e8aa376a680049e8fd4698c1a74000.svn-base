@@ -1,0 +1,581 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="totSurvMain">
+	
+	<!-- 각 조사별 시계열 호출 - 2020.08.09	juKwak	신규 -->
+	<select id="getTotTms" parameterType="hashmap" resultType="hashmap">	
+		SELECT 
+			MIN(STATTB_BEGIN_YEAR) as START_YEAR,
+			MAX(STATTB_END_YEAR) as END_YEAR,
+			UPDT_CYCLE
+		  FROM SRV_DT_ST_LIST
+		 WHERE 1=1
+		 <!-- AND thema = #{thema} -->
+		 <if test='thema.equals("농업")'>
+		 	AND TBL_ID IN ('DT_1AG15104', 'DT_1AG104', 'DT_1AG20104')
+		 </if>
+		 <if test='thema.equals("인구")'>
+		 	AND TBL_ID = 'DT_1IN1502'
+		 </if>
+		 <if test='thema.equals("가구")'>
+		 	AND TBL_ID = 'DT_1IN1502'
+		 </if>
+		 <if test='thema.equals("주택")'>
+		 	AND TBL_ID = 'DT_1IN1502'
+		 </if>
+		 <if test='thema.equals("어업")'>
+		 	AND TBL_ID IN ('DT_1FS15103', 'DT_1FS103', 'DT_1FS20103')
+		 </if>
+		 <if test='thema.equals("임업")'>
+			AND TBL_ID IN ('DT_1FO15105', 'DT_1FO105', 'DT_1FO20104')
+		 </if>
+		GROUP BY UPDT_CYCLE
+	</select>
+	
+	<!-- 경제, 행정 시계열 호출 - 2021.08.10 [이영호] -->
+	<select id="getTotTms2021" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			MIN(STATTB_BEGIN_YEAR) as START_YEAR,
+			MAX(STATTB_END_YEAR) as END_YEAR,
+			UPDT_CYCLE
+	  	FROM SRV_DT_ST_LIST
+	 	WHERE 1=1
+		 <if test='thema.equals("경제")'>
+		 	<if test='ecnmyType.equals("ecnmy9th")'>
+		 		AND TBL_ID IN ('DT_1KI2002', 'DT_1KI1510')
+		 	</if>
+		 	<if test='ecnmyType.equals("ecnmy10th")'>
+		 		AND TBL_ID IN ('DT_1KI1510_10')
+		 	</if>		 	
+		 </if>
+		 <if test='thema.equals("행정")'>
+			AND TBL_ID IN ('DT_1NW2034')
+		 </if>
+		GROUP BY UPDT_CYCLE
+	</select>
+	
+	<!-- 총조사 시각화 상세 정보 가져오기- 2021.09.14 [이영호] -->
+	<select id="getTotSurvDetailYears" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			MIN(STATTB_BEGIN_YEAR) as START_YEAR,
+			MAX(STATTB_END_YEAR) as END_YEAR,
+			UPDT_CYCLE
+	  	FROM SRV_DT_ST_LIST
+	 	WHERE 1=1		
+		<if test=' orgId != null and orgId != "" '>
+	 		AND ORG_ID = #{orgId}
+	 	</if>
+	 	<if test=' tblId != null and tblId != "" '>
+	 		AND TBL_ID = #{tblId}
+	 	</if>
+		GROUP BY UPDT_CYCLE
+	</select>
+	
+	<!-- 총조사 시각화 상세 정보 가져오기- 2021.09.14 [이영호] -->
+	<select id="getTotSurvDetail" parameterType="hashmap" resultType="hashmap">
+		SELECT SETUP.CHART_ORD AS chart_ord
+			, SETUP.DISP_OBJ_VAR_ID AS itm_id
+			, LIST.OBJ_NM AS obj_nm
+			, REPLACE(SETUP.CHART_NM, '_계', '') AS chart_nm
+		FROM SRV_DT_ST_LIST LIST
+			, SRV_DT_ST_CHART_ITM_SETUP SETUP
+		WHERE LIST.ORG_ID = SETUP.ORG_ID
+		  AND LIST.TBL_ID = SETUP.TBL_ID
+		  AND SETUP.ORG_ID = #{orgId}
+		  AND SETUP.TBL_ID = #{tblId}
+		  AND SETUP.DEL_YN = 'N'
+		  AND SETUP.DET_YN = 'Y'
+		  AND SETUP.TOT_SURV_YN = 'Y'
+		  GROUP BY SETUP.CHART_ORD, SETUP.DISP_OBJ_VAR_ID, LIST.OBJ_NM, SETUP.CHART_NM
+		  ORDER BY DISP_OBJ_VAR_ID, chart_ord
+	</select>
+	
+	<!-- 총조사 시각화 상세 차트 정보 가져오기- 2021.09.14 [이영호] -->
+	<select id="getTotSurvChartData" parameterType="hashmap" resultType="hashmap">
+		SELECT LIST.ORG_ID
+			, LIST.TBL_ID
+			, LIST.REGION_VAR_ORD
+			, SETUP.CHART_ORD
+			, SETUP.CHART_NM
+			, SETUP.KOSIS_UNIT_NM
+			, SETUP.KOSIS_UNIT
+			, SETUP.DISP_UNIT_NM
+			, SETUP.DISP_UNIT
+			, SETUP.DISP_CO
+			, SETUP.ALL_DISP_AT
+			, SETUP.CHART_TYPE
+			, DET.OBJ_VAR_ID
+			, DET.ITM_ID
+			, DET.VAR_ORD
+			, DET.SCR_KOR
+			, DET.ALTRTV_DISP_WRD
+			, DET.SUBSUM_YN
+			, DET.CHOISE_YN
+		FROM SRV_DT_ST_LIST LIST
+			, SRV_DT_ST_CHART_ITM_SETUP SETUP
+			, SRV_DT_ST_CHART_DET_ITM_SETUP DET
+		WHERE LIST.ORG_ID = SETUP.ORG_ID
+		  AND LIST.TBL_ID = SETUP.TBL_ID
+		  AND SETUP.ORG_ID = DET.ORG_ID
+		  AND SETUP.TBL_ID = DET.TBL_ID
+		  AND SETUP.CHART_ORD = DET.CHART_ORD
+		  AND SETUP.ORG_ID = #{orgId}
+		  AND SETUP.TBL_ID = #{tblId}
+		  AND SETUP.CHART_ORD = #{chartOrd}
+		  AND DET.CHOISE_YN = 'Y'
+		  AND DET.DEL_YN = 'N'
+	</select>
+	
+	<!-- getTotSurvCharItmList - 2022.01.06 [이영호] -->
+	<select id="getTotSurvCharItmList" parameterType="hashmap" resultType="hashmap">
+		SELECT ITM_ID
+		FROM SRV_DT_ST_CHART_DET_ITM_SETUP
+		WHERE ORG_ID = #{orgId}
+		  AND TBL_ID = #{tblId}
+		  AND CHART_ORD = #{chartOrd}
+		  AND OBJ_VAR_ID = '13999001'
+		  AND CHOISE_YN = 'Y'
+		  AND DEL_YN = 'N'
+		  AND DET_YN = 'Y'
+		  AND TOT_SURV_YN = 'Y'
+	</select>
+	
+	<!-- 각 조사별 맵데이터 호출 - 2020.08.12	juKwak	신규 -->
+	<select id="getTotSurvData" parameterType="hashmap" resultType="hashmap">	
+		SELECT 
+			DT, 
+			SURV_ID, 
+			REGION_CD as ADM_CD, 
+			REGION_NM, 
+			ITM_NM, 
+			UNIT_NM 
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+		AND SURV_ID = #{surv_id}
+		AND SURV_YEAR = #{surv_year}
+		<if test='sido_cd == null or sido_cd == ""'>
+			AND length(REGION_CD) = 2
+		</if>
+		<if test='sido_cd != null and sido_cd != ""'>
+			<if test='sgg_cd != null and sgg_cd != "" and isAtdrc == "false"'>
+				AND length(REGION_CD) = 5
+				AND REGION_CD like #{sido_cd}||'%'
+				/* 2021-08-04 [이영호] 비자치구 지역 제외 */
+				AND REGION_CD NOT IN (
+					SELECT REGION_CD FROM SRV_DT_TOT_SURV_NON_ATDRC WHERE DEL_YN = 'N' AND BASE_YEAR = #{surv_year} AND UPPER_REGION_CD IS NOT NULL
+				)
+			</if>
+			<if test='sgg_cd != null and sgg_cd != "" and isAtdrc == "true"'>
+				AND length(REGION_CD) = 5
+				AND	REGION_CD LIKE #{sido_cd}||lpad(#{sgg_cd},2) || '%'
+				AND	REGION_CD != #{sido_cd}||#{sgg_cd}
+			</if>
+			<if test='sgg_cd == null or sgg_cd == ""'>
+				AND length(REGION_CD) =	2
+			</if>
+		</if>
+		<if test='surv_id == "PH0001"'>
+			<if test='itm_cd == "" or itm_cd == null'>
+				AND ITM_CD = 'T100'
+			</if>
+		</if>
+		<if test='itm_cd != "" and itm_cd != null'>
+			AND ITM_CD = #{itm_cd}
+		</if>
+		<if test='c1 != "" and c1 != null'>
+			AND C1 = #{c1}
+		</if>
+		<if test='c2 != "" and c2 != null'>
+			AND C2 = #{c2}
+		</if>
+	</select>
+	
+	<!-- 임업 경영형태별 임가 맵데이터 호출 - 2020.11.10	한광희	추가 START -->
+	<select id="getTotSurvData_2" parameterType="hashmap" resultType="hashmap">	
+		SELECT 
+			SUM(DT) AS DT, 
+			SURV_ID, 
+			REGION_CD as ADM_CD, 
+			REGION_NM, 
+			UNIT_NM 
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+		AND SURV_ID = #{surv_id}
+		AND SURV_YEAR = #{surv_year}
+		<if test='sido_cd == null or sido_cd == ""'>
+			AND length(REGION_CD) = 2
+			AND REGION_CD != '00'
+		</if>
+		<if test='sido_cd != null and sido_cd != ""'>
+			<if test='sgg_cd != null and sgg_cd != "" and isAtdrc == "false"'>
+				AND length(REGION_CD) = 5
+				AND REGION_CD like #{sido_cd}||'%'
+			</if>
+			<if test='sgg_cd != null and sgg_cd != "" and isAtdrc == "true"'>
+				AND length(REGION_CD) = 5
+				AND	REGION_CD LIKE #{sido_cd}||lpad(#{sgg_cd},2) || '%'
+				AND	REGION_CD != #{sido_cd}||#{sgg_cd}
+			</if>
+			<if test='sgg_cd == null or sgg_cd == ""'>
+				AND length(REGION_CD) =	2
+			</if>
+		</if>
+		<if test='itm_cd != "" and itm_cd != null'>
+			AND ITM_CD IN
+			<foreach collection="itm_cdList" item="items" open="(" separator="," close=")"> 
+				#{items}
+		   	</foreach>
+		</if>
+		<if test='c1 != "" and c1 != null'>
+			AND C1 = #{c1}
+		</if>
+		<if test='c2 != "" and c2 != null'>
+			AND C2 = #{c2}
+		</if>
+		GROUP BY SURV_ID, REGION_CD, REGION_NM, UNIT_NM
+	</select>
+	<!-- 임업 경영형태별 임가 맵데이터 호출 - 2020.11.10	한광희	추가 END -->
+	
+	<!-- Select List 지역경계 -->
+	<select id="selectListMapRegion" parameterType="hashmap" resultType="hashmap">
+		<choose>
+			<!-- 시도 경계 -->
+			<when test='region == "sido"'>
+				select
+					a.sido_cd as adm_cd
+					,a.sido_nm as adm_nm
+					,round(a.x_coor) AS x
+					,round(a.y_coor) AS y
+					,st_asbinary(a.lighten_bord) geometry
+				from
+					srv_pg_sidobord a with(nolock)
+					<choose>
+						<when test='base_year != null and base_year != ""'>
+							inner join (select #{base_year} as base_year from dual) b on b.base_year = a.base_year
+						</when>
+						<otherwise>
+							inner join (select max(base_year) as base_year from srv_pg_sidobord with(nolock)) b on b.base_year = a.base_year
+						</otherwise>
+					</choose>
+				where 1=1
+					<if test='sido_cd != null and sido_cd != ""'>
+						and a.sido_cd = #{sido_cd}
+					</if>
+			</when>
+			<!-- 시군구 경계 -->
+			<when test='region == "sgg"'>
+				select
+					a.sido_cd||a.sgg_cd as adm_cd
+					,a.sido_nm||' '||a.sgg_nm as adm_nm
+					,round(a.x_coor) AS x
+					,round(a.y_coor) AS y
+					,st_asbinary(a.lighten_bord) geometry
+				from
+					srv_pg_sggbord a with(nolock)
+					<choose>
+						<when test='base_year != null and base_year != ""'>
+							inner join (select #{base_year} as base_year from dual) b on b.base_year = a.base_year
+						</when>
+						<otherwise>
+							inner join (select max(base_year) as base_year from srv_pg_sggbord with(nolock)) b on b.base_year = a.base_year
+						</otherwise>
+					</choose>
+				where 1=1
+					<if test='sido_cd != null and sido_cd != ""'>
+						and a.sido_cd = #{sido_cd}
+					</if>
+					<if test='sgg_cd != null and sgg_cd != "" and sgg_cd != 999'>
+						AND SGG_CD like lpad(#{sgg_cd},2) || '%'
+					</if>
+			</when>
+			<!-- 시군구 경계 (비자치구) -->
+			<when test='region == "atdrc"'>
+				select
+					a.sido_cd||a.sgg_cd as adm_cd
+					,a.sido_nm||' '||a.sgg_nm as adm_nm
+					,round(a.x_coor) AS x
+					,round(a.y_coor) AS y
+					,st_asbinary(a.lighten_bord) geometry
+				from
+					srv_pg_atdrcbord a with(nolock)
+					<choose>
+						<when test='base_year != null and base_year != ""'>
+							inner join (select #{base_year} as base_year from dual) b on b.base_year = a.base_year
+						</when>
+						<otherwise>
+							inner join (select max(base_year) as base_year from srv_pg_atdrcbord with(nolock)) b on b.base_year = a.base_year
+						</otherwise>
+					</choose>
+				where 1=1
+					<if test='sido_cd != null and sido_cd != ""'>
+						and a.sido_cd = #{sido_cd}
+					</if>
+					<if test='sgg_cd != null and sgg_cd != ""'>
+						and a.sgg_cd = #{sgg_cd}
+					</if>
+			</when>
+			<!-- 읍면동 경계 -->
+			<when test='region == "emdong"'>
+				select
+					a.sido_cd||a.sgg_cd||a.emdong_cd as adm_cd
+					,a.sido_nm||' '||a.sgg_nm||' '||a.emdong_nm as adm_nm
+					,round(a.x_coor) AS x
+					,round(a.y_coor) AS y
+					,st_asbinary(a.lighten_bord) geometry
+				from
+					srv_pg_admbord a with(nolock)
+					<choose>
+						<when test='base_year != null and base_year != ""'>
+							inner join (select #{base_year} as base_year from dual) b on b.base_year = a.base_year
+						</when>
+						<otherwise>
+							inner join (select max(base_year) as base_year from srv_pg_admbord with(nolock)) b on b.base_year = a.base_year
+						</otherwise>
+					</choose>
+				where 1=1
+					<if test='sido_cd != null and sido_cd != ""'>
+						and a.sido_cd = #{sido_cd}
+					</if>
+					<if test='sgg_cd != null and sgg_cd != ""'>
+						and a.sgg_cd = #{sgg_cd}
+					</if>
+					<if test='emdong_cd != null and emdong_cd != ""'>
+						and a.emdong_cd = #{emdong_cd}
+					</if>
+			</when>
+			<!-- 소지역 경계 -->
+			<when test='region == "totreg"'>
+				select
+					a.tot_reg_cd as adm_cd
+					,c.sido_nm||' '||c.sgg_nm||' '||c.emdong_nm as adm_nm
+					,round(a.x_coor) AS x
+					,round(a.y_coor) AS y
+					,st_asbinary(a.bord) geometry
+				from
+					srv_pg_totregbord a with(nolock)
+					<!-- 소지역은 base_year 안씀 -->
+					<!-- <choose>
+						<when test='base_year != null and base_year != ""'>
+							inner join (select #{base_year} as base_year from dual) b on b.base_year = a.base_year
+						</when>
+						<otherwise>
+							inner join (select max(base_year) as base_year from srv_pg_totregbord) b on b.base_year = a.base_year
+						</otherwise>
+					</choose> -->
+					inner join (select max(base_year) as base_year from srv_pg_totregbord with(nolock)) b on b.base_year = a.base_year	
+					inner join srv_pg_admbord c with(nolock) on c.sido_cd = a.sido_cd and c.sgg_cd = a.sgg_cd and c.emdong_cd = a.emdong_cd and c.base_year = a.base_year
+				where 1=1
+					<if test='sido_cd != null and sido_cd != ""'>
+						and a.sido_cd = #{sido_cd}
+					</if>
+					<if test='sgg_cd != null and sgg_cd != ""'>
+						and a.sgg_cd = #{sgg_cd}
+					</if>
+					<if test='emdong_cd != null and emdong_cd != ""'>
+						and a.emdong_cd = #{emdong_cd}
+					</if>
+			</when>
+			<otherwise>
+				select
+					'' as adm_cd
+					,'' as adm_nm
+					,'' AS x
+					,'' AS y
+					,'' geometry
+				from
+					dual
+				where 1=2
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 각 주제별 대시보드 차트 조회 - 2020.09.01	juKwak	신규 -->
+	<select id="getDashboardChartList" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			a.SURV_ID
+			, a.ITEM_SEQ
+			, a.DATA_NM
+			, a.DISP_RANK 
+			, a.CHART_ID
+			, a.DEL_YN
+			, b.surv_type 
+		FROM SRV_DT_TOT_SURV_ITEM a , SRV_DT_TOT_SURV_INFO b
+		WHERE 1=1 
+		and a.surv_id = b.surv_id
+		AND ITEM_B_CLASS_CODE = #{item_b_class_code}
+		AND ITEM_M_CLASS_CODE = #{item_m_class_code}
+		AND ITEM_S_CLASS_CODE = #{item_s_class_code}
+		AND NVL(DEL_YN, 'N') = 'N'
+		ORDER BY DISP_RANK
+	</select>
+	
+	<select id="getSurvData" parameterType="hashmap" resultType="hashmap">
+	
+	</select>
+	
+	<!-- 시계열 총조사인구 및 Rank 년도데이터 조회 - 2020.09.13	esPark	신규 -->
+	<select id='getTimeTotalPopulation' parameterType="hashmap" resultType="hashmap">
+		SELECT
+				SURV_YEAR
+				, DT
+				, REGION_NM
+				, REGION_CD
+				, RANK
+				, ITM_NM
+				, ITM_CD
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		   WHERE 1=1
+		   <if test="region_cd != null and region_cd != ''">
+		   		AND REGION_CD = #{region_cd}
+		   </if>
+		   <if test="startYear != null and startYear != '' and endYear != null and endYear != ''">
+		   		AND (TO_NUMBER(SURV_YEAR) &gt;= #{startYear} AND TO_NUMBER(SURV_YEAR) &lt;= #{endYear})
+		   </if>
+		   AND SURV_ID = 'PH0001'
+		   AND ITM_CD = 'T100'
+		   ORDER BY SURV_ID
+	</select>
+
+	
+	
+	<!-- 시계열 남녀성비 년도데이터 조회 - 2020.09.13	esPark	신규 -->
+	<select id='getTimeGenderChangePopulation' parameterType="hashmap" resultType="hashmap">
+		SELECT
+				SURV_YEAR
+				, DT
+				, REGION_NM
+				, REGION_CD
+				, RANK
+				, ITM_NM
+				, ITM_CD
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		   WHERE 1=1
+		   <if test="region_cd != null and region_cd != ''">
+		   		AND REGION_CD = #{region_cd}
+		   </if>
+		   <if test="startYear != null and startYear != '' and endYear != null and endYear != ''">
+		   		AND (TO_NUMBER(SURV_YEAR) &gt;= #{startYear} AND TO_NUMBER(SURV_YEAR) &lt;= #{endYear})
+		   </if>
+		   AND SURV_ID = 'PH0002'
+		   AND ITM_CD = 'T03'
+		   AND C1 = '000'
+		   ORDER BY SURV_ID
+	</select>
+	
+	<!-- 시계열 외국인수 년도데이터 조회 - 2020.09.13	esPark	신규 -->
+	<select id='getTimeForeignPopulation' parameterType="hashmap" resultType="hashmap">
+		SELECT
+				SURV_YEAR
+				, DT
+				, REGION_NM
+				, REGION_CD
+				, RANK
+				, ITM_NM
+				, ITM_CD
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		   WHERE 1=1
+		   <if test="region_cd != null and region_cd != ''">
+		   		AND REGION_CD = #{region_cd}
+		   </if>
+		   <if test="startYear != null and startYear != '' and endYear != null and endYear != ''">
+		   		AND (TO_NUMBER(SURV_YEAR) &gt;= #{startYear} AND TO_NUMBER(SURV_YEAR) &lt;= #{endYear})
+		   </if>
+		   AND SURV_ID = 'PH0001'
+		   AND ITM_CD = 'T140'
+		   ORDER BY SURV_ID
+	</select>
+	
+	<!-- 시계열 연도별 남녀 인구 조회 - 2020.09.15	esPark	신규 -->
+	<select id='getTimeGenderAgePopulation' parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				A.DT AS MALES
+				, B.DT AS FEMALES
+				, A.C1_NM AS AGE
+				, A.C1
+				, A.REGION_NM
+				, A.REGION_CD 
+				, A.SURV_YEAR
+			FROM	
+				(SELECT TOP 100 * FROM SRV_DT_ST_CHART_DET_ITM_RANK
+					WHERE 1=1
+					<if test="year != null and year != ''">
+						AND SURV_YEAR = #{year}
+					</if>
+					<if test="region_cd != null and region_cd != ''">
+						AND REGION_CD = #{region_cd}
+					</if>
+					AND SURV_ID = 'PH0002' 
+					AND ITM_CD = 'T01'
+					AND (TO_NUMBER(C1) &gt; 0 AND TO_NUMBER(C1) &lt;= 86)	) A 
+				
+				LEFT JOIN 
+				
+				(SELECT TOP 100 * FROM SRV_DT_ST_CHART_DET_ITM_RANK
+					WHERE 1=1
+					<if test="year != null and year != ''">
+						AND SURV_YEAR = #{year}
+					</if>
+					<if test="region_cd != null and region_cd != ''">
+						AND REGION_CD = #{region_cd}
+					</if>
+					AND SURV_ID = 'PH0002'
+					AND ITM_CD = 'T02'
+					AND (TO_NUMBER(C1) &gt; 0 AND TO_NUMBER(C1) &lt;= 86)	) B
+						
+				ON A.C1 = B.C1
+				ORDER BY A.C1
+	</select>
+	
+	
+	
+	<!-- 바자치구 여부 조회 -->
+	<select id="getAtdrcCheck" parameterType="hashmap" resultType="hashmap">
+		SELECT REGION_CD
+		FROM SRV_DT_TOT_SURV_NON_ATDRC 
+		WHERE BASE_YEAR = #{year}
+		AND   upper_region_cd = #{region_cd}
+	</select>
+	
+	<!-- 총조사시각화 정보 조회 -->
+   <select id="getTotSurvInfo" parameterType="hashmap" resultType="hashmap">   
+      SELECT
+		tbl_nm as surv_nm,
+		stattb_sourc as surv_source,
+		stattb_url as surv_url,
+		region_var_ord as surv_type,
+		stattb_order as tot_surv_div,
+		obj_nm as thema,
+		'' as sub_thema,
+		path_nm as path,
+		'Y' as tot_yn,
+		updt_cycle,
+		stattb_begin_year as start_year,
+		stattb_end_year as end_year,
+		'Y' as tms_yn,
+		'6' as tms_provd_cnt,
+		region_begin as region_ctgry_start,
+		region_end as region_ctgry_end,
+		'' as spcify_region,
+		'Y' as map_support_yn,
+		'Y' as detail_search_yn
+		FROM srv_dt_st_list
+		WHERE
+		tbl_id = (select tbl_id from SRV_DT_ST_CHART_DET_ITM_RANK where surv_id=#{survId} limit 1);
+   </select>
+
+	<!-- 년도별 지역코드 여부 조회  2020.10.12 -->
+	<select id="getYearRegionCheck" parameterType="hashmap" resultType="hashmap">
+		SELECT SGG_CD
+		FROM   SRV_PG_SGGBORD WITH (nolock) 
+		WHERE BASE_YEAR = #{year}
+		AND   sido_cd = #{sido_cd}
+		AND   sgg_cd = #{sgg_cd}
+	</select>
+		
+	<!-- survId로 tblId 가져오기 2022.03.18 [이영호] -->
+	<select id="getTblIdFromSurvId" parameterType="hashmap" resultType="hashmap">
+		SELECT TBL_ID FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE SURV_ID = #{survId}
+		LIMIT 1
+	</select>
+</mapper>

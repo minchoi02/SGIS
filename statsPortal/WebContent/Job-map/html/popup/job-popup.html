@@ -1,0 +1,349 @@
+<!-- 
+*
+* HTML입니다.
+* author : 정은우
+*
+//-->
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+	<meta charset="utf-8">
+	<title>통계지리정보서비스</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<script src="../../include/plugin/jquery-1.11.3.min.js" type="text/javascript"></script>
+	<script src="../../include/plugin/slick/slick.js" type="text/javascript"></script>
+	<script src="../../include/js/ui.js" type="text/javascript"></script>
+	<link rel="stylesheet" type="text/css" href="../../include/css/popup.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/legend.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/sop.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/common.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/default.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slick/slick.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slick/slick-theme.css">
+	<script type="text/javascript" src="../../include/plugin/slider-Pips/jquery-ui-slider-pips.js"></script>
+	<script type="text/javascript" src="../../include/plugin/slider-Pips/jquery-plus-ui.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slider-Pips/jquery-ui-slider-pips.min.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slider-Pips/jqueryui.min.css">
+	<!-- <link href="/css/jquery-ui-1.10.4.custom.css" rel="stylesheet" type="text/css" /> -->
+	<link rel="stylesheet" type="text/css" href="../../include/css/jquery.mCustomScrollbar.css">
+	<script type="text/javascript" src="../../include/js/jquery.min.js"></script>
+	<script type="text/javascript" src="../../include/js/jquery.mCustomScrollbar.concat.min.js"></script>
+	<script type="text/javascript" src="../../include/js/jquery-ui-1.10.3.custom.js"></script>
+	<script type="text/javascript" src="../../include/js/legendInfo.js"></script>
+	<script type="text/javascript" src="../../include/js/sop-src.js"></script>
+	<script type="text/javascript" src="../../include/js/bizStatsMapCustom.js"></script>
+</head>
+
+<body>
+	<!-- 스킵네비게이션 -->
+	<div class="accNav">
+		<p><a href="#gnb">주메뉴 바로가기</a></p>
+		<p><a href="#container">본문 바로가기</a></p>
+	</div>
+	<!-- 스킵네비게이션 -->
+	<!--wrap-->
+	<div id="wrap">
+		<!--header-->
+		<div id="header">
+			<div class="util"></div>
+		</div>
+		<!--//header-->
+		<hr class="hidden" />
+		<!--contents-->
+		<div class="containerBox">
+			<div class="rela">
+				<div class="sceneBox on">
+					<div class="sceneRela">
+						<div class="toolBar clearfix">
+							<h2>일자리 맵</h2>
+							<div class="viewTitle"> </div>
+							<!-- 현재위치 네비게이션 -->
+							<!-- 현재위치 네비게이션 end -->
+							<!-- 튜토리얼 -->
+							<!-- 가로툴바 -->
+							<!-- 가로툴바 end -->
+						</div>
+						<!-- 도움말 -->
+						<div class="interactiveBar">
+							<h3 class="h3">오늘의 구인 현황</h3>
+						</div>
+						<!-- 분석지도 맵 컨텐츠 시작 -->
+						<div class="mapContents" style="position: relative;">
+							<img src="../../include/images/map-bg.jpg">
+							<!-- right menu -->
+							<div class="sop-top sop-right">
+								<div class="info sop-control">
+									<div class="mapBtnWrapper"><a class="rightQuick rq01"><span>GPS</span></a></div>
+								</div>
+								<div class="info sop-control">
+									<div class="mapBtnWrapper"><a href="javascript:void(0)" class="rightQuick rq02"><span>맵기능설정</span></a></div>
+								</div>
+								<div class="info sop-control">
+									<div class="mapBtnWrapper"><a class="rightQuick rq06"><span>GPS</span></a></div>
+								</div>
+								<div class="info sop-control">
+									<div class="mapZoomWrapper"><a class="rightQuick rq03">확대하기</a><a class="rightQuick rq07">이동</a><a class="rightQuick rq04">읍면동</a><a class="rightQuick rq05">축소하기</a></div>
+								</div>
+							</div>
+							<div class="info-job choice-list">
+								<ul>
+									<li><a href="#">희망지역</a></li>
+									<li><a href="#">기업형태</a></li>
+									<li><a href="#">회사규모</a></li>
+									<li><a href="#">산업분류</a></li>
+									<li><a href="#">직종분류</a></li>
+									<li><a href="#">급여수준</a></li>
+									<li><a href="#">고용형태</a></li>
+									<li><a href="#">근무형태</a></li>
+									<li><a href="#">학력</a></li>
+									<li><a href="#">경력</a></li>
+								</ul>
+							</div>
+							<!-- right menu -->
+						</div>
+						<!-- //분석지도 맵 컨텐츠 끝 -->
+					</div>
+					<!-- container 끝-->
+				</div>
+				<!--// sceneRela -->
+				<a href="javascript:void(0)" class="sideQuick sq02" id="map_left_btn" tabindex="97">
+					<span>통계메뉴</span><img src="../../include/images/ico_totalmenu.gif"alt="통계메뉴"/>
+				</a>
+				<div class="buttonBar ui-draggable">
+					<a href="javascript:void(0)" class="sideQuick sq03 xw">
+						<span>선택항목</span>
+					</a>
+				</div>
+				<!-- 왼쪽메뉴  -->
+				
+				<!-- 왼쪽메뉴  end -->
+				<!-- 데이터보드 -->
+				<div id="dataBoard">
+					<a href="javascript:void(0)" class="interactiveDataBoard">데이터보드</a>
+                    <!-- 			<div class="colorMapLegend">
+				<p>지도정보 기준</p>
+				<a href="javascript:void(0)" class="switchBox">
+					<span class="txt"></span>
+					<span class="ball"></span>
+				</a>
+			</div> -->
+			<div class="dataSideBox">
+				<div class="bar">
+					<div id="dataSlider" class="dataSlider"></div>
+					<a href="javascript:void(0)" class="stepClose-data">데이터보드 닫기</a>
+				</div>
+				<div class="dataSideContents">
+					<div class="dataSideScroll">
+					</div>
+				</div>
+			</div>
+			<form id="excelDownForm" name="excelDownForm" method="post"></form>
+		</div>
+		<!-- //데이터보드 end -->
+	</div>
+	<!--//rela-->
+</div>
+<!--//container-->
+</div>
+<!--//wrap-->
+</body>
+</html>
+
+<div class="popBox job-data-popup" style="display: block; top:35%; left: 970px;">
+	<div class="topbar"><span>구인정보목록</span>
+		<span class="sub">생활환경 종합</span>
+		<div class="select-right">
+			<span>보기 선택</span>
+			<span class="select-wrap">
+				<select>
+					<option>최근 등록 순</option>
+				</select>
+			</span>
+		</div>
+		<a href="javascript:void(0)">닫기</a>
+	</div>
+	<div class="cont-box">
+		<article>
+			<div class="citation"><span>[ 내용 클릭 시, 워크넷 및 인크루트로 이동합니다. ]</span></div>
+			<div class="jab-data-table">
+				<table border="1" summary="채용정보 목록">
+					<colgroup>
+						<col class="tit">
+						<col class="subject">
+						<col class="work">
+						<col class="dday">
+						<col class="statis-view">
+					</colgroup>
+					<thead>
+						<tr>
+							<th scope="col" class="firsts">
+								<div class="check-list "><input type="checkbox" value="" class="chk_all"><label for="" class=""></label></div>회사명
+							</th>
+							<th scope="col">모집내용
+							</th>
+							<th scope="col">근무조건</th>
+							<th scope="col">등록일/마감일</th>
+							<th scope="col"></th>
+						</tr>
+					</thead>
+					<body>
+						<tr>
+							<th>
+								<div class="companys">
+									<div class="check-list"><input type="checkbox" name="" id="" value=""><label for="" class=""></label></div>
+									<div class="tit">
+										<span><a href="#" title="회사명(주)"> 회사명(주) </a></span>
+										<p><span class="point-label certi">워크넷(인증)</span></p>
+									</div>
+								</div>
+							</th>
+							<td>
+								<div class="subject">
+									<span class="accent">
+										<span class="point"><a href="#">상시</a></span>
+										<a href="#" ><span>주방식구 모집</span> </a>
+									</span>
+									<p class="details">
+										<em>담당업무 : 주방찬모 및 주방식구 모집</em>
+									</p>
+									<p class="details">
+										<em>경력무관<span>|</span>학력무관 </em>
+										<span class="area">근무지 : 서울특별시 강남구 광명로</span>
+									</p>
+								</div>
+							</td>
+							<td>
+								<div class="work">
+									<span class="point-label salary">월급</span>
+									<p class="details">
+										<em>200만원~250만원</em>
+									</p>
+									<p class="details">
+										<em>정규<span>|</span>주5일</em>
+										<span class="time">09:30~21:30</span>
+									</p>
+								</div>
+							</td>
+							<td>
+								<div class="dday">
+									<p>18/05/24</p>
+								</div>
+								<div class="mday">
+									<p>채용시까지
+										<span>(18/07/23)</span>
+									</p>
+								</div>
+							</td>
+							<td>
+								<div class="statis-view"><a href="#"><span>상세 및 통계보기</span></a></div>
+							</td>
+						</tr>
+						<tr>
+							<th>
+								<div class="companys">
+									<div class="check-list"><input type="checkbox" name="" id="" value=""><label for="" class=""></label></div>
+									<div class="tit">
+										<span><a href="#" title="회사명(주)"> 회사명(주) </a></span>
+										<p><span class="point-label certi">워크넷(인증)</span></p>
+									</div>
+								</div>
+							</th>
+							<td>
+								<div class="subject">
+									<span class="accent">
+										<span class="point"><a href="#">상시</a></span>
+										<a href="#" ><span>주방식구 모집</span> </a>
+									</span>
+									<p class="details">
+										<em>담당업무 : 주방찬모 및 주방식구 모집</em>
+									</p>
+									<p class="details">
+										<em>경력무관<span>|</span>학력무관 </em>
+										<span class="area">근무지 : 서울특별시 강남구 광명로</span>
+									</p>
+								</div>
+							</td>
+							<td>
+								<div class="work">
+									<span class="point-label urgency">시급</span>
+									<p class="details">
+										<em>1만원이상</em>
+									</p>
+									<p class="details">
+										<em>정규<span>|</span>주5일</em>
+										<span class="time">09:30~21:30</span>
+									</p>
+								</div>
+							</td>
+							<td>
+								<div class="dday">
+									<p>18/05/24</p>
+								</div>
+								<div class="mday">
+									<p>채용시까지
+										<span>(18/07/23)</span>
+									</p>
+								</div>
+							</td>
+							<td>
+								<div class="statis-view"><a href="#"><span>상세 및 통계보기</span></a></div>
+							</td>
+						</tr>
+						<tr>
+							<th>
+								<div class="companys">
+									<div class="check-list"><input type="checkbox" name="" id="" value=""><label for="" class=""></label></div>
+									<div class="tit">
+										<span><a href="#" title="회사명(주)"> 회사명(주) </a></span>
+										<p><span class="point-label certi">서울시</span></p>
+									</div>
+								</div>
+							</th>
+							<td>
+								<div class="subject">
+									<span class="accent">
+										<span class="point"><a href="#">상시</a></span>
+										<a href="#" ><span>주방식구 모집</span> </a>
+									</span>
+									<p class="details">
+										<em>담당업무 : 주방찬모 및 주방식구 모집</em>
+									</p>
+									<p class="details">
+										<em>경력무관<span>|</span>학력무관 </em>
+										<span class="area">근무지 : 서울특별시 강남구 광명로</span>
+									</p>
+								</div>
+							</td>
+							<td>
+								<div class="work">
+									<span class="point-label urgency">시급</span>
+									<p class="details">
+										<em>8,000원</em>
+									</p>
+									<p class="details">
+										<em>정규<span>|</span>주5일</em>
+										<span class="time">09:30~21:30</span>
+									</p>
+								</div>
+							</td>
+							<td>
+								<div class="dday">
+									<p>18/05/24</p>
+								</div>
+								<div class="mday">
+									<p>채용시까지
+										<span>(18/07/23)</span>
+									</p>
+								</div>
+							</td>
+							<td>
+								<div class="statis-view"><a href="#"><span>상세 및 통계보기</span></a></div>
+							</td>
+						</tr>
+					</body>
+				</table>
+			</div>
+		</article>
+	</div>
+</div>

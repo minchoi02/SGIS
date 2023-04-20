@@ -1,0 +1,162 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@include file="/WEB-INF/jsp/includes/taglib.jsp" %>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<title>주거현황보기</title>
+<meta name="title" content="살고싶은 우리동네">
+<link rel="stylesheet" href="${ctx }/resources/m2020/css/subpage.css" />
+<!-- 하단 리스트 Swiper -->
+<link rel="stylesheet" href="${ctx }/resources/m2020/plugins/swiper.css" />
+<script src="${ctx }/resources/m2020/plugins/swiper.min.js" type="text/javascript"></script>
+<!-- 하단 리스트 위 아래 Swipe 이벤트 -->
+<script src="${ctx }/resources/m2020/plugins/jquery.touchSwipe.min.js" type="text/javascript"></script>
+<!-- 좌우 스크롤 -->
+<script src="${ctx }/resources/m2020/js/jquery.touchFlow.js" type="text/javascript"></script>
+<!-- 페이지 전역변수 -->
+<script type="text/javascript">
+	var bClassInfoList = ${heumTag:convertJson(mlsfcLists)};
+	var idealTypeInfoList = ${heumTag:convertJson(idealTypeLists)};
+	var b_class_idx_id = '<c:out value="${b_class_idx_id}"/>';	/* 2020.09.02[한광희] 메인화면 살고싶은 우리동네 정보 카드 link 추가 */
+</script>
+<!-- 기본 js -->
+<script src="${ctx }/resources/m2020/js/house/houseStatusMap.js"></script>
+<script src="${ctx }/resources/m2020/js/house/houseMap.api.js"></script>
+</head>
+
+<body>
+	<!-- 메뉴 버튼 Swiper START -->
+	
+	<div class="nav-2022">
+		<div class="leftCol">
+			<span class="btnNavThematic">주요지표
+				<svg width="12" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 8C6.71875 8 6.46875 7.90625 6.28125 7.71875L1.28125 2.71875C0.875 2.34375 0.875 1.6875 1.28125 1.3125C1.65625 0.90625 2.3125 0.90625 2.6875 1.3125L7 5.59375L11.2812 1.3125C11.6562 0.90625 12.3125 0.90625 12.6875 1.3125C13.0938 1.6875 13.0938 2.34375 12.6875 2.71875L7.6875 7.71875C7.5 7.90625 7.25 8 7 8Z" /></svg>
+			</span>
+			<span class="maptit03">총인구(명)</span>
+		</div>
+		<!-- <div class="">안들어감...</div> -->
+	</div>
+	<div class="nav-layer">
+		<ul>
+			<li><a href="${ctx }/m2020/map/house/recomendHouseMap.sgis">추천지역찾기</a></li>
+			<li><a href="${ctx }/m2020/map/house/houseSearchMap.sgis">간편동네찾기</a></li>
+			<li><a href="${ctx }/m2020/map/house/houseStatusMap.sgis">주거현황보기</a></li>
+			<li><a href="${ctx }/m2020/map/biz/bizMap.sgis">우리동네 생활업종</a></li>
+			
+		</ul>
+	</div>
+	
+	
+	<%-- <div class="swiper-container Tabarea mlr16">
+		<div class="swiper-wrapper Tab-wrapper">
+			<div class="swiper-slide Tabbtn">
+				<a href="${ctx }/m2020/map/house/recomendHouseMap.sgis">추천지역찾기</a>
+			</div>
+			<div class="swiper-slide Tabbtn">
+				<a href="${ctx }/m2020/map/house/houseSearchMap.sgis">간편동네찾기</a>
+			</div>
+			<div class="swiper-slide Tabbtn on5">
+				<a href="${ctx }/m2020/map/house/houseStatusMap.sgis">주거현황보기</a>
+			</div>
+			<div class="swiper-slide Tabbtn" style="min-width: 120px;">
+				<a href="${ctx }/m2020/map/biz/bizMap.sgis">우리동네 생활업종</a>
+			</div>
+		</div>
+	</div> --%>
+
+	<!-- Initialize Swiper -->
+	<script>
+		var swiper = new Swiper('.swiper-container', {
+			slidesPerView : 2.6,	// 2020.09.15[한광희] 메뉴 swipe 수정
+			spaceBetween : 10,
+			initialSlide: 2,
+			pagination : {
+				el : '.swiper-pagination',
+				clickable : true,
+			},
+		});
+		srvLogWrite('O0', '09', '04', '01', '주거현황보기 지도화면 메인', '');
+	</script>
+	<!-- 메뉴 버튼 Swiper END -->
+	
+	<div class="contentBox" id="houseStatusMapArea">
+		<div class="MapArea">
+			<!-- 지도 영역 START -->
+			<div class="Map" style="overflow: hidden; position: fixed; top: 61px; width: 100%;">
+				<div id="map"></div>
+			</div>
+			<!-- 지도 영역 END -->
+			
+			<!-- 선택항목명 표출 START -->
+			<div class="map_tit" style="z-index: 990">
+				<span id="maptit" class="maptit05">녹지비율</span>
+			</div>
+			<!-- 선택항목명 표출 END -->
+			
+			<!-- 생활환경 정보 START -->
+			<div id="lifeEnvironmentToggle" class="btn_infoView infoOff" style="z-index: 990"></div>
+			<!-- 생활환경 정보 END -->
+			
+			<div class="resultWrap">
+				<!-- 내 위치 버튼 START -->
+				<div class="currenPositionWrap">
+					<div class="currenPosition" style="bottom: 0;">
+						<span id="myMapAreaText"></span>
+						<button id="myMapLocation" class="btn_goPostion" type="button">현재위치로</button>
+						<!-- 관심지역 설정 버튼 -->
+						<button id="selectArea" class="databtn04" title="관심지역 설정 버튼">관심지역 설정 버튼</button> <!-- 2020.09.11[신예리] 웹접근성 문제로 인한 text 추가 -->
+					</div> 
+					<div class="databtnWrap">  
+						<!-- 범례 --> 
+						<button onclick="#" id="legendInfoBtn" class="databtn02" title="범례 버튼">범례 버튼</button> <!-- 2020.09.11[신예리] 웹접근성 문제로 인한 text 추가 -->
+
+						<!-- 범례 tooltip START --> 
+						<div class="tooltipbox" style="top: -30px; right: 45px;"> <!-- 2020.09.08[신예리] 범례 위치 조정 -->
+							<div class="tooltipbox_row">
+								<button type="button" class="syncBtn" id="reverseBtn"></button>
+								<div class="color_checkbox" id="color_range">
+									<!-- 색상선택 영역 -->
+								</div>
+								<button class="ColorRangeClose" id="dataRemarks_close" type="button" title="닫기"></button> <!-- 2020.09.08[신예리] 범례 닫기 버튼 추가 -->
+							</div>
+							<div class="tooltipbox_row"> 
+								<div id="color_list" class="color_checkbox">
+									<!-- 색상 범위 영역 -->
+								</div>
+								<p style="margin-left: 10px;"></p>
+							</div> 
+						</div>
+						<!-- 범례 tooltip END -->
+					</div>					
+				</div>
+				<!-- 내 위치 버튼 END -->
+				
+				<!-- 추천지역 리스트 START -->
+				<div class="Btnarea" id="houseListBtn">
+					<button type="button" class="swiperBtn" name="button" title="결과 목록 토글 버튼"/> <!-- 2020.09.11 [신예리] 웹접근성 문제로 인한 text 추가 --> 
+				</div>
+				<div class="result_list" id="result_list" style="bottom: 0 !important;">
+					<h2 class="tit">지표선택</h2>
+					<div class="gridWrap" id="list_div" style="height: 220px;">
+						 <!-- 지표 설정 START -->
+						<div class="nav_h_type lifeMenuWrap" id="houseMap_list">
+							<ul id="housetab">
+								<li style="width: 15px;"></li>
+								<%@include file="/WEB-INF/jsp/m2020/map/house/getSubMenuElement.jsp" %>
+							</ul>
+						</div>
+						<!-- 지표 설정 END -->
+						
+						<!-- 상세 지표 설정 START -->
+						<div id="houseStatusSwiper">
+							<%@include file="/WEB-INF/jsp/m2020/map/house/getStatusClassElement.jsp" %>
+						</div>
+						<!-- 상세 지표 설정 END -->
+					</div> 
+				</div>
+				<!-- 추천지역 리스트 END -->
+			</div>
+		</div>
+	</div>
+</body>
+</html> 

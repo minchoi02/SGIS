@@ -1,0 +1,1566 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ststisticsUsTotalSurvey"> 
+
+	<select id="getStstisticsUSTotalStblList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		<include refid="ststisticsCmmn.pageHeader" />
+		SELECT
+			ROW_NUMBER() OVER(ORDER BY STATTB_ORDER DESC) AS RNUM
+			, (
+				SELECT
+					COUNT(*)
+				FROM SRV_DT_ST_LIST
+				<include refid="commonWhere" />		
+			) AS CNT
+			, NVL(STATTB_ORDER, 0) AS STATTB_ORDER
+			, NVL(STATTB_YEAR, '') AS STATTB_YEAR
+			, NVL(STATTB_DIV, '') AS STATTB_DIV
+			, NVL(TBL_NM, '') AS TBL_NM
+			, ORG_ID
+			, TBL_ID
+			, NVL(STATTB_SOURC, '') AS STATTB_SOURC
+		FROM SRV_DT_ST_LIST
+		<include refid="commonWhere" />
+		<include refid="ststisticsCmmn.pageFotter" />
+	</select>
+	
+	<select id="getStstisticsUSTotalStblDetailList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		<include refid="ststisticsCmmn.pageHeader" />
+		SELECT 
+			ROW_NUMBER() OVER(ORDER BY STATTB_ORDER, CHART_ORD DESC) AS RNUM
+			, CNT
+			, STATTB_ORDER
+			, STATTB_YEAR
+			, STATTB_DIV
+			, TBL_NM
+			, CHART_ORD
+			, CHART_NM
+			, ORG_ID
+			, TBL_ID
+			, STATTB_SOURC
+			, TOT_SURV_YN
+			, DET_YN
+		FROM
+		(
+			SELECT
+				
+				(
+					SELECT
+						COUNT(*)
+					FROM SRV_DT_ST_LIST LST
+						, SRV_DT_ST_CHART_ITM_SETUP ITM
+					WHERE LST.DEL_YN = 'N'
+					  AND LST.ORG_ID = ITM.ORG_ID
+					  AND LST.TBL_ID = ITM.TBL_ID
+					  AND ITM.DEL_YN = 'N'
+					<if test="CATEGORY != null and CATEGORY !=''">
+						AND LST.STATTB_DIV LIKE '%' || #{CATEGORY} || '%'
+					</if>
+					<if test="TBL_NM != null and TBL_NM !=''">
+						AND LST.TBL_NM LIKE '%' || #{TBL_NM} || '%'
+					</if>
+					<if test="CHART_NM != null and CHART_NM !=''">
+						AND ITM.CHART_NM LIKE '%' || #{CHART_NM} || '%'
+					</if>
+					<if test="CHART_ORD != null and CHART_ORD !=''">
+						AND ITM.CHART_ORD = #{CHART_ORD}
+					</if>
+					<if test="TOT_SURV_YN != null and TOT_SURV_YN !=''">
+						AND ITM.TOT_SURV_YN = #{TOT_SURV_YN}
+					</if>
+					<if test="DET_YN != null and DET_YN !=''">
+						AND ITM.DET_YN = #{DET_YN}
+					</if>
+					<if test="ITEM_S_CLASS_ID != null and ITEM_S_CLASS_ID !=''">
+						AND ITM.IEM_CL = #{ITEM_S_CLASS_ID}
+					</if>
+					<if test="ITEM_S_CLASS_ID == null and ITEM_S_CLASS_ID ==''">
+						<if test="ITEM_M_CLASS_ID != null and ITEM_M_CLASS_ID !=''">
+							AND ITM.IEM_CL = #{ITEM_M_CLASS_ID}
+						</if>
+						<if test="ITEM_M_CLASS_ID == null and ITEM_M_CLASS_ID ==''">
+							<if test="ITEM_B_CLASS_ID == null and ITEM_B_CLASS_ID ==''">
+								AND ITM.IEM_CL = #{ITEM_B_CLASS_ID}
+							</if>
+						</if>
+					</if>
+				) AS CNT
+				, LST.STATTB_ORDER
+				, LST.STATTB_YEAR
+				, NVL((
+					SELECT
+						S_CLASS_CD_NM
+					FROM CMM_CD_COMCD
+					WHERE S_CLASS_CD = ITM.IEM_CL
+				), LST.STATTB_DIV) AS STATTB_DIV
+				, LST.TBL_NM
+				, ITM.CHART_ORD
+				, ITM.CHART_NM
+				, LST.ORG_ID
+				, LST.TBL_ID
+				, LST.STATTB_SOURC
+				, ITM.TOT_SURV_YN
+				, ITM.DET_YN
+			FROM SRV_DT_ST_LIST LST
+				, SRV_DT_ST_CHART_ITM_SETUP ITM
+			WHERE LST.DEL_YN = 'N'
+			  AND LST.ORG_ID = ITM.ORG_ID
+			  AND LST.TBL_ID = ITM.TBL_ID
+			  AND ITM.DEL_YN = 'N'
+			<if test="CATEGORY != null and CATEGORY !=''">
+				AND LST.STATTB_DIV LIKE '%' || #{CATEGORY} || '%'
+			</if>
+			<if test="TBL_NM != null and TBL_NM !=''">
+				AND LST.TBL_NM LIKE '%' || #{TBL_NM} || '%'
+			</if>
+			<if test="CHART_NM != null and CHART_NM !=''">
+				AND ITM.CHART_NM LIKE '%' || #{CHART_NM} || '%'
+			</if>
+			<if test="CHART_ORD != null and CHART_ORD !=''">
+				AND ITM.CHART_ORD = #{CHART_ORD}
+			</if>
+			<if test="TOT_SURV_YN != null and TOT_SURV_YN !=''">
+				AND ITM.TOT_SURV_YN = #{TOT_SURV_YN}
+			</if>
+			<if test="DET_YN != null and DET_YN !=''">
+				AND ITM.DET_YN = #{DET_YN}
+			</if>
+			<if test="ITEM_S_CLASS_ID != null and ITEM_S_CLASS_ID !=''">
+				AND ITM.IEM_CL = #{ITEM_S_CLASS_ID}
+			</if>
+			<if test="ITEM_S_CLASS_ID == null and ITEM_S_CLASS_ID ==''">
+				<if test="ITEM_M_CLASS_ID != null and ITEM_M_CLASS_ID !=''">
+					AND ITM.IEM_CL = #{ITEM_M_CLASS_ID}
+				</if>
+				<if test="ITEM_M_CLASS_ID == null and ITEM_M_CLASS_ID ==''">
+					<if test="ITEM_B_CLASS_ID != null and ITEM_B_CLASS_ID !=''">
+						AND ITM.IEM_CL = #{ITEM_B_CLASS_ID}
+					</if>
+				</if>
+			</if>
+			ORDER BY ITM.REG_DT DESC
+		)
+		<include refid="ststisticsCmmn.pageFotter" />
+	</select>
+	
+	<select id="selectRegisteredStblList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT
+			ORG_ID
+			, TBL_ID
+			, TBL_NM
+			, '('||TBL_ID||')'||TBL_NM AS TBL_DESC
+		FROM SRV_DT_ST_LIST
+		WHERE STATTB_DIV = #{stattbDiv}
+	</select>
+	
+	<select id="getStstisticsUSTotalStblMngTotal"  parameterType="java.util.HashMap" resultType="int">
+		SELECT COUNT(*) FROM SRV_DT_ST_LIST
+	<include refid="commonWhere" />
+	</select>
+	
+	<select id="getStstisticsUSTotalStblDetailMngTotal"  parameterType="java.util.HashMap" resultType="int">
+		SELECT COUNT(*) 
+		FROM SRV_DT_ST_LIST LST
+			, SRV_DT_ST_CHART_ITM_SETUP ITM
+		WHERE LST.ORG_ID = ITM.ORG_ID
+		  AND LST.TBL_ID = ITM.TBL_ID
+		<if test="TBL_NM != null and TBL_NM !=''">
+			AND LST.TBL_NM LIKE '%' || #{TBL_NM} || '%'
+		</if>
+		<if test="CHART_NM != null and CHART_NM !=''">
+			AND ITM.CHART_NM LIKE '%' || #{CHART_NM} || '%'
+		</if>
+		<if test="TOT_SURV_YN != null and TOT_SURV_YN !=''">
+			AND ITM.TOT_SURV_YN = #{TOT_SURV_YN}
+		</if>
+		<if test="DET_YN != null and DET_YN !=''">
+			AND ITM.DET_YN = #{DET_YN}
+		</if>
+		<if test="ITEM_S_CLASS_ID != null and ITEM_S_CLASS_ID !=''">
+			AND ITM.IEM_CL = #{ITEM_S_CLASS_ID}
+		</if>
+		<if test="ITEM_S_CLASS_ID == null and ITEM_S_CLASS_ID ==''">
+			<if test="ITEM_M_CLASS_ID != null and ITEM_M_CLASS_ID !=''">
+				AND ITM.IEM_CL = #{ITEM_M_CLASS_ID}
+			</if>
+			<if test="ITEM_M_CLASS_ID == null and ITEM_M_CLASS_ID ==''">
+				<if test="ITEM_B_CLASS_ID == null and ITEM_B_CLASS_ID ==''">
+					AND ITM.IEM_CL = #{ITEM_B_CLASS_ID}
+				</if>
+			</if>
+		</if>
+	</select>
+	
+	
+	<select id="ststisticsUsTotalSurveyExcelDownload"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT * FROM
+		(
+			SELECT * FROM
+			(
+				SELECT * FROM 
+				(
+					SELECT
+						ROW_NUMBER() OVER(ORDER BY STATTB_ORDER DESC) AS RNUM
+						, (
+							SELECT
+								COUNT(*)
+							FROM SRV_DT_ST_LIST
+							<include refid="commonWhere" />		
+						) AS CNT
+						, NVL(STATTB_ORDER, 0) AS STATTB_ORDER
+						, NVL(STATTB_YEAR, ' ') AS STATTB_YEAR
+						, NVL(STATTB_DIV, ' ') AS STATTB_DIV
+						, NVL(TBL_NM, ' ') AS TBL_NM
+						, ORG_ID
+						, TBL_ID
+						, NVL(STATTB_SOURC, ' ') AS STATTB_SOURC
+					FROM SRV_DT_ST_LIST
+					<include refid="commonWhere" />
+				)
+				ORDER BY RNUM ASC
+			)
+			ORDER BY RNUM ASC
+		)
+		ORDER BY RNUM DESC
+	</select>
+	
+	
+	
+	<!-- 등록 및 수정 페이지에서  "통계선택"의 첫 번째 selectBox에 들어갈 목록들을 조회한다. -->
+	<select id="getSurveyThemaList" parameterType="java.util.HashMap" resultType="string">
+		SELECT 
+			thema
+		FROM 
+			SRV_DT_TOT_SURV_INFO
+		WHERE 
+			DETAIL_SEARCH_YN = 'Y' AND THEMA != '농림어업'
+		GROUP BY 
+			thema
+		ORDER BY THEMA
+	</select>
+	
+	
+	<!-- 등록 및 수정 페이지에서  "통계선택"의 두 번째 selectBox에 들어갈 목록들을 조회한다. -->
+	<select id="getSurvIdGroupByThema" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT 
+			SURV_ID, SURV_NM, PATH
+		FROM 
+			SRV_DT_TOT_SURV_INFO
+		WHERE 
+			DETAIL_SEARCH_YN = 'Y'
+			AND thema = #{thema}
+		ORDER BY 
+			SURV_NM
+	</select>
+	
+	
+	<!-- <select id="getStstisticsUSTotalSurveyItemSelectListModify" resultType="StastisticsCamelcase">
+	SELECT
+		CASE
+			WHEN T.ITM_CD IS NOT NULL THEN 'Y'
+			ELSE 'N'
+		END AS ITM_CHECKBOX
+		, CASE
+			WHEN T.SUB_SUM_CHECKBOX IS NOT NULL and T.SUB_SUM_CHECKBOX = 'Y' THEN 'Y'
+			ELSE 'N'
+		END AS SUB_SUM_CHECKBOX
+		, CASE
+			WHEN T.ITM_CD IS NOT NULL THEN T.ITM_CD
+			ELSE S.ITM_CD
+		END AS ITM_CD
+		, CASE
+			WHEN S.ITM_NM != T.ITM_NM THEN T.ITM_NM
+			ELSE S.ITM_NM
+		END AS ITM_NM
+	FROM 
+	(
+		SELECT 
+			'N' AS ITM_CHECKBOX 
+			, 'N' AS SUB_SUM_CHECKBOX
+			, ITM_CD
+			, MAX(ITM_NM) AS ITM_NM
+		FROM 
+			SRV_DT_TOT_SURV_DATA T
+		WHERE 
+			SURV_ID = #{survId}
+			AND ITM_CD != '' 
+		GROUP BY ITM_CD
+	) S
+	LEFT JOIN 
+	(
+		SELECT 
+			data_cd as ITM_CD
+			, data_nm as ITM_NM
+			, subsum_yn as SUB_SUM_CHECKBOX
+		FROM
+			SRV_DT_TOT_SURV_ITEM_DETAIL
+		WHERE
+			ITEM_SEQ = #{itemSeq}
+			AND DATA_TYPE = 'ITM'
+			AND DEL_YN = 'N'
+	) T
+	ON
+		S.ITM_CD = T.ITM_CD
+	ORDER BY S.ITM_CD
+	</select> -->
+	
+	<!-- [START] 항목상세설정 테이블을 조회해서 등록/수정 화면에 맞게 데이터를 조작 및 조회한다. -->
+	<!-- itemSeq 가 존재하면 수정화면에서 보여줄 [ 항목 상세 설정 > 아이템 목록 ]을 보여주는 것이다. -->
+	<!-- itemSeq 가 존재하지 않으면 등록화면에서 보여줄 [ 항목 상세 설정 > 아이템 목록 ] 이다. -->
+	<select id="getStstisticsUSTotalSurveyItemSelectList" resultType="StastisticsCamelcase">
+		<if test="itemSeq !=null and itemSeq != ''">
+		<include refid="ITM_CD_MODIFY_HEADER" />
+		</if>
+		(
+		SELECT
+			'N' AS ITM_CHECKBOX
+			, ITM_CD
+			, MAX(ITM_NM) AS ITM_NM
+			, 'N' AS SUB_SUM_CHECKBOX
+		FROM 
+			SRV_DT_TOT_SURV_DATA T
+		WHERE 
+			SURV_ID = #{survId}
+			AND LENGTH(ITM_CD) > 0 
+		GROUP BY ITM_CD
+		ORDER BY ITM_CD
+		)
+		<if test="itemSeq !=null and itemSeq != ''">
+		<include refid="ITM_CD_MODIFY_FOOTER" />
+		</if>
+	</select>
+	 
+	<select id="getStstisticsUSTotalSurveyContent_1_SelectList" resultType="StastisticsCamelcase">
+		<if test="itemSeq !=null and itemSeq != ''">
+		<include refid="C1_CD_MODIFY_HEADER" />
+		</if>
+		(
+		SELECT 
+			'N' AS C1_CHECKBOX 
+			, C1
+			, MAX(C1_NM) AS C1_NM 
+			, 'N' AS SUB_SUM_CHECKBOX
+		FROM 
+			SRV_DT_TOT_SURV_DATA T
+		WHERE 
+			SURV_ID = #{survId}
+			AND LENGTH(C1) > 0
+		GROUP BY C1
+		ORDER BY C1
+		)
+		<if test="itemSeq !=null and itemSeq != ''">
+		<include refid="C1_CD_MODIFY_FOOTER" />
+		</if>
+	</select>
+	
+	<select id="getStstisticsUSTotalSurveyContent_2_SelectList" resultType="StastisticsCamelcase">
+		<if test="itemSeq !=null and itemSeq != ''">
+		<include refid="C2_CD_MODIFY_HEADER" />
+		</if>
+		(
+		SELECT 
+			'N' AS C2_CHECKBOX
+			, C2
+			, MAX(C2_NM) AS C2_NM
+			, 'N' AS SUB_SUM_CHECKBOX 
+		FROM 
+			SRV_DT_TOT_SURV_DATA T
+		WHERE 
+			SURV_ID = #{survId}
+			AND LENGTH(C2) > 0
+		GROUP BY C2
+		ORDER BY C2
+		)
+		<if test="itemSeq !=null and itemSeq != ''">
+		<include refid="C2_CD_MODIFY_FOOTER" />
+		</if>
+	</select>
+	
+	
+	<select id="getStstisticsUSTotalSurveyContent_3_SelectList" resultType="StastisticsCamelcase">
+		<if test="itemSeq !=null and itemSeq != ''">
+		<include refid="C3_CD_MODIFY_HEADER" />
+		</if>
+		(
+		SELECT 
+			'N' AS C3_CHECKBOX 
+			, C3
+			, MAX(C3_NM) AS C3_NM
+			, 'N' AS SUB_SUM_CHECKBOX 
+		FROM 
+			SRV_DT_TOT_SURV_DATA T
+		WHERE 
+			SURV_ID = #{survId}
+			AND LENGTH(C3) > 0
+		GROUP BY C3
+		ORDER BY C3
+		)
+		<if test="itemSeq !=null and itemSeq != ''">
+		<include refid="C3_CD_MODIFY_FOOTER" />
+		</if>
+	</select>
+	<!-- [END] 항목상세설정 테이블을 조회해서 등록/수정 화면에 맞게 데이터를 조작 및 조회한다. -->
+
+
+
+	<!-- 항목 설정에 입력한 값들을 DB에 등록한다. -->
+	<!-- 여기서 미리 ITEM_SEQ에 사용될 값을 selectKey로 얻어온다. 이 값은 insertAllDetailStstisticsUsTotalSurvey 쿼리에서도 쓰인다. -->
+	<insert id="insertAllStstisticsUsTotalSurvey">
+		<selectKey keyProperty="ITEM_SEQ" resultType="int" order="BEFORE">
+			/* 카이로스는 시퀀스가 없다. */
+			SELECT NVL(MAX(item_seq),0)+1 FROM SRV_DT_TOT_SURV_ITEM
+		</selectKey>
+		INSERT INTO SRV_DT_TOT_SURV_ITEM
+			( ITEM_SEQ
+			 , ITEM_B_CLASS_ID
+			 , ITEM_M_CLASS_ID
+			 , ITEM_S_CLASS_ID
+			 , SURV_ID
+			 , DATA_NM
+			 , DISP_RANK
+			 , CHART_ID
+			 , DEL_YN
+			 , EXP
+			 , SOURCE
+			 , UNIT
+			 , REG_DT
+			 , MOD_DT 
+			 , DISP_DATA_TYPE )
+		VALUES (
+			#{ITEM_SEQ}, 
+			#{ITEM_B_CLASS_ID}, 
+			#{ITEM_M_CLASS_ID}, 
+			#{ITEM_S_CLASS_ID}, 
+			#{SURV_ID}, 
+			#{DATA_NM}, 
+			#{DISP_RANK},
+			#{CHART_ID},
+			'N',
+			#{EXP},
+			#{SOURCE},
+			#{UNIT},
+			to_char(sysdate,'yyyymmdd'),
+			'',
+			#{DISP_DATA_TYPE} );
+	</insert>
+	
+	<!-- 항목 상세 설정에 입력한 값들을 DB에 등록한다. -->
+	<insert id="insertAllDetailStstisticsUsTotalSurvey">
+		insert into SRV_DT_TOT_SURV_ITEM_DETAIL(ITEM_SEQ, DATA_TYPE, DATA_CD, DATA_NM, SUBSUM_YN, DEL_YN, REG_DT, MOD_DT)
+		VALUES (
+			#{itemSeq}
+			, #{dataType}
+			, #{dataCd}
+			, #{dataNm}
+			, 
+			<if test="subsumYn == true">'Y'</if>
+			<if test="subsumYn == false">'N'</if>
+			, 'N'
+			, to_char(sysdate,'yyyymmdd')
+			,''	);
+	</insert>
+	
+	<select id="selectStstisticsUSTotalStblInfo" parameterType="HashMap" resultType="StastisticsCamelcase">
+		SELECT
+			ORG_ID
+			, TBL_ID
+			, STATTB_SOURC
+			, STATTB_CLASS
+			, STATTB_URL
+			, PATH_NM
+			, STATTB_BEGIN_YEAR
+			, STATTB_END_YEAR
+			, REGION_VAR_ORD
+			, REGION_BEGIN
+			, REGION_END
+			, REG_DT
+			, MOD_DT
+			, UPDT_CYCLE
+			, DISP_CTGRY
+			, STATTB_ORDER
+			, STATTB_DIV
+			, TBL_NM
+			, MENU_DISP_YN
+			, OBJ_NM
+			, STATTB_YEAR
+		FROM SRV_DT_ST_LIST
+		WHERE 1=1
+		  AND ORG_ID = #{orgId}
+		  AND TBL_ID = #{tblId}
+	</select>
+	
+	<select id="selectStstisticsUSTotalStblDetailInfo" parameterType="HashMap" resultType="StastisticsCamelcase">
+		SELECT 	
+			LST.ORG_ID
+			, LST.TBL_ID
+			, LST.STATTB_SOURC
+			, LST.STATTB_CLASS
+			, LST.STATTB_URL
+			, LST.PATH_NM
+			, LST.STATTB_BEGIN_YEAR
+			, LST.STATTB_END_YEAR
+			, LST.REGION_VAR_ORD
+			, LST.REGION_BEGIN
+			, LST.REGION_END
+			, LST.UPDT_CYCLE
+			, LST.DISP_CTGRY
+			, LST.STATTB_ORDER
+			, LST.STATTB_DIV
+			, LST.TBL_NM
+			, LST.OBJ_NM
+			, LST.STATTB_YEAR
+			, ITM.CHART_ORD
+			, ITM.CHART_NM
+			, ITM.KOSIS_UNIT_NM
+			, ITM.KOSIS_UNIT
+			, ITM.DISP_UNIT_NM
+			, ITM.DISP_UNIT
+			, ITM.DISP_CO
+			, ITM.DISP_VAR_ORD
+			, ITM.ALL_DISP_AT
+			, ITM.CHART_TYPE
+			, ITM.DET_YN
+			, ITM.TOT_SURV_YN
+			, ITM.IEM_CL
+			, ITM.CHART_SNO
+			, ITM.RMNDR_USE_YN
+			, DET.OBJ_VAR_ID
+			, DET.ITM_ID
+			, DET.VAR_ORD
+			, DET.SCR_KOR
+			, DET.ALTRTV_DISP_WRD
+			, DET.CHOISE_YN
+			, DET.SUBSUM_YN
+			, DET.CHART_NM_BY_AREA
+			, DET.CHART_NM_BY_YEAR
+			, DET.USE_YN_BY_YEAR_CHART
+			, DET.UNACTIVY_YN
+			, DET.CLICK_EVENT_YN
+			, DET.TTIP_USE_YN
+			, DET.LABEL_USE_YN
+		FROM (
+				SELECT
+					ORG_ID
+					, TBL_ID
+					, STATTB_SOURC
+					, STATTB_CLASS
+					, STATTB_URL
+					, PATH_NM
+					, STATTB_BEGIN_YEAR
+					, STATTB_END_YEAR
+					, REGION_VAR_ORD
+					, REGION_BEGIN
+					, REGION_END
+					, UPDT_CYCLE
+					, DISP_CTGRY
+					, STATTB_ORDER
+					, STATTB_DIV
+					, TBL_NM
+					, OBJ_NM
+					, STATTB_YEAR
+				FROM SRV_DT_ST_LIST
+				WHERE ORG_ID = #{ORG_ID}
+				  AND TBL_ID = #{TBL_ID}
+				  AND DEL_YN = 'N'
+				  <if test='STATTB_YEAR != null and STATTB_YEAR != ""'>
+				  AND STATTB_YEAR LIKE '%'||#{STATTB_YEAR}||'%'
+				  </if>
+			) LST
+			, (
+				SELECT
+					ORG_ID
+					, TBL_ID
+					, CHART_ORD
+					, CHART_NM
+					, KOSIS_UNIT_NM
+					, KOSIS_UNIT
+					, DISP_UNIT_NM
+					, DISP_UNIT
+					, DISP_CO
+					, DISP_VAR_ORD
+					, ALL_DISP_AT
+					, CHART_TYPE
+					, DET_YN
+					, TOT_SURV_YN
+					, IEM_CL
+					, CHART_SNO
+					, RMNDR_USE_YN
+				FROM SRV_DT_ST_CHART_ITM_SETUP
+				WHERE ORG_ID = #{ORG_ID}
+				  AND TBL_ID = #{TBL_ID}
+				  AND TOT_SURV_YN = #{TOT_SURV_YN}
+				  AND DET_YN = #{DET_YN}
+				  AND DEL_YN = 'N'
+				  <if test='CHART_ORD != null and CHART_ORD != ""'>
+				  AND CHART_ORD LIKE '%'||#{CHART_ORD}||'%'
+				  </if>
+			) ITM
+			, (
+				SELECT
+					ORG_ID
+					, TBL_ID
+					, CHART_ORD
+					, OBJ_VAR_ID
+					, ITM_ID
+					, VAR_ORD
+					, SCR_KOR
+					, ALTRTV_DISP_WRD
+					, CHOISE_YN
+					, SUBSUM_YN
+					, CHART_NM_BY_AREA
+					, CHART_NM_BY_YEAR
+					, USE_YN_BY_YEAR_CHART
+					, UNACTIVY_YN
+					, CLICK_EVENT_YN
+					, TTIP_USE_YN
+					, LABEL_USE_YN
+				FROM SRV_DT_ST_CHART_DET_ITM_SETUP
+				WHERE ORG_ID = #{ORG_ID}
+				  AND TBL_ID = #{TBL_ID}
+				  <if test='CHART_ORD != null and CHART_ORD != ""'>
+				  AND CHART_ORD LIKE '%'||#{CHART_ORD}||'%'
+				  </if>
+				  AND TOT_SURV_YN = #{TOT_SURV_YN}
+				  AND DET_YN = #{DET_YN}
+				  AND DEL_YN = 'N'
+			) DET
+		WHERE LST.ORG_ID = ITM.ORG_ID
+		  AND LST.TBL_ID = ITM.TBL_ID
+		  AND LST.ORG_ID = DET.ORG_ID(+)
+		  AND LST.TBL_ID = DET.TBL_ID(+)
+		  AND ITM.CHART_ORD = DET.CHART_ORD(+)
+	</select>
+	
+	<!-- 항목 상세 설정에 입력한 값들을 DB에 등록한다. -->
+	<update id="updateStstisticsUSTotalStblList">
+		UPDATE SRV_DT_ST_LIST		
+		SET 
+			<if test='STATTB_SOURC != null'>
+				STATTB_SOURC = #{STATTB_SOURC},
+			</if>
+			<if test='STATTB_CLASS != null'>
+				STATTB_CLASS = #{STATTB_CLASS},
+			</if>
+			<if test='STATTB_URL != null'>
+				STATTB_URL = #{STATTB_URL},
+			</if>
+			<if test='PATH_NM != null'>
+				PATH_NM = #{PATH_NM},
+			</if>
+			<if test='STATTB_BEGIN_YEAR != null'>
+				STATTB_BEGIN_YEAR = #{STATTB_BEGIN_YEAR},
+			</if>
+			<if test='STATTB_END_YEAR != null'>
+				STATTB_END_YEAR = #{STATTB_END_YEAR},
+			</if>
+			<if test='REGION_VAR_ORD != null'>
+				REGION_VAR_ORD = #{REGION_VAR_ORD},
+			</if>
+			<if test='REGION_BEGIN != null'>
+				REGION_BEGIN = #{REGION_BEGIN},
+			</if>
+			<if test='REGION_END != null'>
+				REGION_END = #{REGION_END},
+			</if>
+			<if test='STATTB_ORDER != null'>
+				STATTB_ORDER = #{STATTB_ORDER},
+			</if>
+			<if test='STAT_NM != null'>
+				STATTB_DIV = #{STAT_NM},
+			</if>
+			<if test='TBL_NM != null'>
+				TBL_NM = #{TBL_NM},
+			</if>
+			<if test='MENU_DISP_YN != null'>
+				MENU_DISP_YN = #{MENU_DISP_YN},
+			</if>
+			<if test='OBJ_NM != null'>
+				OBJ_NM = #{OBJ_NM},
+			</if>
+			<if test='STATTB_YEAR != null'>
+				STATTB_YEAR = #{STATTB_YEAR}
+			</if>
+		WHERE ORG_ID = #{ORG_ID}
+		  AND TBL_ID = #{TBL_ID}
+	</update>
+	
+	<!-- 항목 상세 설정에 입력한 값들을 DB에 등록한다. -->
+	<update id="updateStstisticsUSTotalStblChartInfo">
+		UPDATE SRV_DT_ST_CHART_ITM_SETUP
+		SET 
+			<if test='chartNm != null'>
+				CHART_NM = #{chartNm},
+			</if>
+			<if test='kosisUnitNm != null'>
+				KOSIS_UNIT_NM = #{kosisUnitNm},
+			</if>
+			<if test='kosisUnit != null'>
+				KOSIS_UNIT = #{kosisUnit},
+			</if>
+			<if test='dispUnitNm != null'>
+				DISP_UNIT_NM = #{dispUnitNm},
+			</if>
+			<if test='dispUnit != null'>
+				DISP_UNIT = #{dispUnit},
+			</if>
+			<if test='dispVarOrd != null and dispVarOrd != ""'>
+				DISP_VAR_ORD = #{dispVarOrd},
+			</if>
+			<if test='chartType != null'>
+				CHART_TYPE = #{chartType},
+			</if>
+			<if test='chartType != null'>
+				CHART_TYPE = #{chartType},
+			</if>
+			<if test='chartType != null'>
+				CHART_TYPE = #{chartType},
+			</if>
+			<if test='chartSno != null'>
+				CHART_SNO = #{chartSno},
+			</if>
+			<if test='rmndrUseYn != null'>
+				RMNDR_USE_YN = #{rmndrUseYn},
+			</if>
+			MOD_DT = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+		WHERE ORG_ID = #{orgId}
+		  AND TBL_ID = #{tblId}
+		  AND CHART_ORD = #{chartOrd}
+		  AND TOT_SURV_YN = #{totSurvYn}
+		  AND DET_YN = #{detYn}
+	</update>
+	
+	<!-- 항목 상세 설정에 입력한 값들을 DB에 등록한다. -->
+	<update id="updateStstisticsUSTotalStblChartItmInfo">
+		UPDATE SRV_DT_ST_CHART_DET_ITM_SETUP
+		SET 
+			<if test='choiseYn != null'>
+				CHOISE_YN = #{choiseYn},
+			</if>
+			<if test='subsumYn != null'>
+				SUBSUM_YN = #{subsumYn},
+			</if>
+			<if test='altrtvDispWrd != null'>
+				ALTRTV_DISP_WRD = #{altrtvDispWrd},
+			</if>
+			<if test='chartNmByArea != null'>
+				CHART_NM_BY_AREA = #{chartNmByArea},
+			</if>
+			<if test='chartNmByYear != null'>
+				CHART_NM_BY_YEAR = #{chartNmByYear},
+			</if>
+			<if test='useYnByYearChart != null'>
+				USE_YN_BY_YEAR_CHART = #{useYnByYearChart},
+			</if>
+			<if test='unactivyYn != null'>
+				UNACTIVY_YN = #{unactivyYn},
+			</if>
+			<if test='clickEventYn != null'>
+				CLICK_EVENT_YN = #{clickEventYn},
+			</if>
+			<if test='ttipUseYn != null'>
+				TTIP_USE_YN = #{ttipUseYn},
+			</if>
+			<if test='ttipUseYn != null'>
+				LABEL_USE_YN = #{ttipUseYn},
+			</if>
+			MOD_DT = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+		WHERE ORG_ID = #{orgId}
+		  AND TBL_ID = #{tblId}
+		  AND CHART_ORD = #{chartOrd}
+		  AND ITM_ID = #{itmId}
+		  AND DET_YN = #{detYn}
+		  AND OBJ_VAR_ID = #{objVarId}
+		  AND VAR_ORD = #{varOrd}
+		  AND TOT_SURV_YN = #{totSurvYn}
+	</update>
+	
+	<!-- 항목 상세 설정에 입력한 값들을 DB에 등록한다. -->
+	<insert id="insertStstisticsUSTotalStblList">
+		INSERT INTO SRV_DT_ST_LIST(ORG_ID, TBL_ID, STATTB_SOURC, STATTB_CLASS, STATTB_URL, PATH_NM, STATTB_BEGIN_YEAR
+								, STATTB_END_YEAR, REGION_VAR_ORD, REGION_BEGIN, REGION_END, STATTB_ORDER, STATTB_DIV
+								, TBL_NM, MENU_DISP_YN, OBJ_NM, STATTB_YEAR)
+		VALUES (
+			#{ORG_ID}, #{TBL_ID}, #{STATTB_SOURC}, #{STATTB_CLASS}, #{STATTB_URL}, #{PATH_NM}, #{STATTB_BEGIN_YEAR} 
+			, #{STATTB_END_YEAR}, #{REGION_VAR_ORD}, #{REGION_BEGIN}, #{REGION_END}, #{STATTB_ORDER}, #{STAT_NM}
+			, #{TBL_NM}, 'Y', #{OBJ_NM}, #{STATTB_YEAR}
+		)
+	</insert>
+	
+	<!-- 데이터 중복을 방지하기 위한 조회문이다. -->
+	<select id="checkDuplicateRow" resultType="int">
+		SELECT 
+			COUNT(*) 
+		FROM  
+			SRV_DT_TOT_SURV_ITEM 
+		WHERE
+			ITEM_B_CLASS_ID = #{ITEM_B_CLASS_ID}
+			AND ITEM_M_CLASS_ID = #{ITEM_M_CLASS_ID}
+			AND ITEM_S_CLASS_ID = #{ITEM_S_CLASS_ID}
+			AND DISP_RANK = #{DISP_RANK}
+			AND DEL_YN = 'N'
+	</select>
+	
+	<select id="selectConfigurationByClass" resultType="java.util.HashMap">
+		SELECT 
+			*
+		FROM  
+			SRV_DT_TOT_SURV_ITEM 
+		WHERE
+			ITEM_B_CLASS_ID = #{ITEM_B_CLASS_ID}
+			AND ITEM_M_CLASS_ID = #{ITEM_M_CLASS_ID}
+			AND ITEM_S_CLASS_ID = #{ITEM_S_CLASS_ID}
+			AND DEL_YN = 'N'
+			<if test="ITEM_SEQ != null and ITEM_SEQ != ''">
+			AND ITEM_SEQ != #{ITEM_SEQ}
+			</if>
+	</select>
+	
+	<select id="selectConfiguration" resultType="StastisticsCamelcase">
+		SELECT 
+			S.*
+			, (SELECT surv_nm from SRV_DT_TOT_SURV_INFO where surv_id = S.surv_id) AS SURV_NM
+		FROM 
+			SRV_DT_TOT_SURV_ITEM S
+		WHERE
+			ITEM_SEQ = #{survId}
+	</select>
+	
+	<select id="findThema" resultType="StastisticsCamelcase">
+		SELECT 
+			THEMA , PATH
+		FROM 
+			SRV_DT_TOT_SURV_INFO
+		WHERE 
+			SURV_ID = #{survId}
+	</select>
+	
+	<!-- SRV_DT_TOT_SURV_ITEM ROW(=항목 설정 입력값들)를 삭제 처리한다. -->
+	<update id="deleteStstisticsUSTotalSurveyConfigure">
+		update 
+			SRV_DT_TOT_SURV_ITEM
+		set 
+			del_yn = 'Y'
+			, MOD_DT = to_char(sysdate,'yyyymmdd')
+		where 
+			item_seq = #{ITEM_SEQ}
+	</update>
+	
+	<!-- SRV_DT_TOT_SURV_ITEM_DETAIL ROW(=항목 상세 설정 체크한 것들)를 삭제 처리한다. -->
+	<update id="deleteDetailStstisticsUSTotalSurveyConfigure">
+		update 
+			SRV_DT_TOT_SURV_ITEM_DETAIL
+		set 
+			del_yn = 'Y'
+			, MOD_DT = to_char(sysdate,'yyyymmdd')
+		where 
+			item_seq = #{ITEM_SEQ}
+	</update>
+	
+	<!-- 항목 설정과 관련한 수정을 하는 쿼리다. -->
+	<update id="updateConfigureStstisticsUSTotalSurvey">
+		update 
+			SRV_DT_TOT_SURV_ITEM
+		set
+			ITEM_B_CLASS_ID = #{ITEM_B_CLASS_ID}
+			, ITEM_M_CLASS_ID = #{ITEM_M_CLASS_ID}
+			, ITEM_S_CLASS_ID = #{ITEM_S_CLASS_ID}
+			, DATA_NM = #{DATA_NM}
+			, DISP_RANK = #{DISP_RANK}
+			, SURV_ID = #{SURV_ID}
+			, CHART_ID = #{CHART_ID}
+			, EXP = #{EXP}
+			, SOURCE = #{SOURCE}
+			, UNIT = #{UNIT}
+			, MOD_DT = to_char(sysdate,'yyyymmdd')
+			, DISP_DATA_TYPE = #{DISP_DATA_TYPE}
+		where
+			ITEM_SEQ = #{ITEM_SEQ} 
+	</update>
+	
+	<!-- 입력한 수정 항목들과 현재 갖고 있는 값이 같은지 체크한다. -->
+	<select id="updateConfigureSelfCheck" resultType="int">
+		select 
+			count(*) 
+		from 
+			SRV_DT_TOT_SURV_ITEM
+		where 
+			ITEM_SEQ  = #{ITEM_SEQ}
+			AND ITEM_S_CLASS_ID = #{ITEM_S_CLASS_ID}
+			AND ITEM_M_CLASS_ID = #{ITEM_M_CLASS_ID}
+			AND ITEM_B_CLASS_ID = #{ITEM_B_CLASS_ID}
+			AND SURV_ID  = #{SURV_ID}
+			AND	DATA_NM  = #{DATA_NM}
+			AND DISP_RANK  = #{DISP_RANK}
+			AND CHART_ID  = #{CHART_ID}
+			AND EXP = #{EXP}
+			AND SOURCE = #{SOURCE}
+			AND UNIT = #{UNIT}
+			AND DEL_YN = 'N'
+			AND DISP_DATA_TYPE = #{DISP_DATA_TYPE}
+	</select>
+	
+	<!-- updateConfigureStstisticsUSTotalSurvey 에 의해서 수정된  결과가 혹시 이미 존재하는 지를 찾아본다. -->
+	<!-- 만약 나오면 브라우저에 이미 중복되는 정보라고 알려줘야한다. -->
+	<select id="updateConfigureDuplicateCheck" resultType="int">
+		SELECT
+			count(*)
+		from 
+			SRV_DT_TOT_SURV_ITEM
+		where
+			DATA_NM  = #{DATA_NM}
+			AND SURV_ID  = #{SURV_ID}
+			AND DISP_RANK  = #{DISP_RANK}
+			AND ITEM_S_CLASS_ID = #{ITEM_S_CLASS_ID}
+			AND ITEM_M_CLASS_ID = #{ITEM_M_CLASS_ID}
+			AND ITEM_B_CLASS_ID = #{ITEM_B_CLASS_ID}
+			AND DEL_YN = 'N' /* 삭제되지 않은 항목 중에서 중복체크해야 한다. */
+	</select>
+	
+	<!-- 항목 상세 설정에서 "선택" 컬럼의 체크가 해제된 것들을 DEL='Y', 즉 삭제 처리해준다. -->
+	<update id="updateDetail_delete">
+		UPDATE 
+			SRV_DT_TOT_SURV_ITEM_DETAIL
+		SET
+			DEL_YN = 'Y'
+			, SUBSUM_YN = 'N'
+			/* , DATA_NM = '' */
+			, MOD_DT = to_char(sysdate,'yyyymmdd')
+		WHERE
+			ITEM_SEQ = #{itemSeq}
+			AND DATA_TYPE = #{dataType}
+			AND DATA_CD = #{dataCd}
+	</update>
+	
+	
+	<!-- 항목 상세 설정에서 체크한 것을 수정 혹은 입력한다. 기존에 있으면 수정, 기존에 없었다면 입력이다. -->
+	<update id="updateDetail_mergeInto">
+		MERGE INTO 
+			SRV_DT_TOT_SURV_ITEM_DETAIL
+		USING 
+			DUAL
+		ON (
+			ITEM_SEQ = #{itemSeq}
+			AND DATA_TYPE = #{dataType}
+			AND DATA_CD = #{dataCd}	
+		)
+		WHEN MATCHED THEN
+			UPDATE SET
+			<if test="subsumYn == true">SUBSUM_YN = 'Y'</if>
+			<if test="subsumYn == false">SUBSUM_YN = 'N'</if>
+			, DATA_NM = #{dataNm}
+			, MOD_DT = to_char(sysdate,'yyyymmdd')
+			, DEL_YN = 'N'
+		WHEN NOT MATCHED THEN
+			INSERT (ITEM_SEQ, DATA_TYPE, DATA_CD, DATA_NM, SUBSUM_YN, DEL_YN, REG_DT, MOD_DT)
+			VALUES (
+				#{itemSeq}
+				, #{dataType}
+				, #{dataCd}
+				, #{dataNm}
+				, 
+				<if test="subsumYn == true">'Y'</if>
+				<if test="subsumYn == false">'N'</if>
+				, 'N'
+				, to_char(sysdate,'yyyymmdd')
+				, '');
+	</update>
+	
+	<select id="searchNmAndExpRank" resultType="StastisticsCamelcase">
+		SELECT 
+			DISP_RANK
+			, DATA_NM
+		FROM
+			SRV_DT_TOT_SURV_ITEM
+		WHERE
+			ITEM_B_CLASS_ID		= #{bClass}
+			AND ITEM_M_CLASS_ID	= #{mClass}
+			AND ITEM_S_CLASS_ID	= #{sClass}
+			AND DEL_YN = 'N'
+		ORDER BY
+			DISP_RANK
+	</select>
+	
+	<sql id="commonWhere">
+		WHERE 1=1
+		<if test="STATTB_DIV != null and STATTB_DIV !=''">
+			AND STATTB_DIV LIKE '%' || #{STATTB_DIV} || '%'
+		</if>
+		<if test="TBL_NM != null and TBL_NM !=''">
+			AND TBL_NM LIKE '%' || #{TBL_NM} || '%'
+		</if>
+		<if test="STATTB_SOURC != null and STATTB_SOURC !=''">
+			AND STATTB_SOURC LIKE '%' || #{STATTB_SOURC} || '%'
+		</if>
+		<if test="STATTB_YEAR != null and STATTB_YEAR !=''">
+			AND STATTB_YEAR = #{STATTB_YEAR}
+		</if>
+	</sql>
+	
+	
+	
+	<!-- 항목 대분류 코드와 이름을 매핑을 위한 sql -->
+	<sql id="nameMappingFor_B_Class">
+	CASE 
+		WHEN ITEM_B_CLASS_ID = 'BRD_INFO' THEN '대시보드(정보)'
+		WHEN ITEM_B_CLASS_ID = 'BRD_CHART' THEN '대시보드(차트)'
+		WHEN ITEM_B_CLASS_ID = 'DTL' THEN '상세보기'
+	END AS ITEM_B_CLASS_NM
+	</sql>
+	
+	<!-- 항목 중분류 코드와 이름을 매핑을 위한 sql -->
+	<sql id="nameMappingFor_M_Class">
+	CASE 
+		WHEN ITEM_B_CLASS_ID IN('BRD_CHART','BRD_INFO') THEN 
+			CASE 
+				WHEN ITEM_M_CLASS_ID = 'PP' THEN '인구'
+				WHEN ITEM_M_CLASS_ID = 'FM' THEN '가구'
+				WHEN ITEM_M_CLASS_ID = 'HS' THEN '주택'
+				WHEN ITEM_M_CLASS_ID = 'FR' THEN '농업'
+				WHEN ITEM_M_CLASS_ID = 'FT' THEN '임업'
+				WHEN ITEM_M_CLASS_ID = 'FS' THEN '어업'
+			END
+		ELSE ''
+	END AS ITEM_M_CLASS_NM
+	</sql>
+	
+	<!-- 항목 소분류 코드와 이름을 매핑을 위한 sql -->
+	<sql id="nameMappingFor_S_Class">
+	CASE 
+		WHEN ITEM_B_CLASS_ID IN('BRD_CHART','BRD_INFO') THEN 
+			CASE 
+				WHEN ITEM_S_CLASS_ID = 'TOT' THEN '전국'
+				WHEN ITEM_S_CLASS_ID = 'SIDO' THEN '시도'
+				WHEN ITEM_S_CLASS_ID = 'SGG' THEN '시군구'
+				WHEN ITEM_S_CLASS_ID = 'TS' THEN '시계열'
+			END
+		ELSE ''
+	END AS ITEM_S_CLASS_NM
+	</sql>
+	
+	<sql id="ITM_CD_MODIFY_HEADER">
+		SELECT
+			CASE
+				WHEN T.ITM_CD IS NOT NULL THEN 'Y'
+				ELSE 'N'
+			END AS ITM_CHECKBOX
+			, CASE
+				WHEN T.SUB_SUM_CHECKBOX IS NOT NULL and T.SUB_SUM_CHECKBOX = 'Y' THEN 'Y'
+				ELSE 'N'
+			END AS SUB_SUM_CHECKBOX
+			, CASE
+				WHEN T.ITM_CD IS NOT NULL THEN T.ITM_CD
+				ELSE S.ITM_CD
+			END AS ITM_CD
+			, CASE
+				WHEN S.ITM_NM != T.ITM_NM THEN T.ITM_NM
+				ELSE S.ITM_NM
+			END AS ITM_NM
+		FROM 
+	</sql>
+	<sql id="ITM_CD_MODIFY_FOOTER">
+		 S
+		LEFT JOIN 
+		(
+			SELECT 
+				data_cd as ITM_CD
+				, data_nm as ITM_NM
+				, subsum_yn as SUB_SUM_CHECKBOX
+			FROM
+				SRV_DT_TOT_SURV_ITEM_DETAIL
+			WHERE
+				ITEM_SEQ = #{itemSeq}
+				AND DATA_TYPE = 'ITM'
+				AND DEL_YN = 'N'
+		) T
+		ON
+			S.ITM_CD = T.ITM_CD
+		ORDER BY S.ITM_CD
+	</sql>
+	
+	
+	<sql id="C1_CD_MODIFY_HEADER">
+	SELECT
+		CASE
+			WHEN T.C1 IS NOT NULL THEN 'Y'
+			ELSE 'N'
+		END AS C1_CHECKBOX
+		, CASE
+			WHEN T.SUB_SUM_CHECKBOX IS NOT NULL and T.SUB_SUM_CHECKBOX = 'Y' THEN 'Y'
+			ELSE 'N'
+		END AS SUB_SUM_CHECKBOX
+		, CASE
+			WHEN T.C1 IS NOT NULL THEN T.C1
+			ELSE S.C1
+		END AS C1
+		, CASE
+			WHEN S.C1_NM != T.C1_NM THEN T.C1_NM
+			ELSE S.C1_NM
+		END AS C1_NM
+	FROM
+	</sql>
+	<sql id="C1_CD_MODIFY_FOOTER">
+	S
+	LEFT JOIN 
+	(
+		SELECT
+			data_cd as C1
+			, data_nm as C1_NM
+			, subsum_yn as SUB_SUM_CHECKBOX
+		FROM
+			SRV_DT_TOT_SURV_ITEM_DETAIL
+		WHERE
+			ITEM_SEQ = #{itemSeq}
+			AND DATA_TYPE = 'C1'
+			AND DEL_YN ='N'
+	) T
+	ON
+		S.C1 = T.C1
+	ORDER BY S.C1
+	</sql>
+	
+	
+	<sql id="C2_CD_MODIFY_HEADER">
+	SELECT
+		CASE
+			WHEN T.C2 IS NOT NULL THEN 'Y'
+			ELSE 'N'
+		END AS C2_CHECKBOX
+		, CASE
+			WHEN T.SUB_SUM_CHECKBOX IS NOT NULL and T.SUB_SUM_CHECKBOX = 'Y' THEN 'Y'
+			ELSE 'N'
+		END AS SUB_SUM_CHECKBOX
+		, CASE
+			WHEN T.C2 IS NOT NULL THEN T.C2
+			ELSE S.C2
+		END AS C2
+		, CASE
+			WHEN S.C2_NM != T.C2_NM THEN T.C2_NM
+			ELSE S.C2_NM
+		END AS C2_NM
+	FROM
+	</sql>
+	<sql id="C2_CD_MODIFY_FOOTER">
+	S
+	LEFT JOIN 
+	(
+		SELECT
+			data_cd as C2
+			, data_nm as C2_NM
+			, subsum_yn as SUB_SUM_CHECKBOX
+		FROM
+			SRV_DT_TOT_SURV_ITEM_DETAIL
+		WHERE
+			ITEM_SEQ = #{itemSeq}
+			AND DATA_TYPE = 'C2'
+			AND DEL_YN ='N'
+	) T
+	ON
+		S.C2 = T.C2
+	ORDER BY S.C2
+	</sql>
+	
+	
+	<sql id="C3_CD_MODIFY_HEADER">
+	SELECT
+		CASE
+			WHEN T.C3 IS NOT NULL THEN 'Y'
+			ELSE 'N'
+		END AS C3_CHECKBOX
+		, CASE
+			WHEN T.SUB_SUM_CHECKBOX IS NOT NULL and T.SUB_SUM_CHECKBOX = 'Y' THEN 'Y'
+			ELSE 'N'
+		END AS SUB_SUM_CHECKBOX
+		, CASE
+			WHEN T.C3 IS NOT NULL THEN T.C3
+			ELSE S.C3
+		END AS C3
+		, CASE
+			WHEN S.C3_NM != T.C3_NM THEN T.C3_NM
+			ELSE S.C3_NM
+		END AS C3_NM
+	FROM
+	</sql>
+	<sql id="C3_CD_MODIFY_FOOTER">
+	S
+	LEFT JOIN 
+	(
+		SELECT
+			data_cd as C3
+			, data_nm as C3_NM
+			, subsum_yn as SUB_SUM_CHECKBOX
+		FROM
+			SRV_DT_TOT_SURV_ITEM_DETAIL
+		WHERE
+			ITEM_SEQ = #{itemSeq}
+			AND DATA_TYPE = 'C3'
+			AND DEL_YN ='N'
+	) T
+	ON
+		S.C3 = T.C3
+	ORDER BY S.C3
+	</sql>
+	
+	<!-- 통계표 정보 삭제 -->
+	<delete id="deleteStstisticsUSTotalStblInfo">
+		DELETE FROM SRV_DT_ST_LIST
+		WHERE ORG_ID = #{orgId}
+		  AND TBL_ID = #{tblId}
+	</delete>
+	
+	<!-- 통계표 아이템 상세 정보 삭제 -->
+	<delete id="deleteStstisticsUSTotalStblDetailItmList">
+		DELETE FROM SRV_DT_ST_CHART_DET_ITM_SETUP
+		WHERE ORG_ID = #{ORG_ID}
+		  AND TBL_ID = #{TBL_ID}
+		  AND CHART_ORD = #{CHART_ORD}
+		  AND TOT_SURV_YN = #{TOT_SURV_YN}
+		  AND DET_YN = #{DET_YN}
+	</delete>
+	
+	<!-- 통계표 항목구분 정보 삭제 -->
+	<delete id="deleteStstisticsUSTotalStblDetailCharItmList">
+		DELETE FROM SRV_DT_ST_CHART_ITM_SETUP
+		WHERE ORG_ID = #{ORG_ID}
+		  AND TBL_ID = #{TBL_ID}
+		  AND CHART_ORD = #{CHART_ORD}
+		  AND TOT_SURV_YN = #{TOT_SURV_YN}
+		  AND DET_YN = #{DET_YN}
+	</delete>
+	
+	<!-- 통계구분 상위 클래스 선택 -->
+	<select id="selectStattbDiv" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT 
+			DISTINCT STATTB_DIV AS STATTB_DIV
+		FROM SRV_DT_ST_LIST
+		WHERE DEL_YN = 'N'
+		  AND STATTB_DIV IS NOT NULL
+		UNION ALL  
+		SELECT 
+			DISTINCT NVL(STATTB_DIV,'미분류') AS STATTB_DIV
+		FROM SRV_DT_ST_LIST
+		WHERE DEL_YN = 'N'
+		  AND STATTB_DIV IS NULL
+	</select>
+	
+	<!-- 통계구분 상위 클래스 선택 -->
+	<select id="selectItmBClass" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT 
+			B_CLASS_CD
+			, S_CLASS_CD
+			, S_CLASS_CD_ORDER
+			, B_CLASS_CD_NM
+			, S_CLASS_CD_NM
+			, CD_EXP
+		FROM CMM_CD_COMCD
+		WHERE B_CLASS_CD = 'STATS'
+		ORDER BY S_CLASS_CD_ORDER ASC
+	</select>
+	
+	<!-- 통계구분 중위 클래스 선택 -->
+	<select id="selectItmMClass" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT 
+			B_CLASS_CD
+			, S_CLASS_CD
+			, S_CLASS_CD_ORDER
+			, B_CLASS_CD_NM
+			, S_CLASS_CD_NM
+			, CD_EXP
+		FROM CMM_CD_COMCD
+		WHERE 1=1
+		<if test='bClassCd != null and bClassCd != ""'>
+			AND B_CLASS_CD = #{bClassCd}
+		</if>
+		ORDER BY S_CLASS_CD_ORDER ASC
+	</select>
+	
+	<!-- 통계구분 하위 클래스 선택 -->
+	<select id="selectItmSClass" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT
+			B_CLASS_CD
+			, S_CLASS_CD
+			, S_CLASS_CD_ORDER
+			, B_CLASS_CD_NM
+			, S_CLASS_CD_NM
+			, CD_EXP
+			, LEVEL
+		FROM (
+			SELECT 
+				B_CLASS_CD
+				, S_CLASS_CD
+				, S_CLASS_CD_ORDER
+				, B_CLASS_CD_NM
+				, S_CLASS_CD_NM
+				, CD_EXP
+				, LEVEL
+			FROM CMM_CD_COMCD
+			START WITH S_CLASS_CD = 'STATS' CONNECT BY PRIOR S_CLASS_CD = B_CLASS_CD
+		)
+		WHERE 1=1
+		<if test='bClassCd != null and bClassCd != ""'>
+			AND B_CLASS_CD = #{bClassCd}
+		</if>
+		<if test='mClassCd != null and mClassCd != ""'>
+			AND B_CLASS_CD = #{mClassCd}
+		</if>
+		<if test='sClassCd != null and sClassCd != ""'>
+			AND S_CLASS_CD = #{sClassCd}
+		</if>
+		ORDER BY S_CLASS_CD_ORDER ASC
+	</select>
+	
+	<!-- 통계구분 하위 클래스 선택 -->
+	<select id="selectStblInfo" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT
+			ORG_ID
+			, TBL_ID
+			, TBL_NM
+			, PATH_NM
+			, STATTB_URL
+			, STATTB_SOURC
+			, NVL((SELECT MAX(CHART_ORD)+1 FROM SRV_DT_ST_CHART_ITM_SETUP WHERE ORG_ID = #{orgId} AND TBL_ID = #{tblId}), 1) AS CHART_ORD
+			, OBJ_NM
+			, REGION_BEGIN
+			, REGION_END
+			, REGION_VAR_ORD
+			, STATTB_DIV
+			, STATTB_YEAR
+			, STATTB_ORDER
+			, STATTB_BEGIN_YEAR
+			, STATTB_END_YEAR
+			, STATTB_DIV
+		FROM SRV_DT_ST_LIST
+		WHERE ORG_ID = #{orgId}
+		  AND TBL_ID = #{tblId}
+	</select>
+	
+	<insert id="insertStstisticsUSTotalStblChartItmSetup">
+		INSERT INTO SRV_DT_ST_CHART_ITM_SETUP(
+			ORG_ID
+			, TBL_ID
+			, CHART_ORD
+		<if test='chartNm != null and chartNm != ""'>
+			, CHART_NM
+		</if>
+		<if test='objVarId != null and objVarId != ""'>
+			, DISP_OBJ_VAR_ID
+		</if>
+		<if test='dispVarOrd != null and dispVarOrd != ""'>
+			, DISP_VAR_ORD
+		</if>
+		<if test='kosisUnitNm != null and kosisUnitNm != ""'>
+			, KOSIS_UNIT_NM
+		</if>
+		<if test='kosisUnit != null and kosisUnit != ""'>
+			, KOSIS_UNIT
+		</if>
+		<if test='dispUnitNm != null and dispUnitNm != ""'>
+			, DISP_UNIT_NM
+		</if>
+		<if test='dispUnit != null and dispUnit != ""'>
+			, DISP_UNIT
+		</if>
+		<if test='dispCo != null and dispCo != ""'>
+			, DISP_CO
+		</if>
+		<if test='allDispAt != null and allDispAt != ""'>
+			, ALL_DISP_AT
+		</if>
+		<if test='chartType != null and chartType != ""'>
+			, CHART_TYPE
+		</if>
+			, REG_DT
+			, MOD_DT
+			, DEL_YN
+		<if test='detYn != null and detYn != ""'>
+			, DET_YN
+		</if>
+		<if test='totSurvYn != null and totSurvYn != ""'>
+			, TOT_SURV_YN
+		</if>
+		<if test='iemCl != null and iemCl != ""'>
+			, IEM_CL
+		</if>
+		<if test='chartCm != null and chartCm != ""'>
+			, CHART_CM
+		</if>
+		<if test='rmndrUseYn != null and rmndrUseYn != ""'>
+			, RMNDR_USE_YN
+		</if>
+		<if test='chartSno != null and chartSno != ""'>
+			, CHART_SNO
+		</if>
+		)
+		VALUES(
+			#{orgId}
+			, #{tblId}
+			, #{chartOrd}
+		<if test='chartNm != null and chartNm != ""'>
+			, #{chartNm}
+		</if>
+		<if test='objVarId != null and objVarId != ""'>
+			, #{objVarId}
+		</if>
+		<if test='dispVarOrd != null and dispVarOrd != ""'>
+			, #{dispVarOrd}
+		</if>
+		<if test='kosisUnitNm != null and kosisUnitNm != ""'>
+			, #{kosisUnitNm}
+		</if>
+		<if test='kosisUnit != null and kosisUnit != ""'>
+			, #{kosisUnit}
+		</if>
+		<if test='dispUnitNm != null and dispUnitNm != ""'>
+			, #{dispUnitNm}
+		</if>
+		<if test='dispUnit != null and dispUnit != ""'>
+			, #{dispUnit}
+		</if>
+		<if test='dispCo != null and dispCo != ""'>
+			, #{dispCo}
+		</if>
+		<if test='allDispAt != null and allDispAt != ""'>
+			, 'Y'
+		</if>
+		<if test='chartType != null and chartType != ""'>
+			, #{chartType}
+		</if>
+			, TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+			, TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+			, 'N'
+		<if test='detYn != null and detYn != ""'>
+			, #{detYn}
+		</if>
+		<if test='totSurvYn != null and totSurvYn != ""'>
+			, #{totSurvYn}
+		</if>
+		<if test='iemCl != null and iemCl != ""'>
+			, #{iemCl}
+		</if>
+		<if test='chartCm != null and chartCm != ""'>
+			, #{chartCm}
+		</if>
+		<if test='rmndrUseYn != null and rmndrUseYn != ""'>
+			, #{rmndrUseYn}
+		</if>
+		<if test='chartSno != null and chartSno != ""'>
+			, #{chartSno}
+		</if>
+		)
+	</insert>
+	
+	<insert id="insertStstisticsUSTotalStblChartDetItmSetup">
+		INSERT INTO SRV_DT_ST_CHART_DET_ITM_SETUP
+		(
+			ORG_ID
+			, TBL_ID
+			, CHART_ORD
+		<if test='objVarId != null and objVarId != ""'>
+			, OBJ_VAR_ID
+		</if>
+		<if test='itmId != null and itmId != ""'>
+			, ITM_ID
+		</if>
+		<if test='varOrd != null and varOrd != ""'>
+			, VAR_ORD
+		</if>
+		<if test='scrKor != null and scrKor != ""'>
+			, SCR_KOR
+		</if>
+		<if test='altrtvDispWrd != null and altrtvDispWrd != ""'>
+			, ALTRTV_DISP_WRD
+		</if>
+		<if test='choiseYn != null and choiseYn != ""'>
+			, CHOISE_YN
+		</if>
+		<if test='subsumYn != null and subsumYn != ""'>
+			, SUBSUM_YN
+		</if>
+			, REG_DT
+			, MOD_DT
+			, DEL_YN
+		<if test='detYn != null and detYn != ""'>
+			, DET_YN
+		</if>
+		<if test='totSurvYn != null and totSurvYn != ""'>
+			, TOT_SURV_YN
+		</if>
+		<if test='unactivyYn != null and unactivyYn != ""'>
+			, UNACTIVY_YN
+		</if>
+		<if test='clickEventYn != null and clickEventYn != ""'>
+			, CLICK_EVENT_YN
+		</if>
+		<if test='ttipUseYn != null and ttipUseYn != ""'>
+			, TTIP_USE_YN
+		</if>
+		<if test='labelUseYn != null and labelUseYn != ""'>
+			, LABEL_USE_YN
+		</if>
+		<if test='chartNmByArea != null and chartNmByArea != ""'>
+			, CHART_NM_BY_AREA
+		</if>
+		<if test='chartNmByYear != null and chartNmByYear != ""'>
+			, CHART_NM_BY_YEAR
+		</if>
+		<if test='useYnByYearChart != null and useYnByYearChart != ""'>
+			, USE_YN_BY_YEAR_CHART
+		</if>
+		)
+		VALUES(
+			#{orgId}
+			, #{tblId}
+			, #{chartOrd}
+		<if test='objVarId != null and objVarId != ""'>
+			, #{objVarId}
+		</if>
+		<if test='itmId != null and itmId != ""'>
+			, #{itmId}
+		</if>
+		<if test='varOrd != null and varOrd != ""'>
+			, #{varOrd}
+		</if>
+		<if test='scrKor != null and scrKor != ""'>
+			, #{scrKor}
+		</if>
+		<if test='altrtvDispWrd != null and altrtvDispWrd != ""'>
+			, #{altrtvDispWrd}
+		</if>
+		<if test='choiseYn != null and choiseYn != ""'>
+			, #{choiseYn}
+		</if>
+		<if test='subsumYn != null and subsumYn != ""'>
+			, #{subsumYn}
+		</if>
+			, TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+			, TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+			, 'N'
+		<if test='detYn != null and detYn != ""'>
+			, #{detYn}
+		</if>
+		<if test='totSurvYn != null and totSurvYn != ""'>
+			, #{totSurvYn}
+		</if>
+		<if test='unactivyYn != null and unactivyYn != ""'>
+			, #{unactivyYn}
+		</if>
+		<if test='clickEventYn != null and clickEventYn != ""'>
+			, #{clickEventYn}
+		</if>
+		<if test='ttipUseYn != null and ttipUseYn != ""'>
+			, #{ttipUseYn}
+		</if>
+		<if test='labelUseYn != null and labelUseYn != ""'>
+			, #{labelUseYn}
+		</if>
+		<if test='chartNmByArea != null and chartNmByArea != ""'>
+			, #{chartNmByArea}
+		</if>
+		<if test='chartNmByYear != null and chartNmByYear != ""'>
+			, #{chartNmByYear}
+		</if>
+		<if test='useYnByYearChart != null and useYnByYearChart != ""'>
+			, #{useYnByYearChart}
+		</if>
+		)
+	</insert>
+</mapper>

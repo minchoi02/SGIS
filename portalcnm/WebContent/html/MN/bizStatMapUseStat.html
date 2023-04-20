@@ -1,0 +1,577 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd" >
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>SGIS 관리자사이트(CNM)</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<link rel="stylesheet" href="./../include/css/login.css" />
+<link rel="stylesheet" href="./../include/css/default.css" />
+<script type="text/javascript"
+	src="./../include/js/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="./../include/js/default.js"></script>
+<script type="text/javascript" src="../../js/common/includeHead.js"></script>
+<script src="../../js/common/common.js"></script>
+<link rel="stylesheet" href="../../css/jquery-ui-1.10.4.custom.css" />
+<script type="text/javascript"
+	src="../../js/plugins/jquery-ui-1.10.3.custom.js"></script>
+<script type="text/javascript"
+	src="../../js/plugins/jquery-ui-timepicker-addon.js"></script>
+<script type="text/javascript" src="../../js/MN/bizStatMapUseStat.js"></script>
+<!-- 
+<script type="text/javascript" src="../../js/MN/jquery.battatech.excelexport.js"></script>
+ -->
+
+
+</head>
+
+<body  onload="init();">
+	<script type="text/javascript"
+		src="../../js/plugins/highcharts/highcharts.js"></script>
+	<script type="text/javascript"
+		src="../../js/plugins/highcharts/export-csv.js"></script>
+	<!-- Js file of hightCharts need to import in body tags -->
+	<div class="wrapper">
+		<!-- cls:header start -->
+		<div class="header">
+			<div class="defaultbox">
+				<div class="logo">
+					<a href="#"><img src="./../include/img/pic/pic_logo.png"
+						alt="logo" /></a>
+				</div>
+				<div class="navi"></div>
+			</div>
+			<div class="menuWrapper">
+				<div class="menuCnm">
+					<ul>
+						<li><a class="on">서비스 현황</a></li>
+						<li><a>사용자 현황</a></li>
+						<li><a>서비스 관리</a></li>
+						<li><a>정보 관리</a></li>
+						<li><a>게시판 관리</a></li>
+						<li><a>회원 관리</a></li>
+					</ul>
+				</div>
+			</div>
+			<div class="subMenuWrapper">
+				<div class="subMenu"></div>
+			</div>
+		</div>
+		<!-- cls:header end -->
+			<div class="contents">
+			<!-- cls:left start -->
+				<div class="lefitMenuWrapper">
+					<div class="leftTitle">서비스 현황</div>
+					
+					<!-- 2017.07.20 [개발팀] khc 메뉴 명칭 변경  start -->
+					<!-- <div class="leftMenu">
+						<ul>				
+							<li><a href="./../MN/totUseStat.html">총괄이용현황</a></li>
+							<li><a href="./../MN/APIStat.html">API 이용통계</a></li>	
+							<li><a href="#" class="on" href="./../MN/SRVStat.html">페이지 방문통계</a>
+								<ul class="sub">
+									<li><a href="./../MN/serviceUseStat.html" >서비스별 이용현황</a></li>
+									<li><a href="./../MN/interactiveMapStstUse.html">대화형 통계지도 이용현황</a></li>
+									<li><a href="./../MN/thematicMapUseStat.html">통계주제도 이용현황</a></li>
+									<li><a href="./../MN/houseAnalysisMapUseStat.html">살고싶은 우리동네 이용현황</a></li>
+									<li><a class="on" href="./../MN/bizStatMapUseStat.html">생활업종지도 이용현황</a></li>
+									<li><a href="./../MN/introUseStat.html">통계소통지도 이용현황</a></li>	
+									<li><a href="./../MN/mobileUseStat.html">모바일 이용현황</a></li>
+									<li><a href="./../MN/GalleryUseStat.html">통계갤러리 이용현황</a></li>
+									<li><a href="./../MN/policyStaticMap.html">정책통계지도 이용현황</a></li>
+									<li><a href="./../MN/technicalBizMap.html">기술업종통계지도 이용현황</a></li>
+								</ul>
+							</li>
+							<li><a href="./../MN/RELStat.html">검색어 통계</a></li>
+							<li><a href="./../MN/CommunityStat.html">통계소통지도 통계</a></li>
+						</ul>
+					</div> -->
+					<!-- 2017.07.20 [개발팀] khc 메뉴 명칭 변경 start -->
+					
+					<script type="text/javascript">
+						makeLeftMenu("1", "3", "5");	//탑메뉴순서, 선택된 왼쪽 빅메뉴, 선택된 왼쪽 small메뉴
+					</script>
+					
+				</div>
+			<!-- cls:left end -->
+				<!-- 여기서부터 -->
+				<div class="acticle">
+					<div class="location">
+						<p>
+							<a href="#"><img src="./../include/img/ico/ico_home.png" alt="home"/></a>
+							<span><img src="./../include/img/ico/ico_navi.png" alt="다음"/></span>
+							<span >서비스 현황</span>
+							<span><img src="./../include/img/ico/ico_navi.png" alt="다음"/></span>
+							<span class="fontS"> 페이지 방문통계</span>
+						</p>
+					</div>
+					
+					<!-- 2017.07.20 [개발팀] khc 메뉴 명칭 변경  start -->
+					<p class="title01">생활업종지도 이용현황</p>
+					<!-- 2017.07.20 [개발팀] khc 메뉴 명칭 변경  end -->
+					
+					<div>
+						<div class="searchWrapper">
+							<select class="input_use07" id="yearSel"
+										name="yearSel">
+											<option value="2015">2015</option>
+											<option value="2016" selected="selected">2016</option>
+											<option value="2017">2017</option>
+									</select> 
+								년
+									<select class="input_use07" id="monthSel"
+										name="monthSel">
+											<option value="01">01</option>
+											<option value="02">02</option>
+											<option value="03">03</option>
+											<option value="04" selected="selected">04</option>
+											<option value="05">05</option>
+											<option value="06">06</option>
+											<option value="07">07</option>
+											<option value="08">08</option>
+											<option value="09">09</option>
+											<option value="10">10</option>
+											<option value="11">11</option>
+											<option value="12">12</option>
+									</select> 
+								월
+							<div class="searchBtn"><a href="#" id="searchBtn"><img src="./../include/img/btn/btn_search.png" alt="검색"/></a></div>
+							<a href="#" id="totExcelBtn"><img src="./../include/img/btn/btn_save.png" style="height:27px;" alt="엑셀저장"/></a>
+						</div>
+					</div>
+					
+					<!-- 2017.07.19 [개발팀] khc 생활업종지도 이용현황 그래프보기 추가  start -->		
+					<div>
+						<p class="tilte02">메뉴별 이용현황</p>
+						<!-- 
+						<div style="overflow: scroll; height:295px">
+						<table class="apiTable03" summary="메뉴별 이용현황" id="bizStatMapTbl" style="width: 728px">
+							<caption>메뉴별 이용현황 입니다.</caption>							
+							<colgroup>								
+								<col width="200"/>
+								<col width="100"/>
+								<col width="100"/>
+								<col width="100"/>
+								<col width="100"/>
+							</colgroup>
+							<tbody id="bizStatMapBody">
+								<tr>
+									<th>메뉴</th>
+									<th>페이지뷰</th>
+									<th>방문자수</th>
+									<th>연간 페이지뷰</th>
+									<th>연간 방문자수</th>
+								</tr>
+								<tr>
+									<td>시도별생활업종현황</td>
+									<td>13,213건</td>
+									<td>60,123</td>
+								</tr>
+								<tr>
+									<td>업종별지역현황</td>
+									<td></td>
+									<td></td>
+								</tr>
+								<tr>
+									<td></td>
+									<td></td>
+									<td></td>
+								</tr>
+							</tbody>
+						</table>		
+						</div>
+						 -->
+					
+						<table class="apiTable03" summary="메뉴별 이용현황" id="bizStatMapTbl" style="width: 728px">
+							<caption>메뉴별 이용현황 입니다.</caption>							
+							<colgroup>								
+								<col width="200"/>
+								<col width="200"/>
+								<col width="100"/>
+								<col width="100"/>
+							</colgroup>
+							<tbody id="bizStatMapBody">
+								<tr>
+									<th>대메뉴</th>
+									<th>소메뉴</th>
+									<th>페이지뷰</th>
+									<th>방문자수</th>
+								</tr>
+								<tr>
+									<td rowspan="3">시도별 생활업종 현황</td>
+									<td style='border:1px solid #cacaca;'>시도 생활업종 정보</td>
+									<td><span id="viewMonth1"></span></td>
+									<td><span id="visitMonth1"></span></td>
+								</tr>
+								<tr>
+									<td style='border:1px solid #cacaca;'>시도 생활업종 순위</td>
+									<td><span id="viewMonth2"></span></td>
+									<td><span id="visitMonth2"></span></td>
+								</tr>
+								<tr>
+									<td style='border:1px solid #cacaca;'>시도 생활업종 그룹별 속성</td>
+									<td><span id="viewMonth3"></span></td>
+									<td><span id="visitMonth3"></span></td>
+								</tr>
+								<!-- 
+								<tr>
+									<td style='border:1px solid #cacaca;'>지표별 시도 순위</td>
+									<td><span id="visitMonth4"></span></td>
+									<td><span id="viewMonth4"></span></td>
+								</tr>
+								 -->
+								<tr>
+									<td rowspan="3">업종별 지역현황</td>
+									<td>전국 시군구 생활업종 업체수</td>
+									<td><span id="viewMonth5"></span></td>
+									<td><span id="visitMonth5"></span></td>
+								</tr>
+								<tr>
+									<td style='border:1px solid #cacaca;'>시군구 생활업종 정보</td>
+									<td><span id="viewMonth6"></span></td>
+									<td><span id="visitMonth6"></span></td>
+								</tr>
+								<tr>
+									<td style='border:1px solid #cacaca;'>시군구 생활업종 순위</td>
+									<td><span id="viewMonth7"></span></td>
+									<td><span id="visitMonth7"></span></td>
+								</tr>
+								<tr>
+									<td>업종별 밀집도 변화</td>
+									<td>업종밀집도 시계열 현황</td>
+									<td><span id="viewMonth8"></span></td>
+									<td><span id="visitMonth8"></span></td>
+								</tr>
+								<tr>
+									<td rowspan="14">지역 종합정보</td>
+									<td>지역종합현황</td>
+									<td><span id="viewMonth9"></span></td>
+									<td><span id="visitMonth9"></span></td>
+								</tr>
+								<tr>
+									<td style='border:1px solid #cacaca;'>사업체</td>
+									<td><span id="viewMonth10"></span></td>
+									<td><span id="visitMonth10"></span></td>
+								</tr>
+								<tr>
+									<td style='border:1px solid #cacaca;'>사업체-업종별비율</td>
+									<td><span id="viewMonth11"></span></td>
+									<td><span id="visitMonth11"></span></td>
+								</tr>
+								<tr>
+									<td style='border:1px solid #cacaca;'>사업체-업종별증감</td>
+									<td><span id="viewMonth12"></span></td>
+									<td><span id="visitMonth12"></span></td>
+								</tr>
+								<tr>
+									<td style='border:1px solid #cacaca;'>사업체-주요시설물 정보</td>
+									<td><span id="viewMonth13"></span></td>
+									<td><span id="visitMonth13"></span></td>
+								</tr>
+								<tr>
+									<td style='border:1px solid #cacaca;'>인구</td>
+									<td><span id="viewMonth14"></span></td>
+									<td><span id="visitMonth14"></span></td>
+								</tr>
+								<tr>
+									<td style='border:1px solid #cacaca;'>인구-연령별</td>
+									<td><span id="viewMonth15"></span></td>
+									<td><span id="visitMonth15"></span></td>
+								</tr>
+								<tr>
+									<td style='border:1px solid #cacaca;'>인구-성별</td>
+									<td><span id="viewMonth16"></span></td>
+									<td><span id="visitMonth16"></span></td>
+								</tr>
+								<tr>
+									<td style='border:1px solid #cacaca;'>가구</td>
+									<td><span id="viewMonth17"></span></td>
+									<td><span id="visitMonth17"></span></td>
+								</tr>
+								<tr>
+									<td style='border:1px solid #cacaca;'>가구-거처종류</td>
+									<td><span id="viewMonth18"></span></td>
+									<td><span id="visitMonth18"></span></td>
+								</tr>
+								<tr>
+									<td style='border:1px solid #cacaca;'>가구-점유형태</td>
+									<td><span id="viewMonth19"></span></td>
+									<td><span id="visitMonth19"></span></td>
+								</tr>
+								<tr>
+									<td style='border:1px solid #cacaca;'>주택</td>
+									<td><span id="viewMonth20"></span></td>
+									<td><span id="visitMonth20"></span></td>
+								</tr>
+								<tr>
+									<td style='border:1px solid #cacaca;'>주택-주택거래가격</td>
+									<td><span id="viewMonth21"></span></td>
+									<td><span id="visitMonth21"></span></td>
+								</tr>
+								<tr>
+									<td style='border:1px solid #cacaca;'>주택-주택거래량</td>
+									<td><span id="viewMonth22"></span></td>
+									<td><span id="visitMonth22"></span></td>
+								</tr>
+								<tr>
+									<td>생활업종 후보지 검색</td>
+									<td>지역찾기</td>
+									<td><span id="viewMonth23"></span></td>
+									<td><span id="visitMonth23"></span></td>
+								</tr>
+								<tr>
+									<td>업종별 개업 현황</td>
+									<td>업종별 개업 현황</td>
+									<td><span id="viewMonth30"></span></td>
+									<td><span id="visitMonth30"></span></td>
+								</tr>
+								<tr>
+									<td>업종별 뜨는 지역</td>
+									<td>업종별 뜨는 지역</td>
+									<td><span id="viewMonth31"></span></td>
+									<td><span id="visitMonth31"></span></td>
+								</tr>
+								<!-- 
+								<tr>
+									<td rowspan="4">공공데이터</td>
+									<td>유동인구</td>
+									<td><span id="visitMonth24"></span></td>
+									<td><span id="viewMonth24"></span></td>
+								</tr>
+								<tr>
+									<td style='border:1px solid #cacaca;'>학교인구</td>
+									<td><span id="visitMonth25"></span></td>
+									<td><span id="viewMonth25"></span></td>
+								</tr>
+								 -->
+								<tr>
+									<td rowspan="2">공공데이터</td>
+									<td style='border:1px solid #cacaca;'>지하철승하차인구</td>
+									<td><span id="viewMonth26"></span></td>
+									<td><span id="visitMonth26"></span></td>
+								</tr>
+								<tr>
+									<td style='border:1px solid #cacaca;'>버스정류장</td>
+									<td><span id="viewMonth27"></span></td>
+									<td><span id="visitMonth27"></span></td>
+								</tr>
+								<tr>
+									<td>나의데이터</td>
+									<td>나의데이터</td>
+									<td><span id="viewMonth28"></span></td>
+									<td><span id="visitMonth28"></span></td>
+								</tr>
+								<tr>
+									<td>POI</td>
+									<td>POI</td>
+									<td><span id="viewMonth29"></span></td>
+									<td><span id="visitMonth29"></span></td>
+								</tr>
+							</tbody>
+						</table>							
+						
+						<div class="apiTable03" id="bizStatMapGraphView" style="overflow: scroll; height:900px"></div>
+						<a style="cursor: pointer; float: right;" id="bizStatMapTblExcelBtn"><img style="margin-top:5px;" src="./../include/img/btn/btn_save.png" alt="엑셀저장" /></a>
+						<a href="javascript:changeType(0, 'bizStatMapTbl','bizStatMapGraphView', 'bizStatMapGraphViewBtn');" style="cursor: pointer; float: right;" id="bizStatMapGraphViewBtn"><img style="margin-top:5px;" src="./../include/img/btn/btn_graph_view.png" alt="그래프보기" /></a>			
+					</div>
+					<div class="mt30">
+						<p class="tilte02">인기 POI</p>
+						<div style="overflow: scroll; height:295px">
+							<table class="apiTable03" summary="인기 POI" id="bizStatintPoiTbl" style="width: 728px">
+								<caption>인기 POI 입니다.</caption>							
+								<colgroup>
+									<col width="100"/>
+									<col width="200"/> 
+									<col width="100"/>
+									<col width="100"/>
+								</colgroup>
+								<tbody id="bizStatintPoiBdy">
+									<tr>
+										<th>순위</th>
+										<th>인기 POI</th>
+										<th>페이지뷰</th>
+										<th>연간 페이지뷰</th>
+									</tr>
+									<tr>
+										<td>1위</td>
+										<td></td>
+										<td>60,123</td>
+										<td>60,123</td>
+									</tr>
+									<tr>
+										<td>2위</td>
+										<td></td>
+										<td>60,123</td>
+										<td>60,123</td>
+									</tr>
+									<tr>
+										<td>3위</td>
+										<td></td>
+										<td>60,123</td>
+										<td>60,123</td>
+									</tr>
+								</tbody>
+							</table>
+							
+							<div class="apiTable03" id="bizStatintPoiGraphView" style="height: 800px;"></div>	
+						</div>		
+						
+						<a style="cursor: pointer; float: right;" id="bizStatIntPoiTblExcelBtn"><img style="margin-top:5px;" src="./../include/img/btn/btn_save.png" alt="엑셀저장" /></a>
+						<a href="javascript:changeType(1, 'bizStatintPoiTbl','bizStatintPoiGraphView', 'bizStatintPoiGraphViewBtn');" style="cursor: pointer; float: right;" id="bizStatintPoiGraphViewBtn"><img style="margin-top:5px;" src="./../include/img/btn/btn_graph_view.png" alt="그래프보기" /></a>
+					</div>	
+					
+					<!-- 
+							코드가 중복되어 현 코드체계로 구현 불가함.
+							2016년 5월 3일 
+					 -->
+					 <!-- 
+					<div class="mt30">
+						<p class="tilte02">인기검색지역</p>
+						<table class="apiTable03" summary="인기검색지역">
+							<caption>인기검색지역 이용현황 입니다.</caption>							
+							<colgroup>
+								<col width="100"/>
+								<col width=""/> 
+								<col width=""/>
+								<col width=""/>
+								<col width="150"/>
+							</colgroup>
+							<tbody>
+								<tr>
+									<th>순위</th>
+									<th>시도별 생활업종</th>
+									<th>업종별지역현황</th>
+									<th>업종밀집도변화</th>
+									<th>지역종합정보</th>
+									<th>창업지역검색</th>
+								</tr>
+								<tr>
+									<td>1위</td>
+									<td></td>
+									<td></td>
+									<td></td>
+									<td></td>
+									<td></td>
+								</tr>
+								<tr>
+									<td>2위</td>
+									<td></td>
+									<td></td>
+									<td></td>
+									<td></td>
+									<td></td>
+								</tr>
+								<tr>
+									<td>3위</td>
+									<td></td>
+									<td></td>
+									<td></td>
+									<td></td>
+									<td></td>
+								</tr>
+							</tbody>
+						</table>							
+					</div>
+					  -->
+					<div class="mt30">
+						<p class="tilte02">인기검색업종(업종별 지역 현황, 업종 밀집도 변화)</p>
+						<div style="overflow: scroll; height:295px">
+							<table class="apiTable03" summary="인기검색업종" id="popSearchThemeTbl" style="width: 728px">
+								<caption>인기검색업종 이용현황 입니다.</caption>							
+								<colgroup>
+									<col width="100"/>
+									<col width="100"/> 
+									<col width="100"/>
+								</colgroup>
+								<tbody id="popSearchThemeBdy">
+									<tr>
+										<th>순위</th>
+										<th>업종</th>
+										<th>조회수</th>
+									</tr>
+									<tr>
+										<td>1위</td>
+										<td></td>
+									</tr>
+									<tr>
+										<td>2위</td>
+										<td></td>
+									</tr>
+									<tr>
+										<td>3위</td>
+										<td></td>
+									</tr>
+								</tbody>
+							</table>
+							
+							<div class="apiTable03" id="popSearchThemeGraphView" style="height: 600px;"></div>
+						</div>
+						
+						<a style="cursor: pointer; float: right;" id="popSearchThemeTblExcelBtn"><img style="margin-top:5px;" src="./../include/img/btn/btn_save.png" alt="엑셀저장" /></a>
+						<a href="javascript:changeType(2, 'popSearchThemeTbl','popSearchThemeGraphView', 'popSearchThemeGraphViewBtn');" style="cursor: pointer; float: right;" id="popSearchThemeGraphViewBtn"><img style="margin-top:5px;" src="./../include/img/btn/btn_graph_view.png" alt="그래프보기" /></a>
+					</div>
+					<div class="mt30">
+						<p class="tilte02">인기 검색조건</p>
+						<div style="overflow: scroll; height:295px">
+							<table class="apiTable03" summary="인기 검색조건"  id="bizStatIntSearTbl" style="width: 728px">
+								<caption>인기 검색조건 이용현황 입니다.</caption>							
+								<colgroup>
+									<col width="100"/>
+									<col width="200"/> 
+									<col width="100"/>
+									<col width="100"/>
+									<col width="100"/>
+								</colgroup>
+								<tbody id="bizStatIntSearBdy">
+									<tr>
+										<th>순위</th>
+										<th>인기 검색조건 조합</th>
+										<th>페이지뷰</th>
+										<th>연간 페이지뷰</th>									
+									</tr>
+									<tr>
+										<td>1위</td>
+										<td></td>
+										<td></td>
+										<td></td>
+									</tr>
+									<tr>
+										<td>2위</td>
+										<td></td>
+										<td></td>
+										<td></td>
+									</tr>
+									<tr>
+										<td>3위</td>
+										<td></td>
+										<td></td>
+										<td></td>
+									</tr>
+								</tbody>
+							</table>
+							
+							<div class="apiTable03" id="bizStatIntSearGraphView" style="height: 1000px;"></div>							
+						</div>
+						
+						<a style="cursor: pointer; float: right;" id="bizStatIntSearTblExcelBtn"><img style="margin-top:5px;" src="./../include/img/btn/btn_save.png" alt="엑셀저장" /></a>
+						<a href="javascript:changeType(3, 'bizStatIntSearTbl','bizStatIntSearGraphView', 'bizStatIntSearGraphViewBtn');" style="cursor: pointer; float: right;" id="bizStatIntSearGraphViewBtn"><img style="margin-top:5px;" src="./../include/img/btn/btn_graph_view.png" alt="그래프보기" /></a>
+					</div> <!-- 여기까지 -->
+					<!-- 2017.07.19 [개발팀] khc 생활업종지도 이용현황 그래프보기 추가  end -->
+					
+			</div>
+		</div>
+		<!-- dim처리 문구 출력 -->
+		<div class="wrap-loading display-none">
+   			<div style="background-color: rgb(255, 255, 255); border: 3px solid rgb(0, 0, 0); position: absolute; height: 10px; line-height: 50px; padding-bottom: 40px; width: 400px; top: 50%; left: 50%; z-index: 11000; cursor: wait; margin: -5px 0px 0px -200px; text-align: center;">기다리십시요...</div>
+		</div>
+		<!-- cls:footer start -->
+		<div class="footerWrapper"></div>
+		
+	<form id="excelDownForm" method="post" action="/s-portalcnm/jsp/excel/serviceUseStat.jsp">
+		<input type="hidden" id="htmlStr0" name="htmlStr0" />
+		<input type="hidden" id="htmlStr1" name="htmlStr1" />
+		<input type="hidden" id="htmlStr2" name="htmlStr2" />
+		<input type="hidden" id="htmlStr3" name="htmlStr3" />
+		<input type="hidden" id="exfilename" name="exfilename" value="service.xls" />
+	</form>
+	</body>
+</html>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ThMetaManage"> 
+	<select id="searchMetaData"  parameterType="Map" resultType="Map">
+		select * from
+		(
+			select ROWNUM R, META_DATA_ID, TITLE, TB_NM, MANAGER_ID,
+				   EXP, 
+				   SUBSTR(TO_CHAR(REG_TS,'yyyy-MM-dd'),0,10) as REG_TS
+			from MNG_DT_THEMAMAPMETADATA
+			where 1=1
+			<if test="SEARCH_TYPE != null and SEARCH_TYPE == 'ALL' ">
+				<if test="SEARCH_WORD != null">
+			    	and (TITLE like  #{SEARCH_WORD} or TB_NM like  #{SEARCH_WORD} or EXP like  #{SEARCH_WORD})
+			    </if>
+			</if>
+			<if test="SEARCH_TYPE != null and SEARCH_TYPE == 'SEARCH_TITLE' ">
+				<if test="SEARCH_WORD != null">
+			    	and TITLE like  #{SEARCH_WORD}
+			    </if>
+			</if>
+			<if test="SEARCH_TYPE != null and SEARCH_TYPE == 'SEARCH_TB' ">
+				<if test="SEARCH_WORD != null">
+			    	and TB_NM like  #{SEARCH_WORD}
+			    </if>
+			</if>
+			<if test="SEARCH_TYPE != null and SEARCH_TYPE == 'SEARCH_EXP' ">
+				<if test="SEARCH_WORD != null">
+			    	and EXP like  #{SEARCH_WORD}
+			    </if>
+			</if>
+			and  ROWNUM <![CDATA[<=]]> #{END_INDEX}
+		)
+		where R <![CDATA[>=]]> #{START_INDEX}
+		order by TITLE
+	</select>
+	<select id="searchMetaDataCount"  parameterType="hashmap" resultType="int">
+			SELECT COUNT(META_DATA_ID) AS CNT
+			from MNG_DT_THEMAMAPMETADATA
+			where 1=1
+			<if test="SEARCH_TYPE != null and SEARCH_TYPE == 'ALL' ">
+				<if test="SEARCH_WORD != null">
+			    	and (TITLE like  #{SEARCH_WORD} or TB_NM like  #{SEARCH_WORD} or EXP like  #{SEARCH_WORD})
+			    </if>
+			</if>
+			<if test="SEARCH_TYPE != null and SEARCH_TYPE == 'SEARCH_TITLE' ">
+				<if test="SEARCH_WORD != null">
+			    	and TITLE like  #{SEARCH_WORD}
+			    </if>
+			</if>
+			<if test="SEARCH_TYPE != null and SEARCH_TYPE == 'SEARCH_TB' ">
+				<if test="SEARCH_WORD != null">
+			    	and TB_NM like  #{SEARCH_WORD}
+			    </if>
+			</if>
+			<if test="SEARCH_TYPE != null and SEARCH_TYPE == 'SEARCH_EXP' ">
+				<if test="SEARCH_WORD != null">
+			    	and EXP like  #{SEARCH_WORD}
+			    </if>
+			</if>
+	</select>
+	<update id="updateMetaData" parameterType="Map" >
+		update MNG_DT_THEMAMAPMETADATA 
+		set TITLE = #{TITLE},
+			TB_NM = #{TB_NM},
+			EXP = #{EXP}
+		where META_DATA_ID = #{META_DATA_ID}
+	</update>
+	<insert id="addMetaData" parameterType="Map">
+		insert into MNG_DT_THEMAMAPMETADATA
+			(META_DATA_ID,TITLE,TB_NM,MANAGER_ID,EXP,REG_TS)
+		values 
+			(#{META_DATA_ID},#{TITLE},#{TB_NM},#{MANAGER_ID},#{EXP}, sysdate)
+	</insert>
+	<delete id="deleteMetaData" >
+		delete from MNG_DT_THEMAMAPMETADATA where META_DATA_ID in
+		<foreach collection="array" index="index" item="item" open="(" separator="," close=")">   
+        		#{item}   
+   		</foreach> 
+	</delete>
+	<select id="getId" parameterType="Map" resultType="int">
+		select NVL(MAX(META_DATA_ID)+1,1) as SEQ from MNG_DT_THEMAMAPMETADATA
+	</select>		
+</mapper>

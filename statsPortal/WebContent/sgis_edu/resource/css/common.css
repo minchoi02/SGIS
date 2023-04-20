@@ -1,0 +1,327 @@
+@charset "utf-8"; 
+
+.inner{width: 1400px; margin: 0 auto; position: relative;}
+.flexWrap{display: flex;}
+
+/*header*/ /*  z-index: 20003; 은 가르치는지도 아이콘들과 댓글이 20002까지 있어서 변경함 20210901 */
+header{position:absolute; top:0; left:0; width: 100%; z-index: 20003; height:100px; overflow: hidden; box-shadow: 0 22px 22px -4px rgba(0, 0, 0, 0); transition-duration: .4s;}
+header.on{box-shadow: 0 22px 22px -4px rgba(0, 0, 0, 0.17); border-radius: 0 0 30px 30px;}
+header div{display: flex; align-items: center;}
+
+header .goWrap{margin-right:20px;}
+header .goWrap a{font-size: 2.2rem;}
+header .goWrap .goSgis{margin-left: 30px; font-weight: 600; color:#163064;}
+header .goWrap .goSgis img{width:95px;}
+header .goWrap .goClass{margin-left: 10px; font-weight: 600; font-family: 'notoSansKR', sans-serif; margin-top: -1px;}
+
+header nav>ul{display: flex; position:relative; font-family: 'notoSansKR', sans-serif;}
+header nav>ul>li{margin:0 70px;}
+header nav>ul>li>a{position:relative; display:block; font-size:1.8rem; line-height: 100px; font-weight: 600;}
+header nav>ul>li>a::after{content:""; position:absolute; bottom:0; left:0; display:block; width:0; height:3px; background:#02bfa0;}
+header nav>ul>li:hover>a::after{width:100%;}
+
+header nav .depth{position:absolute; width:24%; padding-top:35px; transition-duration:0.3s; overflow:hidden;}
+header nav .depth li{width:100%; margin-bottom: 15px;}
+header nav .depth li a{position:relative; opacity: 70%; transition-duration: .2s;}
+header nav .depth li:hover a{opacity: 100%;}
+header nav .depth li a::before{content:""; position: absolute; bottom:0; left:0; z-index: -1; width:0; height:10px; transition-duration: .2s;}
+header nav .depth li:hover a::before{width:100%;}
+
+header .loginWrap{margin-left:auto;}
+header .loginWrap a{color: rgba(24, 24, 24, 0.5);}
+header .loginWrap a:hover{color: rgba(24, 24, 24, 1);}
+header .loginWrap a::before{content:""; display: inline-block; width:18px; height:18px; margin-right:7px; opacity: 50%; background: url(/sgis_edu/resource/images/icon_login.png)no-repeat 50%; vertical-align: sub;}
+
+header .headerBg{position:relative; z-index: -2; width:100%;}
+
+
+/*footer*/
+footer{width:100%; height:160px; padding:30px 0 45px 0; margin-top:120px;}
+footer>div{display: flex;}
+footer>div>a{font-size:0; margin-right: 15px;}
+footer div div{margin-top:15px; margin-left:40px;}
+footer ul{display: flex;}
+footer li{margin-right: 40px; opacity: 50%;}
+footer li:hover{opacity: 100%;}
+footer address{margin-top: 15px; font-size: 1.3rem; opacity: 50%;}
+
+/* sub */
+/* lnb */
+.sub{position: relative; height:calc(100vh - 100px); padding: 0 50px 50px; display: flex; overflow: hidden;}
+.lnb{position: relative; display: flex; flex-direction: column; width:380px; height:100%; border-radius: 30px 0 0 30px; padding:80px 50px 50px;}
+.lnbTi{font-size:3.8rem; color:#fff; line-height: 1.2em;}
+.lnb .menu{width:100%; margin-top: 70px;}
+.lnb .menu li{width:100%;}
+.lnb .menu li~li{margin-top: 20px;}
+.lnb .menu a{position:relative; display: block; color:rgba(256,256,256,0.8); font-size:2rem;}
+.lnb .menu a:hover{color:#fff;}
+.lnb .menu a::before{content:""; position: absolute; bottom:-2px; left:0; width:0%; height:2px; transition-duration: .2s;}
+.lnb .menu a.on::before, .lnb .menu li:hover a::before{width:100%;}
+.lnb .menu a.on{color:#fff;}
+.lnb .menu a.on::after{content:""; position: absolute; bottom:-3px; right:-22px; width:24px; height:24px; background:no-repeat 50% 100%;}
+.sub main{position:relative; overflow: hidden; overflow-y: auto; padding:2.2% 50px; width: calc(100% - 380px); height:100%; border-radius: 0 30px 30px 0;  border:1px solid;}
+/* 목록 */
+.contTi{font-size:3rem; color:rgba(24,24,24,0.7);}
+.contTi::before{content:""; display:inline-block; width:22px; height:22px; margin-right: 10px; background-repeat: no-repeat; background-position:50%;}
+.filterWrap{display:flex; align-items: center; position: absolute; top:40px; right:50px;}
+.filterWrap form~form{margin-left: 30px;}
+/* 상세 */
+.view .menuTi+.lnbTi{font-size:3.3rem;}
+.menuTi{position:relative; font-size:1.8rem; color:#fff; margin-bottom: 40px;}
+.menuTi::before{content:""; position: absolute; bottom:-2px; left:0; width:100%; height:2px; transition-duration: .2s;}
+.menuTi::after{content:""; position: absolute; bottom:-3px; right:-22px; width:24px; height:24px; background-repeat:no-repeat; background-position: 50% 100%;}
+.menuTi a::before{content:""; display: inline-block; width:12px; height:12px; margin-right: 10px; background: url(/sgis_edu/resource/images/icon_btn_arrow02.png)no-repeat 50%; transform: rotate(180deg); opacity: 0.5; transition-duration: .2s;}
+.menuTi a:hover::before{transform: rotate(180deg) translateX(5px); opacity: 1;}
+.lnbTi~p{font-family: 'notoSansKR', sans-serif; color:rgba(256,256,256,0.9); white-space: break-spaces; margin-top: 20px; line-height: 1.7em;}
+.lnb .hashTagWrap{margin-top: auto;}
+.lnb .hashTagWrap .hashTag{color: #fff;}
+.lnb .hashTagWrap .hashTag::before{color: #fff;}
+
+/*button*/
+.btnWrap{display: flex;}
+.btnWrap.paging{justify-content: center; align-content: center; /*margin-top: 10px;*/}
+.btnWrap .btn{flex:1;}
+.btnRight{display:flex; flex: inherit; justify-content: flex-end;}
+.btn~.btn{margin-left: 10px;}
+.btn{transition-duration: .2s; letter-spacing: -0.7px;}
+.btn:hover{transform: translateY(-3px);}
+.btnN01{height:50px; line-height:50px; padding:0 30px; border-radius:30px; border:1px solid #163064; color:#163064;} 
+.btnN02{height:50px; line-height:50px; padding:0 30px; border-radius:30px; background:#163064; color:#fff;}
+.btnS01{height:40px; line-height:40px; padding:0 20px; border-radius: 30px; border:1px solid #163064; color:#163064; font-size:1.4rem;}
+.btnS02{height:40px; line-height:40px; padding:0 20px; border-radius: 30px; background:#163064; color:#fff; font-size:1.4rem;}
+.btnArr::after{content:""; display:inline-block; width:12px; height:12px; background:no-repeat 50%; vertical-align: middle; margin-left: 20px;}
+.btnN01.btnArr::after,.btnS01.btnArr::after{background-image: url(/sgis_edu/resource/images/icon_btn_arrow01.png);}
+.btnN02.btnArr::after,.btnS02.btnArr::after{background-image: url(/sgis_edu/resource/images/icon_btn_arrow02.png);}
+.btnDel{display:inline; width:15px; height:15px; font-size: 0; border-radius: 20px; vertical-align: middle; background: url(/sgis_edu/resource/images/icon_close.png)no-repeat 50%/7px,#d8d8d8;}
+/* btnPage01 */
+.btnPage01{position: absolute; top:50%; transform: translateY(-50%); z-index: 10; padding:30px 35px; background: rgba(0,0,0,0.03);}
+.btnPage01 em{font-weight: 600; font-size: 1.4rem;}
+.btnPage01 i{display: block; color: rgba(24, 24, 24, 0.5); font-size: 1.4rem;  line-height: 1.3; margin-top: 5px;}
+.btnPage01.prev{left:0; border-radius: 0 100px 100px 0;}
+.btnPage01.next{right:0; border-radius: 100px 0 0 100px;}
+.btnPage01:hover{background: rgba(97, 119, 143, 0.1);}
+.btnPage01:hover em{color:#163064;}
+/* btnPage02 */
+.btnPage02{position: absolute; top:50%; transform: translateY(-50%); z-index: 10; width:50px; height:50px; font-size: 0; border-radius: 50px; box-shadow: 0 4px 22px -4px rgba(0, 0, 0, 0.15); background: #fff;}
+.btnPage02.prev{left:0;}
+.btnPage02.next{right:0;}
+.btnPage02::before{content:""; display: block; width:100%; height:100%; background: url(/sgis_edu/resource/images/icon_btnPage02.png)no-repeat 50%; opacity: 0.3; transition-duration: .2s;}
+.btnPage02:hover::before{opacity: 1;}
+.btnPage02.prev::before{transform: rotate(180deg);}
+/* paging */
+.paging a{width:36px; height:36px; border-radius: 36px; margin: 0 5px;}
+.paging .num{color:rgba(24,24,24,0.7); line-height: 36px; text-align: center;}
+.paging .num.on, .paging .num:hover{color:rgba(24,24,24,1); font-weight: 600; opacity: 1;}
+.paging a:not(.num){font-size:0; border:1px solid rgba(0,0,0,0.1); opacity: .7;}
+/* .paging a:not(.num){content:""; display:block; width:100%; height:100%; background: no-repeat 50%; opacity: .3;} */
+.paging a:not(.num):hover{opacity: 1;}
+.paging a a.first img, .paging a a.prev img{transform: rotate(180deg);}
+.paging a.btnlast {padding: 9px 5px;}
+.paging a.btnnext {padding: 9px;} 
+.paging a.btnfirst {padding: 9px 3px;}
+.paging a.btnprev {padding: 9px 2px;} 
+
+
+/* teach, learn paging */
+.paging a.teach_first img, .paging a.teach_prev img{transform: rotate(180deg);}
+.paging a.teach_last {padding: 10px 10px;}
+.paging a.teach_next {padding: 10px 15px;} 
+.paging a.teach_first {padding: 10px 8px;}
+.paging a.teach_prev {padding: 10px 13px;} 
+
+/* .paging a.first::after, .paging a.last::after{background-image: url(/sgis_edu/resource/images/icon_btnPage03_2.png);} */
+/* .paging a.prev::after, .paging a.next::after{background-image: url(/sgis_edu/resource/images/icon_btnPage03_1.png);} */
+
+
+/* input */
+/* selectBox */
+.select{position: relative; margin-right:10px;}
+.select{position:relative; display:inline-block; height:40px; line-height: 40px; padding:0 50px 0 15px; border-radius: 7px; border:1px solid #c2c2c2;}
+.select.selSido {min-width:200px; max-width:200px;}
+.select input[type="checkbox"]{display: none;}
+.select label{cursor:pointer; position:absolute; right:-1px; top:-1px; content:""; border-radius: 0 7px 7px 0; display: inline-block; width:40px; height:40px; background: #c2c2c2;}
+.select label::before{content:""; display:block; width:100%; height:100%; background: url(/sgis_edu/resource/images/icon_arrow02.png)no-repeat 50%;}
+.select input:checked+label::before{transform: rotate(180deg);}
+.select ul{display:none; overflow: hidden; position:absolute; top:38px; left:0; z-index: 10; width:100%; border-radius: 7px; border:1px solid #c2c2c2; background: #fff;}
+.select input:checked~ul{display: block;}
+.select li{padding:0 15px; cursor: pointer;}
+.select li:hover{background: #e3ecff;}
+/* search */
+form{position: relative;}
+input[type="search"]{min-width: 250px; background: transparent; border-bottom: 1px solid #181818; }
+.search{border-bottom: 1px solid #181818; height:40px; padding-right: 25px; font-size: 1.8rem; color:#181818; }
+.search::placeholder{color:rgba(24,24,24,0.5); transition-duration: .2s;}
+.search:focus:placeholder{color:rgba(24,24,24,0.5);}
+.btnSearch{position:absolute; top:8px; right:0; width:18px; height:18px; font-size: 0; background: url(/sgis_edu/resource/images/icon_search.png)no-repeat 50%/100%;}
+/* radio */
+.radio{display: none;}
+.radio+label{display: inline-block; cursor: pointer; height:40px; line-height: 40px; padding: 0 20px; border-radius: 40px; color:rgba(24,24,24,0.5); border:1px solid #c2c2c2; background: #fff;
+font-size: 1.4rem; transition-duration: .2s;}
+.radio+label~label{margin-left: 5px;}
+.radio+label:hover, .radio:checked+label{background: #163064; color:#fff;}
+.radio:checked+label::after{content:""; display:inline-block; width:15px; height:15px; margin-left: 7px; vertical-align: middle; background: url(/sgis_edu/resource/images/icon_inputCheck.png)no-repeat 50%;}
+/* switch */
+.switch{display: none;}
+.switch~label{cursor: pointer;}
+.switch+label{position: relative; display:inline-block; vertical-align: middle; width:50px; height:30px; background: #cfcfcf; border-radius: 30px; transition-duration: .2s;}
+.switch+label::before{content:""; position: absolute; left:3px; top:50%; margin-top: -12px;  width:24px; height:24px; background: #fff; border-radius: 50px; transition-duration: .2s;}
+.switch:checked+label{background: #4cb1da;}
+.switch:checked+label::before{left: initial; right:3px;}
+.switch~label~label{margin-left: 5px;}
+
+/* popup */
+/* 팝업을 헤더보다 위로 올림 z-index : 999 > 20050*/
+.popup{display:none; position:fixed; top:0; left:0; z-index: 20005; justify-content: center; align-items: center; width:100vw; height:100vh;}
+.popup::before{content:""; width:100vw; height:100vh; position: fixed; top:0; left:0; background: rgba(0,0,0,.75)}
+.popup.on{display: flex;}
+.popup>section{position:relative; min-width: 410px; padding:50px; background: #fff; border-radius: 20px; box-shadow: 0 22px 22px -4px rgba(0, 0, 0, 0.34);}
+.popup:not(.preview) article:not(:first-of-type){padding:20px 0; border-top:1px solid #cfcfcf;}
+.popup:not(.preview) article:first-of-type{margin-bottom:20px;}
+.popup:not(.preview) article:last-of-type:not(:only-of-type){border-bottom: 1px solid #c2c2c2; margin-bottom: 20px;}
+.popup:not(.preview) article em{font-size:2rem; display: block; margin-bottom:15px;}
+.popup article .popTi{font-weight: 600;}
+.popup article .popTi::before{content:""; display:inline-block; vertical-align: middle;  margin-right:10px; width:23px; height:23px; background: url(/sgis_edu/resource/images/icon_check.png)no-repeat; }
+.popup article .txt{display:block; font-family: "notoSansKR", sans-serif;}
+.popup article .row{display: flex; align-items: center;}
+.popup article .row input[type="text"]{flex:1;}
+.popup article .row .btn{margin-left: auto;}
+.popup:not(.preview) article .info{ background: #e3ecff; border-radius: 10px; padding:10px; margin-top: 15px; opacity: 70%;}
+.popup:not(.preview) article .info::before{content: ""; display:inline-block; vertical-align: middle; width:30px; height:30px; background: url(/sgis_edu/resource/images/icon_info.png)no-repeat 50%;}
+.popup:not(.preview) article .alert{ background: #ffe3e382; border-radius: 10px; padding:10px; margin-top: 15px; opacity: 70%;}
+.popup:not(.preview) article .alert::before{content: ""; display:inline-block; vertical-align: middle; width:30px; height:30px; background: url(/sgis_edu/resource/images/icon_info.png)no-repeat 50%;}
+.popup article .row~.tbl{margin-top: 5px;}
+.popup .btnClose{font-size:0; position: absolute; top:30px; right:30px; width:30px; height:30px; background: url(/sgis_edu/resource/images/icon_close.png)no-repeat 50%;}
+
+/* section */
+.sect:not(:first-of-type){margin-top:120px;}
+.sectTi{font-size:3.5rem; color:rgba(24, 24, 24, 0.8); line-height: 1.3; font-weight: 600;} 
+.sectTi>strong{position: relative;}
+.sectTi>strong::before{content:""; position: absolute; bottom:-2px; left:0; height:40%; width:100%; z-index: -1;}
+.sectTi~.card{margin-top:50px;}
+
+.contTi{margin-bottom: 40px;}
+
+/* card */
+.card{display: flex; flex-wrap: wrap;}
+.list .card.null{display: flex; flex-direction: column; justify-content: center; align-items: center; height:68%;}
+.list .card.null::before{content:""; width:70px; height:70px; background: url(/sgis_edu/resource/images/icon_cmntNull.png)no-repeat 50%;}
+.list .card.null::after{content:"등록된 글이 없습니다."; color: rgba(37, 15, 15, 0.3); margin-top: 15px;}
+.card li{position: relative; width:calc(33.33% - 20px); margin-right:30px; border-radius: 30px; margin-bottom: 30px; transition-duration: .3s;}
+.card li:hover{box-shadow: 0 22px 18px -4px rgba(0, 0, 0, 0.12); transform: translateY(-10px); border-color: transparent;}
+.card li:nth-child(3n){margin-right:0;}
+.card li:nth-last-child(-n+3){margin-bottom: 30px;} /* 목록의 개수가 3의 배수가 아닐때 레이아웃 깨짐*/
+.card li a{position:relative; display: block; width:100%; height:100%; padding:40px;}
+.card li.new a::before{content:"new"; position: absolute; bottom:20px; right:20px; z-index: 1; display: inline-flex; justify-content: center; align-items: center; height:25px; font-weight: 600; font-size:1.4rem; color:#fff; background: #ffa22b; border-radius: 17px; padding:0 7px;}
+.cardTi{display:-webkit-box; overflow: hidden; max-height: 2.8em; line-height: 1.4em; word-wrap: break-word; -webkit-line-clamp: 2; -webkit-box-orient:vertical; text-overflow: ellipsis; 
+font-weight: 600; font-size:2rem; color:rgba(24, 24, 24, 0.55); margin-bottom:15px;}
+.cardSub{display:block; font-family: 'notoSansKR', sans-serif; color:rgba(24, 24, 24, 0.6);}
+/* .cardTi+.cardSub, .cardTi+.hashTag{margin-top:15px;} */
+.cardHead{display: flex; margin-bottom: 15px;}
+/* .cardHead .new{height:25px; line-height:27px; font-weight: 600; font-size:1.4rem; color:#fff; background: #ffa22b; border-radius: 17px; padding:0 7px;} */
+.cardHead .level::before{display:inline-flex; justify-content: center; align-items: center; width:25px; height:25px; margin-left:3px; text-align: center; border-radius: 100%; border:2px solid;font-size: 1.2rem; font-weight: 600; vertical-align: middle;}
+.cardHead .level.level01::before{content:"A"; background-color: #BBF4E6; border-color:#8BDDBA;}
+.cardHead .level.level02::before{content:"P"; background-color: #DBD1FF; border-color:#B7A2FF;}
+.cardHead .level.level03::before{content:"L"; background-color: #D8E5FF; border-color:#9fbfff;}
+.cardHead .level.level04::before{content:"C";background-color: #FED9F8; border-color:#EFAAFF;}
+
+.cardInfo{display:flex; flex-wrap: wrap; margin-top: 15px;}
+.cardInfo i{display: flex; align-items: center; color:rgba(24,24,24,0.7); font-size:1.4rem; margin-right: 15px;}
+.cardInfo i:last-of-type{margin-right: 0;}
+/* .cardInfo .userId::before{content:"ID"; font-size: 1.3rem; font-weight: 600; color:rgba(24, 24, 24, 0.2); margin-right: 7px; vertical-align: middle;} */
+.cardInfo .date::before{content:""; display:inline-block; width:15px; height:15px; vertical-align: middle; margin-right:3px; background: url(/sgis_edu/resource/images/icon_time.png)no-repeat 50%/13px; }
+.cardInfo .viewer::before{content:""; display: inline-block; width:15px; height:15px; vertical-align: middle; margin-right:3px; background: url(/sgis_edu/resource/images/icon_view.png)no-repeat 50%/15px;}
+.cardInfo .viewer::after{content:"명"; font-weight: 300; vertical-align: middle; font-size: 1.3rem; margin-left: 2px; margin-top: -1px;}
+.people{position: absolute; right:0; top:0; background: #fff; border-radius: 0 30px 0 20px; padding: 5px 15px; font-size: 1.6rem;}
+.people::after{content: "참여"; font-size: 1.3rem; font-weight: 300; vertical-align: middle; margin-left: 5px; color:rgba(24,24,24,0.5)}
+/* card01 */
+.card01 li{background: #fff;}
+.card01 li:hover .cardTi, .card02 li:hover .cardTi, .card03 li:hover .cardTi{color:rgba(24,24,24,0.8);}
+/* card02 */
+.card02 li{background: #eef3fa;}
+/* card03 */
+.card03 li{background: #fff9eb;}
+/* card04 */
+.card04 li{background: #fff; border:1px solid #c2c2c2; overflow: hidden;}
+.card04 li a{padding:0;}
+.card04 .cardTxt{padding:20px 40px;}
+.card04 .cardTi{width:100%; max-height: 1.2em; line-height: initial; -webkit-line-clamp: 1;}
+.cardImg{width:100%; height:135px; overflow: hidden;}
+.cardImg img{width: 100%; height:auto;}
+
+/* hashTag */
+.hashTagWrap{display: flex; flex-wrap: wrap;}
+.hashTagWrap li~li{margin-left: 10px;}
+.hashTagWrap li a{display:block; border:1px solid #c2c2c2; font-size:1.7rem; border-radius: 50px; padding:7px 15px 10px 15px; color:rgba(24,24,24,0.7); transition-duration: .2s;}
+.hashTag{display:inline-block; font-size:1.4rem; font-family: 'notoSansKR', sans-serif; color: rgba(24, 24, 24, 0.5); }
+.hashTag:not(:last-of-type){margin-right: 7px;}
+.hashTag::before{content:"#"; margin-right:3px; font-weight: 600; }
+
+/* slide */
+.slideWrap{position: relative;}
+.slideWrap .btnPage02.prev{left:-80px;}
+.slideWrap .btnPage02.next{right:-80px;}
+.slideBox{position: relative;}
+.slideBox.card{padding:10px 0 20px 0;}
+/* slide navigation */
+.naviSlide{display: flex; justify-content: center; margin-top: 20px;}
+.popup .naviSlide{position:absolute; left:50%; transform:translateX(-50%); bottom:-42px;}
+.naviSlide button{margin: 0 10px; font-size: 0; width:10px; height:10px; border-radius: 100%; background: rgba(22, 48, 100, 0.3); transition-duration: .2s;}
+.naviSlide li.slick-active button,.naviSlide button:hover{background: rgba(22, 48, 100, 1);}
+/* slide numbering*/
+.slideNum{display: flex;}
+.slideNum strong{font-weight: 600;}
+.slideNum i{color: rgba(24, 24, 24, 0.5);}
+.slideNum i::before{content:"/"; margin: 0 5px;}
+
+/* board */
+.boardWrap{display: flex;}
+article.board{flex:1;}
+article.board~article.board{margin-left: 50px;}
+article.board .sectTi{font-size:3rem;}
+article.board ul{margin-top: 28px;}
+article.board li{border:1px solid #c2c2c2; border-radius: 15px; transition-duration: .3s;}
+article.board li~li{margin-top: 15px;}
+article.board li:hover{box-shadow: 0 22px 18px -4px rgba(0, 0, 0, 0.12); transform: translateY(-10px);}
+article.board a{display:flex; justify-content: space-between; padding:17px 30px; color:rgba(24, 24, 24, 0.7);}
+article.board a span:first-child{width:80%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'notoSansKR', sans-serif; }
+article.faq span:first-child::before{content:"Q"; margin-right: 15px; font-weight: 600;}
+
+/* table */
+.tbl{width:100%; overflow: auto; border-radius: 10px 10px 0 0;}
+.tbl table{width:100%;}
+.tbl thead{background: #ebeef4;}
+.tbl thead th{font-size:1.4rem;}
+.tbl:not(.null) tbody tr:hover,.tbl tbody tr.on{background: rgba(0, 145, 255, 0.09) !important;}
+.tbl th, .tbl td{padding:7px 10px;}
+.tbl th, .tbl td:not(.title){text-align: center;}
+/* write form */
+.write form .row{display: flex;}
+.write form .row>div~div{margin-left: 20px;}
+.write form,.write form li,.write form input[type="text"],.write form input[type="password"],.write form textarea{width:100%;}
+.write form>fieldset>ul>li~li{margin-top: 20px;}
+.write form .formTi{display: block; margin-bottom: 5px;}
+.write form .formTi i{font-size: 1.4rem; color:rgba(24,24,24,0.7); margin-left: 5px;}
+
+#bodyTitle {min-width:190px;}
+
+/*에듀 alert 확인 버튼 */
+.alertPopupWrapper .btnStyle01 { height: auto; }
+
+/* 알럿팝업 */
+.popupWrapper{background:rgba(0,0,0,0.8); position: absolute; top: 0; width: 100%; height: 100%; z-index: 30000;}
+.alertPopupWrapper{border:1px solid #ccc;background:#fff;width:400px;height:auto;overflow:hidden;position:absolute;left:50%;margin-left:-200px;}
+.alertPopupWrapper .topbar{border-bottom:1px solid #ccc;width:100%;height:32px;line-height:32px;overflow:hidden;background:#f5f5f5;position:relative;}
+.alertPopupWrapper .topbar>span{display:block;margin:0 0 0 10px}
+.alertPopupWrapper .topbar a{opacity:.4;display:block;width:32px;height:32px;overflow:hidden;position:absolute;right:0;top:0;background:url(/img/ico/ico_close01.png) no-repeat center center;text-indent:-2000px;  transition-duration: .3s; transition-property: transform; transition-timing-function: ease-in-out; cursor: pointer; }
+.alertPopupWrapper .topbar a:hover{transform: rotate(90deg);opacity:1;}
+.alertPopupWrapper .popContents{width:100%;height:auto;overflow:hidden;padding:15px 0;}
+.alertPopupWrapper .txt{position:relative;display:block;height:auto;padding-left:15px;overflow:hidden;margin:5px 0 0 72px;color:#666;font-size:11px;line-height:1.5em;text-align:left;}
+.alertPopupWrapper .txt:before{content:"※";font-size:13px;position:absolute;left:0;top:0;}
+.alertPopupWrapper .btnBox{width:100%; height:auto; overflow:hidden;margin:15px auto 0 auto;text-align:center;}
+.alertPopupWrapper .messageBox{ width:90%; height:auto; overflow:hidden; text-align:center; margin:20px auto;line-height:25px;}
+.alertPopupWrapper .btnStyle01 {display:inline-block;padding:5px 10px;font-size:13px;height:30px;line-height:20px;background:#dcdcdc;color:#666;margin:0 5px; cursor: pointer; }
+.alertPopupWrapper .btnStyle01:hover, .btnStyle01:focus,.btnStyle01.on{background:#21b699;color:#fff} /* 2017.12.21 [개발팀] 접근성시정조치 */
+.deem{background:rgba(0,0,0,0.8);display:block;height:170%;left:0;opacity:0.6;filter:alpha(opacity=60);position:fixed;top:0;width:100%;z-index:20000;}
+.errorBody{height:200px;}
+.errorMessage{width:400px;/*height: auto; */overflow:hidden;border:3px solid #656972;border-radius:5px;padding:20px 20px 20px 70px;font-size:20px;margin:100px auto;color:#333;box-shadow:1px 1px 3px #ccc;background:url(/img/im/icon_warning.gif) no-repeat 20px center;word-break:break-all;}
+.ui-state-disabled, .ui-widget-content .ui-state-disabled, .ui-widget-header .ui-state-disabled{opacity:1}

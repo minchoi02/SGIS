@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dwelling">
+	<select id="wholeCountryIndex" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			BCD.B_CLASS_IDX_ID		AS B_CLASS_ID
+			, BCD.B_CLASS_IDX_NM 	AS B_CLASS_NM
+			, ROUND(AVG(ORDER), 0)  AS VAL
+		FROM
+				SRV_DT_SIDO_IX_ORDER SIDO
+		INNER JOIN SRV_DT_LCLAS_IX BCD
+				ON SIDO.B_CLASS_IDX_ID = BCD.B_CLASS_IDX_ID 
+		INNER JOIN SRV_DT_MLSFC_IX MCD
+				ON SIDO.M_CLASS_IDX_ID = MCD.M_CLASS_IDX_ID
+		GROUP BY BCD.B_CLASS_IDX_ID, BCD.B_CLASS_IDX_NM
+	</select>
+
+
+	<select id="sidoIndex" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				BCD.B_CLASS_IDX_ID 		AS B_CLASS_ID
+				, BCD.B_CLASS_IDX_NM 	AS B_CLASS_NM
+				, SIDO.SIDO_CD			AS SIDO_CD
+				, ADDR.SIDO_NM			AS SIDO_NM
+				, ROUND(AVG(ORDER), 0) 	AS VAL
+		FROM
+				SRV_DT_SIDO_IX_ORDER SIDO
+		INNER JOIN SRV_DT_LCLAS_IX BCD
+				ON SIDO.B_CLASS_IDX_ID = BCD.B_CLASS_IDX_ID 
+		INNER JOIN SRV_DT_MLSFC_IX MCD
+				ON SIDO.M_CLASS_IDX_ID = MCD.M_CLASS_IDX_ID
+		INNER JOIN SRV_PG_SIDOBORD ADDR
+				ON SIDO.SIDO_CD = ADDR.SIDO_CD
+			   AND ADDR.BASE_YEAR = #{bnd_year}
+		WHERE SIDO.SIDO_CD = SUBSTR(#{adm_cd}, 1, 2)
+		GROUP BY
+				BCD.B_CLASS_IDX_ID
+				, BCD.B_CLASS_IDX_NM
+				, SIDO.SIDO_CD, SIDO_NM
+	</select>
+
+	<select id="sggIndex" parameterType="hashmap" resultType="hashmap">
+			SELECT 
+				BCD.B_CLASS_IDX_ID 		AS B_CLASS_ID
+				, BCD.B_CLASS_IDX_NM 	AS B_CLASS_NM
+				, SGG.SIDO_CD				AS SIDO_CD
+				, ADDR.SIDO_NM				AS SIDO_NM
+				, SGG.SGG_CD				AS SGG_CD
+				, ADDR.SGG_NM				AS SGG_NM
+				, ROUND(AVG(ORDER)) 	AS VAL
+		FROM
+				SRV_DT_SGG_IX_ORDER SGG
+		INNER JOIN SRV_DT_LCLAS_IX BCD
+				ON SGG.B_CLASS_IDX_ID = BCD.B_CLASS_IDX_ID 
+		INNER JOIN SRV_DT_MLSFC_IX MCD
+				ON SGG.M_CLASS_IDX_ID = MCD.M_CLASS_IDX_ID
+		INNER JOIN SRV_PG_SGGBORD ADDR
+				ON SGG.SIDO_CD = ADDR.SIDO_CD
+			   AND SGG.SGG_CD = ADDR.SGG_CD
+			   AND ADDR.BASE_YEAR = #{bnd_year}
+		WHERE
+				SGG.SIDO_CD = SUBSTR(#{adm_cd}, 1, 2)
+				AND SGG.SGG_CD = SUBSTR(#{adm_cd}, 3, 3)
+				AND ADDR.BASE_YEAR = #{bnd_year}
+		GROUP BY
+				SGG.SIDO_CD
+				, ADDR.SIDO_NM
+				, SGG.SGG_CD
+				, ADDR.SGG_NM
+				, BCD.B_CLASS_IDX_ID
+				, BCD.B_CLASS_IDX_NM
+
+	</select>
+
+	<select id="detailSggIndex" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				BCD.B_CLASS_IDX_ID 		AS B_CLASS_ID
+				, BCD.B_CLASS_IDX_NM 	AS B_CLASS_NM
+				, MCD.M_CLASS_IDX_ID	AS M_CLASS_ID
+				, MCD.M_CLASS_IDX_NM	AS M_CLASS_NM
+				, SGG.SIDO_CD			AS SIDO_CD
+				, ADDR.SIDO_NM			AS SIDO_NM
+				, SGG.SGG_CD			AS SGG_CD
+				, ADDR.SGG_NM			AS SGG_NM
+				, ORDER					AS VAL
+		FROM
+				SRV_DT_SGG_IX_ORDER SGG
+		INNER JOIN SRV_DT_LCLAS_IX BCD
+				ON SGG.B_CLASS_IDX_ID = BCD.B_CLASS_IDX_ID 
+		INNER JOIN SRV_DT_MLSFC_IX MCD
+				ON SGG.M_CLASS_IDX_ID = MCD.M_CLASS_IDX_ID
+		INNER JOIN SRV_PG_SGGBORD ADDR
+				ON SGG.SIDO_CD = ADDR.SIDO_CD
+			   AND SGG.SGG_CD = ADDR.SGG_CD
+			   AND ADDR.BASE_YEAR = #{bnd_year}
+		WHERE
+				SGG.SIDO_CD = SUBSTR(#{adm_cd}, 1, 2)
+				<if test='isSggList != "1"'>
+					AND SGG.SGG_CD = SUBSTR(#{adm_cd}, 3, 3)
+				</if>
+				AND SGG.B_CLASS_IDX_ID = #{b_class_id}
+				AND SGG.M_CLASS_IDX_ID = #{m_class_id}
+	</select>
+</mapper>

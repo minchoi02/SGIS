@@ -1,0 +1,1146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="wrViewJobs">
+
+	<!-- 조건목록 조회 (기업형태, 산업분류, 직종분류) -->	
+	<select id="selectConditionList" parameterType="hashmap" resultType="hashmap">
+		SELECT C.S_CLASS_CD AS CD 
+				, C.S_CLASS_CD_NM AS NM
+				, C.CD_EXP AS EXP
+				, ISNULL(T.CNT, 0) AS CNT
+		  FROM CMM_CD_COMCD C
+			LEFT JOIN
+			(
+				SELECT 
+					<if test='condition_type != null and condition_type != ""'>
+	   					<choose>
+		   					<when test='condition_type == "COMPANY_TYPE"'>				/* 기업형태 */
+		   						T.ENTRPRS_TYPE
+		   					</when>
+	   						<when test='condition_type == "INDUSTRY_CLASSIFICATION" '>	/* 산업분류 */
+	   							SUBSTR(T.INDUST_CLASS, 1, 1)
+		   					</when>
+		   					<when test='condition_type == "JOB_CLASSIFICATION" '>		/* 직종분류 (모집직종) */
+		   						SUBSTR(T.RCRIT_JSSFC, 1, 2)
+		   					</when>
+		   					<otherwise>
+		   						''
+							</otherwise>
+						</choose>
+		   			</if>
+		   			AS CD
+					, COUNT(*) AS CNT
+				  FROM SRV_DT_JOB_SM T
+				 WHERE 1=1 
+				   AND T.CREATE_DT = #{latest_reg_date}									/* 데이터 작성 기준일 (최신 작성일) */
+		   		   AND (T.CLOS_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD')						/* 마감일 (today 이후이어야 함) */
+		   		   	    OR T.CLOS_DT='00010101')                                        /* 마감일 예외처리 */
+
+				   <if test='sido_cd != null and sido_cd != "" '>
+				   AND T.SIDO_CD = #{sido_cd}											/* 시도 */
+				   </if>
+
+				   <if test='sgg_cd != null and sgg_cd != "" '>
+				   AND T.SGG_CD = #{sgg_cd} 											/* 시군구 */
+				   </if>
+
+				<if test='condition_type != null and condition_type != ""'>
+					<choose>
+						<when test='condition_type == "COMPANY_TYPE"'>				/* 기업형태 */
+							GROUP BY T.ENTRPRS_TYPE
+						</when>
+						<when test='condition_type == "INDUSTRY_CLASSIFICATION" '>	/* 산업분류 */
+							GROUP BY SUBSTR(T.INDUST_CLASS, 1, 1)
+						</when>
+						<when test='condition_type == "JOB_CLASSIFICATION" '>		/* 직종분류 (모집직종) */
+							GROUP BY SUBSTR(T.RCRIT_JSSFC, 1, 2)
+						</when>
+					</choose>
+				</if>
+			) T
+			ON C.S_CLASS_CD = T.CD
+		 WHERE 1=1
+		   <if test='b_class_cd != null and b_class_cd != "" '>					/* 분류 코드 */
+		   AND C.B_CLASS_CD = #{b_class_cd}
+		   </if>
+		   <if test='s_class_cd_len != null and s_class_cd_len != "" '>			/* 코드 길이 */
+		   AND LEN(S_CLASS_CD) = #{s_class_cd_len}
+		   </if>
+		   
+	</select>
+	
+	<!-- 구인정보 목록 최신등록일 조회
+		가장 마지막에 등록된 데이터의 생성일자를 구함
+		2018.11.07	ywKim	신규 
+	-->
+	<select id="getLatestRegDate" parameterType="hashmap" resultType="String">
+		SELECT MAX(CREATE_DT) AS LATEST_DATE
+  		  FROM SRV_DT_JOB_SM
+	</select>
+
+	<!-- 임시: 테이블 스키마 변동으로 존재유무 확인하는 쿼리 추가
+			- 2018.12.26	ywKim	추가
+	 -->
+	<select id="jo_auth_no_exists" parameterType="hashmap" resultType="String">
+		SELECT JO_AUTH_NO
+  		  FROM SRV_DT_JOB_SM
+  		 LIMIT 1
+	</select>
+	
+	<!-- 구인 정보 목록 조회
+		- 2018.09.13	ywKim	신규
+		조회조건을 다중으로 And조건으로 변경 - 2018.11.12	ywKim	변경 
+	-->
+	<select id="selectJobInfoList" parameterType="hashmap" resultType="hashmap">
+
+		SELECT
+			<if test='total_count != null'> 						/* 데이터 총 갯수만 조회 */
+			COUNT(*) AS CNT
+			</if>
+			
+			<if test='mode != null and mode == "POI"'>				/* POI 관련 데이터만 조회 */
+			T.X AS PT_X
+ 			, T.Y AS PT_Y
+ 			
+			, T.JO_NO
+			, T.CORP_NM
+			</if>
+			
+			<if test='total_count == null and (mode == null || mode != "POI")'>	/* 페이지당 데이터 조회 */
+			T.SIDO_CD
+			, T.SGG_CD
+			, T.EMDONG_CD
+
+			/* 임시 */
+ 		   	, T.ENTRPRS_TYPE
+   			, T.CORP_SZ 
+   			, T.INDUST_CLASS 
+   			, T.RCRIT_JSSFC 
+   			, T.SALARY
+   			, T.EMPLYM_TYPE
+   			, T.WORK_TYPE
+   			, T.ACDMCR
+   			, T.CAREER
+ 
+ 			/* 위치 */
+ 			, X AS PT_X
+ 			, Y AS PT_Y
+ 			
+			, T.JO_NO
+			, T.CORP_NM
+			, T.JO_DATA_DIV
+			, T.JO_DATA_KEY
+			, '상용' AS GUBUN 
+			, T.RECRU_NM
+			, '직무내용(데이터없음)' AS DTY_CONTENT
+			, T.CAREER
+			, T.ACDMCR
+			, T.WORK_REGION
+			, T.WORK_ADDR
+			, T.WAGE_TYPE
+			, T.SALARY
+			, T.EMPLYM_TYPE
+			, T.WORK_TYPE
+			, '근무시간(데이터없음)' AS WORK_TIME
+			, T.REG_DT
+			, T.CLOS_DT
+			
+			, (select S_CLASS_CD_NM from cmm_cd_comcd  where T.CAREER = s_class_cd and b_class_cd = 'CAREER') AS CAREER_NM         /* 경력 */
+			, (select S_CLASS_CD_NM from cmm_cd_comcd  where T.ACDMCR = s_class_cd and b_class_cd = 'ACDMCR') AS ACDMCR_NM         /* 학력 */
+			, (select S_CLASS_CD_NM from cmm_cd_comcd  where T.WAGE_TYPE = s_class_cd and b_class_cd = 'WAGETY') AS WAGE_TYPE_NM      /* 임금형태 (WAGE_TYPE) */
+			, (select S_CLASS_CD_NM from cmm_cd_comcd  where T.EMPLYM_TYPE = s_class_cd and b_class_cd = 'EMPTYP') AS EMPLYM_TYPE_NM    /* 고용형태 (EMPLYM_TYPE) */
+			, (select S_CLASS_CD_NM from cmm_cd_comcd  where T.WORK_TYPE = s_class_cd and b_class_cd = 'WORKTY') AS WORK_TYPE_NM      /* 근무형태 (WORK_TYPE) */
+
+		   	</if>
+		   	
+		   	/* 워크넷 구인정보와 중복되는 인크루트 구인정보 키 - 2018.12.26	ywKim	추가 */
+		   	<if test='jo_auth_no_exists != null and jo_auth_no_exists == "Y"'>
+		   	, I.PBLANC_NO AS INCRUIT_JO_DATA_KEY
+		   	</if>
+		   	
+		  FROM SRV_DT_JOB_SM T
+				
+			/* 워크넷 구인정보와 중복되는 인크루트 구인정보 키 - 2018.12.26	ywKim	추가 */
+			<if test='jo_auth_no_exists != null and jo_auth_no_exists == "Y"'>
+			LEFT JOIN
+		   	(
+		   		SELECT CREATE_DT, JO_AUTH_NO, PBLANC_NO 
+		   		  FROM SRV_DT_JOB_SM 
+		   		 WHERE 1=1
+		   		   AND CREATE_DT = #{latest_reg_date}							/* 데이터 작성 기준일 (최신 작성일) */ 
+				   AND JO_AUTH_NO != ''
+				   AND PBLANC_NO != ''
+		   		   AND JO_DATA_DIV = 'I'
+		   	) I				
+			ON T.CREATE_DT = I.CREATE_DT
+				AND T.JO_AUTH_NO = I.JO_AUTH_NO
+			</if>
+			
+		 WHERE 1=1
+		   AND T.CREATE_DT = #{latest_reg_date}									/* 데이터 작성 기준일 (최신 작성일) */
+   		   AND (T.CLOS_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD')						/* 마감일 (today 이후이어야 함) */
+		   		OR T.CLOS_DT='00010101')                                        /* 마감일 예외처리 */
+		   
+		   <if test='mode != null and mode == "POI"'>				/* POI 관련 데이터만 조회 */
+		   AND (T.X IS NOT NULL OR T.X != '')
+		   AND (T.Y IS NOT NULL OR T.Y != '')
+		   </if>
+		   
+		   <!-- 2019-05-07 [김남민] 일자리 보기 > 전국에서 일자리보기 기능 개선. (all 추가)-->
+		   <if test='sido_cd != null and sido_cd != "" and sido_cd != "all" '>
+		   AND T.SIDO_CD = #{sido_cd}											/* 시도 */
+		   </if>
+		   <!-- 2019-05-07 [김남민] 일자리 보기 > 전국에서 일자리보기 기능 개선. (all 추가)-->
+		   <if test='sgg_cd != null and sgg_cd != "" and sgg_cd != "all" '>
+		   AND T.SGG_CD = #{sgg_cd} 											/* 시군구 */
+		   </if>
+		   
+		   <if test='wageType != null and wageType != "" '>
+		   AND T.WAGE_TYPE = #{wageType} 										/* 임금형태 */
+		   </if>
+
+		   <if test='INDUSTRY_CLASSIFICATION != null and INDUSTRY_CLASSIFICATION != ""'>		/* 산업분류 */
+		   AND
+	   			<foreach collection="INDUSTRY_CLASSIFICATION" item="items" open="(" separator="OR" close=")">
+	   				(T.INDUST_CLASS LIKE '${items}%')
+	   			</foreach>
+		   </if>
+
+		   <if test='JOB_CLASSIFICATION != null and JOB_CLASSIFICATION != ""'>					/* 직종분류 (모집직종) */
+		   AND
+	   			<foreach collection="JOB_CLASSIFICATION" item="items" open="(" separator="OR" close=")">
+	   				(T.RCRIT_JSSFC LIKE '${items}%')
+	   			</foreach>
+		   </if>
+
+		   <if test='SALARY_LEVEL != null and SALARY_LEVEL != ""'>								/* 급여수준 ??? 구분에 따라 범위 조건이 필요함 / 컬럼 변경할 필요 있음 */
+		   AND
+	   			<foreach collection="SALARY_LEVEL" item="items" open="(" separator="OR" close=")">
+		   			(
+		   				T.SALARY BETWEEN 
+		   					CASE
+		   						WHEN INSTR(#{items}, '~') = 1 THEN					/* 미만 */
+		   							0
+		   						ELSE
+		   							SUBSTR(#{items}, 0, INSTR(#{items}, '~') - 1)
+		   					END				   					
+		   				AND
+		   					CASE
+		   						WHEN LEN(#{items}) = INSTR(#{items}, '~') THEN		/* 이상 */
+		   							1000000000000 /* 조 */
+		   						ELSE
+		   							SUBSTR(#{items}, INSTR(#{items}, '~') + 1)
+		   					END
+		   			) /* T.SALARY BETWEEN a AND b */
+				</foreach>
+		   </if>
+		   <!-- 2019-05-10 [김남민] 일자리 보기 > 선택항목이 한번에 표출되도록 기능 개선. START -->
+		   <if test='SALARY_LEVEL2 != null and SALARY_LEVEL2 != ""'>
+		   ${SALARY_LEVEL2}
+		   </if>
+		   
+		   <if test='COMPANY_NAME != null and COMPANY_NAME != ""'>								/* 기업명칭 */
+		   AND lower(T.CORP_NM) LIKE '%'||lower('${COMPANY_NAME}')||'%'
+		   </if>
+		   <!-- 2019-05-10 [김남민] 일자리 보기 > 선택항목이 한번에 표출되도록 기능 개선. END -->
+		   
+		   <if test='COMPANY_TYPE != null and COMPANY_TYPE != ""'>								/* 기업형태 */
+		   AND T.ENTRPRS_TYPE IN
+	   			<foreach collection="COMPANY_TYPE" item="items" open="(" separator="," close=")"> 
+		   			#{items} 
+		   		</foreach>
+		   </if>
+
+		   <if test='COMPANY_SIZE != null and COMPANY_SIZE != ""'>								/* 회사규모 */
+		   AND T.CORP_SZ IN
+	   			<foreach collection="COMPANY_SIZE" item="items" open="(" separator="," close=")"> 
+		   			#{items} 
+		   		</foreach>
+		   </if>
+
+		   <if test='EMPLOYMENT_TYPE != null and EMPLOYMENT_TYPE != ""'>						/* 고용형태 */
+		   AND T.EMPLYM_TYPE IN
+	   			<foreach collection="EMPLOYMENT_TYPE" item="items" open="(" separator="," close=")"> 
+		   			#{items} 
+		   		</foreach>
+		   </if>
+
+		   <if test='WORK_TYPE != null and WORK_TYPE != ""'>									/* 근무형태 */
+		   AND T.WORK_TYPE IN
+	   			<foreach collection="WORK_TYPE" item="items" open="(" separator="," close=")"> 
+		   			#{items} 
+		   		</foreach>
+		   </if>
+
+		   <if test='ACADEMIC_ABILITY != null and ACADEMIC_ABILITY != ""'>						/* 학력 */
+		   AND T.ACDMCR IN
+	   			<foreach collection="ACADEMIC_ABILITY" item="items" open="(" separator="," close=")"> 
+		   			#{items} 
+		   		</foreach>
+		   </if>
+
+		   <if test='CAREER != null and CAREER != ""'>											/* 경력 */
+		   AND T.CAREER IN
+	   			<foreach collection="CAREER" item="items" open="(" separator="," close=")"> 
+		   			#{items} 
+		   		</foreach>
+		   </if>
+			
+		   /* 워크넷 구인정보와 중복되는 인크루트 구인정보 키 - 2018.12.26	ywKim	추가 */
+		   <if test='jo_auth_no_exists != null and jo_auth_no_exists == "Y"'>
+		   AND (T.JO_AUTH_NO = '' OR T.PBLANC_NO = '' OR T.JO_AUTH_NO IS NULL OR T.PBLANC_NO IS NULL)
+		   </if>
+		   
+		 ORDER BY
+		 	
+			<if test='sortType != null and sortType == "REG_DT_DESC" '> T.REG_DT DESC </if>	/* 최근 등록 순 */
+			<if test='sortType != null and sortType == "CLOS_DT" '> T.CLOS_DT </if> 			/* 마감일 오름순 */
+			<if test='sortType != null and sortType == "CLOS_DT_DESC" '> T.CLOS_DT DESC </if>	/* 마감일 내림순 */
+			<if test='sortType == null'> T.REG_DT DESC </if> 									/* 최근 등록 순 */
+			, T.RECRU_NM																		/* 채용명 오름순 - 2018.12.24	ywKim	추가 */
+		<if test='last_num != null and page_size != null '> 		 
+		 LIMIT #{last_num}, #{page_size}
+		</if>
+	</select>	
+
+	<!-- 구인 정보 목록 조회 (단일조건) - 2018.09.13	ywKim	신규 -->
+<!--	
+	<select id="selectJobInfoList" parameterType="hashmap" resultType="hashmap">
+
+		SELECT
+			<if test='total_count != null'> 						/* 데이터 총 갯수만 조회 */
+			COUNT(*) AS CNT
+			</if>
+			
+			<if test='mode != null and mode == "POI"'>				/* POI 관련 데이터만 조회 */
+			X AS PT_X
+ 			, Y AS PT_Y
+ 			
+			, T.JO_NO
+			, T.CORP_NM
+			</if>
+			
+			<if test='total_count == null and (mode == null || mode != "POI")'>	/* 페이지당 데이터 조회 */
+			T.SIDO_CD
+			, T.SGG_CD
+			, T.EMDONG_CD
+
+			/* 임시 */
+ 		   	, T.ENTRPRS_TYPE
+   			, T.CORP_SZ 
+   			, T.INDUST_CLASS 
+   			, T.RCRIT_JSSFC 
+   			, T.SALARY
+   			, T.EMPLYM_TYPE
+   			, T.WORK_TYPE
+   			, T.ACDMCR
+   			, T.CAREER
+ 
+ 			/* 위치 */
+ 			, X AS PT_X
+ 			, Y AS PT_Y
+ 			
+			, T.JO_NO
+			, T.CORP_NM
+			, T.JO_DATA_DIV
+			, T.JO_DATA_KEY
+			, '상용' AS GUBUN 
+			, T.RECRU_NM
+			, '직무내용(데이터없음)' AS DTY_CONTENT
+			, T.CAREER
+			, T.ACDMCR
+			, T.WORK_REGION
+			, T.WORK_ADDR
+			, T.WAGE_TYPE
+			, T.SALARY
+			, T.EMPLYM_TYPE
+			, T.WORK_TYPE
+			, '근무시간(데이터없음)' AS WORK_TIME
+			, T.REG_DT
+			, T.CLOS_DT
+		
+			, CR.S_CLASS_CD_NM AS CAREER_NM
+			, AM.S_CLASS_CD_NM AS ACDMCR_NM
+			, WG.S_CLASS_CD_NM AS WAGE_TYPE_NM
+			, ET.S_CLASS_CD_NM AS EMPLYM_TYPE_NM
+			, WT.S_CLASS_CD_NM AS WORK_TYPE_NM
+		   	</if>
+		   								
+		  FROM SRV_DT_JOB_SM T
+			LEFT JOIN CMM_CD_COMCD CR
+				ON T.CAREER = CR.S_CLASS_CD AND CR.B_CLASS_CD = 'CAREER'		/* 경력 */
+			LEFT JOIN CMM_CD_COMCD AM
+				ON T.ACDMCR = AM.S_CLASS_CD AND AM.B_CLASS_CD = 'ACDMCR'		/* 학력 */
+			LEFT JOIN CMM_CD_COMCD WG
+				ON T.WAGE_TYPE = WG.S_CLASS_CD AND WG.B_CLASS_CD = 'WAGETY'		/* 임금형태 (WAGE_TYPE) */
+			LEFT JOIN CMM_CD_COMCD ET
+				ON T.EMPLYM_TYPE = ET.S_CLASS_CD AND ET.B_CLASS_CD = 'EMPTYP'	/* 고용형태 (EMPLYM_TYPE) */
+			LEFT JOIN CMM_CD_COMCD WT
+				ON T.WORK_TYPE = WT.S_CLASS_CD AND WT.B_CLASS_CD = 'WORKTY'		/* 근무형태 (WORK_TYPE) */	
+		 WHERE 1=1
+		   AND T.CREATE_DT = #{latest_reg_date}									/* 데이터 작성 기준일 (최신 작성일) */
+   		   AND (T.CLOS_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD')						/* 마감일 (today 이후이어야 함) */
+		   		OR T.CLOS_DT='00010101')                                        /* 마감일 예외처리 */
+		   
+		   <if test='sido_cd != null and sido_cd != "" '>
+		   AND T.SIDO_CD = #{sido_cd}											/* 시도 */
+		   </if>
+		   <if test='sgg_cd != null and sgg_cd != "" '>
+		   AND T.SGG_CD = #{sgg_cd} 											/* 시군구 */
+		   </if>
+		   
+		   <if test='wage_type != null and wage_type != "" '>
+		   AND T.WAGE_TYPE = #{wage_type} 										/* 임금형태 */
+		   </if>
+
+		   <if test='condition_type != null and condition_type != ""'>
+		   		<choose>
+		   			<when test='condition_type == "INDUSTRY_CLASSIFICATION" '>	/* 산업분류 */
+		   				AND
+				   		<foreach collection="condition_cd" item="items" open="(" separator="OR" close=")">
+				   			(T.INDUST_CLASS LIKE '${items}%')
+				   		</foreach>
+		   			</when>
+		   			<when test='condition_type == "JOB_CLASSIFICATION" '>		/* 직종분류 (모집직종) */
+		   				AND
+				   		<foreach collection="condition_cd" item="items" open="(" separator="OR" close=")">
+				   			(T.RCRIT_JSSFC LIKE '${items}%')
+				   		</foreach>
+		   			</when>
+		   			<when test='condition_type == "SALARY_LEVEL" '>				/* 급여수준 ??? 구분에 따라 범위 조건이 필요함 / 컬럼 변경할 필요 있음 */
+		   				AND
+				   		<foreach collection="condition_cd" item="items" open="(" separator="OR" close=")">
+				   			(
+				   				T.SALARY BETWEEN 
+				   					CASE
+				   						WHEN INSTR(#{items}, '~') = 1 THEN					/* 미만 */
+				   							0
+				   						ELSE
+				   							SUBSTR(#{items}, 0, INSTR(#{items}, '~') - 1)
+				   					END				   					
+				   				AND
+				   					CASE
+				   						WHEN LEN(#{items}) = INSTR(#{items}, '~') THEN		/* 이상 */
+				   							1000000000000 /* 조 */
+				   						ELSE
+				   							SUBSTR(#{items}, INSTR(#{items}, '~') + 1)
+				   					END
+				   			) /* T.SALARY BETWEEN a AND b */
+				   		</foreach>
+		   			</when>
+		   			<otherwise>
+				   		<choose>
+				   			<when test='condition_type == "COMPANY_TYPE"'>				/* 기업형태 */
+				   				AND T.ENTRPRS_TYPE IN
+				   			</when>
+				   			<when test='condition_type == "COMPANY_SIZE" '>				/* 회사규모 */
+				   				AND T.CORP_SZ IN 
+				   			</when>
+				   			<when test='condition_type == "EMPLOYMENT_TYPE" '>			/* 고용형태 */
+				   				AND T.EMPLYM_TYPE IN
+				   			</when>
+				   			<when test='condition_type == "WORK_TYPE" '>				/* 근무형태 */
+				   				AND T.WORK_TYPE IN
+				   			</when>
+				   			<when test='condition_type == "ACADEMIC_ABILITY" '>			/* 학력 */
+				   				AND T.ACDMCR IN
+				   			</when>
+				   			<when test='condition_type == "CAREER" '>					/* 경력 */
+				   				AND T.CAREER IN
+				   			</when>
+				   		</choose>
+				   		
+				   		<foreach collection="condition_cd" item="items" open="(" separator="," close=")"> 
+				   			#{items} 
+				   		</foreach>
+				   	</otherwise>
+				</choose>
+		   </if>
+
+			
+		 ORDER BY
+		 	
+			<if test='sortType != null and sortType == "REG_DT_DESC" '> REG_DT DESC </if>	/* 최근 등록 순 */
+			<if test='sortType != null and sortType == "CLOS_DT" '> CLOS_DT </if> 			/* 마감일 오름순 */
+			<if test='sortType != null and sortType == "CLOS_DT_DESC" '> CLOS_DT DESC </if>	/* 마감일 내림순 */
+			<if test='sortType == null'> REG_DT DESC </if> 									/* 최근 등록 순 */
+		
+		<if test='last_num != null and page_size != null '> 		 
+		 LIMIT #{last_num}, #{page_size}
+		</if>
+	</select>
+-->
+	<!-- 구인 정보 상세 조회 - 2018.10.10	ywKim	신규 -->
+	<select id="selectJobInfoDetail" parameterType="hashmap" resultType="hashmap">
+
+		SELECT 
+			T.SIDO_CD
+			, T.SGG_CD
+			, T.EMDONG_CD
+			, ADM.SIDO_NM
+			, ADM.SGG_NM
+			, ADM.EMDONG_NM
+			
+			, T.JO_NO
+			, T.CORP_NM
+			, T.MAIN_NM
+			, T.LABRR_CNT
+			, T.CAP
+			, T.YEAR_SALES
+			, T.INDUST_CLASS
+			, T.MAIN_BIZ_CONTENT
+			, T.CORP_ADDR
+			, T.CORP_HPAGE
+			, T.ENTRPRS_TYPE
+			
+			, T.JO_DATA_DIV
+			, T.JO_DATA_KEY
+			, '상용' AS GUBUN 
+			, T.RECRU_NM
+			, '직무내용(데이터없음)' AS DTY_CONTENT
+			, T.CAREER
+			, T.ACDMCR
+			, T.WORK_REGION
+			, T.WORK_ADDR
+			, T.WAGE_TYPE
+			, T.SALARY
+			, T.EMPLYM_TYPE
+			, T.WORK_TYPE
+			, '근무시간(데이터없음)' AS WORK_TIME
+			, T.REG_DT
+			, T.CLOS_DT
+			
+			, (select S_CLASS_CD_NM from cmm_cd_comcd  where T.CAREER       = s_class_cd and b_class_cd = 'CAREER') AS CAREER_NM         /* 경력 */
+			, (select S_CLASS_CD_NM from cmm_cd_comcd  where T.ACDMCR       = s_class_cd and b_class_cd = 'ACDMCR') AS ACDMCR_NM         /* 학력 */
+			, (select S_CLASS_CD_NM from cmm_cd_comcd  where T.WAGE_TYPE    = s_class_cd and b_class_cd = 'WAGETY') AS WAGE_TYPE_NM      /* 임금형태 (WAGE_TYPE) */
+			, (select S_CLASS_CD_NM from cmm_cd_comcd  where T.EMPLYM_TYPE  = s_class_cd and b_class_cd = 'EMPTYP') AS EMPLYM_TYPE_NM    /* 고용형태 (EMPLYM_TYPE) */
+			, (select S_CLASS_CD_NM from cmm_cd_comcd  where T.WORK_TYPE    = s_class_cd and b_class_cd = 'WORKTY') AS WORK_TYPE_NM      /* 근무형태 (WORK_TYPE) */
+			, (select S_CLASS_CD_NM from cmm_cd_comcd  where T.INDUST_CLASS = s_class_cd and b_class_cd = 'INDCLA') AS INDUST_CLASS_NM   /* 산업분류(업종) */
+			, (select S_CLASS_CD_NM from cmm_cd_comcd  where T.ENTRPRS_TYPE = s_class_cd and b_class_cd = 'ENTTYP') AS ENTRPRS_TYPE_NM   /* 기업형태 */
+			
+		   	/* 워크넷 구인정보와 중복되는 인크루트 구인정보 키 - 2018.12.26	ywKim	추가 */
+		   	<if test='jo_auth_no_exists != null and jo_auth_no_exists == "Y"'>
+		   	, I.PBLANC_NO AS INCRUIT_JO_DATA_KEY
+		   	</if>
+							
+		  FROM SRV_DT_JOB_SM T
+			LEFT JOIN SRV_PG_ADMBORD ADM
+				ON 		ADM.BASE_YEAR = #{base_year}
+					AND T.SIDO_CD = ADM.SIDO_CD
+					AND T.SGG_CD = ADM.SGG_CD
+					AND T.EMDONG_CD = ADM.EMDONG_CD
+					
+			/* 워크넷 구인정보와 중복되는 인크루트 구인정보 키 - 2018.12.26	ywKim	추가 */
+			<if test='jo_auth_no_exists != null and jo_auth_no_exists == "Y"'>
+			LEFT JOIN
+		   	(
+		   		SELECT CREATE_DT, JO_AUTH_NO, PBLANC_NO 
+		   		  FROM SRV_DT_JOB_SM
+		   		 WHERE 1=1
+		   		   AND CREATE_DT = #{latest_reg_date}							/* 데이터 작성 기준일 (최신 작성일) */ 
+				   AND JO_AUTH_NO != ''
+				   AND PBLANC_NO != ''
+		   		   AND JO_DATA_DIV = 'I' 
+		   	) I				
+			ON T.CREATE_DT = I.CREATE_DT
+				AND T.JO_AUTH_NO = I.JO_AUTH_NO
+			</if>
+		 WHERE 1=1
+		   AND T.CREATE_DT = #{latest_reg_date}									/* 데이터 작성 기준일 (최신 작성일) */
+		   AND T.JO_NO = #{jo_no}
+	</select>
+
+	<!-- 대졸자 첫 일자리 통계 데이터 조회 - 2018.10.16	ywKim	신규
+		2018.10.17	ywKim	변경 : 사용정지 - selectJobStatData 에 통합 
+	-->
+	<select id="selectFirstCollegeGraduateJobStat" parameterType="hashmap" resultType="hashmap">	
+
+		SELECT TYPE, SERIES_CD, CATEGORY_CD, VAL
+		  FROM SRV_DT_COLLEGEGRADUATESTAT
+		 WHERE 1=1
+		   AND BASE_YEAR = #{base_year}
+		   AND TYPE = #{mode}
+		 ORDER BY TYPE, SERIES_CD, CATEGORY_CD
+
+	</select>
+		
+	<!-- 일자리 맵 서비스 통계 데이터 조회 - 2018.10.17	ywKim	신규 -->
+	<select id="selectJobStatData" parameterType="hashmap" resultType="hashmap">
+	<!-- 2020.04.28[한광희] 일자리 맵 > 구인현황분석 > 데이터보드 차트영역 KOSIS DATA로 변경 START -->
+	<!--	
+		SELECT T.TYPE
+				, T.MODE
+				, T.SERIES_CD
+				, T.CATEGORY_CD
+				, T.VAL
+				2019.12.03[한광희] BASE_YEAR 추가
+				, T.BASE_YEAR
+		  FROM SRV_DT_JOBSTAT_DATA T
+			LEFT JOIN CMM_CD_COMCD S
+			ON S.B_CLASS_CD = #{type} || #{mode} || 'S'
+				AND T.SERIES_CD = S.S_CLASS_CD
+			LEFT JOIN CMM_CD_COMCD C
+			ON C.B_CLASS_CD = #{type} || #{mode} || 'C'
+				AND T.CATEGORY_CD = C.S_CLASS_CD
+		 WHERE 1=1
+		   AND T.TYPE = #{type}
+		   AND T.BASE_YEAR = #{base_year}
+		   AND T.MODE = #{mode}
+		   <if test='series_cd != null and series_cd != "" '>
+		   AND T.SERIES_CD = #{series_cd}
+		   </if>
+		   
+		   
+		 ORDER BY T.TYPE
+		 		, T.MODE
+		 		, S.S_CLASS_CD_ORDER
+		 		, C.S_CLASS_CD_ORDER
+	-->
+		SELECT A.PRD_DE AS BASE_YEAR
+		<choose>
+			<when test='link_id == "D3503"'>
+				, SUBSTR(A.DT, 1, INSTR(A.DT, '.') -1) AS VAL		
+			</when>
+			<otherwise>
+				, REPLACE(A.DT, '-', '0') AS VAL
+			</otherwise>
+		</choose>
+		<if test='link_id == "D3501"'>
+	   		, A.C2 AS SERIES_CD
+	   	</if>
+	   	<if test='link_id == "D3502"'>
+	   		, B.S_CLASS_CD AS SERIES_CD
+	   	</if>
+	   	<if test='link_id == "D3503"'>
+	   		, A.C1 AS SERIES_CD
+	   	</if>
+		  FROM SRV_DT_KOSIS_DATA A
+		<if test='link_id == "D3502"'>
+			, (SELECT *
+				 FROM (SELECT C1
+				 			, REPLACE(REPLACE(REPLACE(C1_NM,' ',''),';',''),'ㆍ','') C1_NM
+						 FROM SRV_DT_KOSIS_DATA
+						WHERE LINK_ID = #{link_id}
+						  AND PRD_DE = #{base_year}
+						  AND C2 = '00'
+						  AND C1 != '000'
+					  ) XA
+					, (SELECT S_CLASS_CD
+							, REPLACE(S_CLASS_CD_NM,' ','') S_CLASS_CD_NM
+						 FROM CMM_CD_COMCD
+						WHERE B_CLASS_CD = 'INDCLA'
+						  AND LENGTH(S_CLASS_CD) = 3
+					  ) XB
+				WHERE XA.C1_NM = XB.S_CLASS_CD_NM
+				ORDER BY TO_NUMBER(XA.C1)
+			  ) B
+		</if>
+		 WHERE 1=1
+		   AND A.LINK_ID = #{link_id}
+		   AND A.PRD_DE = #{base_year}
+		   AND A.C2 != '00'
+		   <if test='link_id == "D3501"'>
+			AND A.C1 NOT IN ('000', '110', '120')
+		   	AND A.C2 = #{series_cd} || '0'
+		   </if>
+		   <if test='link_id == "D3502"'>
+		   	AND A.C1 = B.C1
+		   	AND A.C1 != '000' 
+		   	AND B.S_CLASS_CD = #{series_cd}
+		   </if>
+		   <if test='link_id == "D3503"'>
+		   	AND A.C1 != '00'
+		   	AND A.ITM_ID = #{itm_id}
+		   	AND A.C1 = #{series_cd}
+		   </if>
+		 ORDER BY LENGTH(A.C1), A.C1, LENGTH(A.C2), A.C2
+	<!-- 2020.04.28[한광희] 일자리 맵 > 구인현황분석 > 데이터보드 차트영역 KOSIS DATA로 변경 END -->
+	</select>
+	<select id="selectJobStatData_old" parameterType="hashmap" resultType="hashmap">	
+		SELECT TYPE, MODE, SERIES_CD, CATEGORY_CD, VAL
+		  FROM SRV_DT_JOBSTAT_DATA
+		 WHERE 1=1
+		   AND TYPE = #{type}
+		   AND BASE_YEAR = #{base_year}
+		   AND MODE = #{mode}
+		 ORDER BY TYPE, MODE, SERIES_CD, CATEGORY_CD
+	</select>
+	
+	<!-- 워크넷 직업전망 목록 조회 - 2018.10.17	ywKim	신규-->
+	<select id="selectJobpProspectingCodeList" parameterType="hashmap" resultType="hashmap">	
+		SELECT T.S_CLASS_CD_2 AS CD
+				, C2.S_CLASS_CD_NM AS NM
+		  FROM SRV_DT_COMM_CD_MAP T
+			LEFT JOIN CMM_CD_COMCD C1
+			ON T.B_CLASS_CD_1 = C1.B_CLASS_CD
+				AND T.S_CLASS_CD_1 = C1.S_CLASS_CD
+			LEFT JOIN CMM_CD_COMCD C2
+			ON T.B_CLASS_CD_2 = C2.B_CLASS_CD
+				AND T.S_CLASS_CD_2 = C2.S_CLASS_CD
+		 WHERE 1=1
+		   AND T.B_CLASS_CD_1 = 'RCRJSS'
+		   AND T.B_CLASS_CD_2 = 'WNTJPL'
+		   AND T.S_CLASS_CD_1 = #{rcrjss}
+	</select>
+
+	<!-- NCS 직무 목록 조회 - 2018.10.18	ywKim	신규-->
+	<select id="selectJobpTrainingCodeList" parameterType="hashmap" resultType="hashmap">	
+		SELECT T.S_CLASS_CD_2 AS CD
+				, C2.S_CLASS_CD_NM AS NM
+		  FROM SRV_DT_COMM_CD_MAP T
+			LEFT JOIN CMM_CD_COMCD C1
+			ON T.B_CLASS_CD_1 = C1.B_CLASS_CD
+				AND T.S_CLASS_CD_1 = C1.S_CLASS_CD
+			LEFT JOIN CMM_CD_COMCD C2
+			ON T.B_CLASS_CD_2 = C2.B_CLASS_CD
+				AND T.S_CLASS_CD_2 = C2.S_CLASS_CD
+		 WHERE 1=1
+		   AND T.B_CLASS_CD_1 = 'RCRJSS'
+		   AND T.B_CLASS_CD_2 = 'NCSBIZ'
+		   AND T.S_CLASS_CD_1 = #{rcrjss}
+	</select>
+	
+	<!-- 생활환경 정보 조회 - 2018.11.20	ywKim	신규-->
+	<select id="selectLivingEnvironment" parameterType="hashmap" resultType="hashmap">
+		<!-- 2019.11.04[한광희] 생활환경 종합 항목 위치 변경에 의한 SEQ 추가 START -->
+		SELECT CASE
+			   	WHEN B_CLASS_IDX_ID = 'HML0001' then 0
+			   	WHEN B_CLASS_IDX_ID = 'HML0004' then 1
+			   	WHEN B_CLASS_IDX_ID = 'HML0002' then 2
+			   	WHEN B_CLASS_IDX_ID = 'HML0005' then 3
+			   	WHEN B_CLASS_IDX_ID = 'HML0003' then 4
+			   	WHEN B_CLASS_IDX_ID = 'HML0007' then 5
+			   	WHEN B_CLASS_IDX_ID = 'HML0006' then 6
+			   ELSE 7 END AS SEQ
+			 , *
+		  FROM (SELECT NVL(ROUND(AVG(ORD.ORDER), 2), 0) AVG_ORDER
+		 			 , NVL(ROUND(AVG(ORD.ORDER_NO), 2), 0) AVG_ORDER_NO
+		 			 , NVL(ROUND(AVG(ORD.VALUE), 2), 0) AVG_VALUE
+		 			 , NVL(ROUND(AVG(ORD.Z_SCORE), 2), 0) Z_SCORE
+		 			 , B.M_CLASS_IDX_NM
+		 			 , B.M_CLASS_IDX_ID
+		 			 , A.B_CLASS_IDX_ID
+		 			 , A.B_CLASS_IDX_NM
+				  FROM SRV_DT_LCLAS_IX A
+				  LEFT OUTER JOIN SRV_DT_EMDONG_IX_ORDER ORD
+						  ON ORD.B_CLASS_IDX_ID = A.B_CLASS_IDX_ID			
+						 AND ORD.SIDO_CD = #{sido_cd}
+						<if test='sgg_cd != null and sgg_cd != "" '>
+						 AND ORD.SGG_CD = #{sgg_cd}
+						</if>
+						<if test='emdong_cd != null and emdong_cd != "" '>
+						 AND ORD.EMDONG_CD = #{emdong_cd}
+						</if>
+				  LEFT OUTER JOIN SRV_DT_MLSFC_IX B
+						  ON ORD.M_CLASS_IDX_ID = B.M_CLASS_IDX_ID
+				 WHERE 1=1
+				   AND A.RECMD_REGION_SEARCH_DISP_YN = 'Y'
+				   AND B.DEFAULT_VALUE IS NOT NULL
+				 GROUP BY B.M_CLASS_IDX_NM
+				 		, B.M_CLASS_IDX_ID
+				 		, A.B_CLASS_IDX_NM
+				 		, A.B_CLASS_IDX_ID
+				<choose>
+					<when test='mode != null and mode != "ALL" '>
+						ORDER BY A.B_CLASS_IDX_ID
+							   , B.M_CLASS_IDX_ID			
+					</when>
+					<otherwise>
+						ORDER BY A.B_CLASS_IDX_ID
+							   , Z_SCORE DESC
+					</otherwise>
+				</choose>
+		  	   )
+		 ORDER BY SEQ
+		<!-- 2019.11.04[한광희] 생활환경 종합 항목 위치 변경에 의한 SEQ 추가 END -->
+	</select>
+
+	<!-- 시도별 구인건수 합계 조회
+			2019.01.25	ywKim	신규 -->
+	<select id="selectSidoJobCount" parameterType="hashmap" resultType="hashmap">
+		SELECT T.SIDO_CD, T.CNT, SIDO.SIDO_NM, SIDO.X_COOR, SIDO.Y_COOR
+		  FROM
+			(
+				<!-- SELECT SIDO_CD, COUNT(JO_NO) AS CNT
+				  FROM SRV_DT_JOB_SM T  
+				 WHERE 1=1
+				   AND CREATE_DT = #{latest_reg_date}								/* 데이터 작성 기준일 (최신 작성일) */
+				   AND CLOS_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD')						/* 마감일 (today 이후이어야 함) */
+				 GROUP BY SIDO_CD -->
+				 
+				 <!-- 2019-05-10 [김남민] 일자리 보기 > 선택항목이 한번에 표출되도록 기능 개선. -->
+				 SELECT
+					T.SIDO_CD
+					, COUNT(JO_NO) AS CNT
+				  FROM SRV_DT_JOB_SM T
+				  
+					/* 워크넷 구인정보와 중복되는 인크루트 구인정보 키 - 2018.12.26	ywKim	추가 */
+					<if test='jo_auth_no_exists != null and jo_auth_no_exists == "Y"'>
+					LEFT JOIN
+				   	(
+				   		SELECT CREATE_DT, JO_AUTH_NO, PBLANC_NO 
+				   		  FROM SRV_DT_JOB_SM 
+				   		 WHERE 1=1
+				   		   AND CREATE_DT = #{latest_reg_date}							/* 데이터 작성 기준일 (최신 작성일) */ 
+						   AND JO_AUTH_NO != ''
+						   AND PBLANC_NO != ''
+				   		   AND JO_DATA_DIV = 'I'
+				   	) I				
+					ON T.CREATE_DT = I.CREATE_DT
+						AND T.JO_AUTH_NO = I.JO_AUTH_NO
+					</if>
+					
+				 WHERE 1=1
+				   AND T.CREATE_DT = #{latest_reg_date}									/* 데이터 작성 기준일 (최신 작성일) */
+		   		   AND (T.CLOS_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD')						/* 마감일 (today 이후이어야 함) */
+		   		   	    OR T.CLOS_DT='00010101')                                        /* 마감일 예외처리 */
+				   
+				   <if test='mode != null and mode == "POI"'>				/* POI 관련 데이터만 조회 */
+				   AND (T.X IS NOT NULL OR T.X != '')
+				   AND (T.Y IS NOT NULL OR T.Y != '')
+				   </if>
+				   
+				   <!-- 2019-05-07 [김남민] 일자리 보기 > 전국에서 일자리보기 기능 개선. (all 추가)-->
+				   <if test='sido_cd != null and sido_cd != "" and sido_cd != "all" '>
+				   AND T.SIDO_CD = #{sido_cd}											/* 시도 */
+				   </if>
+				   <!-- 2019-05-07 [김남민] 일자리 보기 > 전국에서 일자리보기 기능 개선. (all 추가)-->
+				   <if test='sgg_cd != null and sgg_cd != "" and sgg_cd != "all" '>
+				   AND T.SGG_CD = #{sgg_cd} 											/* 시군구 */
+				   </if>
+				   
+				   <if test='wageType != null and wageType != "" '>
+				   AND T.WAGE_TYPE = #{wageType} 										/* 임금형태 */
+				   </if>
+		
+				   <if test='INDUSTRY_CLASSIFICATION != null and INDUSTRY_CLASSIFICATION != ""'>		/* 산업분류 */
+				   AND
+			   			<foreach collection="INDUSTRY_CLASSIFICATION" item="items" open="(" separator="OR" close=")">
+			   				(T.INDUST_CLASS LIKE '${items}%')
+			   			</foreach>
+				   </if>
+		
+				   <if test='JOB_CLASSIFICATION != null and JOB_CLASSIFICATION != ""'>					/* 직종분류 (모집직종) */
+				   AND
+			   			<foreach collection="JOB_CLASSIFICATION" item="items" open="(" separator="OR" close=")">
+			   				(T.RCRIT_JSSFC LIKE '${items}%')
+			   			</foreach>
+				   </if>
+		
+				   <if test='SALARY_LEVEL != null and SALARY_LEVEL != ""'>								/* 급여수준 ??? 구분에 따라 범위 조건이 필요함 / 컬럼 변경할 필요 있음 */
+				   AND
+			   			<foreach collection="SALARY_LEVEL" item="items" open="(" separator="OR" close=")">
+				   			(
+				   				T.SALARY BETWEEN 
+				   					CASE
+				   						WHEN INSTR(#{items}, '~') = 1 THEN					/* 미만 */
+				   							0
+				   						ELSE
+				   							SUBSTR(#{items}, 0, INSTR(#{items}, '~') - 1)
+				   					END				   					
+				   				AND
+				   					CASE
+				   						WHEN LEN(#{items}) = INSTR(#{items}, '~') THEN		/* 이상 */
+				   							1000000000000 /* 조 */
+				   						ELSE
+				   							SUBSTR(#{items}, INSTR(#{items}, '~') + 1)
+				   					END
+				   			) /* T.SALARY BETWEEN a AND b */
+						</foreach>
+				   </if>
+				   
+				   <if test='SALARY_LEVEL2 != null and SALARY_LEVEL2 != ""'>
+				   ${SALARY_LEVEL2}
+				   </if>
+				
+				   <if test='COMPANY_NAME != null and COMPANY_NAME != ""'>								/* 기업명칭 */
+				   AND lower(T.CORP_NM) LIKE '%'||lower('${COMPANY_NAME}')||'%'
+				   </if>
+				
+				   <if test='COMPANY_TYPE != null and COMPANY_TYPE != ""'>								/* 기업형태 */
+				   AND T.ENTRPRS_TYPE IN
+			   			<foreach collection="COMPANY_TYPE" item="items" open="(" separator="," close=")"> 
+				   			#{items} 
+				   		</foreach>
+				   </if>
+		
+				   <if test='COMPANY_SIZE != null and COMPANY_SIZE != ""'>								/* 회사규모 */
+				   AND T.CORP_SZ IN
+			   			<foreach collection="COMPANY_SIZE" item="items" open="(" separator="," close=")"> 
+				   			#{items} 
+				   		</foreach>
+				   </if>
+		
+				   <if test='EMPLOYMENT_TYPE != null and EMPLOYMENT_TYPE != ""'>						/* 고용형태 */
+				   AND T.EMPLYM_TYPE IN
+			   			<foreach collection="EMPLOYMENT_TYPE" item="items" open="(" separator="," close=")"> 
+				   			#{items} 
+				   		</foreach>
+				   </if>
+		
+				   <if test='WORK_TYPE != null and WORK_TYPE != ""'>									/* 근무형태 */
+				   AND T.WORK_TYPE IN
+			   			<foreach collection="WORK_TYPE" item="items" open="(" separator="," close=")"> 
+				   			#{items} 
+				   		</foreach>
+				   </if>
+		
+				   <if test='ACADEMIC_ABILITY != null and ACADEMIC_ABILITY != ""'>						/* 학력 */
+				   AND T.ACDMCR IN
+			   			<foreach collection="ACADEMIC_ABILITY" item="items" open="(" separator="," close=")"> 
+				   			#{items} 
+				   		</foreach>
+				   </if>
+		
+				   <if test='CAREER != null and CAREER != ""'>											/* 경력 */
+				   AND T.CAREER IN
+			   			<foreach collection="CAREER" item="items" open="(" separator="," close=")"> 
+				   			#{items} 
+				   		</foreach>
+				   </if>
+					
+				   /* 워크넷 구인정보와 중복되는 인크루트 구인정보 키 - 2018.12.26	ywKim	추가 */
+				   <if test='jo_auth_no_exists != null and jo_auth_no_exists == "Y"'>
+				   AND (T.JO_AUTH_NO = '' OR T.PBLANC_NO = '' OR T.JO_AUTH_NO IS NULL OR T.PBLANC_NO IS NULL)
+				   </if>
+				GROUP BY
+					T.SIDO_CD
+			) T
+			LEFT JOIN SRV_PG_SIDOBORD SIDO
+			ON SIDO.BASE_YEAR = 2016
+				AND T.SIDO_CD = SIDO.SIDO_CD
+	</select>
+
+	<!-- 시군구별 구인건수 합계 조회
+			2019.01.25	ywKim	신규 -->
+	<select id="selectSggJobCount" parameterType="hashmap" resultType="hashmap">
+		SELECT T.SGG_CD, T.CNT, SGG.SGG_NM, SGG.X_COOR, SGG.Y_COOR
+		  FROM
+			(
+				<!-- SELECT SGG_CD, COUNT(JO_NO) AS CNT
+				  FROM SRV_DT_JOB_SM T  
+				 WHERE 1=1
+				   AND CREATE_DT = #{latest_reg_date}								/* 데이터 작성 기준일 (최신 작성일) */
+				   AND CLOS_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD')						/* 마감일 (today 이후이어야 함) */
+				   AND SIDO_CD = #{sido_cd}
+				 GROUP BY SGG_CD -->
+				 
+				 <!-- 2019-05-10 [김남민] 일자리 보기 > 선택항목이 한번에 표출되도록 기능 개선. -->
+				 SELECT
+					T.SGG_CD
+					, COUNT(JO_NO) AS CNT
+				  FROM SRV_DT_JOB_SM T
+						
+					/* 워크넷 구인정보와 중복되는 인크루트 구인정보 키 - 2018.12.26	ywKim	추가 */
+					<if test='jo_auth_no_exists != null and jo_auth_no_exists == "Y"'>
+					LEFT JOIN
+				   	(
+				   		SELECT CREATE_DT, JO_AUTH_NO, PBLANC_NO 
+				   		  FROM SRV_DT_JOB_SM 
+				   		 WHERE 1=1
+				   		   AND CREATE_DT = #{latest_reg_date}							/* 데이터 작성 기준일 (최신 작성일) */ 
+						   AND JO_AUTH_NO != ''
+						   AND PBLANC_NO != ''
+				   		   AND JO_DATA_DIV = 'I'
+				   	) I				
+					ON T.CREATE_DT = I.CREATE_DT
+						AND T.JO_AUTH_NO = I.JO_AUTH_NO
+					</if>
+					
+				 WHERE 1=1
+				   AND T.CREATE_DT = #{latest_reg_date}									/* 데이터 작성 기준일 (최신 작성일) */
+		   		   AND (T.CLOS_DT >= TO_CHAR(SYSDATE, 'YYYYMMDD')						/* 마감일 (today 이후이어야 함) */
+		   		   	    OR T.CLOS_DT='00010101')                                        /* 마감일 예외처리 */
+				   
+				   <if test='mode != null and mode == "POI"'>				/* POI 관련 데이터만 조회 */
+				   AND (T.X IS NOT NULL OR T.X != '')
+				   AND (T.Y IS NOT NULL OR T.Y != '')
+				   </if>
+				   
+				   <!-- 2019-05-07 [김남민] 일자리 보기 > 전국에서 일자리보기 기능 개선. (all 추가)-->
+				   <if test='sido_cd != null and sido_cd != "" and sido_cd != "all" '>
+				   AND T.SIDO_CD = #{sido_cd}											/* 시도 */
+				   </if>
+				   <!-- 2019-05-07 [김남민] 일자리 보기 > 전국에서 일자리보기 기능 개선. (all 추가)-->
+				   <if test='sgg_cd != null and sgg_cd != "" and sgg_cd != "all" '>
+				   AND T.SGG_CD = #{sgg_cd} 											/* 시군구 */
+				   </if>
+				   
+				   <if test='wageType != null and wageType != "" '>
+				   AND T.WAGE_TYPE = #{wageType} 										/* 임금형태 */
+				   </if>
+		
+				   <if test='INDUSTRY_CLASSIFICATION != null and INDUSTRY_CLASSIFICATION != ""'>		/* 산업분류 */
+				   AND
+			   			<foreach collection="INDUSTRY_CLASSIFICATION" item="items" open="(" separator="OR" close=")">
+			   				(T.INDUST_CLASS LIKE '${items}%')
+			   			</foreach>
+				   </if>
+		
+				   <if test='JOB_CLASSIFICATION != null and JOB_CLASSIFICATION != ""'>					/* 직종분류 (모집직종) */
+				   AND
+			   			<foreach collection="JOB_CLASSIFICATION" item="items" open="(" separator="OR" close=")">
+			   				(T.RCRIT_JSSFC LIKE '${items}%')
+			   			</foreach>
+				   </if>
+		
+				   <if test='SALARY_LEVEL != null and SALARY_LEVEL != ""'>								/* 급여수준 ??? 구분에 따라 범위 조건이 필요함 / 컬럼 변경할 필요 있음 */
+				   AND
+			   			<foreach collection="SALARY_LEVEL" item="items" open="(" separator="OR" close=")">
+				   			(
+				   				T.SALARY BETWEEN 
+				   					CASE
+				   						WHEN INSTR(#{items}, '~') = 1 THEN					/* 미만 */
+				   							0
+				   						ELSE
+				   							SUBSTR(#{items}, 0, INSTR(#{items}, '~') - 1)
+				   					END				   					
+				   				AND
+				   					CASE
+				   						WHEN LEN(#{items}) = INSTR(#{items}, '~') THEN		/* 이상 */
+				   							1000000000000 /* 조 */
+				   						ELSE
+				   							SUBSTR(#{items}, INSTR(#{items}, '~') + 1)
+				   					END
+				   			) /* T.SALARY BETWEEN a AND b */
+						</foreach>
+				   </if>
+				   
+				   <if test='SALARY_LEVEL2 != null and SALARY_LEVEL2 != ""'>
+				   ${SALARY_LEVEL2}
+				   </if>
+				
+				   <if test='COMPANY_NAME != null and COMPANY_NAME != ""'>								/* 기업명칭 */
+				   AND lower(T.CORP_NM) LIKE '%'||lower('${COMPANY_NAME}')||'%'
+				   </if>
+				
+				   <if test='COMPANY_TYPE != null and COMPANY_TYPE != ""'>								/* 기업형태 */
+				   AND T.ENTRPRS_TYPE IN
+			   			<foreach collection="COMPANY_TYPE" item="items" open="(" separator="," close=")"> 
+				   			#{items} 
+				   		</foreach>
+				   </if>
+		
+				   <if test='COMPANY_SIZE != null and COMPANY_SIZE != ""'>								/* 회사규모 */
+				   AND T.CORP_SZ IN
+			   			<foreach collection="COMPANY_SIZE" item="items" open="(" separator="," close=")"> 
+				   			#{items} 
+				   		</foreach>
+				   </if>
+		
+				   <if test='EMPLOYMENT_TYPE != null and EMPLOYMENT_TYPE != ""'>						/* 고용형태 */
+				   AND T.EMPLYM_TYPE IN
+			   			<foreach collection="EMPLOYMENT_TYPE" item="items" open="(" separator="," close=")"> 
+				   			#{items} 
+				   		</foreach>
+				   </if>
+		
+				   <if test='WORK_TYPE != null and WORK_TYPE != ""'>									/* 근무형태 */
+				   AND T.WORK_TYPE IN
+			   			<foreach collection="WORK_TYPE" item="items" open="(" separator="," close=")"> 
+				   			#{items} 
+				   		</foreach>
+				   </if>
+		
+				   <if test='ACADEMIC_ABILITY != null and ACADEMIC_ABILITY != ""'>						/* 학력 */
+				   AND T.ACDMCR IN
+			   			<foreach collection="ACADEMIC_ABILITY" item="items" open="(" separator="," close=")"> 
+				   			#{items} 
+				   		</foreach>
+				   </if>
+		
+				   <if test='CAREER != null and CAREER != ""'>											/* 경력 */
+				   AND T.CAREER IN
+			   			<foreach collection="CAREER" item="items" open="(" separator="," close=")"> 
+				   			#{items} 
+				   		</foreach>
+				   </if>
+					
+				   /* 워크넷 구인정보와 중복되는 인크루트 구인정보 키 - 2018.12.26	ywKim	추가 */
+				   <if test='jo_auth_no_exists != null and jo_auth_no_exists == "Y"'>
+				   AND (T.JO_AUTH_NO = '' OR T.PBLANC_NO = '' OR T.JO_AUTH_NO IS NULL OR T.PBLANC_NO IS NULL)
+				   </if>
+				GROUP BY
+					T.SGG_CD
+			) T
+			LEFT JOIN SRV_PG_SGGBORD SGG
+			ON SGG.BASE_YEAR = 2016
+				AND SGG.SIDO_CD = #{sido_cd}
+				AND T.SGG_CD = SGG.SGG_CD
+	</select>
+	
+	<!-- 2019.12.03[한광희] 일자리 맵 서비스 통계 데이터 base_year 조회 -->
+	<select id="selectJobStatDataBaseYear" parameterType="hashmap" resultType="String">
+	<!-- 2020.04.28[한광희] 일자리 맵 > 구인현황분석 > 데이터보드 차트영역 KOSIS DATA로 변경 START -->	
+	<!--
+		select
+			max(base_year) as base_year
+		from
+			srv_dt_jobstat_data t
+			left join cmm_cd_comcd s on s.b_class_cd = #{type} || #{mode} || 'S' and t.series_cd = s.s_class_cd
+			left join cmm_cd_comcd c on c.b_class_cd = #{type} || #{mode} || 'C' and t.category_cd = c.s_class_cd
+		where 1=1
+			and t.type = #{type}
+			and t.mode = #{mode}
+			<if test='series_cd != null and series_cd != "" '>
+			and t.series_cd = #{series_cd}
+			</if>
+	-->
+		SELECT MAX(PRD_DE) AS BASE_YEAR
+		  FROM SRV_DT_KOSIS_DATA
+		 WHERE LINK_ID = #{link_id}
+		 <if test='link_id == "D3503"'>
+		 	AND ITM_ID = #{itm_id}
+		 </if>
+	<!-- 2020.04.28[한광희] 일자리 맵 > 구인현황분석 > 데이터보드 차트영역 KOSIS DATA로 변경 END -->
+	</select>
+	
+	<!-- 2020.04.28[한광희] 일자리 맵 > 구인현황분석 > 데이터보드 차트영역 KOSIS DATA로 변경 START -->
+	<select id="selectJobStatDataCommonCd" parameterType="hashmap" resultType="hashmap">	
+		SELECT A.C1
+			 , A.C1_NM
+			 , A.C2 
+			 , A.C2_NM
+		  FROM SRV_DT_KOSIS_DATA A
+		<if test='link_id == "D3502"'>
+			, (SELECT *
+				 FROM (SELECT C1
+				 			, REPLACE(REPLACE(REPLACE(C1_NM,' ',''),';',''),'ㆍ','') C1_NM
+						 FROM SRV_DT_KOSIS_DATA
+						WHERE LINK_ID = #{link_id}
+						  AND PRD_DE = #{base_year}
+						  AND C2 = '00'
+						  AND C1 != '000'
+					  ) XA
+					, (SELECT S_CLASS_CD
+							, REPLACE(S_CLASS_CD_NM,' ','') S_CLASS_CD_NM
+						 FROM CMM_CD_COMCD
+						WHERE B_CLASS_CD = 'INDCLA'
+						  AND LENGTH(S_CLASS_CD) = 3
+					  ) XB
+				WHERE XA.C1_NM = XB.S_CLASS_CD_NM
+				ORDER BY TO_NUMBER(XA.C1)
+			  ) B
+		</if>
+		 WHERE 1=1
+		   AND A.LINK_ID = #{link_id}
+		   AND A.PRD_DE = #{base_year}
+		   AND A.C2 != '00'
+		   <if test='link_id == "D3501"'> 
+   			AND A.C1 NOT IN ('000', '110', '120')
+		   	AND A.C2 = #{series_cd} || '0'
+		   </if>
+		   <if test='link_id == "D3502"'>
+		   	AND A.C1 = B.C1
+		   	AND A.C1 != '000' 
+		   	AND B.S_CLASS_CD = #{series_cd}
+		   </if>
+		   <if test='link_id == "D3503"'>
+		   	AND A.C1 != '00'
+		   	AND A.C1 = #{series_cd}
+		   	AND A.ITM_ID = #{itm_id}
+		   </if>
+		 ORDER BY LENGTH(A.C1), A.C1, LENGTH(A.C2), A.C2
+	</select>
+	<!-- 2020.04.28[한광희] 일자리 맵 > 구인현황분석 > 데이터보드 차트영역 KOSIS DATA로 변경 END -->
+</mapper>

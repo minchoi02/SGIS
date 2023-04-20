@@ -1,0 +1,584 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ststisticsData"> 
+
+	<select id="getStstisticsUSDataMng"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		/** getStstisticsUSDataMng start ... **/
+		<include refid="ststisticsCmmn.pageHeader" />
+		SELECT 
+			ROW_NUMBER() OVER(ORDER BY STAT_DATA_NM <include refid="search_Nm_sort"/>) AS RNUM<!-- 201127 2020년 SGIS고도화 3차 수정 -->
+			,DATA.STAT_DATA_ID
+			,DATA.STAT_DATA_NM
+			,DATA.STAT_DATA_SRV_NM
+			,DATA.SRV_NM
+			,DATA.MENU_NM
+			,DATA.B_CLASS_NM
+			,DATA.M_CLASS_NM
+			,DATA.S_CLASS_NM
+			,DATA.SOURCE
+			,DATA.BASE_YEAR
+			,DATA.STAT_DATA_BASE_YEAR
+			,DATA.UPDT_PERIOD
+			,DATA.SIDO_DISP_YN
+			,DATA.SGG_DISP_YN
+			,DATA.EMDONG_DISP_YN
+			,DATA.TOT_REG_DISP_YN
+			,DATA.GRID_DISP_YN
+			,DATA.COLOR_DISP_YN
+			,DATA.BALLN_DISP_YN
+			,DATA.TP_DISP_YN
+			,DATA.POI_DISP_YN
+			,DATA.SRV_YN
+			,DATA.STAT_DATA_EXP
+			,DATA.STAT_DATA_ADD_EXP
+			,DATA.EXP_REL_TB
+			,DATA.EXP_REL_ID_COL
+			,DATA.EXP_REL_ID
+			,DATA.EXP_REL_EXP_COL
+			,DATA.MAIN_KWRD
+			,(SELECT COUNT(1) FROM SRV_DT_CTLG_DISTANCE_DATA INNER1 WHERE INNER1.STAT_DATA_ID =DATA.STAT_DATA_ID) DSTNC_COUNT
+<!-- 			,(SELECT COUNT(1) FROM SRV_DT_CTLG_CYCLE_DISTANCE INNER1 WHERE INNER1.STAT_DISTANCE_ID IN  (SELECT STAT_DISTANCE_ID FROM SRV_DT_CTLG_DISTANCE_DATA DSTNC WHERE DSTNC.STAT_DATA_ID = DATA.STAT_DATA_ID)) DSTNC_COUNT -->
+<!-- 			,(SELECT  COUNT(LFECYCLE.STAT_DATA_ID) FROM SRV_DT_CTLG_LFECYCLE_DATA LFECYCLE WHERE LFECYCLE.STAT_DATA_ID = DATA.STAT_DATA_ID) LFECYCLE_COUNT -->
+ 			,(SELECT  COUNT(KWRD.STAT_DATA_ID) FROM SRV_DT_CTLG_MAIN_KWRD_DATA KWRD  WHERE KWRD.STAT_DATA_ID = DATA.STAT_DATA_ID) KWORD_COUNT
+			,SRV_YN
+			,DECODE(SRV_YN , 'Y' , '활성' ,'비활성')  AS SRV_YN_VALUE
+		<include refid="body"/>
+		<include refid="ststisticsCmmn.pageFotter" />
+	</select>
+	<select id="getStstisticsStatDataIdTotal"  parameterType="java.util.HashMap" resultType="int">
+		SELECT COUNT(*) FROM SRV_DT_CTLG_DATA_LIST WHERE 
+		<if test="menuNm != null and menuNm != '' and menuNm=='업종통계지도: 기술업종통계지도'">
+			MENU_NM LIKE '업종통계지도%'
+		</if>
+		<if test="menuNm != null and menuNm != '' and menuNm=='업종통계지도: 생활업종통계지도'">
+			MENU_NM LIKE '업종통계지도%' 
+		</if>
+		<if test="menuNm != null and menuNm != '' and menuNm!='업종통계지도: 기술업종통계지도'and menuNm!='업종통계지도: 생활업종통계지도'">
+			MENU_NM = #{menuNm}
+		</if>
+	</select>
+	<select id="getStstisticsUSDataMngTotal"  parameterType="java.util.HashMap" resultType="int">
+		/** getStstisticsUSDataMngTotal start ... **/
+		SELECT COUNT(STAT_DATA_ID) 
+		<include refid="body"/>
+	</select>
+	
+	<sql id="body">
+		FROM 
+			SRV_DT_CTLG_DATA_LIST DATA
+		<where>
+			1 = 1
+			<if test='useYn != "" and useYn != null'>		
+				AND	
+					DATA.SRV_YN = #{useYn}
+			</if>
+			<if test='word != "" and word != null'>		
+				AND	
+					INSTR(DATA.STAT_DATA_NM , #{word} ) <![CDATA[>]]> 0
+			</if>
+		</where>
+	</sql>
+	<select id="idcheckStstisticsUSDataMng"  parameterType="java.util.HashMap" resultType="int">
+		SELECT	COUNT(*) 
+		FROM	SRV_DT_CTLG_DATA_LIST
+		WHERE	STAT_DATA_ID = #{statDataId}
+	</select>
+	<select id="proccessExpUploadData"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT 
+			EXP_REL_TB, 
+			EXP_REL_ID_COL,
+			EXP_REL_ID,
+			EXP_REL_EXP_COL  
+		FROM 
+			SRV_DT_CTLG_DATA_LIST 
+		WHERE 
+			EXP_REL_TB <![CDATA[<>]]> '' 
+		AND 
+			EXP_REL_ID_COL <![CDATA[<>]]> '' 
+		AND 
+			EXP_REL_ID <![CDATA[<>]]> ''
+	</select>
+	<update id="proccessExpUpload" parameterType="java.util.HashMap" >
+		UPDATE 
+			SRV_DT_CTLG_DATA_LIST
+		SET 
+			STAT_DATA_EXP = (
+		SELECT 
+			${expRelExpCol} 
+		FROM 
+			${expRelTb} 
+		WHERE 
+			${expRelIdCol} = #{expRelId}
+			)
+		WHERE
+			EXP_REL_ID = #{expRelId}	
+		
+	</update>
+	<update id="registerOrEditStstisticsUSDataMng" parameterType="java.util.HashMap" >
+		/** registerOrEditStstisticsUSDataMng start ... **/
+		MERGE INTO
+			SRV_DT_CTLG_DATA_LIST
+		USING 
+			DUAL
+		ON
+			STAT_DATA_ID = #{statDataId}
+		WHEN MATCHED THEN 
+			UPDATE SET
+			STAT_DATA_NM = #{statDataNm}
+			,STAT_DATA_SRV_NM = #{statDataSrvNm}
+			,SRV_NM = #{srvNm}
+			,MENU_NM = #{menuNm}
+			,B_CLASS_NM = #{BClassNm}
+			,M_CLASS_NM = #{MClassNm}
+			,S_CLASS_NM = #{SClassNm}
+			,SOURCE = #{source}
+			,BASE_YEAR = #{baseYear}
+			,STAT_DATA_BASE_YEAR = #{statDataBaseYear}
+			,UPDT_PERIOD = #{updtPeriod}
+			,SIDO_DISP_YN = #{sidoDispYn}
+			,SGG_DISP_YN = #{sggDispYn}
+			,EMDONG_DISP_YN = #{emdongDispYn}
+			,TOT_REG_DISP_YN = #{totRegDispYn}
+			,GRID_DISP_YN = #{gridDispYn}
+			,COLOR_DISP_YN = #{colorDispYn}
+			,BALLN_DISP_YN = #{ballnDispYn}
+			,TP_DISP_YN = #{tpDispYn}
+			,POI_DISP_YN = #{poiDispYn}
+			,SRV_YN = #{srvYn}
+			,STAT_DATA_EXP = #{statDataExp}
+			,STAT_DATA_ADD_EXP = #{statDataAddExp}
+			,REG_MANAGER_ID = #{regManagerId}
+			,MOD_TS = sysdate
+			,MOD_MANAGER_ID = #{modManagerId}
+			,EXP_REL_TB = #{expRelTb}
+			,EXP_REL_ID_COL = #{expRelIdCol}
+			,EXP_REL_ID = #{expRelId}
+			,EXP_REL_EXP_COL = #{expRelExpCol}
+			,MAIN_KWRD = #{mainKwrd}
+		WHEN NOT MATCHED THEN
+			INSERT (
+			STAT_DATA_ID
+			<if test="statDataNm != null and statDataNm != ''">
+			,STAT_DATA_NM
+			</if>
+			<if test="statDataSrvNm != null and statDataSrvNm != ''">
+			,STAT_DATA_SRV_NM
+			</if>
+			<if test="srvNm != null and srvNm != ''">
+			,SRV_NM
+			</if>
+			<if test="menuNm != null and menuNm != ''">
+			,MENU_NM
+			</if>
+			<if test="BClassNm != null and BClassNm != ''">
+			,B_CLASS_NM
+			</if>
+			<if test="MClassNm != null and MClassNm != ''">
+			,M_CLASS_NM
+			</if>
+			<if test="SClassNm != null and SClassNm != ''">
+			,S_CLASS_NM
+			</if>
+			<if test="source != null and source != ''">
+			,SOURCE
+			</if>
+			<if test="baseYear != null and baseYear != ''">
+			,BASE_YEAR
+			</if>
+			<if test="statDataBaseYear != null and statDataBaseYear != ''">
+			,STAT_DATA_BASE_YEAR
+			</if>
+			<if test="updtPeriod != null and updtPeriod != ''">
+			,UPDT_PERIOD
+			</if>
+			<if test="sidoDispYn != null and route_nm != ''">
+			,SIDO_DISP_YN
+			</if>
+			<if test="sggDispYn != null and sggDispYn != ''">
+			,SGG_DISP_YN
+			</if>
+			<if test="emdongDispYn != null and emdongDispYn != ''">
+			,EMDONG_DISP_YN
+			</if>
+			<if test="totRegDispYn != null and totRegDispYn != ''">
+			,TOT_REG_DISP_YN
+			</if>
+			<if test="gridDispYn != null and gridDispYn != ''">
+			,GRID_DISP_YN
+			</if>
+			<if test="colorDispYn != null and colorDispYn != ''">
+			,COLOR_DISP_YN
+			</if>
+			<if test="ballnDispYn != null and ballnDispYn != ''">
+			,BALLN_DISP_YN
+			</if>
+			<if test="tpDispYn != null and tpDispYn != ''">
+			,TP_DISP_YN
+			</if>
+			<if test="poiDispYn != null and poiDispYn != ''">
+			,POI_DISP_YN
+			</if>
+			<if test="srvYn != null and srvYn != ''">
+			,SRV_YN
+			</if>
+			<if test="statDataExp != null and statDataExp != ''">
+			,STAT_DATA_EXP
+			</if>
+			<if test="statDataAddExp != null and statDataAddExp != ''">
+			,STAT_DATA_ADD_EXP
+			</if>
+			<if test="regManagerId != null and regManagerIdm != ''">
+			,REG_MANAGER_ID
+			</if>
+			,MOD_TS
+			<if test="modManagerId != null and modManagerId != ''">
+			,MOD_MANAGER_ID
+			</if>
+			<if test="expRelTb != null and expRelTb != ''">
+			,EXP_REL_TB
+			</if>
+			<if test="expRelIdCol != null and expRelIdCol != ''">
+			,EXP_REL_ID_COL
+			</if>
+			<if test="expRelId != null and expRelId != ''">
+			,EXP_REL_ID
+			</if>
+			<if test="expRelExpCol != null and expRelExpCol != ''">
+			,EXP_REL_EXP_COL
+			</if>
+			<if test="mainKwrd != null and mainKwrd != ''">
+			,MAIN_KWRD
+			</if>
+			) VALUES(
+			#{statDataId}
+			<if test="statDataNm != null and statDataNm != ''">
+			,#{statDataNm}
+			</if>
+			<if test="statDataSrvNm != null and statDataSrvNm != ''">
+			,#{statDataSrvNm}
+			</if>
+			<if test="srvNm != null and srvNm != ''">
+			,#{srvNm}
+			</if>
+			<if test="menuNm != null and menuNm != ''">
+			,#{menuNm}
+			</if>
+			<if test="BClassNm != null and BClassNm != ''">
+			,#{BClassNm}
+			</if>
+			<if test="MClassNm != null and MClassNm != ''">
+			,#{MClassNm}
+			</if>
+			<if test="SClassNm != null and SClassNm != ''">
+			,#{SClassNm}
+			</if>
+			<if test="source != null and source != ''">
+			,#{source}
+			</if>
+			<if test="baseYear != null and baseYear != ''">
+			,#{baseYear}
+			</if>
+			<if test="statDataBaseYear != null and statDataBaseYear != ''">
+			,#{statDataBaseYear}
+			</if>
+			<if test="updtPeriod != null and updtPeriod != ''">
+			,#{updtPeriod}
+			</if>
+			<if test="sidoDispYn != null and route_nm != ''">
+			,#{sidoDispYn}
+			</if>
+			<if test="sggDispYn != null and sggDispYn != ''">
+			,#{sggDispYn}
+			</if>
+			<if test="emdongDispYn != null and emdongDispYn != ''">
+			,#{emdongDispYn}
+			</if>
+			<if test="totRegDispYn != null and totRegDispYn != ''">
+			,#{totRegDispYn}
+			</if>
+			<if test="gridDispYn != null and gridDispYn != ''">
+			,#{gridDispYn}
+			</if>
+			<if test="colorDispYn != null and colorDispYn != ''">
+			,#{colorDispYn}
+			</if>
+			<if test="ballnDispYn != null and ballnDispYn != ''">
+			,#{ballnDispYn}
+			</if>
+			<if test="tpDispYn != null and tpDispYn != ''">
+			,#{tpDispYn}
+			</if>
+			<if test="poiDispYn != null and poiDispYn != ''">
+			,#{poiDispYn}
+			</if>
+			<if test="srvYn != null and srvYn != ''">
+			,#{srvYn}
+			</if>
+			<if test="statDataExp != null and statDataExp != ''">
+			,#{statDataExp}
+			</if>
+			<if test="statDataAddExp != null and statDataAddExp != ''">
+			,#{statDataAddExp}
+			</if>
+			<if test="regManagerId != null and regManagerIdm != ''">
+			,#{regManagerId}
+			</if>
+			,sysdate
+			<if test="modManagerId != null and modManagerId != ''">
+			,#{modManagerId}
+			</if>
+			<if test="expRelTb != null and expRelTb != ''">
+			,#{expRelTb}
+			</if>
+			<if test="expRelIdCol != null and expRelIdCol != ''">
+			,#{expRelIdCol}
+			</if>
+			<if test="expRelId != null and expRelId != ''">
+			,#{expRelId}
+			</if>
+			<if test="expRelExpCol != null and expRelExpCol != ''">
+			,#{expRelExpCol}
+			</if>
+			<if test="mainKwrd != null and mainKwrd != ''">
+			,#{mainKwrd}
+			</if>
+			) 
+	</update>
+	<update id="registerOrEditExcelDataMng" parameterType="java.util.HashMap" >
+		/** registerOrEditStstisticsUSDataMng start ... **/
+		MERGE INTO
+			SRV_DT_CTLG_DATA_LIST
+		USING 
+			DUAL
+		ON
+			STAT_DATA_ID = #{column0}
+		WHEN MATCHED THEN 
+			UPDATE SET
+			STAT_DATA_NM = #{column1}
+			,SRV_NM = #{column2}
+			,MENU_NM = #{column3}
+			,B_CLASS_NM = #{column4}
+			,M_CLASS_NM = #{column5}
+			,S_CLASS_NM = #{column6}
+			,SOURCE = #{column7}
+			,BASE_YEAR = #{column8}
+			,STAT_DATA_BASE_YEAR = #{column9}
+			,UPDT_PERIOD = #{column10}
+			,SIDO_DISP_YN = #{column11}
+			,SGG_DISP_YN = #{column12}
+			,EMDONG_DISP_YN = #{column13}
+			,TOT_REG_DISP_YN = #{column14}
+			,GRID_DISP_YN = #{column15}
+			,COLOR_DISP_YN = #{column16}
+			,BALLN_DISP_YN = #{column17}
+			,TP_DISP_YN = #{column18}
+			,POI_DISP_YN = #{column19}
+			,SRV_YN = #{column20}
+			,STAT_DATA_EXP = #{column21}
+			,STAT_DATA_ADD_EXP = #{column22}
+			,REG_MANAGER_ID = #{regManagerId}
+			,MOD_TS = sysdate
+			,MOD_MANAGER_ID = #{modManagerId}
+			,EXP_REL_TB = #{column23}
+			,EXP_REL_ID_COL = #{column24}
+			,EXP_REL_ID = #{column25}
+			,EXP_REL_EXP_COL = #{column26}
+			,MAIN_KWRD = #{column27}
+		WHEN NOT MATCHED THEN
+			INSERT (
+			STAT_DATA_ID
+			<if test="column1 != null and column1 != ''">
+			,STAT_DATA_NM
+			</if>
+			<if test="column2 != null and column2 != ''">
+			,SRV_NM
+			</if>
+			<if test="column3 != null and column3 != ''">
+			,MENU_NM
+			</if>
+			<if test="column4 != null and column4 != ''">
+			,B_CLASS_NM
+			</if>
+			<if test="column5 != null and column5 != ''">
+			,M_CLASS_NM
+			</if>
+			<if test="column6 != null and column6 != ''">
+			,S_CLASS_NM
+			</if>
+			<if test="column7 != null and column7 != ''">
+			,SOURCE
+			</if>
+			<if test="column8 != null and column8 != ''">
+			,BASE_YEAR
+			</if>
+			<if test="column9 != null and column9 != ''">
+			,STAT_DATA_BASE_YEAR
+			</if>
+			<if test="column10 != null and column10 != ''">
+			,UPDT_PERIOD
+			</if>
+			<if test="column11 != null and column11 != ''">
+			,SIDO_DISP_YN
+			</if>
+			<if test="column12 != null and column12 != ''">
+			,SGG_DISP_YN
+			</if>
+			<if test="column13 != null and column13 != ''">
+			,EMDONG_DISP_YN
+			</if>
+			<if test="column14 != null and column14 != ''">
+			,TOT_REG_DISP_YN
+			</if>
+			<if test="column15 != null and column15 != ''">
+			,GRID_DISP_YN
+			</if>
+			<if test="column16 != null and column16 != ''">
+			,COLOR_DISP_YN
+			</if>
+			<if test="column17 != null and column17 != ''">
+			,BALLN_DISP_YN
+			</if>
+			<if test="column18 != null and column18 != ''">
+			,TP_DISP_YN
+			</if>
+			<if test="column19 != null and column19 != ''">
+			,POI_DISP_YN
+			</if>
+			<if test="column20 != null and column20 != ''">
+			,SRV_YN
+			</if>
+			<if test="column21 != null and column21 != ''">
+			,STAT_DATA_EXP
+			</if>
+			<if test="column22 != null and column22 != ''">
+			,STAT_DATA_ADD_EXP
+			</if>
+			<if test="regManagerId != null and regManagerIdm != ''">
+			,REG_MANAGER_ID
+			</if>
+			,MOD_TS
+			<if test="modManagerId != null and modManagerId != ''">
+			,MOD_MANAGER_ID
+			</if>
+			<if test="column23 != null and column23 != ''">
+			,EXP_REL_TB
+			</if>
+			<if test="column24 != null and column24 != ''">
+			,EXP_REL_ID_COL
+			</if>
+			<if test="column25 != null and column25 != ''">
+			,EXP_REL_ID
+			</if>
+			<if test="column26 != null and column26 != ''">
+			,EXP_REL_EXP_COL
+			</if>
+			<if test="column27 != null and column27 != ''">
+			,MAIN_KWRD
+			</if>
+			) VALUES(
+			#{column0}
+			<if test="column1 != null and column1 != ''">
+			,#{column1}
+			</if>
+			<if test="column2 != null and column2 != ''">
+			,#{column2}
+			</if>
+			<if test="column3 != null and column3 != ''">
+			,#{column3}
+			</if>
+			<if test="column4 != null and column4 != ''">
+			,#{column4}
+			</if>
+			<if test="column5 != null and column5 != ''">
+			,#{column5}
+			</if>
+			<if test="column6 != null and column6 != ''">
+			,#{column6}
+			</if>
+			<if test="column7 != null and column7 != ''">
+			,#{column7}
+			</if>
+			<if test="column8 != null and column8 != ''">
+			,#{column8}
+			</if>
+			<if test="column9 != null and column9 != ''">
+			,#{column9}
+			</if>
+			<if test="column10 != null and column10 != ''">
+			,#{column10}
+			</if>
+			<if test="column11 != null and column11 != ''">
+			,#{column11}
+			</if>
+			<if test="column12 != null and column12 != ''">
+			,#{column12}
+			</if>
+			<if test="column13 != null and column13 != ''">
+			,#{column13}
+			</if>
+			<if test="column14 != null and column14 != ''">
+			,#{column14}
+			</if>
+			<if test="column15 != null and column15 != ''">
+			,#{column15}
+			</if>
+			<if test="column16 != null and column16 != ''">
+			,#{column16}
+			</if>
+			<if test="column17 != null and column17 != ''">
+			,#{column17}
+			</if>
+			<if test="column18 != null and column18 != ''">
+			,#{column18}
+			</if>
+			<if test="column19 != null and column19 != ''">
+			,#{column19}
+			</if>
+			<if test="column20 != null and column20 != ''">
+			,#{column20}
+			</if>
+			<if test="column21 != null and column21 != ''">
+			,#{column21}
+			</if>
+			<if test="column22 != null and column22 != ''">
+			,#{column22}
+			</if>
+			<if test="regManagerId != null and regManagerId != ''">
+			,#{regManagerId}
+			</if>
+			,sysdate
+			<if test="modManagerId != null and modManagerId != ''">
+			,#{modManagerId}
+			</if>
+			<if test="column23 != null and column23 != ''">
+			,#{column23}
+			</if>
+			<if test="column24 != null and column24 != ''">
+			,#{column24}
+			</if>
+			<if test="column25 != null and column25 != ''">
+			,#{column25}
+			</if>
+			<if test="column26 != null and column26 != ''">
+			,#{column26}
+			</if>
+			<if test="column27 != null and column27 != ''">
+			,#{column27}
+			</if>
+			) 
+	</update>
+	
+	<!-- 20201127 2020년 SGIS고도화 3차 시작 -->
+	<sql id="search_Nm_sort">
+		<if test='searchNmSort != null and searchNmSort !="" '>
+			<if test='searchNmSort == "asc"'>
+				asc
+			</if>
+			<if test='searchNmSort == "desc"'>
+				desc
+			</if>
+		</if>
+	</sql>
+	<!-- 20201127 2020년 SGIS고도화 3차 시작 -->
+	
+</mapper>

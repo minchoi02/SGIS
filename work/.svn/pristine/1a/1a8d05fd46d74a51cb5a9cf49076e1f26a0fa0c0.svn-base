@@ -1,0 +1,59 @@
+package kostat.lbdms.ServiceAPI.controller.service.mapper;
+
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.springframework.stereotype.Repository;
+
+import egovframework.rte.psl.dataaccess.EgovAbstractMapper;
+
+
+@Repository("timeSeriesMapper")
+public class TimeSeriesMapper extends EgovAbstractMapper {
+
+	@Resource(name = "sqlSessionSystemUrbar")
+	public void setSqlSessionFactory(SqlSessionFactory sqlSession) {
+		super.setSqlSessionFactory(sqlSession);
+	}
+
+	/**
+	 * 시계열 프로그램 목록 정보를 조회한다.
+	 * @param mapParameter
+	 * @exception Exception
+	 */
+	public List selectTsInfoList(Map mapParameter) throws SQLException {
+		 return selectList("urbar_tm.selectTsInfoList",mapParameter);
+	}
+
+	/**
+	 * 신규 시계열 작업을 등록한다.
+	 * @param mapParameter
+	 * @exception Exception
+	 */
+	public void createTmInfo(Map mapParameter) throws SQLException {
+		insert("urbar_tm.createTmInfo", mapParameter);
+	}
+
+	public Map selectTsInfoDetail(Map mapParameter)throws SQLException{
+        return selectOne("urbar_tm.selectTsInfoDetail",mapParameter);
+    }
+
+
+   /**
+     * 선택한 작업을 삭제한다
+     * @param mapParameter
+     * @exception Exception
+     */
+
+    public void deleteTs(Map mapParameter) throws SQLException {
+        update("urbar_tm.deleteTs", mapParameter);
+    }
+
+    public List selectResult(Map mapParameter) throws SQLException {
+        return selectList("urbar_tm.selectResult",mapParameter);
+   }
+}

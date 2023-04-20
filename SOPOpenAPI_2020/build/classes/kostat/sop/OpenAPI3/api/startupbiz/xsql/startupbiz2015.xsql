@@ -1,0 +1,1195 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="startupbiz2015">
+ 	<!-- *************************************************************************** -->
+	<!-- 창업지원 통계, API_0601 (2015) -->
+	<select id="startupbiz" parameterType="hashmap" resultType="hashmap">
+        SELECT 
+			<choose>
+				<when test='adm_cd.length() == "5"'>
+					ADM.SIDO_CD || ADM.SGG_CD || ADM.EMDONG_CD AS ADM_CD
+					, ADM.EMDONG_NM AS ADM_NM
+				</when>
+				<otherwise>
+					ADM.SIDO_CD || ADM.SGG_CD AS ADM_CD
+					, ADM.SGG_NM AS ADM_NM
+				</otherwise>
+			</choose>
+        FROM (
+            SELECT
+                    SIDO_CD
+                    , SGG_CD
+                    <if test='adm_cd.length() == "5"'>
+                        , EMDONG_CD
+                    </if>
+                    , SUM(FIRST_VAL)   AS FIRST_VAL
+                    , SUM(SECOND_VAL)  AS SECOND_VAL
+                    , SUM(THIRD_VAL)   AS THIRD_VAL
+                    , SUM(FOURTH_VAL)  AS FOURTH_VAL
+                    , SUM(FIFTH_VAL)   AS FIFTH_VAL
+                    , SUM(SIXTH_VAL)   AS SIXTH_VAL
+                    , SUM(SEVENTH_VAL) AS SEVENTH_VAL
+                    , SUM(EIGHTH_VAL)  AS EIGHTH_VAL
+                    , SUM(NINTH_VAL)   AS NINTH_VAL
+                    , SUM(TENTH_VAL)   AS TENTH_VAL
+                    , SUM(ELEVENTH_VAL)AS ELEVENTH_VAL
+                    , (SUM(FIRST_VAL)   
+                    + SUM(SECOND_VAL)  
+                    + SUM(THIRD_VAL)   
+                    + SUM(FOURTH_VAL)  
+                    + SUM(FIFTH_VAL)   
+                    + SUM(SIXTH_VAL)   
+                    + SUM(SEVENTH_VAL) 
+                    + SUM(EIGHTH_VAL)  
+                    + SUM(NINTH_VAL)   
+                    + SUM(TENTH_VAL)   
+                    + SUM(ELEVENTH_VAL)) AS TOTAL
+            FROM (
+                /* 사업체수 백분위, 사업체증감 백분위 */
+                SELECT
+                    SIDO_CD
+                    , SGG_CD
+                    <if test='adm_cd.length() == "5"'>
+                        , EMDONG_CD
+                    </if>
+                    <choose>
+                        <when test='corp_cnt == "1"'>
+                            , CORP_CNT_PCT AS FIRST_VAL
+                        </when>
+                        <when test='corp_cnt == "2"'>
+                            , -abs(CORP_CNT_PCT  - 50) AS FIRST_VAL
+                        </when>
+                        <when test='corp_cnt == "3"'>
+                            , (100 - CORP_CNT_PCT) AS FIRST_VAL
+                        </when>
+                        <otherwise>
+                            , 0 AS FIRST_VAL
+                        </otherwise>
+                    </choose>
+                    <choose>
+                        <when test='rate_change == "1"'>
+                            , CORP_CNT_PCT AS SECOND_VAL
+                        </when>
+                        <when test='rate_change == "2"'>
+                            , -abs(CORP_CNT_PCT  - 50) AS SECOND_VAL
+                        </when>
+                        <when test='rate_change == "3"'>
+                            , (100 - CORP_CNT_PCT) AS SECOND_VAL
+                        </when>
+                        <otherwise>
+                            , 0 AS SECOND_VAL
+                        </otherwise>
+                    </choose>
+                    , 0 AS THIRD_VAL
+                    , 0 AS FOURTH_VAL
+                    , 0 AS FIFTH_VAL
+                    , 0 AS SIXTH_VAL
+                    , 0 AS SEVENTH_VAL
+                    , 0 AS EIGHTH_VAL
+                    , 0 AS NINTH_VAL
+                    , 0 AS TENTH_VAL
+                    , 0 AS ELEVENTH_VAL
+                FROM
+                    <choose>
+                        <when test='adm_cd.length() == "2"'>
+                            SRV_DT_SEARCHCORP_SGG
+                        </when>
+                        <when test='adm_cd.length() == "5"'>
+                            SRV_DT_SEARCHCORP_ADM
+                        </when>
+                        <otherwise>
+                            SRV_DT_SEARCHCORP_SGG
+                        </otherwise>
+                    </choose>
+                <where>
+                    THEME_CD = #{theme_cd}
+                    <choose>
+                        <when test='adm_cd.length() == "2"'>
+                            AND SIDO_CD = #{adm_cd}
+                        </when>
+                        <when test='adm_cd.length() == "5"'>
+                            AND SIDO_CD = SUBSTR(#{adm_cd}, 1, 2)
+                            AND SGG_CD = SUBSTR(#{adm_cd}, 3, 3)
+                        </when>
+                    </choose>
+                </where>
+                UNION ALL
+                /* 가구유형, 점유형태 백분위 */
+                SELECT
+                    sido_cd
+                    , sgg_cd
+                    <if test='adm_cd.length() == "5"'>
+                        , emdong_cd
+                    </if>
+                    , 0 AS FIRST_VAL
+                    , 0 AS SECOND_VAL
+                    <choose>
+                        <!-- 가구유형 1인 가구 -->
+                        <when test='family_type == "1"'>
+                            <choose>
+                                <when test='family_val == "1"'>
+                                    , ONE_PSN_FAMILY_PCT AS THIRD_VAL
+                                </when>
+                                <when test='family_val == "2"'>
+                                    , -abs(ONE_PSN_FAMILY_PCT - 50) AS THIRD_VAL
+                                </when>
+                                <when test='family_val == "3"'>
+                                    , (100 - ONE_PSN_FAMILY_PCT) AS THIRD_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <!-- 가구유형 1세대 가구 -->
+                        <when test='family_type == "2"'>
+                            <choose>
+                                <when test='family_val == "1"'>
+                                    , HOUSEHOLD1_FAMILY_PCT AS THIRD_VAL
+                                </when>
+                                <when test='family_val == "2"'>
+                                    , -abs(HOUSEHOLD1_FAMILY_PCT - 50) AS THIRD_VAL
+                                </when>
+                                <when test='family_val == "3"'>
+                                    , (100 - HOUSEHOLD1_FAMILY_PCT) AS THIRD_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <!-- 가구유형 2세대 가구 -->
+                        <when test='family_type == "3"'>
+                            <choose>
+                                <when test='family_val == "1"'>
+                                    , HOUSEHOLD2_FAMILY_PCT AS THIRD_VAL
+                                </when>
+                                <when test='family_val == "2"'>
+                                    , -abs(HOUSEHOLD2_FAMILY_PCT - 50) AS THIRD_VAL
+                                </when>
+                                <when test='family_val == "3"'>
+                                    , (100 - HOUSEHOLD2_FAMILY_PCT) AS THIRD_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <!-- 가구유형 3세대 가구 -->
+                        <when test='family_type == "4"'>
+                            <choose>
+                                <when test='family_val == "1"'>
+                                    , HOUSEHOLD3_FAMILY_PCT AS THIRD_VAL
+                                </when>
+                                <when test='family_val == "2"'>
+                                    , -abs(HOUSEHOLD3_FAMILY_PCT - 50) AS THIRD_VAL
+                                </when>
+                                <when test='family_val == "3"'>
+                                    , (100 - HOUSEHOLD3_FAMILY_PCT) AS THIRD_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <!-- 가구유형 4세대 가구 -->
+                        <when test='family_type == "5"'>
+                            <choose>
+                                <when test='family_val == "1"'>
+                                    , HOUSEHOLD4_FAMILY_PCT AS THIRD_VAL
+                                </when>
+                                <when test='family_val == "2"'>
+                                    , -abs(HOUSEHOLD4_FAMILY_PCT - 50) AS THIRD_VAL
+                                </when>
+                                <when test='family_val == "3"'>
+                                    , (100 - HOUSEHOLD4_FAMILY_PCT) AS THIRD_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <!-- 가구유형 5세대 이상 가구 -->
+                        <when test='family_type == "6"'>
+                            <choose>
+                                <when test='family_val == "1"'>
+                                    , HOUSEHOLD5_MT1_FAMILY_PCT AS THIRD_VAL
+                                </when>
+                                <when test='family_val == "2"'>
+                                    , -abs(HOUSEHOLD5_MT1_FAMILY_PCT - 50) AS THIRD_VAL
+                                </when>
+                                <when test='family_val == "3"'>
+                                    , (100 - HOUSEHOLD5_MT1_FAMILY_PCT) AS THIRD_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <!-- 가구유형 비혈연 가구 -->
+                        <when test='family_type == "7"'>
+                            <choose>
+                                <when test='family_val == "1"'>
+                                    , NON_BLDRLT_FAMILY_PCT AS THIRD_VAL
+                                </when>
+                                <when test='family_val == "2"'>
+                                    , -abs(NON_BLDRLT_FAMILY_PCT - 50) AS THIRD_VAL
+                                </when>
+                                <when test='family_val == "3"'>
+                                    , (100 - NON_BLDRLT_FAMILY_PCT) AS THIRD_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <otherwise>
+                            , 0 AS THIRD_VAL
+                        </otherwise>
+                    </choose>
+                    <choose>
+                        <!-- 점유형태 자가 -->
+                        <when test='occupy_type == "1"'>
+                            <choose>
+                                <when test='occupy_val == "1"'>
+                                    , SELF_FAMILY_PCT AS FOURTH_VAL
+                                </when>
+                                <when test='occupy_val == "2"'>
+                                    , -abs(SELF_FAMILY_PCT - 50) AS FOURTH_VAL
+                                </when>
+                                <when test='occupy_val == "3"'>
+                                    , (100 - SELF_FAMILY_PCT) AS FOURTH_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <!-- 점유형태 전세  -->
+                        <when test='occupy_type == "2"'>
+                            <choose>
+                                <when test='occupy_val == "1"'>
+                                    , LEASE_PCT AS FOURTH_VAL
+                                </when>
+                                <when test='occupy_val == "2"'>
+                                    , -abs(LEASE_PCT - 50) AS FOURTH_VAL
+                                </when>
+                                <when test='occupy_val == "3"'>
+                                    , (100 - LEASE_PCT) AS FOURTH_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <!-- 점유형태 사글세 -->
+                        <when test='occupy_type == "3"'>
+                            <choose>
+                                <when test='occupy_val == "1"'>
+                                    , MONRENT_NODEPO_PCT AS FOURTH_VAL
+                                </when>
+                                <when test='occupy_val == "2"'>
+                                    , -abs(MONRENT_NODEPO_PCT - 50) AS FOURTH_VAL
+                                </when>
+                                <when test='occupy_val == "3"'>
+                                    , (100 - MONRENT_NODEPO_PCT) AS FOURTH_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <!-- 점유형태 무상(관사, 사택, 친적집등)  -->
+                        <when test='occupy_type == "4"'>
+                            <choose>
+                                <when test='occupy_val == "1"'>
+                                    , GRTS_PCT AS FOURTH_VAL
+                                </when>
+                                <when test='occupy_val == "2"'>
+                                    , -abs(GRTS_PCT - 50) AS FOURTH_VAL
+                                </when>
+                                <when test='occupy_val == "3"'>
+                                    , (100 - GRTS_PCT) AS FOURTH_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <!-- 점유형태 보증금 있는 월세 -->
+                        <when test='occupy_type == "5"'>
+                            <choose>
+                                <when test='occupy_val == "1"'>
+                                    , DEPOSIT_MRP_PCT AS FOURTH_VAL
+                                </when>
+                                <when test='occupy_val == "2"'>
+                                    , -abs(DEPOSIT_MRP_PCT - 50) AS FOURTH_VAL
+                                </when>
+                                <when test='occupy_val == "3"'>
+                                    , (100 - DEPOSIT_MRP_PCT) AS FOURTH_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <!-- 점유형태 보증금 없는 월세  -->
+                        <when test='occupy_type == "6"'>
+                            <choose>
+                                <when test='occupy_val == "1"'>
+                                    , DEPOSIT_NON_MRP_PCT AS FOURTH_VAL
+                                </when>
+                                <when test='occupy_val == "2"'>
+                                    , -abs(DEPOSIT_NON_MRP_PCT - 50) AS FOURTH_VAL
+                                </when>
+                                <when test='occupy_val == "3"'>
+                                    , (100 - DEPOSIT_NON_MRP_PCT) AS FOURTH_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <otherwise>
+                            , 0 AS FOURTH_VAL
+                        </otherwise>
+                    </choose>
+                    , 0 AS fifth_val
+                    , 0 AS sixth_val
+                    , 0 AS seventh_val
+                    , 0 AS eighth_val
+                    , 0 AS ninth_val
+                    , 0 AS tenth_val
+                    , 0 AS eleventh_val
+                FROM
+                    <choose>
+                        <when test='adm_cd.length() == "2"'>
+                            SRV_DT_REGIONFAMILY_SGG
+                        </when>
+                        <when test='adm_cd.length() == "5"'>
+                            SRV_DT_REGIONFAMILY_ADM
+                        </when>
+                        <otherwise>
+                            SRV_DT_REGIONFAMILY_SGG
+                        </otherwise>
+                    </choose>
+                <where>
+                    <choose>
+                        <when test='adm_cd.length() == "2"'>
+                            AND sido_cd = #{adm_cd}
+                        </when>
+                        <when test='adm_cd.length() == "5"'>
+                            AND sido_cd = substr(#{adm_cd}, 1, 2)
+                            AND SGG_CD = SUBSTR(#{adm_cd}, 3, 3)
+                        </when>
+                    </choose>
+                </where>
+                UNION ALL
+                /* 거주주택수, 노후주택수 */
+                SELECT
+                    sido_cd
+                    , sgg_cd
+                    <if test='adm_cd.length() == "5"'>
+                        , emdong_cd
+                    </if>
+                    , 0 AS FIRST_VAL
+                    , 0 AS SECOND_VAL
+                    , 0 AS THIRD_VAL
+                    , 0 AS FOURTH_VAL
+                    <choose>
+                        <!-- 거주주택 수 단독주택 -->
+                        <when test='house_type == "1"'>
+                            <choose>
+                                <when test='house_val == "1"'>
+                                	<!-- 2017. 06. 27 j.h.Seok DB 표준화 작업 -->
+                                    , SLH_PCT AS FIFTH_VAL
+                                </when>
+                                <when test='house_val == "2"'>
+                                	<!-- 2017. 06. 27 j.h.Seok DB 표준화 작업 -->
+                                    , -abs(SLH_PCT - 50) AS FIFTH_VAL
+                                </when>
+                                <when test='house_val == "3"'>
+                                	<!-- 2017. 06. 27 j.h.Seok DB 표준화 작업 -->
+                                    , (100 - SLH_PCT) AS FIFTH_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <!-- 거주주택 수 아파트 -->
+                        <when test='house_type == "2"'>
+                            <choose>
+                                <when test='house_val == "1"'>
+                                    , APT_PCT AS FIFTH_VAL
+                                </when>
+                                <when test='house_val == "2"'>
+                                    , -abs(APT_PCT - 50) AS FIFTH_VAL
+                                </when>
+                                <when test='house_val == "3"'>
+                                    , (100 - APT_PCT) AS FIFTH_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <!-- 거주주택 수 연립 -->
+                        <when test='house_type == "3"'>
+                            <choose>
+                                <when test='house_val == "1"'>
+                                    , RWHS_PCT AS FIFTH_VAL
+                                </when>
+                                <when test='house_val == "2"'>
+                                    , -abs(RWHS_PCT - 50) AS FIFTH_VAL
+                                </when>
+                                <when test='house_val == "3"'>
+                                    , (100 - RWHS_PCT) AS FIFTH_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <!-- 거주주택 수 다세대 -->
+                        <when test='house_type == "4"'>
+                            <choose>
+                                <when test='house_val == "1"'>
+                                    , MLPXHOU_PCT AS FIFTH_VAL
+                                </when>
+                                <when test='house_val == "2"'>
+                                    , -abs(MLPXHOU_PCT - 50) AS FIFTH_VAL
+                                </when>
+                                <when test='house_val == "3"'>
+                                    , (100 - MLPXHOU_PCT) AS FIFTH_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <otherwise>
+                            , 0 AS FIFTH_VAL
+                        </otherwise>
+                    </choose>
+                    <choose>
+                        <!-- 노후주택 단독주택 -->
+                        <when test='house_type == "1"'>
+                            <choose>
+                                <when test='house_old_val == "1"'>
+                                	<!-- 2017. 06. 27 j.h.Seok DB 표준화 작업 -->
+                                    , OLD_SLH_PCT AS SIXTH_VAL
+                                </when>
+                                <when test='house_old_val == "2"'>
+                                	<!-- 2017. 06. 27 j.h.Seok DB 표준화 작업 -->
+                                    , -abs(OLD_SLH_PCT - 50) AS SIXTH_VAL
+                                </when>
+                                <when test='house_old_val == "3"'>
+                                	<!-- 2017. 06. 27 j.h.Seok DB 표준화 작업 -->
+                                    , (100 - OLD_SLH_PCT) AS SIXTH_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <!-- 노후주택 아파트 -->
+                        <when test='house_type == "2"'>
+                            <choose>
+                                <when test='house_old_val == "1"'>
+                                    , OLD_APT_PCT AS SIXTH_VAL
+                                </when>
+                                <when test='house_old_val == "2"'>
+                                    , -abs(OLD_APT_PCT - 50) AS SIXTH_VAL
+                                </when>
+                                <when test='house_old_val == "3"'>
+                                    , (100 - OLD_APT_PCT) AS SIXTH_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <!-- 노후주택 연립 -->
+                        <when test='house_type == "3"'>
+                            <choose>
+                                <when test='house_old_val == "1"'>
+                                    , OLD_RWHS_PCT AS SIXTH_VAL
+                                </when>
+                                <when test='house_old_val == "2"'>
+                                    , -abs(OLD_RWHS_PCT - 50) AS SIXTH_VAL
+                                </when>
+                                <when test='house_old_val == "3"'>
+                                    , (100 - OLD_RWHS_PCT) AS SIXTH_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <!-- 노후주택 다세대 -->
+                        <when test='house_type == "4"'>
+                            <choose>
+                                <when test='house_old_val == "1"'>
+                                    , OLD_MLPXHOU_PCT AS SIXTH_VAL
+                                </when>
+                                <when test='house_old_val == "2"'>
+                                    , -abs(OLD_MLPXHOU_PCT - 50) AS SIXTH_VAL
+                                </when>
+                                <when test='house_old_val == "3"'>
+                                    , (100 - OLD_MLPXHOU_PCT) AS SIXTH_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <otherwise>
+                            , 0 AS SIXTH_VAL
+                        </otherwise>
+                    </choose>
+                    , 0 AS SEVENTH_VAL
+                    , 0 AS EIGHTH_VAL
+                    , 0 AS NINTH_VAL
+                    , 0 AS TENTH_VAL
+                    , 0 AS ELEVENTH_VAL
+                FROM
+                    <choose>
+                        <when test='adm_cd.length() == "2"'>
+                            SRV_DT_REGIONHOUSE_SGG
+                        </when>
+                        <when test='adm_cd.length() == "5"'>
+                            SRV_DT_REGIONHOUSE_ADM
+                        </when>
+                        <otherwise>
+                            SRV_DT_REGIONHOUSE_SGG
+                        </otherwise>
+                    </choose>
+                <where>
+                    <choose>
+                        <when test='adm_cd.length() == "2"'>
+                            AND SIDO_CD = #{adm_cd}
+                        </when>
+                        <when test='adm_cd.length() == "5"'>
+                            AND SIDO_CD = SUBSTR(#{adm_cd}, 1, 2)
+                            AND SGG_CD = SUBSTR(#{adm_cd}, 3, 3)
+                        </when>
+                    </choose>
+                </where>
+                UNION ALL
+                /* 아파트시세 */
+                SELECT
+                    sido_cd
+                    , sgg_cd
+                    <if test='adm_cd.length() == "5"'>
+                        , emdong_cd
+                    </if>
+                    , 0 AS FIRST_VAL
+                    , 0 AS SECOND_VAL
+                    , 0 AS THIRD_VAL
+                    , 0 AS FOURTH_VAL
+                    , 0 AS FIFTH_VAL
+                    , 0 AS SIXTH_VAL
+                    <choose>
+                        <!-- 아파트시세 적은지역 -->
+                        <when test='apartprice == "1"'>
+                            <!-- , PRICE_PCT AS SEVENTH_VAL -->
+                            , APT_PRICE_PCT AS SEVENTH_VA
+                        </when>
+                        <!-- 아파트시세 평균지역 -->
+                        <when test='apartprice == "2"'>
+                           <!--  , -abs(PRICE_PCT - 50) AS SEVENTH_VAL -->
+                            , -abs(APT_PRICE_PCT - 50) AS SEVENTH_VAL
+                        </when>
+                        <!-- 아파트시세 높은지역 -->
+                        <when test='apartprice == "3"'>
+                            <!-- , (100 - PRICE_PCT) AS SEVENTH_VAL -->
+                            , (100 - APT_PRICE_PCT) AS SEVENTH_VAL
+                        </when>
+                        <otherwise>
+                            , 0 AS SEVENTH_VAL
+                        </otherwise>
+                    </choose>
+                    , 0 AS EIGHTH_VAL
+                    , 0 AS NINTH_VAL
+                    , 0 AS TENTH_VAL
+                    , 0 AS ELEVENTH_VAL
+                FROM
+                    <choose>
+                        <when test='adm_cd.length() == "2"'>
+                            <!-- SRV_DT_REGIONAPT_SGG -->
+                            SRV_DT_REGIONPNILP_SGG
+                        </when>
+                        <when test='adm_cd.length() == "5"'>
+                            <!-- SRV_DT_REGIONAPT_ADM -->
+                            SRV_DT_REGIONPNILP_ADM
+                        </when>
+                        <otherwise>
+                            <!-- SRV_DT_REGIONAPT_SGG -->
+                            SRV_DT_REGIONPNILP_SGG
+                        </otherwise>
+                    </choose>
+                <where>
+                    <choose>
+                        <when test='adm_cd.length() == "2"'>
+                            AND SIDO_CD = #{adm_cd}
+                        </when>
+                        <when test='adm_cd.length() == "5"'>
+                            AND SIDO_CD = SUBSTR(#{adm_cd}, 1, 2)
+                            AND SGG_CD = SUBSTR(#{adm_cd}, 3, 3)
+                        </when>
+                    </choose>
+                </where>
+                UNION ALL
+                /* 직장인구, 거주인구, 성별인구 */
+                SELECT
+                    sido_cd
+                    , sgg_cd
+                    <if test='adm_cd.length() == "5"'>
+                        , emdong_cd
+                    </if>
+                    , 0 AS FIRST_VAL
+                    , 0 AS SECOND_VAL
+                    , 0 AS THIRD_VAL
+                    , 0 AS FOURTH_VAL
+                    , 0 AS FIFTH_VAL
+                    , 0 AS SIXTH_VAL
+                    , 0 AS SEVENTH_VAL
+                    <choose>
+                        <!-- 거주인구 수 -->
+                        <when test='ppl_type == "1"'>
+                            <choose>
+                                <when test='ppl_val == "1"'>
+                                    , PPLTN_PCT AS EIGHTH_VAL
+                                </when>
+                                <when test='ppl_val == "2"'>
+                                    , -abs(PPLTN_PCT - 50) AS EIGHTH_VAL
+                                </when>
+                                <when test='ppl_val == "3"'>
+                                    , (100 - PPLTN_PCT) AS EIGHTH_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <!-- 직장인인구 수 -->
+                        <when test='ppl_type == "2"'>
+                            <choose>
+                                <when test='ppl_val == "1"'>
+                                    , WRC_PPLTN_PCT AS EIGHTH_VAL
+                                </when>
+                                <when test='ppl_val == "2"'>
+                                    , -abs(WRC_PPLTN_PCT - 50) AS EIGHTH_VAL
+                                </when>
+                                <when test='ppl_val == "3"'>
+                                    , (100 - WRC_PPLTN_PCT) AS EIGHTH_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <otherwise>
+                            , 0 AS EIGHTH_VAL
+                        </otherwise>
+                    </choose>
+                    <choose>
+                        <!-- 남성인구 -->
+                        <when test='ppl_gender_type == "1"'>
+                            <choose>
+                                <when test='ppl_gender_val == "1"'>
+                                    , MALE_PCT AS NINTH_VAL
+                                </when>
+                                <when test='ppl_gender_val == "2"'>
+                                    , -abs(MALE_PCT - 50) AS NINTH_VAL
+                                </when>
+                                <when test='ppl_gender_val == "3"'>
+                                    , (100 - MALE_PCT) AS NINTH_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <!-- 여성인구 -->
+                        <when test='ppl_gender_type == "2"'>
+                            <choose>
+                                <when test='ppl_gender_val == "1"'>
+                                    , FEM_PCT AS NINTH_VAL
+                                </when>
+                                <when test='ppl_gender_val == "2"'>
+                                    , -abs(FEM_PCT - 50) AS NINTH_VAL
+                                </when>
+                                <when test='ppl_gender_val == "3"'>
+                                    , (100 - FEM_PCT) AS NINTH_VAL
+                                </when>
+                            </choose>
+                        </when>
+                        <otherwise>
+                            , 0 AS NINTH_VAL
+                        </otherwise>
+                    </choose>
+                    , 0 AS TENTH_VAL
+                    , 0 AS ELEVENTH_VAL
+                FROM
+                    <choose>
+                        <when test='adm_cd.length() == "2"'>
+                            SRV_DT_REGIONPPLTN_SGG
+                        </when>
+                        <when test='adm_cd.length() == "5"'>
+                            SRV_DT_REGIONPPLTN_ADM
+                        </when>
+                        <otherwise>
+                            SRV_DT_REGIONPPLTN_SGG
+                        </otherwise>
+                    </choose>
+                <where>
+                    <choose>
+                        <when test='adm_cd.length() == "2"'>
+                            AND SIDO_CD = #{adm_cd}
+                        </when>
+                        <when test='adm_cd.length() == "5"'>
+                            AND SIDO_CD = SUBSTR(#{adm_cd}, 1, 2)
+                            AND SGG_CD = SUBSTR(#{adm_cd}, 3, 3)
+                        </when>
+                    </choose>
+                </where>
+                UNION ALL
+                <choose>
+                    <when test='ppl_age_type_list != null'>
+                        SELECT
+                                age.SIDO_CD
+                                , age.SGG_CD
+                                <if test='adm_cd.length() == "5"'>
+                                    , age.emdong_cd
+                                </if>
+                                , 0 AS FIRST_VAL
+                                , 0 AS SECOND_VAL
+                                , 0 AS THIRD_VAL
+                                , 0 AS FOURTH_VAL
+                                , 0 AS FIFTH_VAL
+                                , 0 AS SIXTH_VAL
+                                , 0 AS SEVENTH_VAL
+                                , 0 AS EIGHTH_VAL
+                                , 0 AS NINTH_VAL
+                                , (age.FIRST_VAL
+                                + age.SECOND_VAL
+                                + age.THIRD_VAL
+                                + age.FOURTH_VAL
+                                + age.FIFTH_VAL
+                                + age.SIXTH_VAL
+                                + age.SEVENTH_VAL
+                                + age.EIGHTH_VAL
+                                ) AS TENTH_VAL
+                                , 0 AS ELEVENTH_VAL
+                        FROM (
+                            <!-- [START] foreach -->
+                            <foreach collection="ppl_age_type_list" item="ppl_age_type" separator="UNION ALL">
+                                SELECT
+                                    SIDO_CD
+                                    , SGG_CD
+                                    <if test='adm_cd.length() == "5"'>
+                                        , EMDONG_CD
+                                    </if>
+                                    <!-- 10대미만 -->
+                                    <choose>
+                                        <when test='ppl_age_type == "1"'>
+                                            <choose>
+                                                <when test='ppl_age_val == "1"'>
+                                                    , AGEGP_10_LT0_PPLTN_PCT AS FIRST_VAL
+                                                </when>
+                                                <when test='ppl_age_val == "2"'>
+                                                    , -abs(AGEGP_10_LT0_PPLTN_PCT - 50) AS FIRST_VAL
+                                                </when>
+                                                <when test='ppl_age_val == "3"'>
+                                                    , (100 - AGEGP_10_LT0_PPLTN_PCT) AS FIRST_VAL
+                                                </when>
+                                                <otherwise>
+                                                    , 0 AS FIRST_VAL
+                                                </otherwise>
+                                            </choose>
+                                        </when>
+                                        <otherwise>
+                                            , 0 AS FIRST_VAL
+                                        </otherwise>
+                                    </choose>
+
+                                    <!-- 10대 -->
+                                    <choose>
+                                        <when test='ppl_age_type == "2"'>
+                                            <choose>
+                                                <when test='ppl_age_val == "1"'>
+                                                    , AGEGP_10_PPLTN_PCT AS SECOND_VAL
+                                                </when>
+                                                <when test='ppl_age_val == "2"'>
+                                                    , -abs(AGEGP_10_PPLTN_PCT - 50) AS SECOND_VAL
+                                                </when>
+                                                <when test='ppl_age_val == "3"'>
+                                                    , (100 - AGEGP_10_PPLTN_PCT) AS SECOND_VAL
+                                                </when>
+                                                <otherwise>
+                                                    , 0 AS SECOND_VAL
+                                                </otherwise>
+                                            </choose>
+                                        </when>
+                                        <otherwise>
+                                            , 0 AS SECOND_VAL
+                                        </otherwise>
+                                    </choose>
+
+                                    <!-- 20대 -->
+                                    <choose>
+                                        <when test='ppl_age_type == "3"'>
+                                            <choose>
+                                                <when test='ppl_age_val == "1"'>
+                                                    , AGEGP_20_PPLTN_PCT AS THIRD_VAL
+                                                </when>
+                                                <when test='ppl_age_val == "2"'>
+                                                    , -abs(AGEGP_20_PPLTN_PCT - 50) AS THIRD_VAL
+                                                </when>
+                                                <when test='ppl_age_val == "3"'>
+                                                    , (100 - AGEGP_20_PPLTN_PCT) AS THIRD_VAL
+                                                </when>
+                                                <otherwise>
+                                                    , 0 AS THIRD_VAL
+                                                </otherwise>
+                                            </choose>
+                                        </when>
+                                        <otherwise>
+                                            , 0 AS THIRD_VAL
+                                        </otherwise>
+                                    </choose>
+
+                                    <!-- 30대 -->
+                                    <choose>
+                                        <when test='ppl_age_type == "4"'>
+                                            <choose>
+                                                <when test='ppl_age_val == "1"'>
+                                                    , AGEGP_30_PPLTN_PCT AS FOURTH_VAL
+                                                </when>
+                                                <when test='ppl_age_val == "2"'>
+                                                    , -abs(AGEGP_30_PPLTN_PCT - 50) AS FOURTH_VAL
+                                                </when>
+                                                <when test='ppl_age_val == "3"'>
+                                                    , (100 - AGEGP_30_PPLTN_PCT) AS FOURTH_VAL
+                                                </when>
+                                                <otherwise>
+                                                    , 0 AS FOURTH_VAL
+                                                </otherwise>
+                                            </choose>
+                                        </when>
+                                        <otherwise>
+                                            , 0 AS FOURTH_VAL
+                                        </otherwise>
+                                    </choose>
+
+                                    <!-- 40대 -->
+                                    <choose>
+                                        <when test='ppl_age_type == "5"'>
+                                            <choose>
+                                                <when test='ppl_age_val == "1"'>
+                                                    , AGEGP_40_PPLTN_PCT AS FIFTH_VAL
+                                                </when>
+                                                <when test='ppl_age_val == "2"'>
+                                                    , -abs(AGEGP_40_PPLTN_PCT - 50) AS FIFTH_VAL
+                                                </when>
+                                                <when test='ppl_age_val == "3"'>
+                                                    , (100 - AGEGP_40_PPLTN_PCT) AS FIFTH_VAL
+                                                </when>
+                                                <otherwise>
+                                                    , 0 AS FIFTH_VAL
+                                                </otherwise>
+                                            </choose>
+                                        </when>
+                                        <otherwise>
+                                            , 0 AS FIFTH_VAL
+                                        </otherwise>
+                                    </choose>
+
+                                    <!-- 50대 -->
+                                    <choose>
+                                        <when test='ppl_age_type == "6"'>
+                                            <choose>
+                                                <when test='ppl_age_val == "1"'>
+                                                    , AGEGP_50_PPLTN_PCT AS SIXTH_VAL
+                                                </when>
+                                                <when test='ppl_age_val == "2"'>
+                                                    , -abs(AGEGP_50_PPLTN_PCT - 50) AS SIXTH_VAL
+                                                </when>
+                                                <when test='ppl_age_val == "3"'>
+                                                    , (100 - AGEGP_50_PPLTN_PCT) AS SIXTH_VAL
+                                                </when>
+                                                <otherwise>
+                                                    , 0 AS SIXTH_VAL
+                                                </otherwise>
+                                            </choose>
+                                        </when>
+                                        <otherwise>
+                                            , 0 AS SIXTH_VAL
+                                        </otherwise>
+                                    </choose>
+
+                                    <!-- 60대 -->
+                                    <choose>
+                                        <when test='ppl_age_type == "7"'>
+                                            <choose>
+                                                <when test='ppl_age_val == "1"'>
+                                                    , AGEGP_60_PPLTN_PCT AS SEVENTH_VAL
+                                                </when>
+                                                <when test='ppl_age_val == "2"'>
+                                                    , -abs(AGEGP_60_PPLTN_PCT - 50) AS SEVENTH_VAL
+                                                </when>
+                                                <when test='ppl_age_val == "3"'>
+                                                    , (100 - AGEGP_60_PPLTN_PCT) AS SEVENTH_VAL
+                                                </when>
+                                                <otherwise>
+                                                    , 0 AS SEVENTH_VAL
+                                                </otherwise>
+                                            </choose>
+                                        </when>
+                                        <otherwise>
+                                            , 0 AS SEVENTH_VAL
+                                        </otherwise>
+                                    </choose>
+
+                                    <!-- 70대 이상 -->
+                                    <choose>
+                                        <when test='ppl_age_type == "8"'>
+                                            <choose>
+                                                <when test='ppl_age_val == "1"'>
+                                                    , AGEGP_70_MT1_PPLTN_PCT AS EIGHTH_VAL
+                                                </when>
+                                                <when test='ppl_age_val == "2"'>
+                                                    , -abs(AGEGP_70_MT1_PPLTN_PCT - 50) AS EIGHTH_VAL
+                                                </when>
+                                                <when test='ppl_age_val == "3"'>
+                                                    , (100 - AGEGP_70_MT1_PPLTN_PCT) AS EIGHTH_VAL
+                                                </when>
+                                                <otherwise>
+                                                    , 0 AS EIGHTH_VAL
+                                                </otherwise>
+                                            </choose>
+                                        </when>
+                                        <otherwise>
+                                            , 0 AS EIGHTH_VAL
+                                        </otherwise>
+                                    </choose>
+                                FROM
+                                    <choose>
+                                        <when test='adm_cd.length() == "2"'>
+                                            SRV_DT_REGIONPPLTN_SGG
+                                        </when>
+                                        <when test='adm_cd.length() == "5"'>
+                                            SRV_DT_REGIONPPLTN_ADM
+                                        </when>
+                                        <otherwise>
+                                            SRV_DT_REGIONPPLTN_SGG
+                                        </otherwise>
+                                    </choose>
+                                <where>
+                                    <choose>
+                                        <when test='adm_cd.length() == "2"'>
+                                            AND SIDO_CD = #{adm_cd}
+                                        </when>
+                                        <when test='adm_cd.length() == "5"'>
+                                            AND SIDO_CD = SUBSTR(#{adm_cd}, 1, 2)
+                                            AND SGG_CD = SUBSTR(#{adm_cd}, 3, 3)
+                                        </when>
+                                    </choose>
+                                </where>
+                            </foreach>
+                            <!-- [END] foreach -->
+                        ) age
+                    </when>
+                    <otherwise>
+                        SELECT
+                                age.SIDO_CD
+                                , age.SGG_CD
+                                <if test='adm_cd.length() == "5"'>
+                                    , age.emdong_cd
+                                </if>
+                                , 0 AS FIRST_VAL
+                                , 0 AS SECOND_VAL
+                                , 0 AS THIRD_VAL
+                                , 0 AS FOURTH_VAL
+                                , 0 AS FIFTH_VAL
+                                , 0 AS SIXTH_VAL
+                                , 0 AS SEVENTH_VAL
+                                , 0 AS EIGHTH_VAL
+                                , 0 AS NINTH_VAL
+                                , (age.FIRST_VAL
+                                + age.SECOND_VAL
+                                + age.THIRD_VAL
+                                + age.FOURTH_VAL
+                                + age.FIFTH_VAL
+                                + age.SIXTH_VAL
+                                + age.SEVENTH_VAL
+                                + age.EIGHTH_VAL
+                                ) AS TENTH_VAL
+                                , 0 AS ELEVENTH_VAL
+                        FROM (
+                            SELECT
+                                SIDO_CD
+                                , SGG_CD
+                                <if test='adm_cd.length() == "5"'>
+                                    , EMDONG_CD
+                                </if>
+                                <!-- 10대미만 -->
+                                <choose>
+                                    <when test='ppl_age_type == "1"'>
+                                        <choose>
+                                            <when test='ppl_age_val == "1"'>
+                                                , AGEGP_10_LT0_PPLTN_PCT AS FIRST_VAL
+                                            </when>
+                                            <when test='ppl_age_val == "2"'>
+                                                , -abs(AGEGP_10_LT0_PPLTN_PCT - 50) AS FIRST_VAL
+                                            </when>
+                                            <when test='ppl_age_val == "3"'>
+                                                , (100 - AGEGP_10_LT0_PPLTN_PCT) AS FIRST_VAL
+                                            </when>
+                                            <otherwise>
+                                                , 0 AS FIRST_VAL
+                                            </otherwise>
+                                        </choose>
+                                    </when>
+                                    <otherwise>
+                                        , 0 AS FIRST_VAL
+                                    </otherwise>
+                                </choose>
+
+                                <!-- 10대 -->
+                                <choose>
+                                    <when test='ppl_age_type == "2"'>
+                                        <choose>
+                                            <when test='ppl_age_val == "1"'>
+                                                , AGEGP_10_PPLTN_PCT AS SECOND_VAL
+                                            </when>
+                                            <when test='ppl_age_val == "2"'>
+                                                , -abs(AGEGP_10_PPLTN_PCT - 50) AS SECOND_VAL
+                                            </when>
+                                            <when test='ppl_age_val == "3"'>
+                                                , (100 - AGEGP_10_PPLTN_PCT) AS SECOND_VAL
+                                            </when>
+                                            <otherwise>
+                                                , 0 AS SECOND_VAL
+                                            </otherwise>
+                                        </choose>
+                                    </when>
+                                    <otherwise>
+                                        , 0 AS SECOND_VAL
+                                    </otherwise>
+                                </choose>
+
+                                <!-- 20대 -->
+                                <choose>
+                                    <when test='ppl_age_type == "3"'>
+                                        <choose>
+                                            <when test='ppl_age_val == "1"'>
+                                                , AGEGP_20_PPLTN_PCT AS THIRD_VAL
+                                            </when>
+                                            <when test='ppl_age_val == "2"'>
+                                                , -abs(AGEGP_20_PPLTN_PCT - 50) AS THIRD_VAL
+                                            </when>
+                                            <when test='ppl_age_val == "3"'>
+                                                , (100 - AGEGP_20_PPLTN_PCT) AS THIRD_VAL
+                                            </when>
+                                            <otherwise>
+                                                , 0 AS THIRD_VAL
+                                            </otherwise>
+                                        </choose>
+                                    </when>
+                                    <otherwise>
+                                        , 0 AS THIRD_VAL
+                                    </otherwise>
+                                </choose>
+
+                                <!-- 30대 -->
+                                <choose>
+                                    <when test='ppl_age_type == "4"'>
+                                        <choose>
+                                            <when test='ppl_age_val == "1"'>
+                                                , AGEGP_30_PPLTN_PCT AS FOURTH_VAL
+                                            </when>
+                                            <when test='ppl_age_val == "2"'>
+                                                , -abs(AGEGP_30_PPLTN_PCT - 50) AS FOURTH_VAL
+                                            </when>
+                                            <when test='ppl_age_val == "3"'>
+                                                , (100 - AGEGP_30_PPLTN_PCT) AS FOURTH_VAL
+                                            </when>
+                                            <otherwise>
+                                                , 0 AS FOURTH_VAL
+                                            </otherwise>
+                                        </choose>
+                                    </when>
+                                    <otherwise>
+                                        , 0 AS FOURTH_VAL
+                                    </otherwise>
+                                </choose>
+
+                                <!-- 40대 -->
+                                <choose>
+                                    <when test='ppl_age_type == "5"'>
+                                        <choose>
+                                            <when test='ppl_age_val == "1"'>
+                                                , AGEGP_40_PPLTN_PCT AS FIFTH_VAL
+                                            </when>
+                                            <when test='ppl_age_val == "2"'>
+                                                , -abs(AGEGP_40_PPLTN_PCT - 50) AS FIFTH_VAL
+                                            </when>
+                                            <when test='ppl_age_val == "3"'>
+                                                , (100 - AGEGP_40_PPLTN_PCT) AS FIFTH_VAL
+                                            </when>
+                                            <otherwise>
+                                                , 0 AS FIFTH_VAL
+                                            </otherwise>
+                                        </choose>
+                                    </when>
+                                    <otherwise>
+                                        , 0 AS FIFTH_VAL
+                                    </otherwise>
+                                </choose>
+
+                                <!-- 50대 -->
+                                <choose>
+                                    <when test='ppl_age_type == "6"'>
+                                        <choose>
+                                            <when test='ppl_age_val == "1"'>
+                                                , AGEGP_50_PPLTN_PCT AS SIXTH_VAL
+                                            </when>
+                                            <when test='ppl_age_val == "2"'>
+                                                , -abs(AGEGP_50_PPLTN_PCT - 50) AS SIXTH_VAL
+                                            </when>
+                                            <when test='ppl_age_val == "3"'>
+                                                , (100 - AGEGP_50_PPLTN_PCT) AS SIXTH_VAL
+                                            </when>
+                                            <otherwise>
+                                                , 0 AS SIXTH_VAL
+                                            </otherwise>
+                                        </choose>
+                                    </when>
+                                    <otherwise>
+                                        , 0 AS SIXTH_VAL
+                                    </otherwise>
+                                </choose>
+
+                                <!-- 60대 -->
+                                <choose>
+                                    <when test='ppl_age_type == "7"'>
+                                        <choose>
+                                            <when test='ppl_age_val == "1"'>
+                                                , AGEGP_60_PPLTN_PCT AS SEVENTH_VAL
+                                            </when>
+                                            <when test='ppl_age_val == "2"'>
+                                                , -abs(AGEGP_60_PPLTN_PCT - 50) AS SEVENTH_VAL
+                                            </when>
+                                            <when test='ppl_age_val == "3"'>
+                                                , (100 - AGEGP_60_PPLTN_PCT) AS SEVENTH_VAL
+                                            </when>
+                                            <otherwise>
+                                                , 0 AS SEVENTH_VAL
+                                            </otherwise>
+                                        </choose>
+                                    </when>
+                                    <otherwise>
+                                        , 0 AS SEVENTH_VAL
+                                    </otherwise>
+                                </choose>
+
+                                <!-- 70대 이상 -->
+                                <choose>
+                                    <when test='ppl_age_type == "8"'>
+                                        <choose>
+                                            <when test='ppl_age_val == "1"'>
+                                                , AGEGP_70_MT1_PPLTN_PCT AS EIGHTH_VAL
+                                            </when>
+                                            <when test='ppl_age_val == "2"'>
+                                                , -abs(AGEGP_70_MT1_PPLTN_PCT - 50) AS EIGHTH_VAL
+                                            </when>
+                                            <when test='ppl_age_val == "3"'>
+                                                , (100 - AGEGP_70_MT1_PPLTN_PCT) AS EIGHTH_VAL
+                                            </when>
+                                            <otherwise>
+                                                , 0 AS EIGHTH_VAL
+                                            </otherwise>
+                                        </choose>
+                                    </when>
+                                    <otherwise>
+                                        , 0 AS EIGHTH_VAL
+                                    </otherwise>
+                                </choose>
+                            FROM
+                                <choose>
+                                    <when test='adm_cd.length() == "2"'>
+                                        SRV_DT_REGIONPPLTN_SGG
+                                    </when>
+                                    <when test='adm_cd.length() == "5"'>
+                                        SRV_DT_REGIONPPLTN_ADM
+                                    </when>
+                                    <otherwise>
+                                        SRV_DT_REGIONPPLTN_SGG
+                                    </otherwise>
+                                </choose>
+                            <where>
+                                <choose>
+                                    <when test='adm_cd.length() == "2"'>
+                                        AND SIDO_CD = #{adm_cd}
+                                    </when>
+                                    <when test='adm_cd.length() == "5"'>
+                                        AND SIDO_CD = SUBSTR(#{adm_cd}, 1, 2)
+                                        AND SGG_CD = SUBSTR(#{adm_cd}, 3, 3)
+                                    </when>
+                                </choose>
+                            </where>
+                        ) age
+                    </otherwise>
+                </choose>
+            ) 
+            GROUP BY SIDO_CD, SGG_CD
+            <if test='adm_cd.length() == "5"'>
+                , EMDONG_CD
+            </if>
+        ) biztotal
+        <choose>
+            <when test='adm_cd.length() == "5"'>
+                INNER JOIN SRV_PG_ADMBORD adm
+                ON biztotal.sido_cd = adm.sido_cd and biztotal.sgg_cd = adm.sgg_cd and biztotal.emdong_cd = adm.emdong_cd
+            </when>
+            <otherwise>
+                INNER JOIN SRV_PG_SGGBORD adm
+                ON biztotal.sido_cd = adm.sido_cd and biztotal.sgg_cd = adm.sgg_cd
+            </otherwise>
+        </choose>
+        where adm.base_year = #{bnd_year}
+        ORDER BY TOTAL DESC LIMIT 1, 3
+	</select>
+	<!-- *************************************************************************** -->
+</mapper>

@@ -1,0 +1,855 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ThemaMapManage">
+	
+	<!-- 2017.07.19 [개발팀] khc 표출순위  추가  start -->	
+	<select id="searchThemaMap" parameterType="Map" resultType="Map">
+		select A.*, ROWNUM r 
+		from
+			(
+				select
+					a.disp_rank,
+					a.thema_map_category,
+					a.en,
+					a.category_nm,
+					SUBSTR(TO_CHAR(a.reg_ts,'yyyy-MM-dd'),0,10) as REG_TS,
+					a.category_icon_id,
+					a.srv_yn,
+					a.thema_map_category,
+					a.category_icon_id,a.exp,
+					(select count(*) as cnt from
+					mng_Dt_themamaplist b
+					where
+					a.thema_map_category = b.thema_map_category)
+					as cnt,
+					(select category_icon_url from mng_Dt_themamapicon c
+					where a.category_icon_id = c.category_icon_id)
+					as url
+				from mng_DT_themamapcategory a
+				where a.category_nm is not null
+				<if test="SRV_YN != null">
+					and SRV_YN = #{SRV_YN}
+				</if>
+				order by a.disp_rank, a.category_nm asc
+			) A
+	</select>
+	<!-- 2017.07.19 [개발팀] khc 표출순위  추가  end -->
+	
+	<select id="searchThemaMapCount" parameterType="Map" resultType="int">
+		select
+		count(*) as cnt
+		from mng_DT_themamapcategory
+		where category_nm is
+		not null
+		<if test="SRV_YN != null">
+			and SRV_YN = #{SRV_YN}
+		</if>
+	</select>
+	<select id="getThemaICON" resultType="Map">
+		select * from(
+		select category_icon_id,
+		category_icon_url,exp,ROWNUM R
+		from
+		mng_dt_themamapicon
+		where ROWNUM <![CDATA[<=]]>
+		#{END_INDEX}
+		) where R <![CDATA[>=]]>
+		#{START_INDEX}
+	</select>
+	<select id="getThemaICONCount" resultType="int">
+		select count(*) cnt
+		from mng_dt_themamapicon
+	</select>
+	<select id="getThemaID" resultType="Map">
+		<!-- select * from( select b.thema_map_data_id, b.thema_map_data_nm ,ROWNUM 
+			R, nvl((select base_year from mng_dt_themamapchange a where a.thema_map_data_id 
+			= b.thema_map_data_id),'2014') as base_year from mng_dt_themamapchar b where 
+			thema_map_data_nm is not null -->
+		select * from(
+		select *,ROWNUM R from(
+		select
+		distinct
+		a.thema_map_data_id,
+		b.thema_map_data_nm
+		,a.base_year
+		from
+		mng_dt_themamapdata a,
+		mng_dt_themamapchar b
+		where
+		a.thema_map_data_id =
+		b.thema_map_data_id
+		<if test="SEARCH_WORD != null">
+		and thema_map_data_nm like #{SEARCH_WORD}
+		</if>
+		)
+		where ROWNUM <![CDATA[<=]]>
+		#{END_INDEX}
+		)c
+		where R <![CDATA[>=]]>
+		#{START_INDEX}
+		<!-- <if test="SEARCH_WORD != null"> <if test="SEARCH_TYPE == 'search'"> 
+			and thema_map_data_nm like #{SEARCH_WORD} </if> <if test="SEARCH_TYPE == 
+			'assoc'"> and tehma_map_data_id like #{SEARCH_WORD} </if> </if> -->
+	</select>
+	<select id="getThemaIDCount" resultType="int">
+		select count(*) as cnt from(
+		select distinct a.base_year,
+		b.thema_map_data_nm --as cnt
+		from mng_dt_themamapdata a,
+		mng_dt_themamapchar b
+		where b.thema_map_data_id = a.thema_map_data_id
+		<if test="SEARCH_WORD != null">
+		and thema_map_data_nm like #{SEARCH_WORD}
+		</if>
+		)
+		<!-- <if test="SEARCH_WORD != null"> <if test="SEARCH_TYPE == 'search'"> 
+			and thema_map_data_nm like #{SEARCH_WORD} </if> <if test="SEARCH_TYPE == 
+			'assoc'"> and tehma_map_data_id like #{SEARCH_WORD} </if> </if> -->
+	</select>
+	<select id="searchThemaMapMain" parameterType="Map" resultType="Map">
+		select * from(
+		select
+		(select category_nm from mng_dt_themamapcategory b
+		where b.thema_map_category = a.thema_map_category) as nm, ROWNUM R
+		,title, thema_map_type, srv_yn, stat_thema_map_id, max_expnsn_level
+		,stat_thema_map_file_url, thema_map_exp as exp,REL_STAT_INFO
+		,thema_map_category, left_sep_source, disp_mthd, reg_ts, disp_rank
+		from
+			(select * from mng_dt_themamaplist order by priority_disp_yn desc, CAST(disp_rank as INT) asc, reg_ts desc) a
+		where title is not null
+		<if test="SRV_YN != null">
+			and SRV_YN = #{SRV_YN}
+		</if>
+		<if test="CATEGORY != null">
+			and THEMA_MAP_CATEGORY = #{CATEGORY}
+		</if>
+		<if test="TITLE != null">
+			and TITLE like #{TITLE}
+		</if>
+		and ROWNUM <![CDATA[<=]]>
+		#{END_INDEX}
+		)
+		where R <![CDATA[>=]]>
+		#{START_INDEX}
+	</select>
+	<select id="searchThemaMapMainCount" parameterType="Map"
+		resultType="int">
+		select
+		count(*) as cnt
+		from mng_DT_themamaplist
+		where title is not null
+		<if test="SRV_YN != null">
+			and SRV_YN = #{SRV_YN}
+		</if>
+		<if test="CATEGORY != null">
+			and THEMA_MAP_CATEGORY = #{CATEGORY}
+		</if>
+		<if test="TITLE != null">
+			and TITLE like #{TITLE}
+		</if>
+	</select>
+	<select id="getThemaMapParam" parameterType="String" resultType="Map">
+		select
+		STAT_THEMA_MAP_ID,SEQ,API_CALL_URL,PARAM_INFO
+		from
+		SRV_DT_STATTHEMAMAPPARAMINFO
+		where
+		STAT_THEMA_MAP_ID =
+		#{STAT_THEMA_MAP_ID}
+	</select>
+	<select id="selectID" parameterType="hashmap" resultType="String">
+		select
+		TRIM(TO_CHAR(nvl(MAX(SUBSTR(thema_map_category,6,3))+1,1),'000'))
+		from
+		mng_dt_themamapcategory
+		order by thema_map_category desc limit 1
+	</select>
+	<select id="getSearchCategoryCount" parameterType="hashmap"
+		resultType="int">
+
+		SELECT COUNT(thema_map_category) AS CNT
+		FROM
+		mng_dt_themamapcategory
+	</select>
+	<insert id="addNewThemaEXMPL" parameterType="Map">
+		INSERT INTO
+		MNG_DT_THEMAMAPEXMPL
+		(
+		stat_thema_map_id,
+		-- 2016. 12. 01 j.h.Seok modify
+		disp_info_exmpl_div,
+		left_sep_cnt,
+		left_sep_1,
+		left_sep_2,
+		left_sep_3,
+		left_sep_4,
+		left_sep_5,
+		left_sep_6,
+		left_sep_7,
+		left_sep_8,
+		left_sep_9,
+		left_sep_10,
+		right_sep_cnt,	
+		right_sep_1,
+		right_sep_2,
+		right_sep_3,
+		right_sep_4,
+		right_sep_5,
+		right_sep_6,
+		right_sep_7,
+		right_sep_8,
+		right_sep_9,
+		right_sep_10
+		)
+		values
+		(
+			#{STAT_THEMA_MAP_ID},
+			#{EXMPL_TYPE},
+			#{left_sep_cnt},
+			#{left_sep_1},
+			#{left_sep_2},
+			#{left_sep_3},
+			#{left_sep_4},
+			#{left_sep_5},
+			#{left_sep_6},
+			#{left_sep_7},
+			#{left_sep_8},
+			#{left_sep_9},
+			#{left_sep_10},
+			#{right_sep_cnt},
+			#{right_sep_1},
+			#{right_sep_2},
+			#{right_sep_3},
+			#{right_sep_4},
+			#{right_sep_5},
+			#{right_sep_6},
+			#{right_sep_7},
+			#{right_sep_8},
+			#{right_sep_9},
+			#{right_sep_10}
+		)
+	</insert>
+	
+	<!-- 2017.07.19 [개발팀] khc 표출순위  추가  start -->	
+	<insert id="addThemaMap" parameterType="Map">
+		insert into MNG_DT_THEMAMAPCATEGORY
+			(
+				THEMA_MAP_CATEGORY,
+				CATEGORY_ICON_ID,
+				CATEGORY_NM,
+				EN,
+				EXP,
+				REG_TS,
+				REG_ID,
+				SRV_YN,
+				DISP_RANK
+			)
+		values
+			(
+				#{THEMA_MAP_CATEGORY},
+				#{ICON_ID},
+				#{CATEGORY_NM},
+				#{CATEGORY_EM},
+				#{EXP},
+				SYSDATE,
+				#{MANAGER_ID},
+				#{SRV_YN},
+				#{DISP_RANK}
+			)
+	</insert>
+	<!-- 2017.07.19 [개발팀] khc 표출순위  추가  end -->	
+	
+	<insert id="addThemaMapFileUpload" parameterType="Map">
+		insert into
+		MNG_DT_THEMAMAPLIST
+		(
+		STAT_THEMA_MAP_ID,
+		THEMA_MAP_CATEGORY,
+		MANAGER_ID,
+		TITLE,
+		REG_TS,
+		THEMA_MAP_TYPE,
+		SRV_YN,
+		DISP_MTHD,
+		REL_STAT_INFO,
+		STAT_THEMA_MAP_FILE_URL,
+		start_x_coor,
+		start_y_coor,
+		-- 2016. 12. 01 j.h.Seok modify
+		base_year,
+		left_sep_nm,
+		left_sep_unit,
+		stat_data_base_year,
+		thema_map_data_id,
+		left_sep_ttip_title,
+		thema_map_exp
+		)
+		values
+		(
+		#{STAT_THEMA_MAP_ID},
+		#{CATEGORY},
+		#{MANAGER_ID},
+		#{TITLE},
+		SYSDATE,
+		#{THEMA_MAP_TYPE},
+		#{SRV_YN},
+		#{STAT_DISP_LEVEL},
+		#{RELATEINFO},
+		#{STAT_THEMA_MAP_FILE_URL},
+		989674,
+		1818313,
+		'',
+		'',
+		'',
+		'',
+		'',
+		'',
+		#{EXP}
+		)
+	</insert>
+	<insert id="addNewThemaMap" parameterType="Map">
+		insert into MNG_DT_THEMAMAPLIST
+		(
+		STAT_THEMA_MAP_ID,
+		THEMA_MAP_CATEGORY,
+		MANAGER_ID,
+		TITLE,
+		REG_TS,
+		THEMA_MAP_TYPE,
+		SRV_YN,
+		MOBILE_SRV_YN,
+		<if test="MOBILE_URL != null">
+			MOBILE_SRV_URL,
+		</if>
+		DISP_MTHD,
+		REL_STAT_INFO,
+		MAX_EXPNSN_LEVEL,
+		MIN_REDCTN_LEVEL,
+		START_X_COOR,
+		START_Y_COOR,
+		<if test="LEFT_YEAR != null">
+			BASE_YEAR,
+		</if>
+		<if test="LEFT_NM != null">
+			LEFT_SEP_NM,
+		</if>
+		<if test="LEFT_UNIT != null">
+			LEFT_SEP_UNIT,
+		</if>
+		<if test="RIGHT_YEAR != null">
+			RIGHT_BASE_YEAR,
+		</if>
+		<if test="RIGHT_NM != null">
+			RIGHT_SEP_NM,
+		</if>
+		<if test="RIGHT_UNIT != null">
+			RIGHT_SEP_UNIT,
+		</if>
+		<if test="DATA_YEAR != null">
+			STAT_DATA_BASE_YEAR,
+		</if>
+		<if test="DATA_ID != null">
+			THEMA_MAP_DATA_ID,
+		</if>
+		<if test="LEFT_TTIP != null">
+			LEFT_SEP_TTIP_TITLE,
+		</if>
+		<if test="RIGHT_TTIP != null">
+			RIGHT_SEP_TTIP_TITLE,
+		</if>
+		<if test="LEFT_CHART != null">
+			LEFT_SEP_CHART_TITLE,
+		</if>
+		<if test="RIGHT_CHART != null">
+			RIGHT_SEP_CHART_TITLE,
+		</if>
+		<if test="MAP_YEAR != null">
+			SEP_MAP_DATA_YEAR,
+		</if>
+		<if test="MAP_ID != null">
+			SEP_MAP_DATA_ID,
+		</if>
+		<if test="LEFT_MAP_TTIP_TITLE != null">
+			SEP_MAP_LEFT_SEP_TTIP_TITLE,
+		</if>
+		<if test="LEFT_MAP_TITLE != null">
+			sep_map_left_sep_nm,
+		</if>
+		<if test="LEFT_MAP_UNIT != null">
+			sep_map_left_sep_unit,
+		</if>
+		<if test="LEFT_MAP_INFO != null">
+			sep_map_left_sep_source,
+		</if>
+		<if test="RIGHT_MAP_TTIP_TITLE != null">
+			SEP_MAP_RIGHT_SEP_TTIP_TITLE,
+		</if>
+		<if test="RIGHT_MAP_TITLE != null">
+			sep_map_right_sep_nm,
+		</if>
+		<if test="RIGHT_MAP_UNIT != null">
+			sep_map_right_sep_unit,
+		</if>
+		<if test="RIGHT_MAP_INFO != null">
+			sep_map_right_sep_source,
+		</if>
+		<if test="LEFT_SOURCE != null">
+			LEFT_SEP_SOURCE,
+		</if>
+		<if test="RIGHT_SOURCE != null">
+			RIGHT_SEP_SOURCE,
+		</if>
+		<if test="EXMPL_TYPE != null">
+			EXMPL_TYPE,
+		</if>
+		<if test="ATDRC_YN != null">
+			ATDRC_YN,
+		</if>
+		<if test="POI_DISP_YN != null">
+			POI_DISP_YN,
+		</if>
+		<if test="THEME_CD != null">
+			THEME_CD,
+		</if>
+		
+		<!-- mng_s 2017. 08. 04 석진혁 -->
+		<if test="CORP_CLASS_CD != null">
+			CORP_CLASS_CD,
+		</if>
+		<!-- mng_s 2017. 08. 04 석진혁 -->
+		
+		priority_disp_yn,
+		YEAR_INFO,
+		BORD_FIX_YN,
+		thema_map_exp,
+		disp_rank
+		)
+		values
+		(
+		#{STAT_THEMA_MAP_ID},
+		#{CATEGORY},
+		#{MANAGER_ID},
+		#{TITLE},
+		SYSDATE,
+		#{THEMA_MAP_TYPE},
+		#{SRV_YN},
+		#{MOBILE_YN},
+		<if test="MOBILE_URL != null">
+			#{MOBILE_URL},
+		</if>
+		#{DISP_MTHD},
+		#{REL_STAT_INFO},
+		#{MAX_LEVEL},
+		#{MIN_LEVEL},
+		#{START_X},
+		#{START_Y},
+		<if test="LEFT_YEAR != null">
+			#{LEFT_YEAR},
+		</if>
+		<if test="LEFT_NM != null">
+			#{LEFT_NM},
+		</if>
+		<if test="LEFT_UNIT != null">
+			#{LEFT_UNIT},
+		</if>
+		<if test="RIGHT_YEAR != null">
+			#{RIGHT_YEAR},
+		</if>
+		<if test="RIGHT_NM != null">
+			#{RIGHT_NM},
+		</if>
+		<if test="RIGHT_UNIT != null">
+			#{RIGHT_UNIT},
+		</if>
+		<if test="DATA_YEAR != null">
+			#{DATA_YEAR},
+		</if>
+		<if test="DATA_ID != null">
+			#{DATA_ID},
+		</if>
+		<if test="LEFT_TTIP != null">
+			#{LEFT_TTIP},
+		</if>
+		<if test="RIGHT_TTIP != null">
+			#{RIGHT_TTIP},
+		</if>
+		<if test="LEFT_CHART != null">
+			#{LEFT_CHART},
+		</if>
+		<if test="RIGHT_CHART != null">
+			#{RIGHT_CHART},
+		</if>
+		<if test="MAP_YEAR != null">
+			#{MAP_YEAR},
+		</if>
+		<if test="MAP_ID != null">
+			#{MAP_ID},
+		</if>
+		<!-- <if test="LEFT_MAP_TTIP != null"> #{LEFT_MAP_TTIP}, </if> <if test="RIGHT_MAP_TTIP 
+			!= null"> #{RIGHT_MAP_TTIP}, </if> <if test="LEFT_SOURCE != null"> #{LEFT_SOURCE}, 
+			</if> <if test="RIGHT_SOURCE != null"> #{RIGHT_SOURCE}, </if> -->
+		<if test="LEFT_MAP_TTIP_TITLE != null">
+			#{LEFT_MAP_TTIP_TITLE},
+		</if>
+		<if test="LEFT_MAP_TITLE != null">
+			#{LEFT_MAP_TITLE},
+		</if>
+		<if test="LEFT_MAP_UNIT != null">
+			#{LEFT_MAP_UNIT},
+		</if>
+		<if test="LEFT_MAP_INFO != null">
+			#{LEFT_MAP_INFO},
+		</if>
+		<if test="RIGHT_MAP_TTIP_TITLE != null">
+			#{RIGHT_MAP_TTIP_TITLE},
+		</if>
+		<if test="RIGHTL_MAP_TITLE != null">
+			#{RIGHT_MAP_TITLE},
+		</if>
+		<if test="RIGHTL_MAP_UNIT != null">
+			#{RIGHT_MAP_UNIT},
+		</if>
+		<if test="RIGHTL_MAP_INFO != null">
+			#{RIGHT_MAP_INFO},
+		</if>
+		<if test="LEFT_SOURCE != null">
+			#{LEFT_SOURCE},
+		</if>
+		<if test="RIGHT_SOURCE != null">
+			#{RIGHT_SOURCE},
+		</if>
+		<if test="EXMPL_TYPE != null">
+			#{EXMPL_TYPE},
+		</if>
+		<if test="ATDRC_YN != null">
+			#{ATDRC_YN},
+		</if>
+		<if test="POI_DISP_YN != null">
+			#{POI_DISP_YN},
+		</if>
+		<if test="THEME_CD != null">
+			#{THEME_CD},
+		</if>
+		
+		<!-- mng_s 2017. 08. 04 석진혁 -->
+		<if test="CORP_CLASS_CD != null">
+			#{CORP_CLASS_CD},
+		</if>
+		<!-- mng_e 2017. 08. 04 석진혁 -->
+		
+		#{PRIORTY_YN},
+		#{YEAR_INFO},
+		#{FIX_YN},
+		#{EXP},
+		'1'
+		)
+	</insert>
+	<insert id="addThemaMapParam" parameterType="Map">
+		<!-- begin <foreach collection="list" item="i" index="index" separator=";"> 
+			insert into SRV_DT_STATTHEMAMAPPARAMINFO ( STAT_THEMA_MAP_ID,SEQ,API_CALL_URL,PARAM_INFO 
+			) values ( #{i.STAT_THEMA_MAP_ID},#{i.SEQ},#{i.API_CALL_URL},#{i.PARAM_INFO} 
+			) </foreach> ;end; -->
+		insert into SRV_DT_STATTHEMAMAPPARAMINFO
+		(
+		STAT_THEMA_MAP_ID,SEQ,API_CALL_URL,PARAM_INFO
+		)
+		values
+		(
+		#{STAT_THEMA_MAP_ID},#{SEQ},#{API_CALL_URL},#{PARAM_INFO}
+		)
+	</insert>
+	<delete id="deleteThemaMap">
+		delete from mng_dt_themamapcategory where thema_map_category in
+		<foreach collection="array" index="index" item="item" open="("
+			separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	<delete id="deleteThemaMapParam">
+		delete from SRV_DT_STATTHEMAMAPPARAMINFO where STAT_THEMA_MAP_ID in
+		<foreach collection="array" index="index" item="item" open="("
+			separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+	<delete id="deleteThemaMapList">
+		delete from mng_dt_themamaplist where STAT_THEMA_MAP_ID in
+		<foreach collection="array" index="index" item="item" open="("
+			separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	<select id="searchThemaOne" parameterType="Map" resultType="Map">
+		<!-- mng_s 2017. 08. 04 석진혁 -->
+		select 
+			STAT_THEMA_MAP_ID, THEMA_MAP_CATEGORY, MANAGER_ID, TITLE, REG_TS, THEMA_MAP_TYPE, STAT_THEMA_MAP_FILE_URL, SRV_YN, MOBILE_SRV_YN, 
+			MOBILE_SRV_URL, HITS, DISP_MTHD, REL_STAT_INFO, thema_map_exp as EXP, MAX_EXPNSN_LEVEL, MIN_REDCTN_LEVEL, START_X_COOR, START_Y_COOR, BASE_YEAR AS LEFT_BASE_YEAR, 
+			LEFT_SEP_NM, LEFT_SEP_UNIT, RIGHT_SEP_NM, RIGHT_SEP_UNIT, STAT_DATA_BASE_YEAR, THEMA_MAP_DATA_ID, LEFT_SEP_TTIP_TITLE, 
+			RIGHT_SEP_TTIP_TITLE, LEFT_SEP_CHART_TITLE, RIGHT_SEP_CHART_TITLE, SEP_MAP_DATA_YEAR, SEP_MAP_DATA_ID, SEP_MAP_LEFT_SEP_NM, 
+			SEP_MAP_LEFT_SEP_UNIT, SEP_MAP_RIGHT_SEP_NM, SEP_MAP_RIGHT_SEP_UNIT, SEP_MAP_LEFT_SEP_TTIP_TITLE, SEP_MAP_RIGHT_SEP_TTIP_TITLE, 
+			LEFT_SEP_SOURCE, RIGHT_SEP_SOURCE, SEP_MAP_LEFT_SEP_SOURCE, SEP_MAP_RIGHT_SEP_SOURCE, EXMPL_TYPE, ATDRC_YN, PRIORITY_DISP_YN, 
+			YEAR_INFO, BORD_FIX_YN AS BOUNDARY_FIX_YN, ADD_DATA_DISP_YN, POI_DISP_YN, THEME_CD, CORP_CLASS_CD, DISP_RANK
+		from mng_dt_themamaplist
+		where stat_thema_map_id =
+		#{STAT_THEMA_MAP_ID};
+		<!-- mng_e 2017. 08. 04 석진혁 -->
+	</select>
+
+	<select id="searchThemaOneCount" parameterType="Map" resultType="int">
+		select count(*) as cnt from mng_dt_themamaplist
+		where stat_thema_map_id
+		= #{STAT_THEMA_MAP_ID};
+	</select>
+	
+	<!-- 2017.07.19 [개발팀] khc 표출순위  추가  start -->
+	<update id="updateThemaMap" parameterType="Map">
+		update MNG_DT_THEMAMAPCATEGORY set
+			SRV_YN = #{SRV_YN},
+			EN = #{CATEGORY_EM},
+			CATEGORY_NM = #{CATEGORY_NM},
+			CATEGORY_ICON_ID = #{ICON_ID},
+			EXP = #{EXP},
+			DISP_RANK = #{DISP_RANK}
+		where THEMA_MAP_CATEGORY = #{THEMA_MAP_CATEGORY}
+	</update>
+	<!-- 2017.07.19 [개발팀] khc 표출순위  추가  end -->
+	
+	<update id="updateNewThemaMap" parameterType="Map">
+		UPDATE MNG_DT_THEMAMAPLIST
+		set
+		THEMA_MAP_CATEGORY = #{CATEGORY},
+		TITLE =
+		#{TITLE},
+		REG_TS = SYSDATE,
+		THEMA_MAP_TYPE =#{THEMA_MAP_TYPE},
+		SRV_YN =
+		#{SRV_YN},
+		MOBILE_SRV_YN = #{MOBILE_YN},
+		<if test="MOBILE_URL != null">
+			MOBILE_SRV_URL = #{MOBILE_URL},
+		</if>
+		DISP_MTHD = #{DISP_MTHD},
+		REL_STAT_INFO = #{REL_STAT_INFO},
+		MAX_EXPNSN_LEVEL = #{MAX_LEVEL},
+		MIN_REDCTN_LEVEL = #{MIN_LEVEL},
+		START_X_COOR = #{START_X},
+		START_Y_COOR = #{START_Y},
+		<if test="LEFT_YEAR != null">
+			-- 2016. 12. 01 j.h.Seok modify
+			BASE_YEAR = #{LEFT_YEAR},
+		</if>
+		<if test="LEFT_NM != null">
+			LEFT_SEP_NM = #{LEFT_NM},
+		</if>
+		<if test="LEFT_UNIT != null">
+			LEFT_SEP_UNIT = #{LEFT_UNIT},
+		</if>
+		<if test="RIGHT_YEAR != null">
+			RIGHT_BASE_YEAR = #{RIGHT_YEAR},
+		</if>
+		<if test="RIGHT_NM != null">
+			RIGHT_SEP_NM = #{RIGHT_NM},
+		</if>
+		<if test="RIGHT_UNIT != null">
+			RIGHT_SEP_UNIT = #{RIGHT_UNIT},
+		</if>
+		<if test="DATA_YEAR != null">
+			STAT_DATA_BASE_YEAR = #{DATA_YEAR},
+		</if>
+		<if test="DATA_ID != null">
+			THEMA_MAP_DATA_ID = #{DATA_ID},
+		</if>
+		<if test="LEFT_TTIP != null">
+			LEFT_SEP_TTIP_TITLE = #{LEFT_TTIP},
+		</if>
+		<if test="RIGHT_TTIP != null">
+			RIGHT_SEP_TTIP_TITLE = #{RIGHT_TTIP},
+		</if>
+		<if test="LEFT_CHART != null">
+			LEFT_SEP_CHART_TITLE = #{LEFT_CHART},
+		</if>
+		<if test="RIGHT_CHART != null">
+			RIGHT_SEP_CHART_TITLE = #{RIGHT_CHART},
+		</if>
+		<if test="MAP_YEAR != null">
+			SEP_MAP_DATA_YEAR = #{MAP_YEAR},
+		</if>
+		<if test="MAP_ID != null">
+			SEP_MAP_DATA_ID = #{MAP_ID},
+		</if>
+		<if test="LEFT_MAP_TTIP_TITLE != null">
+			SEP_MAP_LEFT_SEP_TTIP_TITLE=#{LEFT_MAP_TTIP_TITLE},
+		</if>
+		<if test="LEFT_MAP_TITLE != null">
+			sep_map_left_sep_nm=#{LEFT_MAP_TITLE},
+		</if>
+		<if test="LEFT_MAP_UNIT != null">
+			sep_map_left_sep_unit = #{LEFT_MAP_UNIT},
+		</if>
+		<if test="LEFT_MAP_INFO != null">
+			sep_map_left_sep_source = #{LEFT_MAP_INFO},
+		</if>
+		<if test="RIGHT_MAP_TTIP_TITLE != null">
+			SEP_MAP_RIGHT_SEP_TTIP_TITLE = #{RIGHT_MAP_TTIP_TITLE},
+		</if>
+		<!-- 2016. 03. 25 j.h.Seok -->
+		<if test="RIGHT_MAP_TITLE != null">
+			sep_map_right_sep_nm = #{RIGHT_MAP_TITLE},
+		</if>
+		<if test="RIGHT_MAP_UNIT != null">
+			sep_map_right_sep_unit = #{RIGHT_MAP_UNIT},
+		</if>
+		<if test="RIGHT_MAP_INFO != null">
+			sep_map_right_sep_source = #{RIGHT_MAP_INFO},
+		</if>
+		<if test="LEFT_SOURCE != null">
+			LEFT_SEP_SOURCE = #{LEFT_SOURCE},
+		</if>
+		<if test="RIGHT_SOURCE != null">
+			RIGHT_SEP_SOURCE = #{RIGHT_SOURCE},
+		</if>
+		<if test="EXMPL_TYPE != null">
+			EXMPL_TYPE =#{EXMPL_TYPE},
+		</if>
+		<if test="ATDRC_YN != null">
+			ATDRC_YN = #{ATDRC_YN},
+		</if>
+		<if test="POI_DISP_YN != null">
+			POI_DISP_YN = #{POI_DISP_YN},
+		</if>
+		
+		<!-- mng_s 2017. 08. 04 석진혁 -->
+		<if test="THEME_CD != null">
+			THEME_CD = #{THEME_CD},
+			CORP_CLASS_CD = null,
+		</if>
+		<if test="CORP_CLASS_CD != null">
+			CORP_CLASS_CD = #{CORP_CLASS_CD},
+			THEME_CD = null,
+		</if>
+		<!-- mng_e 2017. 08. 04 석진혁 -->
+		
+		<if test="YEAR_INFO != null">
+			YEAR_INFO = #{YEAR_INFO},
+		</if>
+		<if test="FIX_YN != null">
+			-- 2016. 12. 01 j.h.Seok modify
+			BORD_FIX_YN = #{FIX_YN},
+		</if>
+		<if test="DISP_RANK != null">
+			DISP_RANK = #{DISP_RANK},
+		</if>
+		<!-- 
+		<if test="HOT_ISSUE_YN != null">
+			HOT_ISSUE_YN = #{HOT_ISSUE_YN},
+		</if>
+		 -->
+		priority_disp_yn= #{PRIORTY_YN},
+		thema_map_exp = #{EXP}
+
+		where stat_thema_map_id =
+		#{STAT_THEMA_MAP_ID}
+	</update>
+	<update id="updateThemaMapT" parameterType="Map">
+		update MNG_DT_THEMAMAPLIST
+		set
+		thema_map_category = #{CATEGORY},
+		srv_yn =
+		#{SRV_YN},
+		title = #{TITLE},
+		thema_map_exp = #{EXP}
+		<if test="STAT_THEMA_MAP_FILE_URL != null">
+			,STAT_THEMA_MAP_FILE_URL = #{STAT_THEMA_MAP_FILE_URL}
+		</if>
+		<if test="AREA_SET != null">
+			,AREA_SET = #{AREA_SET}
+		</if>
+		<if test="STAT_DISP_LEVEL != null">
+			,max_expnsn_level = #{STAT_DISP_LEVEL}
+		</if>
+		<if test="METHOD != null">
+			,disp_mthd = #{METHOD}
+		</if>
+		<if test="RELATEINFO != null">
+			,REL_STAT_INFO = #{RELATEINFO}
+		</if>
+
+		where STAT_THEMA_MAP_ID = #{STAT_THEMA_MAP_ID}
+	</update>
+	
+	<select id="getPOICODE" resultType="Map">
+		SELECT * FROM 
+			(	
+			SELECT THEME_CD, B_THEME_CD_NM, S_THEME_CD_NM, ROWNUM R   
+			FROM CMM_CD_THEME
+			WHERE 1 = 1
+			<if test="SEARCH_WORD != null">
+				AND S_THEME_CD_NM LIKE #{SEARCH_WORD}
+			</if>
+				AND ROWNUM <![CDATA[<=]]> #{END_INDEX}
+			)
+		WHERE R <![CDATA[>=]]> #{START_INDEX}
+	</select>
+	<select id="getPOICODECount" resultType="int">
+		SELECT COUNT(*) 
+		FROM CMM_CD_THEME
+		WHERE 1 = 1
+		<if test="SEARCH_WORD != null">
+			AND S_THEME_CD_NM LIKE #{SEARCH_WORD}
+		</if>
+	</select>
+	
+	<!-- mng_s 2017. 08. 04 석진혁 -->
+	<select id="getPOICorpClassCODE" resultType="Map">
+		SELECT * FROM 
+			(	
+			SELECT KSIC_5_CD, KSIC_1_NM, KSIC_5_NM, ROWNUM R   
+			FROM CMM_CD_CORPCLASS
+			WHERE 
+				CLASS_DEG = 9
+				AND KSIC_5_CD != 00000
+			<if test="SEARCH_WORD != null">
+				AND KSIC_5_NM LIKE #{SEARCH_WORD}
+			</if>
+				AND ROWNUM <![CDATA[<=]]> #{END_INDEX}
+			)
+		WHERE R <![CDATA[>=]]> #{START_INDEX}
+	</select>
+	<select id="getPOICorpClassCODECount" resultType="int">
+		SELECT COUNT(*) 
+		FROM CMM_CD_CORPCLASS
+		WHERE 
+			CLASS_DEG = 9
+		<if test="SEARCH_WORD != null">
+			AND KSIC_5_NM LIKE #{SEARCH_WORD}
+		</if>
+	</select>
+	<!-- mng_e 2017. 08. 04 석진혁 -->
+	
+	<select id="getThemaList" resultType="Map">
+		SELECT  
+                s.stat_thema_map_id AS stat_thema_map_id,
+                s.thema_map_category AS category,             
+                s.thema_map_type AS thema_map_type               
+        FROM    mng_dt_themamaplist s, mng_dt_themamapcategory t, mng_dt_themamapicon d        
+        WHERE   s.thema_map_category = t.thema_map_category 
+        AND     t.category_icon_id = d.category_icon_id
+        AND     s.srv_yn='N' order by s.reg_ts desc limit 1
+	</select>
+	<select id="getThemaModyList" resultType="Map">
+		SELECT  
+                s.stat_thema_map_id AS stat_thema_map_id,
+                s.thema_map_category AS category,             
+                s.thema_map_type AS thema_map_type               
+        FROM    mng_dt_themamaplist s, mng_dt_themamapcategory t, mng_dt_themamapicon d        
+        WHERE   s.thema_map_category = t.thema_map_category 
+        AND     t.category_icon_id = d.category_icon_id
+        AND     s.stat_thema_map_id=#{STAT_THEMA_MAP_ID}
+	</select>
+	<select id="registerThemaMap" resultType="Map">
+		UPDATE mng_dt_themamaplist
+		SET	srv_yn='Y'
+		WHERE stat_thema_map_id=#{STAT_THEMA_MAP_ID}		
+	</select>
+</mapper>

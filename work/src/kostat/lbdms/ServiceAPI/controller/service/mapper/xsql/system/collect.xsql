@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="collect">
+	<!-- 주소DB수집 정보 가져오기 -->
+	<select id="getAddrDBStstList" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			addrdb_auto_sts_ymd, 
+			TO_CHAR(addrdb_collect_dt,'YYYY-MM-DD') AS addrdb_collect_dt, 
+			TO_CHAR(addrdb_load_dt,'YYYY-MM-DD') AS addrdb_load_dt,
+			addrdb_collect_cnt, 
+			addrdb_load_cnt, 
+			addrdb_old_cnt, 
+			TO_CHAR(addrdb_lucene,'YYYY-MM-DD') AS addrdb_lucene, 
+			TO_CHAR(addrdb_sevice,'YYYY-MM-DD') AS addrdb_sevice,
+			TO_CHAR(addrdb_collect_dt,'YYYYMM') || '통판도로명자동수집.zip' AS file_nm,
+			COUNT(*) OVER() AS total
+		FROM addrdb_auto_sts
+		ORDER BY addrdb_auto_sts_ymd DESC
+		LIMIT 24
+	</select>
+	
+	<!-- 수집 정보 가져오기 -->
+	<select id="getCollectList" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			collect_seq, 
+			ROW_NUMBER() OVER (ORDER BY collect_seq DESC) AS row,
+			TO_CHAR(reg_dt,'YYYY-MM-DD') AS reg_dt, 
+			data_nm,
+			col_org,
+			category,
+			cl_nm,
+			col_period,
+			data_path,
+			file_nm,
+			data_size,
+			COUNT(*) OVER() AS total
+		FROM collect_resource
+		WHERE 1=1
+		<if test="code != null and code != ''">
+			AND 
+			category = #{code}
+		</if>	
+		<if test="searchText != null and searchText != ''">
+			AND 
+			data_nm LIKE '%'||#{searchText}||'%'
+		</if>	
+		ORDER BY collect_seq DESC
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+	
+	
+	<!-- kosis 비교자료 수집 정보 가져오기 *kosis_compare 테이블* -->
+	<select id="getCollectKosis" parameterType="hashmap" resultType="hashmap">
+		
+		SELECT
+			seq,
+			ROW_NUMBER() OVER (ORDER BY seq DESC) AS row,
+			base_year,
+			div,
+			item,
+			TO_CHAR(reg_ts, 'YYYY-MM-DD') AS reg_ts,
+			reg_user_id,
+			COUNT(*) OVER() AS total
+		FROM kosis_compare
+		<where>
+			1=1
+			<if test="resultYear != 0">
+				AND
+				(base_year = ''||#{resultYear}||'')
+			</if>
+		</where>
+		ORDER BY seq DESC
+		OFFSET #{start} LIMIT #{resultCnt}
+	</select>
+
+	
+	<!-- kosis 비교자료 수집 정보 등록하기 *kosis_compare 테이블* -->
+	<insert id="collectKosisNew" parameterType="hashmap">
+		INSERT INTO kosis_compare(
+			base_year, div, item, sido_11, sido_21,sido_22, sido_23,sido_24,sido_25,sido_26,sido_29,
+			sido_31,sido_32,sido_33,sido_34,sido_35,sido_36,sido_37,sido_38,sido_39,reg_ts,reg_user_id
+		) VALUES (
+			#{base_year},#{div},#{item},#{sido_11},#{sido_21},#{sido_22},#{sido_23},#{sido_24},#{sido_25},#{sido_26},#{sido_29},
+			#{sido_31},#{sido_32},#{sido_33},#{sido_34},#{sido_35},#{sido_36},#{sido_37},#{sido_38},#{sido_39},now(),#{reg_user_id}
+		)
+	</insert>
+	
+	<!-- kosis 비교자료 수집 자료 가져오기(collectKosisDetail) *kosis_compare 테이블* -->
+	<select id="collectKosisDetail" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			base_year, div, item, sido_11, sido_21,sido_22, sido_23,sido_24,sido_25,sido_26,sido_29,
+			sido_31,sido_32,sido_33,sido_34,sido_35,sido_36,sido_37,sido_38,sido_39,reg_ts,reg_user_id
+		FROM kosis_compare
+		WHERE seq = #{seq}
+	</select>
+			
+	<!-- kosis 비교자료 수집 정보 등록하기 *kosis_compare 테이블* -->
+	<update id="updateCollectKosis" parameterType="hashmap">
+		UPDATE kosis_compare SET
+			base_year=#{base_year}, div=#{div}, item=#{item}, sido_11=#{sido_11}, sido_21=#{sido_21},
+			sido_22=#{sido_22}, sido_23=#{sido_23},sido_24=#{sido_24},sido_25=#{sido_25},
+			sido_26=#{sido_26},sido_29=#{sido_29},
+			sido_31=#{sido_31},sido_32=#{sido_32},sido_33=#{sido_33},sido_34=#{sido_34},
+			sido_35=#{sido_35},sido_36=#{sido_36},sido_37=#{sido_37},sido_38=#{sido_38},
+			sido_39=#{sido_39},reg_ts=now(),reg_user_id=#{reg_user_id}
+		WHERE seq = cast(#{seq} AS int)
+	</update>
+	
+	
+	<select id="deleteCollect" parameterType="hashmap">
+		DELETE
+		FROM collect_resource
+		WHERE collect_seq IN (${collect_seq})
+	</select>
+	
+	<!-- 일자리자동화 현황 정보 가져오기 -->
+	<select id="getCollectJobSts" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			job_auto_sts_seq, 
+			ROW_NUMBER() OVER (ORDER BY job_auto_sts_seq DESC) AS row,
+			TO_CHAR(collect_dt, 'YYYY-MM-DD HH24:MI:SS') as collect_dt,
+			coalesce(worknet_cnt, '0') worknet_cnt,
+			coalesce(incruit_cnt, '0') incruit_cnt,
+			TO_CHAR(geocoding_dt, 'YYYY-MM-DD HH24:MI:SS') as geocoding_dt,
+			TO_CHAR(cleanprocess_dt, 'YYYY-MM-DD HH24:MI:SS') as cleanprocess_dt,
+			TO_CHAR(transfer_dt, 'YYYY-MM-DD HH24:MI:SS') as transfer_dt,
+			COUNT(*) OVER() AS total
+		FROM job_auto_sts
+		ORDER BY job_auto_sts_seq DESC
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+	
+    <select id="searchAdminSgg" parameterType="hashmap" resultType="hashmap">
+		SELECT sigungu_cd, sgg_nm
+		FROM bnd_sigungu
+		WHERE sigungu_cd LIKE ''||#{sido}||'%'
+		ORDER BY sgg_nm
+    </select>
+    
+    <select id="searchAdminEmd" parameterType="hashmap" resultType="hashmap">
+		SELECT emd_cd, emdong_nm
+		FROM bnd_adm_dong
+		WHERE emd_cd LIKE ''||#{sgg}||'%'
+		ORDER BY emdong_nm
+    </select>
+    
+    <select id="searchLegSgg" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+		left(leg_code,5) as sigungu_cd, leg_sgg as sgg_nm
+		FROM legcode 
+		WHERE leg_gubun = 'sgg' AND leg_yn = 'Y' AND leg_code LIKE ''||#{sido}||'%'
+		ORDER BY leg_sgg
+    </select>
+    
+    <select id="searchLegEmd" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+		left(leg_code,8) as emd_cd, leg_emd as emdong_nm
+		FROM legcode 
+		WHERE leg_gubun = 'emd' AND leg_yn = 'Y' 
+		AND leg_code LIKE ''||#{sgg}||'%'
+		ORDER BY leg_emd
+    </select>
+    
+</mapper>

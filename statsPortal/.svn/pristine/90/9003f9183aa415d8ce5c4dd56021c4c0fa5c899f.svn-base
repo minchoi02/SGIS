@@ -1,0 +1,183 @@
+/**
+ * 대화형 통계지도 화면에 대한 클래스
+ * 
+ * history : 네이버시스템(주), 1.0, 2015/09/10  초기 작성
+ * author : 권차욱, 김성현
+ * version : 1.0
+ * see : 
+ * 20190502 운영반영예정
+ */
+(function(W, D) {
+	W.$interactiveMap = W.$interactiveMap || {};
+	//20200424 수정 시작 (6번. 지도 추가시 ICON 이상동작 추가 수정);
+	//화면 오른쪽의 데이터보드 및 아이콘 정렬 "위치" 초기화
+	function resetDataBoardAndIconsPosition() {
+	    $(".dataSideBox").removeClass("full");					  						// 혹시라도 2단으로 펼쳐져있으면 펼쳐진 것을 접게한다.
+	    $(".dataSideBox").stop().animate({"right":"-1500px"},200);						//데이터보드가 전체적으로 오른쪽으로 숨게한다
+	    $(".sop-right").stop().animate({"right":"0px"},200);	  						//아이콘 모음을 오른쪽 끝으로 당긴다. ※ view1,view2,view3 모두 적용
+	    $('.interactiveDataBoard').removeClass("on").stop().animate({"right":"0"},200);	//div[id='dataBoard'] 위의 "데이터보드 버튼"은 보이게 한다.
+	};
+	//20200424 수정 끝 (6번. 지도 추가시 ICON 이상동작 추가 수정);
+	$(document).ready(
+		function() {
+			
+			$interactiveMap.ui.createMap("mapRgn_1", 0);
+			//$interactiveMap.event.setUIEvent();
+			
+			if(document.location.href.indexOf("type=full") > 1 ){
+				$interactiveMap.ui.doMaxSize(1);
+			}
+			
+	});
+	
+	$interactiveMap = {
+			noReverseGeoCode : false
+	};
+	
+	
+	$interactiveMap.ui = {
+			
+			namespace : "sbrActiceMap",
+			searchBtnType : "normal",
+			mapList : [],
+			curBtnId : '',
+			curMapId : 0,
+			isInnerMapShow : false,
+			curDropParams : [],
+			combinePopup : null,
+			buildPopup : null,
+			reportPopup : null,
+			dropBtnInfo : [],
+			dataTypeList : [],
+			tutoIndex : 0,
+			toolTipTitle : "",		// 툴팁 N/A 처리용
+			toolTipUnit : "",		// 툴팁 N/A 처리용
+			isShare : false,		// 공유된 정보 유무
+			shareData : [],			// 공유된 정보 데이터
+			selTypeFlag : true,		// 처음 한번만 카운트
+			searchMarker : null,	//대화형통계지도 검색에 의한 마커
+			bookmarkType : null,	//대화형통계지도 통합 검색에 의한 총조사 주요지표 처리를 위한 변수
+			bookmarkData : null,	//대화형통계지도 통합 검색에 의한 총조사 주요지표 처리를 위한 변수
+			nonSelfGoverningList : ['31010', '31020', '31040', '31090', '31100', '31190', '33040', '34010', '35010', '37010', '38110'],		//2020년수정변경: 비자치구를 포함한 시 목록, 2019년 기준 11개(ggm)
+			isInteractiveApiIdList : ['API_0301', 'API_0302', 'API_0304', 'API_0305', 'API_0306', 'API_0307', 'API_0308', 'API_0309', 'API_0310'],	//20200427 수정 (ggm)
+			//SGIS_4 시작
+			multiTimeList : [], //다중시계열 년도 배열
+			multiTimeorigin : "", //출처
+			//SGIS_4 끝
+			
+				/**
+				 * 
+				 * @name         : searchMarkerClear
+				 * @description  : 지도 마커삭제
+				 * @date         : 2016. 01. 11. 
+				 * @author	     : 권차욱
+				 * @history 	 :
+				 */
+				searchMarkerClear : function() {
+					if($interactiveMap.ui.searchMarker != null){
+						$interactiveMap.ui.searchMarker.remove();
+				}
+			},
+			
+			/**
+			 * 
+			 * @name         : createMap
+			 * @description  : 맵 및 맵에 오버레이될 그래프, 범례 등을 생성한다.
+			 * @date         : 2014. 10. 11. 
+			 * @author	     : 권차욱, 김성현
+			 * @history 	 :
+			 */
+			createMap : function(id, seq) {
+				var map = new sMap.map();
+				map.createMap($interactiveMap, id, {
+					center : [ 989674, 1818313 ],
+					zoom : 8, //9->8
+					measureControl : false,
+					statisticTileLayer: false,
+					zoomSliderControl : false
+				});
+				
+				map.id = seq;
+				map.addControlEvent("drop", {accept : ".dragItem"});
+				map.addControlEvent("movestart");
+				map.addControlEvent("moveend");
+				map.addControlEvent("zoomend");	
+				map.addControlEvent("draw");
+				map.isInteractive = true;	//2020년수정변경: 대화형통계지도 구분(ggm)				
+								
+				//범례 호출 함수 
+				/*var legend = new sLegendInfo.legendInfo(map);			
+				legend.initialize($interactiveMap.ui);
+				map.legend = legend;
+				legend.createLegend();
+				legend.legendType = "equal";*/
+				//작업부분 끝
+				
+				var btnInfo = new sbrActiveMapBtnInfo.btnInfo(map, $interactiveMap.ui);
+				
+				map.mapBtnInfo = btnInfo;
+				btnInfo.createUI({
+					sbrBottomControl : true,
+				});	
+				
+				//공유
+				var shareInfo = new share.shareInfo(map, $interactiveMap.ui);
+				map.shareInfo = shareInfo;
+				
+				map.itemtext = '';
+				//사용자지정컨트롤설정
+				this.mapList[seq] = map;
+				
+				//갤러리 등록
+
+				map.gMap.whenReady(function() {
+					map.createHeatMap();
+				});
+
+				return map; //9월 서비스
+			},
+			
+			
+			/**
+			 * 
+			 * @name         : doMaxSize
+			 * @description  : 맵을 최대화한다.
+			 * @date         : 2015. 10. 01. 
+			 * @author	     : 권차욱
+			 * @history 	 :
+			 */
+			doMaxSize : function(type) {
+				srvLogWrite("C0", "07", "05", "00", "", "");		//전체화면확대
+				var ck = $(".tb_sizing").hasClass("on"); 
+				
+				for (var i=0; i<this.mapList.length; i++) {
+					if (this.mapList[i] != null) {
+						this.mapList[i].update();
+					}
+				}
+			},
+			
+			
+			/**
+			 * 
+			 * @name         : doClearMap
+			 * @description  : 맵의 오버레이를 초기화한다.
+			 * @date         : 2015. 10. 01. 
+			 * @author	     : 권차욱
+			 * @history 	 :
+			 */
+			doClearMap : function(type, isStatsInfoClear, callYN) {			//20200511 수정 (ggm)
+		
+			}
+	};
+	
+	
+	$interactiveMap.event = {
+			
+			
+	};
+	
+	
+	
+	
+}(window, document));

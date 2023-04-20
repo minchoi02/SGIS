@@ -1,0 +1,1291 @@
+@charset "utf-8";
+
+/*NanumSquare*/
+@font-face {
+	font-style: normal;
+	font-weight: 400;
+	
+}
+@font-face {
+	font-style: normal;
+	font-weight: 400;
+}
+
+body, html {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	height: 100%;
+	min-height: 100%;
+	overflow: hidden;
+	font-size: 14px;
+	/*   font-family:"NanumSquare"; 2020.09.10[신예리] 폰트 추가 */
+}
+
+/** 2020.09.17[신예리] 툴팁박스 START**/
+.tootipWrap {
+	background-color: #292E44;
+	border-radius: 6px;
+	position: absolute;
+	z-index: 1500;
+	top: 440px;
+	left: 35px;
+	box-sizing: border-box;
+	width: 340px;
+	border: 1px solid #292E44; /* 2020.11.20[신예리] 웹접근성 문제로 인한 s 문자 삭제 */
+}
+
+.tootipTit {
+	background-color: #292E44;
+	border-top-left-radius: 6px;
+	border-top-right-radius: 6px;
+	height: 25px;
+	display: inline-block;
+	width: 95%;
+}
+
+.tootipTit>h4 {
+	color: white;
+	font-size: 13px;
+	display: inline-block;
+	vertical-align: sub;
+}
+
+.tootipConCustom {
+	background-color: white;
+	padding: 5px;
+	border-bottom-left-radius: 6px;
+	border-bottom-right-radius: 6px;
+}
+
+.tootipConCustom>table.tooltipTable>th {
+	border: 1px solid #ddd;
+	text-align: left;
+	font-size: 13px;
+	padding: 10px;
+	line-height: 18px;
+}
+
+.tootipConCustom>table.tooltipTable>td {
+	border: 1px solid #ddd;
+	text-align: left;
+	font-size: 13px;
+	padding: 10px;
+	line-height: 18px;
+}
+
+table.tooltipTable {
+	border-collapse: collapse;
+	width: 100%;
+}
+
+.tootipConCustom>table.tooltipTable>tbody th {
+	box-sizing: border-box;
+	width: 155px;
+	padding: 9px 0;
+	text-align: center;
+	color: #777;
+	border-right: 1px solid #e0e0e0;
+	background: #f6f7f8;
+}
+
+.tootipConCustom>table.tooltipTable tr {
+	border-bottom: 1px solid #AFBCC9;
+}
+
+.tootipConCustom>table.tooltipTable tr:last-child {
+	border-bottom: 0;
+}
+
+.tootipConCustom>table.tooltipTable caption {
+	display: none;
+}
+
+.tootipWrap::before {
+	content: "";
+	position: relative;
+	bottom: 21px;
+	left: 22%;
+	border-width: 5px;
+	border-style: solid;
+	border-color: transparent transparent #292E44 transparent;
+}
+
+/** 2020.09.17[신예리] 툴팁박스 END**/
+
+/** 2020.09.16[신예리] 개방형 지도 popup START**/
+.popupWrap {
+	position: absolute;
+	left: calc(100% - 80%);
+	top: 25%;
+	z-index: 10001;
+	width: 540px;
+	border-radius: 5px;
+	box-shadow: 0 4px 5px rgba(0, 0, 0, 0.2);
+}
+
+.popupWrapTms {
+	top: 45%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	border-radius: 5px;
+	box-shadow: 0 4px 5px rgba(0, 0, 0, 0.2);
+	position: absolute;
+	z-index: 9999;
+	width: 693px !important;
+}
+
+.popTit {
+	padding: 8px 11px 8px 20px;
+	background-color: #1586d6; /* 2020.09.22 [신예리] 컬러변경*/
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+}
+
+.popTit>h1 {
+	color: white;
+	font-size: 14px;
+	display: inline-block;
+}
+
+.popprintBtn {
+	width: 20px;
+	height: 15px;
+	outline: none;
+	border: 0;
+	background: url(/images/totSurv/print.png) no-repeat center;
+	background-size: 18px;
+	cursor: pointer;
+	margin: 0 8px;
+	float: right;
+}
+
+.popcloseBtn {
+	width: 15px;
+	height: 15px;
+	outline: none;
+	border: 0;
+	background: url(/images/totSurv/MovedeleteBtn.png) no-repeat center;
+	background-size: 13px;
+	cursor: pointer;
+	float: right;
+}
+
+.popCon {
+	padding: 8px;
+	background-color: #454d5a;
+	border-bottom-left-radius: 5px;
+	border-bottom-right-radius: 5px;
+}
+
+.popCon .popContxt {
+	color: white;
+	text-align: center;
+	padding: 20px 0;
+}
+
+.popBtnBoxCurrent {
+	padding: 15px 0 10px 0;
+	border-top: 1px solid #6c757e;
+	text-align: center;
+}
+
+.popCancle {
+	background-color: #78838d;
+	border: 0;
+	outline: none;
+	padding: 5px 30px;
+	border-radius: 5px;
+	margin: 0 5px;
+	color: white;
+}
+
+.popCancle:hover, .popCancle.on {
+	background-color: #535d66;
+}
+
+.popOk {
+	background-color: #0582f4;
+	border: 0;
+	outline: none;
+	padding: 5px 30px;
+	border-radius: 5px;
+	margin: 0 5px;
+	color: white;
+}
+
+.popOk:hover, .popOk.on {
+	background-color: #0f67b8;
+}
+
+.popConMap {
+	background-color: #454d5a;
+	border-bottom-left-radius: 5px;
+	border-bottom-right-radius: 5px;
+	padding: 8px;
+}
+
+.popSubtit {
+	color: #363C47;
+	font-size: 14px;
+	font-weight: bold;
+	padding: 5px 0 5px 0;
+	border-bottom: 1px solid #ddd;
+}
+
+.popTxt {
+	color: #697b90;
+	font-size: 13px;
+	line-height: 20px; /*2020.09.22[신예리] 개방형지도 팝업 line height 값 변경*/
+	margin-top: 0px;
+}
+
+/** 2020.09.16[신예리] 개방형 지도 popup END**/
+.sgisIn {
+	width: 210px; /* 2020.11.13[신예리] 너비 변경 */
+	height: 30px;
+	border: 1px solid #b8b8b9;
+	text-align: center;
+	cursor: pointer;
+	outline: none;
+	background: url('/images/totSurv/sgis_logo_wBtn.png') no-repeat center;
+	/* 2020.11.13[신예리] 배경 이미지 추가 */
+	background-size: auto 15px; /* 2020.11.13[신예리] 배경 이미지 사이즈 추가 */
+	border-radius: 50px;
+	float: right;
+	display: inline-block;
+	position: absolute;
+	right: 75px; /* 2020.10.15[한광희] 상세페이지 추가로 인한 수정 */
+	top: 0;
+	bottom: 0;
+	margin-top: auto;
+	margin-bottom: auto;
+	color: white;
+}
+
+.sgisIn.on, .sgisIn:hover {
+	background: url('/images/totSurv/sgis_logo_wBtn.png')
+		rgba(255, 255, 255, 0.2) no-repeat center;
+	/* 2020.11.13[신예리] 배경 이미지 추가 */
+	background-size: auto 15px; /* 2020.11.13[신예리] 배경 이미지 사이즈 추가 */
+	transition: 0.5s;
+}
+
+.sgisIn img {
+	width: 80px;
+	height: auto;
+	margin-top: 5px;
+}
+
+/*20210303 박은식 사용가이드 버튼 css 추가 START*/
+.sgisTuto {
+	width: 100px;
+	font-weight: bold;
+	/* 	font-family: 'NanumSquare'; */
+	height: 30px;
+	border: 1px solid #b8b8b9;
+	text-align: center;
+	cursor: pointer;
+	outline: none;
+	background-color: rgba(0, 0, 0, 0);
+	/*20210319 박은식 익스에서 rgb는 투명도 처리가 안됨. rgba로변경*/
+	background-size: auto 15px;
+	border-radius: 50px;
+	float: right;
+	display: inline-block;
+	position: absolute;
+	right: 75px;
+	top: 0;
+	bottom: 0;
+	margin-top: auto;
+	margin-bottom: auto;
+	color: white;
+}
+
+.sgisTuto.on, .sgisTuto:hover {
+	background-color: rgb(0, 0, 0, 0.2);
+	background-size: auto 15px; /* 2020.11.13[신예리] 배경 이미지 사이즈 추가 */
+	transition: 0.5s;
+}
+/*20210303 박은식 사용가이드 버튼 css 추가 END*/
+
+/**20201008 박은식 - 공통 팝업 css START*/
+.commonAdministStatsPopupWrap {
+	position: absolute;
+	left: calc(100% - 80.5%);
+	top: 110px;
+	z-index: 10000; /* 2020.10.27[한광희] 팝업 z-index 수정  */
+	width: 540px;
+	border-radius: 5px;
+	box-shadow: 0 4px 5px rgba(0, 0, 0, 0.2);
+}
+
+.commonAdministStatsPopTit {
+	padding: 8px 11px 8px 20px;
+	background-color: #1586d6; /* 2020.09.22 [신예리] 컬러변경*/
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+}
+
+.commonAdministStatsPopTit>h1 {
+	color: white;
+	font-size: 14px;
+	display: inline-block;
+}
+
+.commonAdministStatsPopcloseBtn {
+	width: 15px;
+	height: 15px;
+	outline: none;
+	border: 0;
+	background: url(/images/totSurv/MovedeleteBtn.png) no-repeat center;
+	background-size: 13px;
+	cursor: pointer;
+	float: right;
+}
+
+.commonAdministStatsPopCon {
+	padding: 8px;
+	background-color: #454d5a;
+	border-bottom-left-radius: 5px;
+	border-bottom-right-radius: 5px;
+}
+
+.commonAdministStatsPopCon .commonAdministStatsPopContxt {
+	color: white;
+	text-align: center;
+	padding: 20px 0;
+}
+
+.commonAdministStatsPopBtnBoxCurrent {
+	padding: 15px 0 10px 0;
+	border-top: 1px solid #6c757e;
+	text-align: center;
+}
+
+.commonAdministStatsPopCancle {
+	background-color: #78838d;
+	border: 0;
+	outline: none;
+	padding: 5px 30px;
+	border-radius: 5px;
+	margin: 0 5px;
+	color: white;
+}
+
+.commonAdministStatsPopOk {
+	background-color: #0582f4;
+	border: 0;
+	outline: none;
+	padding: 5px 30px;
+	border-radius: 5px;
+	margin: 0 5px;
+	color: white;
+}
+/* 2020.10.22[신예리] 확인 버튼 클릭 상태 추가 START */
+.commonAdministStatsPopOk:hover, .commonAdministStatsPopOk.on {
+	background-color: #0367c3;
+	border: 0;
+	outline: none;
+	padding: 5px 30px;
+	border-radius: 5px;
+	margin: 0 5px;
+	color: white;
+}
+/* 2020.10.22[신예리] 확인 버튼 클릭 상태 추가 END */
+
+/*2020.10.13 [신예리] 팝업 배경 전체 화면으로 수정 START*/
+.commonAdministStatsBack_modal {
+	width: 100%;
+	background-color: #000;
+	z-index: 9999;
+	position: absolute;
+	height: 100%;
+	opacity: 0.5;
+	top: 0;
+}
+/*2020.10.13 [신예리] 팝업 배경 전체 화면으로 수정 END*/
+
+/**20201008 박은식 - 공통 팝업 css END*/
+.chartWrap {
+	box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 8px 0px, rgba(0, 0, 0, 0.19) 0px
+		6px 20px 0px;
+	z-index: 10000;
+	background-color: #454d5a;
+	border: 1px solid #888;
+	border-radius: 3px;
+	width: 1200px;
+	height: 525px;
+	background-color: white;
+	padding: 25px 0 25px 200px;
+}
+
+/*2020.10.19[신예리] 차트 모달 START*/
+.chart_modal {
+	position: fixed;
+	box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 8px 0px, rgba(0, 0, 0, 0.19) 0px
+		6px 20px 0px;
+	z-index: 9999;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	display: none;
+	background-color: #454d5a;
+	border: 1px solid #888;
+	border-radius: 3px;
+}
+
+.chartCon { /*20201117 박은식 클레스 타겟 변경*/
+	/* width: 800px;*/ /* 2020.11.05[신예리] 주석처리 */
+	width: 800px; /* 2020.11.05[신예리] 너비 수정 */
+	height: 450px;
+	padding: 10px;
+	background-color: #363A46;
+}
+
+.chartKindBar {
+	height: 50px;
+	border-bottom: 1px solid #363A46;
+	display: flex;
+	align-items: center;
+	padding: 0 13px;
+}
+
+.chartKindBar>button {
+	outline: none;
+	border: 1px solid #fff;
+	border-radius: 5px;
+	height: 28px;
+	width: 28px;
+	margin: 0 5px;
+	cursor: pointer;
+}
+
+/*막대그래프 가로*/
+.chartKind00 {
+	background: url('/images/totSurv/chartKind/chartKind00.png') no-repeat
+		center;
+	background-size: 18px;
+}
+
+.chartKind00:hover, .chartKind00.on {
+	background: url('/images/totSurv/chartKind/chartKind00_on.png')
+		no-repeat center;
+	background-size: 18px;
+	border: 1px solid #2D9DFE;
+}
+
+/*막대그래프 세로*/
+.chartKind01 {
+	background: url('/images/totSurv/chartKind/chartKind01.png') no-repeat
+		center;
+	background-size: 18px;
+}
+
+.chartKind01:hover, .chartKind01.on {
+	background: url('/images/totSurv/chartKind/chartKind01_on.png')
+		no-repeat center;
+	background-size: 18px;
+	border: 1px solid #2D9DFE;
+}
+
+/*꺽은선 그래프*/
+.chartKind02 {
+	background: url('/images/totSurv/chartKind/chartKind02.png') no-repeat
+		center;
+	background-size: 18px;
+}
+
+.chartKind02:hover, .chartKind02.on {
+	background: url('/images/totSurv/chartKind/chartKind02_on.png')
+		no-repeat center;
+	background-size: 18px;
+	border: 1px solid #2D9DFE;
+}
+
+/*히스토그램*/
+.chartKind03 {
+	background: url('/images/totSurv/chartKind/chartKind03.png') no-repeat
+		center;
+	background-size: 18px;
+}
+
+.chartKind03:hover, .chartKind03.on {
+	background: url('/images/totSurv/chartKind/chartKind03_on.png')
+		no-repeat center;
+	background-size: 18px;
+	border: 1px solid #2D9DFE;
+}
+
+/*방사형*/
+.chartKind04 {
+	background: url('/images/totSurv/chartKind/chartKind04.png') no-repeat
+		center;
+	background-size: 18px;
+}
+
+.chartKind04:hover, .chartKind04.on {
+	background: url('/images/totSurv/chartKind/chartKind04_on.png')
+		no-repeat center;
+	background-size: 18px;
+	border: 1px solid #2D9DFE;
+}
+
+/*파이차트*/
+.chartKind05 {
+	background: url('/images/totSurv/chartKind/chartKind05.png') no-repeat
+		center;
+	background-size: 18px;
+}
+
+.chartKind05:hover, .chartKind05.on {
+	background: url('/images/totSurv/chartKind/chartKind05_on.png')
+		no-repeat center;
+	background-size: 18px;
+	border: 1px solid #2D9DFE;
+}
+
+/*막대 그래프(백분율)*/
+.chartKind06 {
+	background: url('/images/totSurv/chartKind/chartKind06.png') no-repeat
+		center;
+	background-size: 18px;
+}
+
+.chartKind06:hover, .chartKind06.on {
+	background: url('/images/totSurv/chartKind/chartKind06_on.png')
+		no-repeat center;
+	background-size: 18px;
+	border: 1px solid #2D9DFE;
+}
+
+/*막대 그래프(세로 누적)*/
+.chartKind07 {
+	background: url('/images/totSurv/chartKind/chartKind07.png') no-repeat
+		center;
+	background-size: 18px;
+}
+
+.chartKind07:hover, .chartKind07.on {
+	background: url('/images/totSurv/chartKind/chartKind07_on.png')
+		no-repeat center;
+	background-size: 18px;
+	border: 1px solid #2D9DFE;
+}
+
+/*막대 그래프(가로 누적)*/
+.chartKind08 {
+	background: url('/images/totSurv/chartKind/chartKind08.png') no-repeat
+		center;
+	background-size: 18px;
+}
+
+.chartKind08:hover, .chartKind08.on {
+	background: url('/images/totSurv/chartKind/chartKind08_on.png')
+		no-repeat center;
+	background-size: 18px;
+	border: 1px solid #2D9DFE;
+}
+
+/*다중 꺽은선 그래프*/
+.chartKind09 {
+	background: url('/images/totSurv/chartKind/chartKind09.png') no-repeat
+		center;
+	background-size: 18px;
+}
+
+.chartKind09:hover, .chartKind09.on {
+	background: url('/images/totSurv/chartKind/chartKind09_on.png')
+		no-repeat center;
+	background-size: 18px;
+	border: 1px solid #2D9DFE;
+}
+
+/*꺽은선,막대 그래프*/
+.chartKind10 {
+	background: url('/images/totSurv/chartKind/chartKind10.png') no-repeat
+		center;
+	background-size: 18px;
+}
+
+.chartKind10:hover, .chartKind10.on {
+	background: url('/images/totSurv/chartKind/chartKind10_on.png')
+		no-repeat center;
+	background-size: 18px;
+	border: 1px solid #2D9DFE;
+}
+
+/*막대 그래프(좌우 비교)*/
+.chartKind11 {
+	background: url('/images/totSurv/chartKind/chartKind11.png') no-repeat
+		center;
+	background-size: 18px;
+}
+
+.chartKind11:hover, .chartKind11.on {
+	background: url('/images/totSurv/chartKind/chartKind11_on.png')
+		no-repeat center;
+	background-size: 18px;
+	border: 1px solid #2D9DFE;
+}
+
+/*면적차트*/
+.chartKind12 {
+	background: url('/images/totSurv/chartKind/chartKind12.png') no-repeat
+		center;
+	background-size: 18px;
+}
+
+.chartKind12:hover, .chartKind12.on {
+	background: url('/images/totSurv/chartKind/chartKind12_on.png')
+		no-repeat center;
+	background-size: 18px;
+	border: 1px solid #2D9DFE;
+}
+
+/*그룹 막대 그래프(세로)*/
+.chartKind13 {
+	background: url('/images/totSurv/chartKind/chartKind15.png') no-repeat
+		center;
+	background-size: 18px;
+}
+
+.chartKind13:hover, .chartKind13.on {
+	background: url('/images/totSurv/chartKind/chartKind15_on.png')
+		no-repeat center;
+	background-size: 18px;
+	border: 1px solid #2D9DFE;
+}
+
+/*다중 방사형*/
+.chartKind14 {
+	background: url('/images/totSurv/chartKind/chartKind13.png') no-repeat
+		center;
+	background-size: 18px;
+}
+
+.chartKind14:hover, .chartKind14.on {
+	background: url('/images/totSurv/chartKind/chartKind13_on.png')
+		no-repeat center;
+	background-size: 18px;
+	border: 1px solid #2D9DFE;
+}
+
+/*버플차트*/
+.chartKind15 {
+	background: url('/images/totSurv/chartKind/chartKind14.png') no-repeat
+		center;
+	background-size: 18px;
+}
+
+.chartKind15:hover, .chartKind15.on {
+	background: url('/images/totSurv/chartKind/chartKind14_on.png')
+		no-repeat center;
+	background-size: 18px;
+	border: 1px solid #2D9DFE;
+}
+
+/* 202.10.28[신예리] 차트 모달 이미지 저장 버튼 추가 START */
+.cmmChartSave {
+	background: url(/images/totSurv/chartKind/cmmChartSave.png) no-repeat
+		center;
+	background-size: 16px;
+	position: absolute;
+	right: 12px;
+}
+
+.cmmChartSave:hover, .cmmChartSave.on {
+	background: url('/images/totSurv/chartKind/cmmChartSave_on.png')
+		no-repeat center;
+	background-size: 16px;
+	position: absolute;
+	right: 12px;
+	border: 1px solid #2D9DFE;
+}
+/* 202.10.28[신예리] 차트 모달 이미지 저장 버튼 추가 END */
+
+/*2020.10.19[신예리] 차트 모달 END*/
+
+/*2020.10.21[신예리] 공유하기 팝업 START */
+.shareWrap {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	/*     font-family: 'NanumSquare'; */
+}
+
+.shareRow {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.shareRow>input[type="text"] {
+	border: 2px solid #ccc;
+	padding: 9px 10px;
+	border-radius: 5px;
+	width: 415px; /* 2020.11.13[신예리] 너비 값 변경 */
+}
+
+.shareRow>button {
+	margin: 0 5px;
+}
+
+.kakao {
+	background: url(/images/totSurv/kakao.png) #FCB316 no-repeat;
+	width: 120px;
+	padding: 9px 10px 9px 20px;
+	border-radius: 5px;
+	color: white;
+	background-position: 10px center;
+	font-size: 13px;
+}
+
+.kakao:hover, .kakao.on {
+	background: url(/images/totSurv/kakao.png) #dd9c10 no-repeat;
+	background-position: 10px center;
+	padding: 9px 10px 9px 20px;
+}
+
+.twitter {
+	background: url(/images/totSurv/twitter.png) #2AA8E0 no-repeat;
+	width: 120px;
+	padding: 9px 10px 9px 25px;
+	border-radius: 5px;
+	color: white;
+	background-position: 10px center;
+	font-size: 13px;
+}
+
+.twitter:hover, .twitter.on {
+	background: url(/images/totSurv/twitter.png) #0293d3 no-repeat;
+	background-position: 10px center;
+	padding: 9px 10px 9px 25px;
+}
+
+.face {
+	background: url(/images/totSurv/facebook.png) #4670B7 no-repeat;
+	width: 120px;
+	padding: 9px 10px 9px 30px;
+	border-radius: 5px;
+	color: white;
+	background-position: 10px center;
+	font-size: 13px;
+}
+
+.face:hover, .face.on {
+	background: url(/images/totSurv/facebook.png) #325795 no-repeat;
+	background-position: 10px center;
+	padding: 9px 10px 9px 30px;
+}
+
+/* 2020.11.13[신예리] 네이버 밴드 버튼 추가 START*/
+.band {
+	background: url(/images/totSurv/band.png) #19CE60 no-repeat;
+	width: 120px;
+	padding: 9px 10px 9px 30px;
+	border-radius: 5px;
+	color: white;
+	background-position: 10px center;
+	font-size: 13px;
+}
+
+.band:hover, .band.on {
+	background: url(/images/totSurv/band.png) #0D9A44 no-repeat;
+	background-position: 10px center;
+	padding: 9px 10px 9px 30px;
+}
+/* 2020.11.13[신예리] 네이버 밴드 버튼 추가 END*/
+.shareRowBtn {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	margin-bottom: 10px;
+	width: 92%;
+	align-items: center;
+	justify-content: center;
+	border-top: 1px solid #747a82;
+	padding-top: 18px;
+}
+
+.urlcopy {
+	background-color: #87909d; /* 2020.11.13[신예리] 배경 색상 변경 */
+	color: white;
+	width: 120px;
+	padding: 9px 10px;
+	border-radius: 5px;
+	margin: 0 5px;
+}
+
+.urlcopy:hover, .urlcopy.on {
+	background-color: #6c737e; /* 2020.11.13[신예리] 배경 색상 변경 */
+}
+
+.txtClose {
+	background-color: #F5F5F6;
+	color: rgb(37, 40, 36);
+	width: 120px;
+	padding: 9px 10px;
+	border-radius: 5px;
+	font-weight: bold;
+	margin: 0 5px;
+}
+
+.txtClose:hover, .txtClose.on {
+	background-color: #717985;
+	color: white;
+}
+
+/*2020.10.21[신예리] 공유하기 팝업 END */
+
+/* 2020.10.22[신예리] 상세페이지 지역 선택 팝업 START */
+.commonAdministStatsPopCon>.popSelect {
+	position: relative;
+	width: auto;
+	line-height: 35px;
+	border: 0;
+	z-index: 1;
+	margin: 7px 10px 15px 10px;
+	text-align: center;
+}
+
+.commonAdministStatsPopCon>.popSelect select {
+	width: 45%;
+	padding: 10px;
+	/*     font-family: "NanumSquare"; */
+	background: url(/images/totSurv/toggledown.png) #707987 no-repeat 95%
+		50%;
+	border: 0;
+	border-radius: 0px;
+	
+	appearance: none;
+	outline: none;
+	font-size: 12px;
+	background-size: 14px 13px;
+	font-weight: 500;
+	margin: 0 5px;
+	color: white;
+	border-radius: 5px;
+}
+
+/* 2021.02.17[신예리] totSurvBI 추가 START */
+.totSurvBI {
+	background: url(/images/totSurv/logo_w.png) no-repeat center;
+	height: 25px;
+	margin-right: 23px;
+	width: 100px;
+	margin-top: 12px;
+}
+
+.totSurvBI::after {
+	content: '';
+	position: absolute;
+	width: 1px;
+	height: 15px;
+	background-color: #e0dede;
+	display: block;
+	margin-top: -10px;
+	margin-left: 104px;
+}
+
+.totSurvBI:hover {
+	opacity: 0.5 !important;
+}
+
+.locationSpan {
+	background: #fc2862;
+	border-radius: 50px;
+	/* position: absolute; */
+	height: 30px;
+	padding: 0 12px;
+	margin-top: 8px;
+	line-height: 30px;
+}
+/* 2021.02.17[신예리] totSurvBI 추가 END */
+
+/* 2021.02.24[신예리] 튜토리얼 추가 START */
+.TutoCloseBtn {
+	padding: 10px 60px;
+	border-radius: 35px;
+	background-color: #bb902f;
+	bottom: 30px;
+	position: absolute;
+	left: 0;
+	right: 0;
+	margin-left: auto;
+	font-size: 16px;
+	font-weight: 600;
+	margin-right: auto;
+	color: white;
+	width: 165px; /*20210319 박은식 익스에서 비정상적으로 커지는 문제 처리 */
+}
+
+.TutoCloseBtn:hover {
+	background-color: #1a1e6f;
+}
+
+.populationDashTuto {
+	background: url(/images/totSurv/populationDash.jpg)
+		/*  no-repeat center center fixed */;
+	width: 100%;
+	position: fixed;
+	top: 0;
+	left: 0;
+	background-size: cover;
+	min-height: 100%;
+	min-width: 1024px;
+	z-index: 99999;
+	width: 100%;
+	height: auto;
+}
+
+.ecnmyDashTuto { /* 2021.08.02 추가[이영호] 아이콘 필요 */
+	background: url(/images/totSurv/ecnmyDash.jpg)
+		/*  no-repeat center center fixed */;
+	width: 100%;
+	position: fixed;
+	top: 0;
+	left: 0;
+	background-size: cover;
+	min-height: 100%;
+	min-width: 1024px;
+	z-index: 99999;
+	width: 100%;
+	height: auto;
+}
+
+.houseDashTuto {
+	background: url(/images/totSurv/houseDash.jpg)
+		/*  no-repeat center center fixed */;
+	width: 100%;
+	position: fixed;
+	top: 0;
+	left: 0;
+	background-size: cover;
+	min-height: 100%;
+	min-width: 1024px;
+	z-index: 99999;
+	width: 100%;
+	height: auto;
+}
+
+.houseHoldDashTuto {
+	background: url(/images/totSurv/houseHoldDash.jpg)
+		/* no-repeat center center fixed */;
+	width: 100%;
+	position: fixed;
+	top: 0;
+	left: 0;
+	background-size: cover;
+	min-height: 100%;
+	min-width: 1024px;
+	z-index: 99999;
+	width: 100%;
+	height: auto;
+}
+
+.farmDashTuto {
+	background: url(/images/totSurv/farmDash.jpg)
+		/* no-repeat center center fixed */;
+	width: 100%;
+	position: fixed;
+	top: 0;
+	left: 0;
+	background-size: cover;
+	min-height: 100%;
+	min-width: 1024px;
+	z-index: 99999;
+	width: 100%;
+	height: auto;
+}
+
+.forestryDashTuto {
+	background: url(/images/totSurv/forestryDash.jpg)
+		/* no-repeat center center fixed */;
+	width: 100%;
+	position: fixed;
+	top: 0;
+	left: 0;
+	background-size: cover;
+	min-height: 100%;
+	min-width: 1024px;
+	z-index: 99999;
+	width: 100%;
+	height: auto;
+}
+
+.fisheryDashTuto {
+	background: url(/images/totSurv/fisheryDash.jpg) /* no-repeat center */;
+	width: 100%;
+	position: fixed;
+	top: 0;
+	left: 0;
+	background-size: cover;
+	min-height: 100%;
+	min-width: 1024px;
+	z-index: 99999;
+	width: 100%;
+	height: auto;
+}
+
+/* 2021.02.24[신예리] 튜토리얼 추가 END */
+
+/* 2021.02.26[신예리] 상세화면 및 시계열 튜토리얼 추가 START */
+.populationTmsTuto {
+	background: url(/images/totSurv/TmsDash.jpg) /* no-repeat center */;
+	width: 100%;
+	position: fixed;
+	top: 0;
+	left: 0;
+	background-size: cover;
+	min-height: 100%;
+	min-width: 1024px;
+	z-index: 99999;
+	width: 100%;
+	height: auto;
+}
+
+.totSurvDetailTuto {
+	background: url(/images/totSurv/detailDash.jpg) /* no-repeat center */;
+	width: 100%;
+	position: fixed;
+	top: 0;
+	left: 0;
+	background-size: cover;
+	min-height: 100%;
+	min-width: 1024px;
+	z-index: 99999;
+	width: 100%;
+	height: auto;
+}
+
+/* 2021.02.26[신예리] 상세화면 및 시계열 튜토리얼 추가 END */
+
+/**20201008 박은식 - 공통 팝업 css START*/
+.commonTotSurvPopupWrap {
+	position: absolute;
+	left: calc(100% - 80.5%);
+	top: 110px;
+	z-index: 10000; /* 2020.10.27[한광희] 팝업 z-index 수정  */
+	width: 540px;
+	border-radius: 5px;
+	box-shadow: 0 4px 5px rgba(0, 0, 0, 0.2);
+}
+
+.commonTotSurvPopTit {
+	padding: 8px 11px 8px 20px;
+	background-color: #1586d6; /* 2020.09.22 [신예리] 컬러변경*/
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+}
+
+.commonTotSurvPopTit>h1 {
+	color: white;
+	font-size: 14px;
+	display: inline-block;
+}
+
+.commonTotSurvPopcloseBtn {
+	width: 15px;
+	height: 15px;
+	outline: none;
+	border: 0;
+	background: url(/images/totSurv/MovedeleteBtn.png) no-repeat center;
+	background-size: 13px;
+	cursor: pointer;
+	float: right;
+}
+
+.commonTotSurvPopCon {
+	padding: 8px;
+	background-color: #454d5a;
+	border-bottom-left-radius: 5px;
+	border-bottom-right-radius: 5px;
+}
+
+.commonTotSurvPopCon .commonTotSurvPopContxt {
+	color: white;
+	text-align: center;
+	padding: 20px 0;
+}
+
+.commonTotSurvPopBtnBoxCurrent {
+	padding: 15px 0 10px 0;
+	border-top: 1px solid #6c757e;
+	text-align: center;
+}
+
+.commonTotSurvPopCancle {
+	background-color: #78838d;
+	border: 0;
+	outline: none;
+	padding: 5px 30px;
+	border-radius: 5px;
+	margin: 0 5px;
+	color: white;
+}
+
+.commonTotSurvPopOk {
+	background-color: #0582f4;
+	border: 0;
+	outline: none;
+	padding: 5px 30px;
+	border-radius: 5px;
+	margin: 0 5px;
+	color: white;
+}
+/* 2020.10.22[신예리] 확인 버튼 클릭 상태 추가 START */
+.commonTotSurvPopOk:hover, .commonTotSurvPopOk.on {
+	background-color: #0367c3;
+	border: 0;
+	outline: none;
+	padding: 5px 30px;
+	border-radius: 5px;
+	margin: 0 5px;
+	color: white;
+}
+/* 2020.10.22[신예리] 확인 버튼 클릭 상태 추가 END */
+
+/*2020.10.13 [신예리] 팝업 배경 전체 화면으로 수정 START*/
+.commonTotSurvBack_modal {
+	width: 100%;
+	background-color: #000;
+	z-index: 9999;
+	position: absolute;
+	height: 100%;
+	opacity: 0.5;
+	top: 0;
+}
+/*2020.10.13 [신예리] 팝업 배경 전체 화면으로 수정 END*/
+
+/*2020.10.21[신예리] 공유하기 팝업 START */
+.shareWrap {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	font-family: 'NanumSquare';
+	font-size: 13px;
+}
+
+.shareRow {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.shareRow>input[type="text"] {
+	border: 2px solid #ccc;
+	padding: 9px 10px;
+	border-radius: 5px;
+	width: 415px; /* 2020.11.13[신예리] 너비 값 변경 */
+	font-size: 13px;
+}
+
+.shareRow>button {
+	margin: 0 5px;
+}
+
+.kakao {
+	background: url(/images/totSurv/kakao.png) #FCB316 no-repeat;
+	width: 120px;
+	padding: 9px 10px 9px 20px;
+	border-radius: 5px;
+	color: white;
+	background-position: 10px center;
+}
+
+.kakao:hover, .kakao.on {
+	background: url(/images/totSurv/kakao.png) #dd9c10 no-repeat;
+	background-position: 10px center;
+	padding: 9px 10px 9px 20px;
+}
+
+.twitter {
+	background: url(/images/totSurv/twitter.png) #2AA8E0 no-repeat;
+	width: 120px;
+	padding: 9px 10px 9px 25px;
+	border-radius: 5px;
+	color: white;
+	background-position: 10px center;
+}
+
+.twitter:hover, .twitter.on {
+	background: url(/images/totSurv/twitter.png) #0293d3 no-repeat;
+	background-position: 10px center;
+	padding: 9px 10px 9px 25px;
+}
+
+.face {
+	background: url(/images/totSurv/facebook.png) #4670B7 no-repeat;
+	width: 120px;
+	padding: 9px 10px 9px 30px;
+	border-radius: 5px;
+	color: white;
+	background-position: 10px center;
+}
+
+.face:hover, .face.on {
+	background: url(/images/totSurv/facebook.png) #325795 no-repeat;
+	background-position: 10px center;
+	padding: 9px 10px 9px 30px;
+}
+
+/* 2020.11.13[신예리] 네이버 밴드 버튼 추가 START*/
+.band {
+	background: url(/images/totSurv/band.png) #19CE60 no-repeat;
+	width: 120px;
+	padding: 9px 10px 9px 30px;
+	border-radius: 5px;
+	color: white;
+	background-position: 10px center;
+}
+
+.band:hover, .band.on {
+	background: url(/images/totSurv/band.png) #0D9A44 no-repeat;
+	background-position: 10px center;
+	padding: 9px 10px 9px 30px;
+}
+/* 2020.11.13[신예리] 네이버 밴드 버튼 추가 END*/
+.shareRowBtn {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	margin-bottom: 10px;
+	width: 92%;
+	align-items: center;
+	justify-content: center;
+	border-top: 1px solid #747a82;
+	padding-top: 18px;
+}
+
+.urlcopy {
+	background-color: #87909d; /* 2020.11.13[신예리] 배경 색상 변경 */
+	color: white;
+	width: 120px;
+	padding: 9px 10px;
+	border-radius: 5px;
+	margin: 0 5px;
+	font-size: 13px;
+}
+
+.urlcopy:hover, .urlcopy.on {
+	background-color: #6c737e; /* 2020.11.13[신예리] 배경 색상 변경 */
+}
+
+.txtClose {
+	background-color: #F5F5F6;
+	color: rgb(37, 40, 36);
+	width: 120px;
+	padding: 9px 10px;
+	border-radius: 5px;
+	font-weight: bold;
+	margin: 0 5px;
+	font-size: 13px;
+}
+
+.txtClose:hover, .txtClose.on {
+	background-color: #717985;
+	color: white;
+}
+
+/*2020.10.21[신예리] 공유하기 팝업 END */

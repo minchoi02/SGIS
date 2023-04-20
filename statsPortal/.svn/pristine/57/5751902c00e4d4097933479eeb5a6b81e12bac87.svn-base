@@ -1,0 +1,597 @@
+/**
+ * 맵에 관한 공통 메소드
+ * 
+ * history : 네이버시스템(주), 1.0, 2014/08/19 초기 작성 author : 권차욱 version : 1.0 see :
+ * 
+ */
+
+(function (W, D) {
+	W.$map = W.$map || {};
+	var errCount = 0;
+	
+	//console.log("map.js");
+	$(document).ready(function(){
+		
+		//getReversGeoCode(sMap.map.that);
+	});
+	
+	sMap = {
+			
+	     map : function() {
+				 var that = this;
+				 this.id = null;
+				 this.mapInfo = null;
+				 this.mapBtnInfo = null;
+				 this.gMap = null;
+				 this.target = null;	 		// target element
+				 this.isMouseOver = false;
+				 this.isDrop = false;
+				 this.moveMap = null; /// 맵이동
+				 this.center = null; /// 맵이동
+				 this.zoom = 4;			    // zoom level
+				 this.isZoomSliderControl = false;
+				 this.isStatisticTileLayer = false;
+				 this.isMeasureControl = true;
+				 this.dataGeojson = null;
+				 this.geojsonData = null;
+				 this.tradeGeojon = null;
+				 this.lendData = null;
+				 this.rankData = null;
+				 this.togetherData = null;
+				 this.selectAdmCd = null;
+				 this.selectMapType = null;
+				 this.mapDataInfo = null;
+				 
+				 
+				 this.createMap = function (delegate, target, opt) {
+						
+						if (!opt.center) {
+							this.center = [ 989674, 1818313 ];
+						}
+						else {
+							this.center = opt.center;
+						}
+						
+						if (delegate) {this.delegate = delegate;}
+						if (target) {this.target = target;}
+						//if (opt.scale !== undefined) {this.isScale = opt.isScale;}
+						//if (opt.panControl !== undefined) {this.isPanControl = opt.isPanControl;}	
+						if (opt.zoom !== undefined) {this.zoom = opt.zoom;}
+						if (opt.measureControl !== undefined) {this.isMeasureControl = opt.measureControl;}
+						if (opt.zoomSliderControl !== undefined) {this.isZoomSliderControl = opt.zoomSliderControl;}
+						if (opt.statisticTileLayer !== undefined) {this.isStatisticTileLayer = opt.statisticTileLayer;}
+						
+						//zoomAnimation (IE10 이하일 경우 false)
+						if(browserFnc() != -1 && browserFnc() < 11) {
+							//this.isZoomAnimation = false;
+						}
+						
+						this.gMap = sop.map(this.target, {
+							scale : this.isScale,
+							panControl : this.isPanControl,
+							measureControl : this.isMeasureControl,
+							attributionControl : false,
+							zoomSliderControl: this.isZoomSliderControl, //줌 컨트롤
+							zoomAnimation : this.isZoomAnimation,	//줌 애니메이션 효과
+							statisticTileLayer : true
+						});
+						this.gMap.setView(sop.utmk(this.center[0], this.center[1]), this.zoom);
+						//this.bounds = this.gMap.getBounds();
+						//this.miniMap = new sMap.miniMap();	
+						this.render = sop.svg();
+						this.markers = sop.markerClusterGroup({
+							animateAddingMarkers: true
+						});
+						this.gMap.addLayer(this.markers);
+						
+					};
+					
+					
+					this.addControlEvent = function (type, opt) {
+						// 지도이동시 발생
+						if (type == "movestart") {
+							this.gMap.on("movestart", function (e) {
+								if (that.delegate && 
+									that.delegate.callbackFunc && 
+									that.delegate.callbackFunc.didMapMoveStart instanceof Function) {
+									that.delegate.callbackFunc.didMapMoveStart(e, that);
+								}
+							});
+						}
+						
+						else if (type == "moveend") {
+							this.gMap.on("moveend", function (e) {
+								var center = e.target.getCenter();
+								that.center = [ center.x, center.y ];
+								that.bounds = e.target.getBounds();
+								
+								if (that.delegate && 
+									that.delegate.callbackFunc && 
+									that.delegate.callbackFunc.didMapMoveEnd instanceof Function) {
+									that.delegate.callbackFunc.didMapMoveEnd(e, that);
+								}
+								
+							});
+						}
+						
+						// 줌 시작
+						else if (type == "zoomstart") {
+							this.gMap.on("zoomstart", function (e) {
+								that.isZoomStart = true;
+								if (that.delegate && 
+									that.delegate.callbackFunc && 
+									that.delegate.callbackFunc.didMapZoomStart instanceof Function) {
+									that.delegate.callbackFunc.didMapZoomStart(e, that);
+								}
+							});
+						}
+						// 줌 종료
+						else if (type == "zoomend") {
+							this.gMap.on("zoomend", function (e) {
+								that.zoom = e.target._zoom;
+								if (that.delegate && 
+								    that.delegate.callbackFunc &&
+								    that.delegate.callbackFunc.didMapZoomEnd instanceof Function) {
+									that.delegate.callbackFunc.didMapZoomEnd(e, that);
+								}
+							});
+						}
+		
+					};
+					
+					this.removeMarker = function (marker) {
+						if (marker) {
+							marker.remove();
+						}
+					};
+					
+					this.setFixedBoundLevel = function(bool) {
+						var maxZoom, minZoom;
+						this.isFixedBound = bool;
+						this.isNoReverseGeocode = bool;
+						if (bool) {
+							switch(this.curPolygonCode) {
+								case 1:	//전국
+									maxZoom = 1;
+									minZoom = 0; 
+									break;
+								case 2:	//전국시도
+									maxZoom = 3;
+									minZoom = 2;
+									break;
+								case 3:	//시군구
+									maxZoom = 5;
+									minZoom = 4;
+									break;
+								case 4: //읍면동
+									maxZoom = 8;
+									minZoom = 6;
+									break;
+								case 5: //집계구
+									maxZoom = 13;
+									minZoom = 9;
+									break;
+							}
+							
+							if (this.mapMode == "settlite") {
+								maxZoom += 6;
+								minZoom += 6;
+							}
+							this.gMap.setMaxZoom(maxZoom);
+							this.gMap.setMinZoom(minZoom);
+							this.gMap.scrollWheelZoom.disable();
+							
+						}else {
+							maxZoom = 13;
+							minZoom = 0;
+							
+							if (this.mapMode == "settlite") {
+								maxZoom += 6;
+								minZoom += 6;
+							}
+							this.gMap.setMaxZoom(maxZoom);
+							this.gMap.setMinZoom(minZoom);
+							this.gMap.scrollWheelZoom.enable();
+						}
+					};
+					
+					this.setLegendColor = function () {
+						if (this.dataGeojson) {
+							this.updatePolygonGeoJson();
+						}
+					};
+					
+					// 맵이동
+					this.moveMap = function(x,y){
+							this.gMap.setView(sop.utmk(x, y));
+					};
+					//센터이동
+					this.moveMapCenter = function(center,level){
+						this.gMap.setView(center,level);
+					};
+					
+					this.getMapPolygon = function(){
+						getReversGeoCode(that);
+					};
+					
+					this.update = function () {
+						this.gMap._onResize();
+					},
+					
+					this.poiZoomLevel = function(){
+						this.gMap.on('zoomend zoomlevelschange', function () {												
+						}, this);					
+						return this.gMap.getZoom();
+					},
+					
+										
+					/// 클리어관련
+					this.clearLayer = function() {
+						if (this.dataGeojson) {
+							//2016.09.01 9월 서비스
+							this.clearToolTip();
+							this.dataGeojson.remove();
+							this.removeCaption();
+						}
+						
+						if (this.geojson) {
+							this.geojson.remove();
+						}
+					};
+					
+					this.clearLayerStyle = function(layer) {
+						if (layer.options.origin) {
+							layer.setStyle({
+								weight : layer.options.origin.weight,
+								color : layer.options.origin.color,
+								dashArray : layer.options.origin.dashArray,
+								fillOpacity : layer.options.origin.fillOpacity,
+								fillColor : layer.options.origin.fillColor
+							});
+						}
+					};
+					
+					this.clearToolTip = function() {
+						if (this.dataGeojson != null) {
+							this.dataGeojson.eachLayer(function(tmplayer) {
+								var e = {
+										target : tmplayer,
+										utmk : sop.utmk([tmplayer.feature.properties.x, tmplayer.feature.properties.y])
+								};
+								that.setPolyLayerMouseout(e);
+								tmplayer.unbindToolTip();
+							});
+						}
+					};
+					
+		
+					
+					
+					
+					///
+					
+					this.updatePolygonGeoJson = function () {
+						if (this.dataGeojson != null) {
+							this.dataGeojson.eachLayer(function (layer) {
+								if (layer.feature) {
+									that.setLayerColor(layer.feature, layer);
+								}
+								
+							});
+						}
+						
+						if (this.multiLayerControl.dataGeojson != null) {
+							for (var i=0; i<this.multiLayerControl.dataGeojson.length; i++) {
+								var dataGeojson = this.multiLayerControl.dataGeojson[i];
+								dataGeojson.eachLayer(function (layer) {
+									if (layer.feature) {
+										that.setLayerColor(layer.feature, layer);
+									}
+									
+								});
+							}
+							
+						}
+					};
+					
+					//데이터관련
+					this.addPolygonGeoJson = function (obj, type, opt) {
+						that.clearLayer();
+						//console.log("[map.js] addPolygonGeoJson() 상위111 호출");
+						//console.log("[map.js] addPolygonGeoJson() 상위111 type [" + type);
+						//$('#searchAdmCd').val(adm_cd);
+						
+						var adm_cd = "";
+						var geojson = sop.geoJson(obj, {
+							style : this.setPolygonGeoJsonStyle(type),
+							onEachFeature : function (feature, layer) {
+								adm_cd = layer.feature.properties.adm_cd;
+								that.setLayerColor(feature, layer);		
+								layer.on({
+									mouseover : function (e) {
+										that.isMouseOver = true;
+										if (!that.isLayerMouseEventDisabled) {
+											that.clearToolTip(); //9월 서비스
+											that.setPolyLayerMouseover(e);
+											if (that.infoControl != null) {
+												that.infoControl.update(feature.properties);
+											}
+											if (feature.properties.adm_cd != undefined &&
+												feature.properties.adm_cd.length > 0) {
+												that.mouseOverAdmCd = feature.properties.adm_cd;
+											}
+											// mouse over , 사용자 콜백
+											if (that.delegate && 
+												that.delegate.callbackFunc &&
+												that.delegate.callbackFunc.didMouseOverPolygon) {
+												that.delegate.callbackFunc.didMouseOverPolygon(e, feature, layer.options.type, that);
+											}
+										}
+									},
+									mouseout : function (e) {
+										that.isMouseOver = false;
+										if (!that.isLayerMouseEventDisabled) {
+											that.setPolyLayerMouseout(e);
+											// mouse out, 사용자 콜백
+											if (that.delegate && 
+												that.delegate.callbackFunc &&
+												that.delegate.callbackFunc.didMouseOutPolygon) {
+												that.delegate.callbackFunc.didMouseOutPolygon(e, feature, layer.options.type, that);
+											}
+										}
+									},
+									click : function (e) {
+										if (!that.isLayerMouseEventDisabled) {
+											var layer = e.target;
+											if (!sop.Browser.ie) {
+												layer.bringToFront();
+											}	
+											if (that.delegate && 
+												that.delegate.callbackFunc && 
+												that.delegate.callbackFunc.didSelectedPolygon) {
+												that.delegate.callbackFunc.didSelectedPolygon(e, feature, layer.options.type, that);
+											}
+										}
+									},
+									
+									drop : function (e) {
+										var layer = e.target;
+										that.curDropPolygonCode = that.curPolygonCode;
+										that.isNoReverseGeocode = true;
+										that.dropEvent = e;
+										that.curDropCd = layer.feature.properties.adm_cd;
+										
+										if (!this.isInnerMapShow3) { //mng_s 20180213 행정구역 그리드의 경우 읍면동으로 내려가면 8 자리인데 7자리로 자르면 않됨
+											if (that.curDropCd.length > 7) {
+												that.curDropCd = that.curDropCd.substring(0,7);
+											}
+										}
+
+										var zoom = that.zoom;	
+										
+										//mng_s 20210216 이진호
+										//대화형 통계지도에 위성지도로 변경 후 선택항목을 드래그 하여 결과표출 시 위성지도 줌이 안맞는 현상 수정
+										//혹시 몰라서 대화형 통계지도에서만 적용되도록 분기처리 하였음
+										if(document.location.href.match("interactiveMap")){
+											that.mapMove([layer.dropUTMK.x, layer.dropUTMK.y], that.setZoomCalibrate(zoom, -1));
+										}else{
+											that.mapMove([layer.dropUTMK.x, layer.dropUTMK.y], that.setZoomCalibrate(zoom, 6));
+										}
+										//mng_e 20210216 이진호
+										
+										if (that.delegate && 
+											that.delegate.callbackFunc && 
+											that.delegate.callbackFunc.didMapDropEnd instanceof Function) {
+											that.delegate.callbackFunc.didMapDropEnd(e.dropEvent, e.dropSource, e.target, e.target.feature.properties, that);
+										}
+										
+										that.isMouseOver = false;
+										
+									},
+									sync : function (e) {
+										if(e.action == "mouseover") {
+											that.isMouseOver = true;		
+											that.setPolyLayerMouseover(e);
+											
+											if (that.infoControl != null) {
+												that.infoControl.update(e.target.feature);
+											}
+																				
+											if (feature.properties.adm_cd != undefined &&
+												feature.properties.adm_cd.length > 0) {
+												that.mouseOverAdmCd = e.target.feature.properties.adm_cd;
+											}
+											
+											// mouse over , 사용자 콜백
+											if (that.delegate && 
+												that.delegate.callbackFunc &&
+												that.delegate.callbackFunc.didMouseOverPolygon) {
+												that.delegate.callbackFunc.didMouseOverPolygon(e, e.target.feature, layer.options.type, that,that.id);
+											}
+												
+										} else if(e.action == "mouseout") {
+											//$thematicMapFrame06.ui.mapList[0].setPolyLayerMouseout(e);
+											//$thematicMapFrame06.ui.mapList[1].setPolyLayerMouseout(e);
+										}
+									}
+								
+								});
+							},
+							type : type, // 일반경계인지, 데이터경계인지 구분
+							layerCode : that.curPolygonCode,
+						
+						});
+						
+						//setRank(adm_cd);
+						
+						this.geojson = geojson;
+						this.geojson.addTo(this.gMap);
+						//
+						
+						
+						if(adm_cd != null && adm_cd != undefined){
+							//console.log("[map.js] addPolygonGeoJson() 상위111 adm_cd[" + adm_cd);
+							//console.log("[map.js] addPolygonGeoJson() 상위111 adm_cd.length[" + adm_cd.length);
+						}
+						
+						
+						//집계구경계의 중심좌표 설정
+						if (!this.isTradeMapShow && !this.isInnerMapShow && !this.isInnerMapShow3) { //mng_s 20180209 isInnerMapShow3 추가
+							if (adm_cd != undefined && adm_cd.length > 7) {
+								geojson.eachLayer(function(layer) {
+									if (layer.feature.properties.adm_cd.length > 7) {
+										var center = layer.getCenter();
+										layer.feature.properties["x"] = center.x;
+										layer.feature.properties["y"] = center.y;
+									}
+								});
+							}
+						} 
+						
+						
+						return geojson;
+					};
+					
+					this.setPolygonGeoJsonStyle = function (type) {
+						// 일반경계일 경우, 색상을 채우지않고,
+						// 데이터경계일 경우, 색상을 채운다.
+						var color = "#666666";
+						var fillColor = "white";
+						var weight = 1.75;
+						var fillOpacity = 0;
+						var dashArray =  '0';//박길섭 수정
+				
+						if($legendInfo.ui.slideInfo.slideValue1 == undefined){
+							$legendInfo.ui.slideInfo.slideValue1 = 0.7;
+						};
+						this.dataPolygonFillOpacity = $legendInfo.ui.slideInfo.slideValue1;
+						fillOpacity = this.dataPolygonFillOpacity;
+						$("#legendDataSlider").slider("option","value",fillOpacity);
+						
+						//mng_e
+						dashArray = "";
+						
+						
+						return {
+							weight : weight,
+							opacity : 1,
+							color : color,
+							dashArray: dashArray,
+							fillOpacity : fillOpacity,
+							fillColor : fillColor
+						};
+					};
+					
+					this.setLayerColor = function (feature, layer) {
+				
+							var tmpLevel = new Array();	
+							feature["combine"] = true;
+
+							var datainfo = feature.properties;	
+							
+
+							
+							var fillColor = that.legend.getColor(feature.properties.value, that.legend.valPerSlice[0])[0];
+							layer.setStyle({
+								weight : layer.options.weight,
+								color : layer.options.color,
+								dashArray : layer.options.dashArray,
+								fillOpacity : layer.options.fillOpacity,
+								fillColor : fillColor
+							});
+					
+						
+					};
+					
+					this.setPolyLayerMouseout = function (e) {
+						var layer = e.target;
+						var color = "#666666";
+						var fillColor = "white";
+						var weight = 1.75;
+						
+						
+						layer.setStyle({
+							weight : weight,
+							color : color,
+							dashArray : layer.options.dashArray,
+							fillOpacity : layer.options.fillOpacity,
+							fillColor : layer.options.fillColor
+						});
+							
+
+						if (!sop.Browser.ie) {
+							layer.bringToBack();
+						}
+					};
+					
+					this.setPolyLayerMouseover = function (e) {
+						var layer = e.target;
+						layer.setStyle({
+							weight : 1,
+							color : "#0086c6",
+							dashArray : layer.options.dashArray,
+							fillOpacity : layer.options.fillOpacity,
+							fillColor : layer.options.fillColor
+						});
+						
+						if (!sop.Browser.ie) {
+							layer.bringToFront();
+						}
+					};
+					
+					
+					
+					this.setLegendColor = function () {
+						if (this.dataGeojson) {
+							this.updatePolygonGeoJson();
+						}
+					};
+					
+					this.setLegendForStatsData = function (data1) {
+						var arData = new Array();
+						var result = [];
+						
+						var i = 0;
+						var max = 0;
+						data1.features.forEach(function(item,index){
+							
+							if(item.properties.value != null && item.properties.value != 'N') {
+								
+								if(max < item.properties.value) max= item.properties.value;
+								
+								result[i] = item.properties.value;
+								i++;
+							}
+										  
+						});
+						
+						if(result.length <1) result = [0];
+						
+						
+						result.forEach(function(item,index){
+							if(item <= 0){
+								result[index] =Math.ceil(max*0.1);
+							}
+						});
+						
+						arData.push(result);
+						
+						
+						that.legend.valPerSlice = that.legend.calculateLegend(arData);//test
+					};
+					
+					// 전국시도경계가져오기
+					
+			 },
+			 
+
+			 
+			 	
+	};
+
+
+	
+	
+}(window, document));
+
+

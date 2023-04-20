@@ -1,0 +1,1045 @@
+@charset "utf-8";
+
+/*NanumSquare*/
+/* @font-face {font-family:"NanumSquare"; font-style:normal; font-weight:400; src: url(../font/NanumSquareR.eot); src:url(../font/NanumSquareR.woff) format('woff'), url(../font/NanumSquareR.ttf) format('truetype');} */
+/* @font-face {font-family:"NanumSquareB"; font-weight:700; src: url(../font/NanumSquareB.eot); src:url(../font/NanumSquareB.woff) format('woff'), url(../font/NanumSquareB.ttf) format('truetype');} */
+/*Notosans*/
+/*font*/
+@import url("https://fonts.googleapis.com/earlyaccess/notosanskr.css");
+/*2020.09.21[신예리] 속도문제로 인해  폰트 주석 처리 STRAT
+@font-face {font-family:"NotoSansCJKkr-Regular"; font-style:normal; font-weight:400; src: url(../font/NotoSansCJKkr-Regular.otf) format('otf');}
+@font-face {font-family:"NotoSansCJKkr-Bold"; font-style:bold; font-weight:700; src: url(../font/NotoSansCJKkr-Bold.otf) format('otf');}
+2020.09.21[신예리] 속도문제로 인해  폰트 주석 처리 END */
+
+.mb10 {margin-bottom: 10px;}
+body {font-family: "Noto Sans KR", sans-serif !important;}
+.List-ConCard.on, .List-ConCard:focus, .List-ConCard:hover
+/*reset*/
+body,section,aside,ul,li,h1,h2,h3,h4,p,footer,dl,dd,dt,fieldset,input,button,ol {margin:0; padding:0;}
+li {list-style:none;}
+h1, h2, h3, h4, h5, h6, h7 { clear:both;}
+table{border-collapse: collapse; border-spacing:0;}
+article, aside, canvas, details, figcaption, figure, footer, header, hgroup, nav, menu, nav, section { display: block; }
+em,address{font-style: normal;}
+textarea, textarea:active, textarea:visited { font-size:11px; padding:10px; margin:0;}
+a {text-decoration:none; }
+img {vertical-align:bottom;}
+input[type=radio], input[type=checkbox] { vertical-align:middle;}
+fieldset{border:0;}
+input:not([type=radio]):not([type=checkbox]) {-webkit-appearance: none; /* border-top-left-radius: 0px;border-top-right-radius: 0px;border-bottom-right-radius: 0px;border-bottom-left-radius: 0px; */}
+select::-ms-expand {display:none;}
+
+body {font-family:"Noto Sans KR"; font-size:12px; color:#555; letter-spacing: -0.5px;}	/* 2020.09.21[한광희] 폰트 수정 */
+html, body {height:100%; min-height:100%; overflow-x:hidden; -webkit-tap-highlight-color: rgba(0,0,0,0);}
+.Wrap {height:auto; min-height:100%;}
+button {cursor:pointer; white-space:nowrap; border:0 none; outline: none;}
+
+/*Common*/
+.ac{text-align:center !important;}
+.al{text-align:left !important;}
+.fl{float: left !important;}
+.fr{float: right !important;}
+.bb{border-bottom: 1px solid #E1E1E2 !important;}
+.mt30{margin-top:30px !important;}
+.mt20{margin-top:20px !important;}
+.mt25{margin-top:25px !important;}
+.mt10{margin-top:10px !important;}
+.mt15{margin-top:15px !important;}
+.mlr16{margin:0 16px !important;}
+.pt15{padding-top:15px !important;}
+.Hidden {visibility:hidden; overflow:hidden; width:0; height:0; font-size:0; line-height:0; position:absolute; padding:0 !important;}
+.disabled {opacity: 0.6;}
+.loading-box:before{background-color:#D3D3D3;opacity: 0.6;left: 0;top: 0;position: absolute;width: 100%;height: 100%;content: "";z-index: -1;}
+
+
+/*aside-LNB menu*/
+#lnbWrap.open {right: 0; display: block;}
+aside { transition: all 0.2s; min-height:100%; width:100%; display:none; background:#F7F9F9; position:absolute; top:0; z-index:10000; box-shadow:0px 0px 10px rgba(0, 0, 0, .5);}
+/*2020.09.11[신예리] 웹접근성 문제로 인한 css 수정 START*/
+aside .btn_menuClose {width:36px; height:36px; display: flex; align-items: center; justify-content: center; background-color: transparent; position: absolute; top: 7px; right: 10px;}
+aside .btn_menuClose img {width: 17px; height: 17px;}
+/*2020.09.11[신예리] 웹접근성 문제로 인한 css 수정 END*/
+aside > h3 {height:50px; width:100%; display: flex; align-items: center; background:#F7F9F9; color:#676767;padding-left: 16px; font-size:18px; font-family:"Noto Sans KR"; box-sizing:border-box} /* 2020.09.21[신예리] 폰트 수정 */
+aside .Map_menu { background:#ededed; border-bottom:#d3d3d3 solid 1px; position:relative; font-size:16px; font-family:"Noto Sans KR"; color:#666;z-index:1000;} /* 2020.09.21[신예리] 폰트 수정 */
+aside .Map_menu a { padding:20px 20px 20px 40px ; margin-left:30px; display:inline-block; background:url(../images/icon/icon_bookmark.png) no-repeat left 15px; background-size:30px;}
+aside .Map_menu a:last-child { background-image:url(../images/icon/icon_share.png); background-size:25px;}
+.aside_menu {position:relative; left:0; display:block;  padding:0 15px;}
+.aside_menu li {border-bottom:#4B5158 solid 1px; list-style:none; min-height:50px;}
+.aside_menu li:hover, .aside_menu li.on {width: 100%;background-color: rgba(66,70,75,0.5);}
+.aside_menu li:last-child {border-bottom:0;}
+.aside_menu li a {display:block; color:#fff; font-family:"Noto Sans KR"; font-size:16px; padding:25px 0 25px 50px; }	/* 2020.09.21[한광희] 폰트 수정 */
+.aside_menu li a:last-child{margin-bottom: 5px;}
+/*2020.09.21[신예리] 폰트 수정으로 인한 중앙 정렬 맞춤 START*/
+.aside_menu li.menu01 a {background:url(../images/common/lnb_00.png) no-repeat 10px center; background-size:25px;}
+.aside_menu li.menu02 a {background:url(../images/common/lnb_01.png) no-repeat 10px 27px; background-size:25px;}
+.aside_menu li.menu03 a {background:url(../images/common/lnb_02.png) no-repeat 10px 27px; background-size:25px;}
+.aside_menu li.menu04 a {background:url(../images/common/lnb_03.png) no-repeat 10px 27px; background-size:25px;}
+.aside_menu li.menu05 a {background:url(../images/common/lnb_04.png) no-repeat 10px 27px; background-size:25px;}
+.aside_menu li.menu06 a {background:url(../images/common/lnb_05.png) no-repeat 10px 27px; background-size:25px;}
+.aside_menu li.menu07 a {background:url(../images/common/lnb_06.png) no-repeat 10px 27px; background-size:25px;}
+/*2020.09.21[신예리] 폰트 수정으로 인한 중앙 정렬 맞춤 END*/
+.aside_menu ul {padding:10px 0;}
+.aside_menu_wrap {/* height:calc(100% - 180px); overflow:auto; */ background-color:#585C62;}
+
+/*search-RNB */
+
+#rnbWrap.open {right: 0; display: block;}
+.searchWrap {transition: all 0.2s; min-height:100%; height: 100%; width:100%; display:none; background:#fff; position:absolute; top:0; z-index:1000; }
+.searchWrap .btn_menuClose {position:absolute; top:7px; right:10px; overflow:hidden; display:block; width:36px; height:36px; text-indent:-1000px; background:url(../images/common/btn_close.png) no-repeat center center; background-size:15px;}
+.search-container{ width: 100%; display: flex; margin: 0 auto; flex-direction: row; align-items: center; height: 50px; border-bottom: 1px solid #707070;}
+input#searchKeyword { margin-left: 16px; width: 80%; height: 45px; font-size: 1.3em; border: 0; outline: none; font-weight: 700;}	/* 2020.09.09[한광희] 이전버튼 추가로 인한 수정 */
+.search-icon { width: 21px; height: 21px; display: flex;}
+button#btn_menuClose {top:7px; right:10px; overflow:hidden; display:block; width:36px; height:36px; text-indent:-1000px; background:url(../images/common/btn_close.png) no-repeat center center; background-size:15px;}
+ /*서브페이지 결과 목록 안에 있는 검색*/
+ .search-result{  width: 100%; display: flex; margin: 10px auto; flex-direction: row; align-items: center; height: 35px; background-color: #f1f1f1; border-radius: 7px; justify-content:space-between; padding-right:5px; }
+ .search-result > input#search-bar02 { margin-left: 16px; width: 83%; height: 45px; font-size: 14px; background-color: transparent; border: 0; outline: none; font-weight: 700;}
+ .search-result > input.search-bar02 { margin:0; width: 83%; height: 30px; font-size: 12px; text-indent:10px; font-weight:normal !important; color:#6B6B6B;  }
+ .search-icon { width: 21px; height: 21px; display: flex;}
+ .search-btn {width: 21px; height: 21px; display: flex; background: url(../images/main/search_rnb.png) no-repeat center;}
+ 
+.search_list {padding: 20px 4px 0 4px; display:flex; flex-direction: column;border-bottom: 1px solid #E1E1E2;}
+.search_list > div.tit {display:flex; flex-direction: row;}
+.search_list h5 {font-size: 1.3em; font-family: "Noto Sans KR-Bold"; font-weight: 700; padding-right: 10px; margin: 0;}	/* 2020.09.21[한광희] 폰트 수정 */
+.search_list span {font-size: 1.25em; font-family: "Noto Sans KR-Bold"; color: #22A6C1; font-weight: 700; margin: 0;}	/* 2020.09.21[한광희] 폰트 수정 */
+.search_list span::before {content:'l'; color: #E1E1E2; position: relative; padding-right: 10px;}
+
+.search_list > table {padding: 15px 0; display: flex; flex-direction: column;}
+.search_list > table tr {}
+.search_list > table td {font-size: 14px; color: #353B48; padding: 5px 0;}
+.search_list > table td > a {font-size: 14px; color: #353B48;}
+
+/* 검색결과 없을경우 */
+.SearchCount.NoResult { background:url(../images/common/icon_result_none.png) no-repeat center 15px; padding-top:70px; background-size:50px; text-align: center;}
+.SearchCount.NoResult strong.Word { color:#ff3300;}
+.SearchCount.NoResult ul { padding:30px 10px;}
+.SearchCount.NoResult ul li { text-align:left; font-family:"Noto Sans KR"; font-size:12px; background:url(../images/common/list_bullet.png) no-repeat left 12px; padding-left:6px; background-size:2px; padding-bottom: 10px;} /* 2020.09.21[신예리] 폰트 수정 */
+/* 검색결과 없을경우 */
+
+/*더보기 버튼*/
+.moreBtn {background: url(../images/main/more.png) #EFF1F2 no-repeat; background-size: 14px; background-position: 180px 19px; border-radius: 40px; margin: 0 auto 20px auto; padding: 12px 125px; color:#777C82; font-size: 1.2em; font-weight: 700; text-align: center;}
+.moreBtn:hover, .moreBtn.on {background-color: rgba(235,235,235,0.3);}
+
+/* alert팝업 시작*/
+.popupWrapper{background:rgba(0,0,0,0.8); position: absolute; top: 0; width: 100%; height: 100%; z-index: 30000;}
+.alertPopupWrapper{border:1px solid #ccc;background:#fff;width:400px;height:auto;overflow:hidden;position:absolute;left:50%;margin-left:-200px;}
+.alertPopupWrapper .topbar{border-bottom:1px solid #ccc;width:100%;height:32px;overflow:hidden;background:#f5f5f5;position:relative;}
+.alertPopupWrapper .topbar>span{display:block;margin:0 0 0 10px;line-height:32px;}
+.alertPopupWrapper .topbar a{opacity:.4;display:block;width:32px;height:32px;overflow:hidden;position:absolute;right:0;top:0;background:url(../images/common/ico_close01.png) no-repeat center center;text-indent:-2000px;  transition-duration: .3s; transition-property: transform; transition-timing-function: ease-in-out; cursor: pointer; }
+.alertPopupWrapper .popContents{width:100%;height:auto;overflow:hidden;padding:15px 0;}
+.alertPopupWrapper .txt{position:relative;display:block;height:auto;padding-left:15px;overflow:hidden;margin:5px 0 0 72px;color:#666;font-size:11px;line-height:1.5em;text-align:left;}
+.alertPopupWrapper .txt:before{content:"※";font-size:13px;position:absolute;left:0;top:0;}
+.alertPopupWrapper .btnBox{width:100%;height:auto;overflow:hidden;margin:15px auto 0 auto;text-align:center;}
+.alertPopupWrapper .messageBox{ width:90%; height:auto; overflow:hidden; text-align:center; margin:20px auto;line-height:25px;}
+.alertPopupWrapper .btnStyle01 {display:inline-block;padding:5px 10px;font-size:13px;height:20px;line-height:20px;background:#dcdcdc;color:#666;margin:0 5px; cursor: pointer; }
+.alertPopupWrapper .alertInputBox{width: 70%;margin: 20px auto;display: block;height: 24px;padding: 6px 12px;font-size: 14px;line-height: 1.42857143;color: #555;background-color: #fff;background-image: none;border: 1px solid #ccc;border-radius: 4px;-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);-webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;-o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;}
+@media (max-width: 430px) {
+.alertPopupWrapper{position: relative;width: auto;margin: 10px;left:0px;}
+}
+/* alert팝업 끝*/
+
+/*popup*/
+.aside_back {display: block; position: fixed; width: 100%; height: 100%; left: 0; top: 0; background-color: rgba(0,0,0,0.7); z-index: 990;} /* 2022-11-03 z-index 수정 */
+/*2022-11-02 수정*/
+.popWrap { z-index: 1000; left: 50%; transform: translate(-50%, -50%); top: 50% !important; /* left: calc(50% - 145px); top: 100px; */ width: 300px; display: block;position: absolute; /* z-index: 11000; */ box-sizing:border-box; padding:10px; border-radius:10px; background-color:#fff; } /* 2020.09.15[한광희] 지도 클릭 팝업 사이즈 수정 */
+.popBox { border-radius: 10px; }
+/* .popHeader {background-color:#F9FBFA;border-top-left-radius: 10px; border-top-right-radius: 10px; display: flex; flex-direction: row; align-items: center; height: 45px;} */
+.popHeader {display: flex; flex-direction: row; align-items: center; box-sizing:border-box; padding:0px; background-color:#fff; justify-content:space-between; border-bottom:1px solid #e0e0e0;} 
+.popTitle {color: #353B48; font-size: 14px; font-weight: 700; text-align: center; }
+.popTitleSpan {color: #353B48; font-size: 17px; font-weight: 700; text-align: center; padding-left: 5px;}
+.btn_popClose {background: url(../images/common/pop_close.png) no-repeat center; width: 40px; height: 35px; background-size: 15px; display: flex; margin-left: auto; text-indent:-999px;} /*2020.09.11[신예리] 웹접근성 문제로 인한 css 추가 */
+.popContentBox {display: flex; flex-direction: column; background-color: white; padding: 1.5em; align-items: center; justify-content: center; font-size:12px;}
+.popMessage {color: #7B818F; font-weight: 500; font-size: 1.2em; text-align: center; line-height: 1.5em;}
+.PopFooter {display: flex; align-items: center; justify-content: center; height: 35px;}
+.PopFooter.on, .PopFooter:hover {}
+.btn_popSubmit {background-color:transparent; color: white; font-size: 1.2em; font-weight: 700;} 
+.popHeader .pop_Info_tit {font-size: 16px; letter-spacing:-1px; line-height: 20px; color: #112B48; font-weight:bold;}
+.popContent { line-height:25px;}
+/*2022.10.14[송은미] 도움말 취소버튼 css 추가 */
+.help_popClose {background: url(../images/common/pop_close.png) no-repeat center; width: 40px; height: 35px; background-size: 15px; display: flex; margin-left: auto; text-indent:-999px;} 
+
+
+
+
+#API_0301_INFO_BOX .popHeader { padding:10px;}
+#API_0302_INFO_BOX .popHeader { padding:10px;}
+#API_0304-a_INFO_BOX .popHeader { padding:10px;}
+#API_0304-b_INFO_BOX .popHeader { padding:10px;}
+#API_0305_INFO_BOX .popHeader { padding:10px;}
+#API_0306_INFO_BOX .popHeader { padding:10px;}
+#API_0310_a_INFO_BOX .popHeader { padding:10px;}
+#API_0310_b_INFO_BOX .popHeader { padding:10px;}
+
+
+
+
+
+/*관심지역 변경 팝업 css 초기화  */ /*2022-11-02 사이즈 및 위치 변경 */
+ .popWrap.region {left:50%; transform:translate(-50%, -50%); top:50% !important; width:300px; display: block; position: absolute; z-index: 888; box-sizing:border-box; border:1px solid #757678; padding:10px; background-color:#fff;  border-radius:0px !important; } 2020.09.15[한광희] 지도 클릭 팝업 사이즈 수정
+
+/*
+.popWrap.region .popBox { border-radius: 10px; }
+.popWrap.region .popHeader { display: flex; flex-direction: row; align-items: center; height: 20px; background-color:#fff;}
+.popWrap.region .popTitle {color: #000; font-size: 12px; font-weight: 700; text-align: left; padding-left:0px;}
+ */
+ .area_select_wrap {
+   position: relative;
+   border-bottom: 1px solid rgba(0,0,0,0.1);
+   color: #222;
+   box-sizing: border-box;
+   white-space: normal;
+ }
+ .area_select_wrap .area_select_inner {
+   padding: 10px 0;
+ }
+ .area_select_wrap .area_select_inner a { color:#000; font-size:13px; font-weight:bold; }
+ .area_select_wrap .area_select_inner span { color:#2277F2; padding:0 5px; font-size:13px; font-weight:bold;}
+ .area_select_wrap .area_select_inner span svg { transform:rotate(270deg); }
+ 
+ .filter_popup--area {
+   position: absolute;
+   transform: translateX(-50%);
+   left: 50%;
+   top: 52px;
+   z-index: 35;
+   width: 380px;
+   padding: 0;
+   box-shadow: none;
+ }
+ .filter_popup {
+   border: 1px solid rgba(0,0,0,0.2);
+   background-clip: padding-box;
+   background-color: #fff;
+   white-space: normal;
+ }
+ .area_list--district .radio_label_district {
+   font-size: 12px;
+   line-height: 30px;
+   text-align:center; 
+   letter-spacing: -.4px;
+   display: inline-block;
+   width: 100%;
+   height: 100%;
+   padding: 5px;
+ }
+ input[type='radio']+label {
+   cursor: pointer;
+ }
+ .area_list--district {
+   overflow-y: auto;
+   max-height: 230px;
+   border-left:1px solid #e5e5e5;
+   border-top:1px solid #e5e5e5; 
+ }
+ .area_list_wrap {
+   position: relative;
+ }
+ .blind, .checkbox_input, .radio_input {
+   position: absolute;
+   clip: rect(0 0 0 0);
+   width: 1px;
+   height: 1px;
+   margin: -1px;
+   overflow: hidden;
+ }
+ input, textarea, select, button {
+   border: 0;
+   border-radius: 0;
+   background-color: transparent;
+   font-family: inherit;
+   box-shadow: none;
+/*    appearance: none; */ /*2022-11-02 수정*/
+   color: inherit;
+ }
+ .area_list--district .area_item {
+   display: block;
+   float: left;
+   width: 33.3%;
+   height: 40px;
+   border-right: 1px solid #e5e5e5;
+   border-bottom: 1px solid #e5e5e5;
+   letter-spacing: -1px;
+ }
+ a, abbr, address, article, aside, audio, b, blockquote, body, br, button, canvas, caption,
+ cite, code, col, data, datalist, dd, del, dfn, div, dl, dt, em, embed, fieldset, figcaption,
+ figure, footer, form, h1, h2, h3, h4, h5, h6, header, hr, html, i, iframe, img, input, ins,
+ kbd, label, legend, li, main, mark, meter, nav, object, ol, output, p, pre, progress, q, s,
+ samp, section, select, small, span, strong, sub, sup, table, td, textarea, th, time, u, ul, var, video {
+   box-sizing: border-box;
+ }
+
+/*관심지역 변경 팝업 css 초기화  */
+
+
+
+
+/*확인 팝업 img 추가*/
+.i_pop {
+    position: absolute;
+    top: -25px;
+    left: calc(50% - 35px);
+    width: 70px;
+    height: 70px;
+    background-size: 70px;
+    z-index: 11000;
+    border-radius: 50%;
+}
+
+.pCheck {
+    background: url(../images/common/icon_pop_check.png) no-repeat center center;
+    background-size: 55px; display:none; 
+}
+
+/*위치동의*/
+.pin {
+    background: url(../images/common/icon_pop_pin.png) no-repeat center center;
+    background-size: 70px;
+}
+
+/*내주변통계 물음표 팝업*/
+
+.pInfo {
+    background: url(../images/common/icon_pop_info.png) no-repeat center center;
+    background-size: 55px;
+}
+
+.popContentBox_help {
+	display: flex;
+	flex-direction: column;
+	background-color: white;
+	height: 150px;
+	overflow: auto;
+	padding: 1.5em; 
+}
+
+.popBtnBox_help {
+	width: 100%;
+    padding: 0;
+    border-top:1px solid #e0e0e0;
+    margin-top:10px;
+    display: flex;
+    height:45px; 
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0 0 0 ;
+    text-align: center;
+}
+
+
+
+/*지도선택에 따른 정보 팝업*/
+
+.MapselectpopCon {
+	display: flex;
+    flex-direction: column;
+    background-color: white;
+    padding: 10px;
+    align-items: center;
+    border-radius: 5px;
+    justify-content: center;
+}
+
+.MapselectpopCon ul li {
+	text-align: center;
+	font-size: 14px;
+	margin: 5px 0;
+}
+
+.MapselectpopCon ul li span#areaTitle {
+	color: #112B48;
+    font-weight: 600;
+    font-size: 17px;
+}
+
+.MapselectpopCon ul li span#areaData {
+	
+	font-size: 14px;
+    font-weight: 600;
+}
+
+/*My통계로 버블 팝업 추가 - 0724 신예리*/
+.sop-infowindow-content-wrapper {
+	padding: 1px;
+    text-align: left; 
+    border-radius: 10px;
+    font-family: "Noto Sans KR", sans-serif !important;
+}
+
+.MapselectpopCon02 {
+	display: flex;
+    flex-direction: column;
+    background-color: white;
+    padding: 1em;
+    align-items: center;
+    border-radius: 10px;
+    justify-content: center; 
+}
+
+.MapselectpopCon02 ul li {
+	text-align: center;
+	font-size: 14px;
+	margin: 5px 0;
+}
+
+.MapselectpopCon02 ul li span#areaTitle {
+	color: #2FBFDE;
+    font-weight: 600;
+    font-size: 17px;
+}
+
+.MapselectpopCon02 ul li span#areaData {
+	
+	font-size: 14px;
+    font-weight: 600;
+}
+
+/* 우리동네 생활업종 화면에서 지도선택에 따른 정보 팝업 */
+.MapselectpopCon ul li span#bizMapAreaTitle {
+	color: #112B48;
+    font-weight: 600;
+    font-size: 17px;
+}
+
+.MapselectpopCon ul li span#bizMapAreaData {
+	font-size: 14px;
+    font-weight: 600;
+}
+
+ 
+/*생활환경종합 popup*/
+.poipopDiv { width: 300px; padding: .8em; background-color: white; border-radius: 10px; box-shadow: 0px 0px 3px rgba(0,0,0,0.5); z-index: 11000; top: 145px; left: calc(50% - 150px); position: absolute; display: none;}
+.poiHeader {border-top-left-radius: 10px; border-top-right-radius: 10px; display: flex; flex-direction: row; align-items: center; border-bottom:1px solid #E7E7E7;}
+.poiTitle {padding: .5em;color: #000; font-size: 1.4em; font-weight: 700; text-align: center; }
+.poiCon { border-bottom:1px solid #E7E7E7; }
+.poiCon ul {margin:0; padding: 0; display: flex; flex-direction: column;}
+.poiCon ul li {border-bottom: 1px solid #E1E1E2; padding: .8em .5em; display: flex; flex-direction: row; align-items: center;}
+.poiCon ul li:last-child {border-bottom: 0; }
+.poiCon ul li div.col { flex: 130px; flex-direction: row; display: flex; align-items: center;}
+.poiCon ul li div.col p {padding-left: 10px; font-size: 1.2em; }
+.poiCon ul li div.col span {width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50px;}
+.poiBtnrow {display: flex; flex-direction: row; width: 100%; align-items: center; justify-content: center;}
+.bad{border: 1px solid #F26C5F;}
+.good{border: 1px solid #1C82BC;}
+.normal{border: 1px solid #61BC1C;}
+.bad_txt{color: #F26C5F;}
+.good_txt{color: #1C82BC;}
+.normal_txt{color: #61BC1C;}
+.detailBtn {padding: .5em 2.5em; font-size: 1.1em; margin: 10px auto; background-color: #F7F7F7; border-radius: 5px; border: 1px solid #e8e8e8; align-items: center; color:4f4f4f;}
+.detailBtn.on, .detailBtn:hover {background-color: #f4f4f5;}
+
+/*생활환경종합 상세보기*/
+
+.alertMessage {color: #7B818F; font-weight: 500; font-size: 14px; text-align: center; line-height: 1.5em; word-break: keep-all;}	/* 2020.09.02[한광희] 알림 팝업 개행 수정 */
+.popBtnBox {
+	width: 100%;
+    padding: 0;
+    border-top:1px solid #e0e0e0;
+    margin-top:10px;
+    display: flex;
+    height:45px; 
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0 0 0 ;
+    text-align: center;
+}
+
+.btn_popType3 {
+	background-color: #112B48;
+    color: white;
+    width: 100px;
+    height: 100%;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius:5px; 
+	
+}
+
+.btn_popType4 {
+	background-color: #F7F7F7;
+	box-sizing:border-box; border:1px solid #E8E8E8;
+    color: #4f4f4f;
+    width: 100px;
+    height: 100%;
+    font-size: 12px;
+    font-weight: 700;
+}
+/*
+2021.11.24 새로운 메뉴 적용
+.gnb {
+	position: relative;
+	padding: 0 0 0 16px; 
+	height: 50px;
+	letter-spacing: -1px; 
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	border-bottom: 1px solid #ddd;
+}
+
+.gnb > h2 {font-size: 1.5em; color: #4B5158; font-weight: bold;}
+*/
+/*subpage*/
+.sub_header header.header {width: 100%; height:60px; box-sizing:border-box; padding:15px 10px 15px 10px; border-bottom: 1px solid #979797; display: flex; flex-direction: row; background-color: #112B48; align-items: center;}
+/*2020.09.10[신예리] font 적용 START*/
+.sub_header header h1 { color: white; text-align: center; align-items: center; flex: auto; font-size: 1.4em; font-family: 'Noto Sans KR';}
+.sub_header header h2 { color: white; text-align: center; align-items: center; flex: auto; font-size: 1.4em; font-family: 'Noto Sans KR'; font-weight:bold;}
+/*2020.09.10[신예리] font 적용 END*/
+
+/*2020.09.11[신예리] 웹 접근성 문제로 수정 START*/
+.sub_header header .s_menuBtn {width: 50px; height: 40px; background-color: transparent; cursor: pointer; align-items: center; display: flex; justify-content: center;}
+.sub_header header .s_menuBtn img {width: 20px; height: auto;}
+.sub_header header .homeBtn {width: 50px; height: 40px; background-color:transparent; cursor: pointer; align-items: center; justify-content: center;}
+.sub_header header .homeBtn img {width: 20px; height: auto;}
+/*2020.09.11[신예리] 웹 접근성 문제로 수정 END*/
+
+.datatit {  height: 40px; display: flex; align-items: center; justify-content: space-between; border-bottom:1px solid #d5d5d5; }
+.datatit h2 {color: #000; font-size: 1.3em; font-weight: 700;}
+
+
+/*각 메뉴별 header color START - 0715 추가*/
+ 
+.sub_header header.header00 {width: 100%; height:40px; border-bottom: 1px solid #979797; display: flex; flex-direction: row; background-color: #447CB4; align-items: center;}
+.sub_header header.header01 {width: 100%; height:40px; border-bottom: 1px solid #979797; display: flex; flex-direction: row; background-color: #10A0A5; align-items: center;}
+.sub_header header.header02 {width: 100%; height:40px; border-bottom: 1px solid #979797; display: flex; flex-direction: row; background-color: #D67C89; align-items: center;}
+.sub_header header.header03 {width: 100%; height:40px; border-bottom: 1px solid #979797; display: flex; flex-direction: row; background-color: #7F85C1; align-items: center;}
+.sub_header header.header04 {width: 100%; height:40px; border-bottom: 1px solid #979797; display: flex; flex-direction: row; background-color: #E3AE6E; align-items: center;}
+.sub_header header.header05 {width: 100%; height:40px; border-bottom: 1px solid #979797; display: flex; flex-direction: row; background-color: #4E8874; align-items: center;}
+.sub_header header.header06 {width: 100%; height:40px; border-bottom: 1px solid #979797; display: flex; flex-direction: row; background-color: #5C8FCA; align-items: center;}
+
+
+/*각 메뉴별 header color END - 0715 추가*/
+
+/*관심지역 설정 팝업*/
+.select_wrap {
+	display: flex;
+    flex-direction: row;
+    align-items: center; 
+    /*2022-11-02 추가 */
+    width: 100%; 
+    display: flex;
+}
+
+.select_wrap > select {
+	font-size: 12px;
+    padding: 10px 25px 10px 6px;
+    border: 1px solid #E1E1E2;
+    background: url(../images/common/select_arrow.png) no-repeat right 10px center;
+    background-size: 1em;
+    background-color: #fff;
+    color: #4B5158;
+    -webkit-appearance: none;
+    margin: 0 3px;
+    flex: 1 auto;
+    width: 95px;
+    white-space: nowrap;
+}
+
+.selectsubtit {
+	display: flex; 
+    margin-right: auto;
+    font-size: 14px;
+    margin-bottom: 10px;
+    color: #4B5158;
+}
+
+/*통계주제도 년도 선택 영역 css 추가*/
+.select_wrap02 {
+/* 	display: flex; */
+    flex-direction: column; 
+}
+
+.select_wrap02 > select {
+	font-size: 12px;
+    padding: 10px 25px 10px 6px;
+    border: 1px solid #E1E1E2;
+    background: url(../images/common/select_arrow.png) no-repeat right 10px center;
+    background-size: 1em;
+    background-color: #fff;
+    color: #4B5158;
+    -webkit-appearance: none;
+    margin: 0 3px;
+    flex: 1 auto;
+}
+
+/* 2020.09.11[신예리] 일별선택 select div 추가 START */
+
+.select_wrapDate {
+	display: flex;
+    flex-direction: row;
+    margin: 7px 0 0 0;
+}
+
+.select_wrapDate > select {
+	font-size: 12px;
+    padding: 10px 25px 10px 6px;	/* 2020.09.15[한광희] 코로나19 추가 */
+    border: 1px solid #E1E1E2;
+    background: url(../images/common/select_arrow.png) no-repeat right 10px center;
+    background-size: 1em;
+    background-color: #fff;
+    color: #4B5158;
+    -webkit-appearance: none;
+    margin: 0 3px;
+    flex: 1 auto;
+}
+
+/* 2020.09.11[신예리] 일별선택 select div 추가 END */
+
+
+
+/*지역현안 소통지도 popup 수정, 삭제 팝업 0714-신예리*/
+
+.popWrapCommunity {
+	left: calc(50% - 145px);
+    top: 100px;
+    position: absolute;
+    z-index: 999;
+    width: calc(100% - 30%);
+}
+
+.popBoxCommunity {
+	border-radius: 10px;
+}
+
+.popBtnBoxCommunity {
+	width: 100%;
+    padding: 0;
+    display: flex; 
+    margin: 0;
+    position: relative;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    height: 40px; 
+    text-align: center;
+}
+
+.sfbLabel00 { 
+    position: relative;
+    color: #4B5158;
+    font-size: 1.3em;
+    margin: 7px 0;
+    margin-right: auto;
+}
+
+
+.btn_popType1_00 {
+	display: flex;
+    flex: 1 auto;
+    align-items: center;
+    justify-content: center;
+    width: 50%;
+    background-color: #2DC2DA;
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    height: 100%;
+    border-bottom-left-radius: 10px;
+}
+
+.btn_popType1_00.on, .btn_popType1_00:focus {
+	display: flex;
+    flex: 1 auto;
+    align-items: center;
+    justify-content: center;
+    width: 50%;
+    background-color: #26A7BF;
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    height: 100%;
+    border-bottom-left-radius: 10px;
+} 
+
+.btn_popType2_00 {
+	display: flex;
+    flex: 1 auto;
+    align-items: center;
+    justify-content: center;
+    width: 50%;
+    background-color: #F2F2F3;
+    color: #B1B9BF;
+    font-size: 14px;
+    font-weight: 700;
+    height: 100%;
+    border-bottom-right-radius: 10px;
+}
+
+.btn_popType2_00.on, .btn_popType2_00:focus {
+	display: flex;
+    flex: 1 auto;
+    align-items: center;
+    justify-content: center;
+    width: 50%;
+    background-color: #B1B9BF;
+    color: #989898;
+    font-size: 14px;
+    font-weight: 700;
+    height: 100%;
+    border-bottom-right-radius: 10px;
+}
+
+/*2020.09.02 [신예리] 위치동의 허용, 허용안함 버튼 START*/
+/*2022-11-02 수정*/
+.popBtnBoxLocation {
+	width: 100%;
+    padding: 0;
+    display: flex;
+/*     background-color: #2DC2DA; */
+/*     margin: 0; 
+    bottom: 0; */
+    align-items: center;
+    justify-content: center; 
+    text-align: center;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    
+    background-color: white;
+
+}
+
+.AllowBtn {
+    display: flex;
+    flex: 1 auto;
+    align-items: center;
+    justify-content: center;
+    width: 50%;
+/*     background-color: #2DC2DA; */
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 9px 0;
+    border-bottom-left-radius: 10px;
+    
+    border: 1px solid #2277F2;
+    color: #2277F2;
+    background-color: white;
+    margin: 0 5px 0;
+}
+ 
+.AllowBtnNot {
+    display: flex;
+    flex: 1 auto;
+    align-items: center;
+    justify-content: center;
+    width: 50%;
+/*     background-color: #f1f7f9; */
+    color: #2DC2DA;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 9px 0;
+    border-bottom-right-radius: 10px;
+/*     border: 2px solid #2DC2DA; */
+	background-color: white;
+	border: 1px solid #c4c4c4;
+    color: #3D3D3D;
+}
+
+/*2020.09.02 [신예리] 위치동의 허용, 허용안함 버튼 END*/
+
+.popBtnBoxCurrent {
+	width: 100%;
+    padding: 0;
+    display: flex;
+    background-color: #2DC2DA;
+    margin: 0;
+    position: absolute;
+    bottom: 0;
+    align-items: center;
+    justify-content: center; 
+    text-align: center;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+
+.btn_popType1 {
+	display: flex;
+    flex: 1 auto;
+    align-items: center;
+    justify-content: center;
+    width: 50%;
+    background-color: #2DC2DA;
+    color: white;
+    font-size: 14px;
+    font-weight: 700; 
+    padding: 9px 0;
+    border-bottom-right-radius: 10px;
+}
+
+.btn_popType1.on {
+	display: flex;
+    flex: 1 auto;
+    align-items: center;
+    justify-content: center;
+    width: 50%;
+    background-color: #26A7BF;
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 9px 0;
+    border-bottom-left-radius: 10px;
+} 
+
+.btn_popType2 {
+	display: flex;
+    flex: 1 auto;
+    align-items: center;
+    justify-content: center;
+    width: 50%;
+    background-color: #F2F2F3;
+    color: #B1B9BF;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 9px 0;
+    border-bottom-left-radius: 10px;
+}
+
+.btn_popType2.on {
+	display: flex;
+    flex: 1 auto;
+    align-items: center;
+    justify-content: center;
+    width: 50%;
+    background-color: #B1B9BF;
+    color: #989898;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 9px 0;
+    border-bottom-right-radius: 10px;
+} 
+
+
+
+
+.communityInput {
+	padding: 10px 7px;
+    width: 100%;
+    border: 1px solid #E1E1E2;
+    color: #4B5158;
+    outline: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+.btn_popType2 {
+	
+}
+
+
+
+/*범례창 시작*/
+.legend-panel {
+	
+}
+
+.legend-panel li {
+	min-height: 25px;
+	float: left;
+	text-align: center;
+	line-height: 20px;
+	color: #fff;
+}
+
+.legend-panel li span {
+	display: none;
+}
+
+.legend-panel li.M_on {
+	background: url(../../images/icon/icon_check.png) no-repeat 10px center;
+	background-size: 31%;
+}
+
+.remarks_option  { 
+}
+
+.remarks_option .remarks_option_in {
+	padding: 12px 0 10px 0;  
+}
+
+.remarks_option .remarks_option_in .roption_tit {
+	color: #000;
+	font-size: 13px;
+	padding-left: 8px;
+	line-height: 12px;
+	height: 20px;
+	border-bottom: 1px solid #848484;
+	margin-bottom: 9px;
+}
+
+.remarks_option .remarks_option_in table {
+	border-collapse: collapse;
+	width: 100%;
+	margin-bottom: 5px;
+}
+
+.remarks_option .remarks_option_in table caption {
+	display: none;
+}
+
+.remarks_option .remarks_option_in table tbody tr th {
+	color: #222;
+	font-size: 12px;
+	text-align: center;
+	line-height: 12px;
+}
+
+.remarks_option .remarks_option_in table tbody tr td {
+	color: #222;
+	font-size: 12px;
+	line-height: 12px;
+}
+
+.remarks_option .remarks_option_in table tbody tr th span {
+	margin-left: 15px;
+}
+
+.remarks_option .arrow_remark {
+	position: absolute;
+	right: 5px;
+	bottom: -7px;
+}
+
+.remarks_option .remark_btn_close {
+	position: absolute;
+	right: 11px;
+	top: 8px;
+	cursor: pointer;
+}
+
+.btn_roption {
+	text-align: center;
+	cursor: pointer;
+}
+
+.btn_roption a {
+	display: inline-block;
+	vertical-align: top;
+	padding: 6px 20px 7px 20px;
+	background: #727272;
+	color: #fff;
+	font-size: 13px;
+}
+
+.btn_roption a.bg_blue {
+	background: #457bc3;
+}
+
+.color_checkbox tbody {
+	display: flex;
+    align-items: center;
+}
+
+.colorck li {
+	float: left;
+	list-style: none;
+	margin-right: 6px;
+}
+
+.colorck li a {
+	text-indent: -2000px;
+	display: block;
+	border-radius: 50%;
+	width: 17px;
+	height: 17px;
+	overflow: hidden;
+	background: #890e4f;
+	margin: 0 0 0 auto;
+}
+
+.circle {
+	display: block;
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	font-size: 50px;
+	text-align: center;
+	cursor: pointer;
+}
+
+.circle.active {
+	background: url(../../images/icon/icon_check.png) no-repeat center
+		center;
+	background-size: 62%;
+}
+
+/*my통계로 범례창*/
+.color_checkbox02 {
+	display: flex;
+	flex-direction: column;
+	margin-left: 5px;
+}
+
+.colorck02 li { 
+}
+
+.colorck02 li a {
+	text-indent: -2000px;
+	display: block;
+	border-radius: 50%;
+	width: 17px;
+	height: 17px;
+	overflow: hidden;
+	background: #890e4f;
+	margin: 6px auto;
+}
+
+/*범례창 종료*/
+/*footer*/
+.footer {position:relative;; bottom:0; left:0; overflow:hidden; width:100%; padding:0px 21px; box-sizing:border-box; z-index:1; text-align: center; padding-bottom: 20px; background-color: #F7F9F9;}
+.copyright {font-size:11px; letter-spacing:-0.05em; color:#A2A2A2; }
+
+
+/*2020.09.11[신예리] 대체 텍스트 text 숨김 START*/
+
+.ir {
+  overflow: hidden;
+  display: inline-block;
+  position: absolute;
+  border: 0;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  clip: rect(1px, 1px, 1px, 1px);
+  clip-path: inset(50%);
+}
+
+
+/*2020.09.11[신예리] 대체 텍스트 text 숨김 END*/
+
+.popup_tab li{cursor:pointer;width:130px;height:25px;border-radius:5px;margin:10px;padding:5px 0 0 0;background:#eee;color:#888;display:flex;}
+.popup_tab li:hover, .popup_tab li.on{background:#1778cc;color:#fff;}
+.popup_tab li.con1 .ico{background:url('../images/covid/covid_pop_ico01.png') no-repeat;width:30px;height:24px;margin-left:10px;margin-top:-2px;}
+.popup_tab li.con2 .ico{background:url('../images/covid/covid_pop_ico02.png') no-repeat;width:30px;height:24px;margin-left:10px;margin-top:-2px;}
+.popup_tab li.con1:hover .ico, .popup_tab li.con1.on .ico{background:url('../images/covid/covid_pop_ico01on.png') no-repeat;width:30px;height:24px;margin-left:10px;margin-top:-2px;}
+.popup_tab li.con2:hover .ico, .popup_tab li.con2.on .ico{background:url('../images/covid/covid_pop_ico02on.png') no-repeat;width:30px;height:24px;margin-left:10px;margin-top:-2px;}
+.popup_cont{width:285px;padding-top:15px;margin: 0px 15px;position: absolute;text-align:center;}
+.popup_cont.on{display:block;}
+.vaccination_status{}
+/* .vaccination_status .tit{border-radius:9px 9px 0 0;position:relative;flex:1;font-size:18px;color:#fff;font-weight:600;line-height:25px;height:25px;} */
+.vaccination_status .tit{border-radius:9px 9px 0 0;position:relative;flex:1;font-size:13px;color:#fff;font-weight:600;line-height:21px;height:20px;}
+.vaccination_status.style01 .tit{background:linear-gradient(180deg, #d0baff, #b793fa);}
+.vaccination_status.style01 .tit::after{background:#b793fa;}
+.vaccination_status.style02 .tit{background:linear-gradient(180deg, #fecf8f, #feb34d);}
+.vaccination_status.style02 .tit::after{background:#feb34d;}
+/* .vaccination_status .tit::after {content: "";z-index:2;position:absolute;width:10px;height:10px;transform:rotate(-45deg);top:calc(100% - 5px);left:calc(50% - 5px);background:#eaeff9;} */
+.vaccination_status .tit::after {content: "";z-index:2;position:absolute;width:5px;height:5px;transform:rotate(-45deg);top:calc(100% - 2px);left:calc(50% - 5px);background:#eaeff9;}
+/* .vaccination_status .result{position:relative;z-index:1;flex:3;border-radius:0 0 9px 9px;display:flex;height:120px;align-items:center;justify-content:space-between;overflow:hidden;} */
+.vaccination_status .result{position:relative;z-index:1;flex:3;border-radius:0 0 9px 9px;display:flex;height:80px;align-items:center;justify-content:space-between;overflow:hidden;}
+/* .vaccination_status .result .sign_ico{display:flex;align-items:center;justify-content:center;top:calc(50% - 12px);width:24px;height:24px;border-radius:100%;position:absolute;} */
+.vaccination_status .result .sign_ico{display:flex;align-items:center;justify-content:center;top:calc(50% - 8px);width:21px;height:21px;border-radius:100%;position:absolute;}
+/* .vaccination_status .result .sign_ico.plus{left:calc(66.666% - 12px);} */
+.vaccination_status .result .sign_ico.plus{left:calc(66.666% - 11px);}
+/* .vaccination_status .result .sign_ico.equals{left:calc(33.333% - 12px);} */
+.vaccination_status .result .sign_ico.equals{left:calc(33.333% - 11px);}
+.vaccination_status.style01 .result .sign_ico{background:#b593ff;}
+.vaccination_status.style02 .result .sign_ico{background:#feb34d;}
+.vaccination_status .result .item{flex:1;height:100%;display:flex;flex-direction:column;justify-content:center;}
+.vaccination_status .result .item.style01>*{background:linear-gradient(180deg, #f3f6fb, #eaeff9)}
+.vaccination_status .result .item.style02>*{border-right:1px solid #c3cce1;background:linear-gradient(180deg, #e8e8e8, #d8deec);}
+.vaccination_status .result .item.style03>*{background:linear-gradient(180deg, #e8e8e8, #d8deec);}
+/* .vaccination_status .result .item h5{height:70px;display:flex;align-items:center;justify-content:center;text-align:left;font-size:12px;color:#555;margin:0;} */
+.vaccination_status .result .item h5{height:35px;display:flex;align-items:center;justify-content:center;text-align:left;font-size:12px;color:#555;margin-top:-4px;}
+.vaccination_status .result .item h5 img{margin-right:4px;}
+/* .vaccination_status .result .item .num{font-size:14px;color:#313131;font-weight:600;height:70px;display:flex;align-items:center;justify-content:center;} */
+.vaccination_status .result .item .num{font-size:14px;color:#313131;font-weight:600;height:40px;display:flex;align-items:center;justify-content:center;margin-top:-21px;}
+/* .vaccination_status:first-child{margin-bottom:15px;} */
+.vaccination_status{margin-bottom:10px;}

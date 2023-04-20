@@ -1,0 +1,1750 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="wrTodayStatus">
+	
+	<!-- 오늘의 구인현황 조회 > 전체(초기화면) -->
+	<select id="getTodayStatus" parameterType="hashmap" resultType="hashmap">
+		<!-- select reg_dt,
+			'전체구인' as title_nm,
+			sum(all_corp) as corp_cnt,
+			sum(all_jo) as jo_cnt
+		from(
+			select  
+				reg_dt,
+				all_corp_cnt as all_corp,
+				all_jo_cnt as all_jo
+			from srv_dt_job_board_sm
+			where 1=1
+			<if test='today != "undefined"'>
+				and reg_dt = #{today}
+			</if>
+		)
+		group by reg_dt
+		union all
+		select reg_dt,
+			'구인 신규 등록' as title_nm,
+			sum(new_corp) as corp_cnt,
+			sum(new_jo) as jo_cnt
+		from(
+			select  
+				reg_dt,
+				new_corp_cnt as new_corp,
+				new_jo_cnt as new_jo
+			from srv_dt_job_board_sm
+			where 1=1
+			<if test='today != "undefined"'>
+				and reg_dt = #{today}
+			</if>
+		)
+		group by reg_dt
+		union all
+		select reg_dt,
+			'구인 종료 마감' as title_nm,
+			sum(clos_corp) as corp_cnt,
+			sum(clos_jo) as jo_cnt
+		from(
+			select  
+				reg_dt,
+				clos_corp_cnt as clos_corp,
+				clos_jo_cnt as clos_jo
+			from srv_dt_job_board_sm
+			where 1=1
+			<if test='today != "undefined"'>
+				and reg_dt = #{today}
+			</if>
+			
+		)
+		group by reg_dt -->
+		<!-- 2019-07-03 [김남민] 오늘의 구인현황 srv_dt_job_board_sm 사용으로 임시 변경 START --> 
+		select reg_dt
+			 , all_jo_cnt
+			 , all_corp_cnt
+			 , all_rcrit_psn_cnt
+			 , new_jo_cnt
+			 , new_corp_cnt
+			 , new_rcrit_psn_cnt
+			 , clos_jo_cnt
+			 , clos_corp_cnt
+			 , clos_rcrit_psn_cnt
+			 , all_jo_cnt - all_jo_cnt_y as all_jo_cnt_c
+			 , all_corp_cnt - all_corp_cnt_y as all_corp_cnt_c
+			 , all_rcrit_psn_cnt - all_rcrit_psn_cnt_y as all_rcrit_psn_cnt_c
+			 , new_jo_cnt - new_jo_cnt_y as new_jo_cnt_c
+			 , new_corp_cnt - new_corp_cnt_y as new_corp_cnt_c
+			 , new_rcrit_psn_cnt - new_rcrit_psn_cnt_y as new_rcrit_psn_cnt_c
+			 , clos_jo_cnt - clos_jo_cnt_y as clos_jo_cnt_c
+			 , clos_corp_cnt - clos_corp_cnt_y as clos_corp_cnt_c
+			 , clos_rcrit_psn_cnt - clos_rcrit_psn_cnt_y as clos_rcrit_psn_cnt_c
+		  from (
+				select a.reg_dt
+					 , sum(a.all_jo_cnt) as all_jo_cnt
+					 , sum(a.all_corp_cnt) as all_corp_cnt
+					 , sum(a.all_rcrit_psn_cnt) as all_rcrit_psn_cnt
+					 , sum(a.new_jo_cnt) as new_jo_cnt
+					 , sum(a.new_corp_cnt) as new_corp_cnt
+					 , sum(a.new_rcrit_psn_cnt) as new_rcrit_psn_cnt
+					 , sum(a.clos_jo_cnt) as clos_jo_cnt
+					 , sum(a.clos_corp_cnt) as clos_corp_cnt
+					 , sum(a.clos_rcrit_psn_cnt) as clos_rcrit_psn_cnt
+					 , max(b.all_jo_cnt_y) as all_jo_cnt_y
+					 , max(b.all_corp_cnt_y) as all_corp_cnt_y
+					 , max(b.all_rcrit_psn_cnt_y) as all_rcrit_psn_cnt_y
+					 , max(b.new_jo_cnt_y) as new_jo_cnt_y
+					 , max(b.new_corp_cnt_y) as new_corp_cnt_y
+					 , max(b.new_rcrit_psn_cnt_y) as new_rcrit_psn_cnt_y
+					 , max(b.clos_jo_cnt_y) as clos_jo_cnt_y
+					 , max(b.clos_corp_cnt_y) as clos_corp_cnt_y
+					 , max(b.clos_rcrit_psn_cnt_y) as clos_rcrit_psn_cnt_y
+				  from srv_dt_job_board_sm a
+					   left join  ( select #{today} as reg_dt
+										 , sum(all_jo_cnt) as all_jo_cnt_y
+										 , sum(all_corp_cnt) as all_corp_cnt_y
+										 , sum(all_rcrit_psn_cnt) as all_rcrit_psn_cnt_y
+										 , sum(new_jo_cnt) as new_jo_cnt_y
+										 , sum(new_corp_cnt) as new_corp_cnt_y
+										 , sum(new_rcrit_psn_cnt) as new_rcrit_psn_cnt_y
+										 , sum(clos_jo_cnt) as clos_jo_cnt_y
+										 , sum(clos_corp_cnt) as clos_corp_cnt_y
+										 , sum(clos_rcrit_psn_cnt) as clos_rcrit_psn_cnt_y
+									  from srv_dt_job_board_sm
+									 where 1=1
+									 <if test="today != null">
+										and reg_dt = TO_CHAR(TO_DATE(#{today},'yyyymmdd')-1,'yyyymmdd')
+									 </if>
+									 <if test="sido_cd != null and sido_cd != '99'">
+									   and sido_cd = #{sido_cd}
+									 </if>
+									 <if test="sgg_cd != null and sgg_cd != '999'">
+									   and sgg_cd = #{sgg_cd}
+									 </if>											   
+									 group by reg_dt ) b 
+						on a.reg_dt = b.reg_dt
+				 where 1=1
+				 <if test="today != null">
+					and a.reg_dt = #{today}
+				 </if>
+				 <if test="sido_cd != null and sido_cd != '99'">
+				   and sido_cd = #{sido_cd}
+				 </if>
+				 <if test="sgg_cd != null and sgg_cd != '999'">
+				   and sgg_cd = #{sgg_cd}
+				 </if>				   
+				 group by a.reg_dt
+		 		) z
+		<!-- 2019-07-03 [김남민] 오늘의 구인현황 srv_dt_job_board_sm 사용으로 임시 변경 END -->
+		<!-- 2019-06-18 [김남민] srv_dt_job_board_sm 조회 쿼리 제거 START -->	
+		<!-- with w_srv_dt_job_sm_refine as (
+			select
+				row_number() over(partition by a.jo_no order by a.create_dt desc) as row_num
+				,a.jo_no
+				,a.sido_cd
+				,a.sgg_cd
+				,a.bsnm_no
+				,a.rcrit_psn
+				,a.reg_dt
+				,a.clos_dt
+				<choose>
+					<when test='search_type == "W"'>
+						,to_char(to_date('${today}','YYYYMMDD'),'YYYYWW') as check_date
+					</when>		
+					<when test='search_type == "M"'>
+						,substring('${today}',1,6) as check_date
+					</when>	
+				    <otherwise>
+						,'${today}' as check_date
+				    </otherwise>
+				 </choose>
+			from
+				srv_dt_job_sm_refine a
+			where 1=1
+				<if test="sido_cd != null and sido_cd != '99'">
+					and a.sido_cd = '${sido_cd}'
+				</if>
+				<if test="sgg_cd != null and sgg_cd != '999'">
+					and a.sgg_cd = '${sgg_cd}'
+				</if>
+				<choose>
+					<when test='search_type == "W"'>
+						and to_char(to_date(a.create_dt,'YYYYMMDD'),'YYYYWW') = to_char(to_date('${today}','YYYYMMDD'),'YYYYWW')
+					</when>		
+					<when test='search_type == "M"'>
+						and a.create_dt like substring('${today}',1,6)||'%' /* substring 느림 */
+					</when>	
+					<otherwise>
+						and a.create_dt = '${today}'
+					</otherwise>
+				</choose>
+		),
+		w_srv_dt_job_sm_refine_sum as (
+			select
+				count(*) as all_jo_cnt
+				,count(distinct a.bsnm_no) as all_corp_cnt
+				,sum(a.rcrit_psn) as all_rcrit_psn_cnt
+				<choose>
+					<when test='search_type == "W"'>
+						,count(case when to_char(to_date(a.reg_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then 1 else null end) as new_jo_cnt
+						,count(distinct case when to_char(to_date(a.reg_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then a.bsnm_no else null end) as new_corp_cnt
+						,sum(case when to_char(to_date(a.reg_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+						,count(case when to_char(to_date(a.clos_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then 1 else null end) as clos_jo_cnt
+						,count(distinct case when to_char(to_date(a.clos_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then a.bsnm_no else null end) as clos_corp_cnt
+						,sum(case when to_char(to_date(a.clos_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then a.rcrit_psn else 0 end) as clos_rcrit_psn_cnt
+					</when>		
+					<when test='search_type == "M"'>
+						,count(case when a.reg_dt like a.check_date||'%' then 1 else null end) as new_jo_cnt
+						,count(distinct case when a.reg_dt like a.check_date||'%' then a.bsnm_no else null end) as new_corp_cnt
+						,sum(case when a.reg_dt like a.check_date||'%' then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+						,count(case when a.clos_dt like a.check_date||'%' then 1 else null end) as clos_jo_cnt
+						,count(distinct case when a.clos_dt like a.check_date||'%' then a.bsnm_no else null end) as clos_corp_cnt
+						,sum(case when a.clos_dt like a.check_date||'%' then a.rcrit_psn else 0 end) as clos_rcrit_psn_cnt
+					</when>	
+					<otherwise>
+						,count(case when a.reg_dt = a.check_date then 1 else null end) as new_jo_cnt
+						,count(distinct case when a.reg_dt = a.check_date then a.bsnm_no else null end) as new_corp_cnt
+						,sum(case when a.reg_dt = a.check_date then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+						,count(case when a.clos_dt = a.check_date then 1 else null end) as clos_jo_cnt
+						,count(distinct case when a.clos_dt = a.check_date then a.bsnm_no else null end) as clos_corp_cnt
+						,sum(case when a.clos_dt = a.check_date then a.rcrit_psn else 0 end) as clos_rcrit_psn_cnt
+					</otherwise>
+				</choose>
+			from
+				w_srv_dt_job_sm_refine a
+			where 1=1
+				and a.row_num = 1
+		),
+		w_srv_dt_job_sm_refine2 as (
+			select
+				row_number() over(partition by a.jo_no order by a.create_dt desc) as row_num
+				,a.jo_no
+				,a.sido_cd
+				,a.sgg_cd
+				,a.bsnm_no
+				,a.rcrit_psn
+				,a.reg_dt
+				,a.clos_dt
+				<choose>
+					<when test='search_type == "W"'>
+						,to_char(to_date('${today}','YYYYMMDD')-7,'YYYYWW') as check_date
+					</when>		
+					<when test='search_type == "M"'>
+						,to_char(add_months(to_date('${today}','YYYYMMDD'),-1),'YYYYMM') as check_date
+					</when>	
+					<otherwise>
+						,to_char(to_date('${today}','YYYYMMDD')-1,'YYYYMMDD') as check_date
+					</otherwise>
+				</choose>
+			from
+				srv_dt_job_sm_refine a
+			where 1=1
+				<if test="sido_cd != null and sido_cd != '99'">
+					and a.sido_cd = '${sido_cd}'
+				</if>
+				<if test="sgg_cd != null and sgg_cd != '999'">
+					and a.sgg_cd = '${sgg_cd}'
+				</if>
+				<choose>
+					<when test='search_type == "W"'>
+						and to_char(to_date(a.create_dt,'YYYYMMDD'),'YYYYWW') = to_char(to_date('${today}','YYYYMMDD')-7,'YYYYWW')
+					</when>		
+					<when test='search_type == "M"'>
+						and a.create_dt like to_char(add_months(to_date('${today}','YYYYMMDD'),-1),'YYYYMM')||'%'
+					</when>	
+					<otherwise>
+						and a.create_dt = to_char(to_date('${today}','YYYYMMDD')-1,'YYYYMMDD')
+					</otherwise>
+				</choose>
+		),
+		w_srv_dt_job_sm_refine2_sum as (
+			select
+				count(*) as all_jo_cnt
+				,count(distinct a.bsnm_no) as all_corp_cnt
+				,sum(a.rcrit_psn) as all_rcrit_psn_cnt
+				<choose>
+					<when test='search_type == "W"'>
+						,count(case when to_char(to_date(a.reg_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then 1 else null end) as new_jo_cnt
+						,count(distinct case when to_char(to_date(a.reg_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then a.bsnm_no else null end) as new_corp_cnt
+						,sum(case when to_char(to_date(a.reg_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+						,count(case when to_char(to_date(a.clos_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then 1 else null end) as clos_jo_cnt
+						,count(distinct case when to_char(to_date(a.clos_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then a.bsnm_no else null end) as clos_corp_cnt
+						,sum(case when to_char(to_date(a.clos_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then a.rcrit_psn else 0 end) as clos_rcrit_psn_cnt
+					</when>		
+					<when test='search_type == "M"'>
+						,count(case when a.reg_dt like a.check_date||'%' then 1 else null end) as new_jo_cnt
+						,count(distinct case when a.reg_dt like a.check_date||'%' then a.bsnm_no else null end) as new_corp_cnt
+						,sum(case when a.reg_dt like a.check_date||'%' then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+						,count(case when a.clos_dt like a.check_date||'%' then 1 else null end) as clos_jo_cnt
+						,count(distinct case when a.clos_dt like a.check_date||'%' then a.bsnm_no else null end) as clos_corp_cnt
+						,sum(case when a.clos_dt like a.check_date||'%' then a.rcrit_psn else 0 end) as clos_rcrit_psn_cnt
+					</when>	
+					<otherwise>
+						,count(case when a.reg_dt = a.check_date then 1 else null end) as new_jo_cnt
+						,count(distinct case when a.reg_dt = a.check_date then a.bsnm_no else null end) as new_corp_cnt
+						,sum(case when a.reg_dt = a.check_date then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+						,count(case when a.clos_dt = a.check_date then 1 else null end) as clos_jo_cnt
+						,count(distinct case when a.clos_dt = a.check_date then a.bsnm_no else null end) as clos_corp_cnt
+						,sum(case when a.clos_dt = a.check_date then a.rcrit_psn else 0 end) as clos_rcrit_psn_cnt
+					</otherwise>
+				</choose>
+			from
+				w_srv_dt_job_sm_refine2 a
+			where 1=1
+				and a.row_num = 1
+		)
+		select
+			/* 기준일자 */
+			<choose>
+				<when test='search_type == "W"'>
+					to_char(to_date('${today}','YYYYMMDD'),'YYYYWW') as reg_dt
+				</when>		
+				<when test='search_type == "M"'>
+					substring('${today}',1,6) as reg_dt
+				</when>	
+				<otherwise>
+					'${today}' as reg_dt
+				</otherwise>
+			</choose>
+			
+			/* 구인현황 */
+			,nvl(b.all_jo_cnt,0) as all_jo_cnt
+			,nvl(b.all_corp_cnt,0) as all_corp_cnt
+			,nvl(b.all_rcrit_psn_cnt,0) as all_rcrit_psn_cnt
+			,nvl(b.new_jo_cnt,0) as new_jo_cnt
+			,nvl(b.new_corp_cnt,0) as new_corp_cnt
+			,nvl(b.new_rcrit_psn_cnt,0) as new_rcrit_psn_cnt
+			,nvl(b.clos_jo_cnt,0) as clos_jo_cnt
+			,nvl(b.clos_corp_cnt,0) as clos_corp_cnt
+			,nvl(b.clos_rcrit_psn_cnt,0) as clos_rcrit_psn_cnt
+			
+			/* 구인현황 (이전 대비) */
+			,nvl(b.all_jo_cnt,0)-nvl(c.all_jo_cnt,0) as all_jo_cnt_c
+			,nvl(b.all_corp_cnt,0)-nvl(c.all_corp_cnt,0) as all_corp_cnt_c
+			,nvl(b.all_rcrit_psn_cnt,0)-nvl(c.all_rcrit_psn_cnt,0) as all_rcrit_psn_cnt_c
+			,nvl(b.new_jo_cnt,0)-nvl(c.new_jo_cnt,0) as new_jo_cnt_c
+			,nvl(b.new_corp_cnt,0)-nvl(c.new_corp_cnt,0) as new_corp_cnt_c
+			,nvl(b.new_rcrit_psn_cnt,0)-nvl(c.new_rcrit_psn_cnt,0) as new_rcrit_psn_cnt_c
+			,nvl(b.clos_jo_cnt,0)-nvl(c.clos_jo_cnt,0) as clos_jo_cnt_c
+			,nvl(b.clos_corp_cnt,0)-nvl(c.clos_corp_cnt,0) as clos_corp_cnt_c
+			,nvl(b.clos_rcrit_psn_cnt,0)-nvl(c.clos_rcrit_psn_cnt,0) as clos_rcrit_psn_cnt_c
+		from
+			(select 1 from dual) a
+			left outer join w_srv_dt_job_sm_refine_sum b on 1=1
+			left outer join w_srv_dt_job_sm_refine2_sum c on 1=1 -->
+		<!-- 2019-06-18 [김남민] srv_dt_job_board_sm 조회 쿼리 제거 START -->
+		
+		<!-- 2019.06.17[한광희] 오늘의 구인현황 기간조회 기능활성화에 따른 기능변경  -->
+		<!-- 
+		with w_srv_dt_job_sm_refine as (select row_number() over(partition by a.jo_no order by a.create_dt desc) as row_num
+											 , a.jo_no
+											 , a.sido_cd
+											 , a.sgg_cd
+											 , a.bsnm_no
+											 , a.rcrit_psn
+											 , a.reg_dt
+											 , a.clos_dt
+											 <choose>
+												<when test='search_type == "W"'>
+													, substring('${today}',1,4) as check_date1
+													, to_char(to_date('${today}','YYYYMMDD'),'WW') as check_date2
+												</when>		
+												<when test='search_type == "M"'>
+													, substring('${today}',1,6) as check_date
+												</when>	
+											    <otherwise>
+													 , '${today}' as check_date
+											    </otherwise>
+											 </choose>
+										  from srv_dt_job_sm_refine a
+										 where 1=1
+											<if test="sido_cd != null and sido_cd != '99'">
+												and sido_cd = '${sido_cd}'
+											</if>
+											<if test="sgg_cd != null and sgg_cd != '999'">
+												and sgg_cd = '${sgg_cd}'
+											</if>
+											<if test="today != null">
+												<choose>
+													<when test='search_type == "W"'>
+														and a.create_dt like substring('${today}',1,4)||'%' 
+														and to_char(to_date(a.create_dt,'YYYYMMDD'),'WW') = to_char(to_date('${today}','YYYYMMDD'),'WW')
+													</when>	
+													<when test='search_type == "M"'>
+														and a.create_dt like substring('${today}',1,6)||'%'
+													</when>			
+												    <otherwise>
+														and a.create_dt = '${today}'
+												    </otherwise>
+												 </choose>
+											</if>
+										),
+			 w_srv_dt_job_sm_refine_sum as (select count(*) as all_jo_cnt
+											     , count(distinct a.bsnm_no) as all_corp_cnt
+											     , sum(a.rcrit_psn) as all_rcrit_psn_cnt
+											     <choose>
+											     	<when test='search_type == "W"'>
+														, count(case when a.reg_dt like a.check_date1||'%' and to_char(to_date(a.reg_dt,'YYYYMMDD'),'WW') = a.check_date2 then 1 else null end) as new_jo_cnt
+														, count(distinct case when a.reg_dt like a.check_date1||'%' and to_char(to_date(a.reg_dt,'YYYYMMDD'),'WW') = a.check_date2 then a.bsnm_no else null end) as new_corp_cnt
+														, sum(case when a.reg_dt like a.check_date1||'%' and to_char(to_date(a.reg_dt,'YYYYMMDD'),'WW') = a.check_date2 then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+														, count(case when a.clos_dt like a.check_date1||'%' and to_char(to_date(a.clos_dt,'YYYYMMDD'),'WW') = a.check_date2 then 1 else null end) as clos_jo_cnt
+														, count(distinct case when a.clos_dt like a.check_date1||'%' and to_char(to_date(a.clos_dt,'YYYYMMDD'),'WW') = a.check_date2 then a.bsnm_no else null end) as clos_corp_cnt
+														, sum(case when a.clos_dt like a.check_date1||'%' and to_char(to_date(a.clos_dt,'YYYYMMDD'),'WW') = a.check_date2 then a.rcrit_psn else 0 end) as clos_rcrit_psn_cnt
+													</when>
+													<when test='search_type == "M"'>
+														, count(case when a.reg_dt like a.check_date||'%' then 1 else null end) as new_jo_cnt
+														, count(distinct case when a.reg_dt like a.check_date||'%' then a.bsnm_no else null end) as new_corp_cnt
+														, sum(case when a.reg_dt like a.check_date||'%' then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+														, count(case when a.clos_dt like a.check_date||'%' then 1 else null end) as clos_jo_cnt
+														, count(distinct case when a.clos_dt like a.check_date||'%' then a.bsnm_no else null end) as clos_corp_cnt
+														, sum(case when a.clos_dt like a.check_date||'%' then a.rcrit_psn else 0 end) as clos_rcrit_psn_cnt
+													</when>			
+												    <otherwise>
+												    	, count(case when a.reg_dt = a.check_date then 1 else null end) as new_jo_cnt
+														, count(distinct case when a.reg_dt = a.check_date then a.bsnm_no else null end) as new_corp_cnt
+														, sum(case when a.reg_dt = a.check_date then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+														, count(case when a.clos_dt = a.check_date then 1 else null end) as clos_jo_cnt
+														, count(distinct case when a.clos_dt = a.check_date then a.bsnm_no else null end) as clos_corp_cnt
+														, sum(case when a.clos_dt = a.check_date then a.rcrit_psn else 0 end) as clos_rcrit_psn_cnt
+												    </otherwise>
+												 </choose>											
+											  from w_srv_dt_job_sm_refine a
+											 where 1=1
+											   and a.row_num = 1
+									    	),
+			 w_srv_dt_job_sm_refine2 as (select row_number() over(partition by a.jo_no order by a.create_dt desc) as row_num
+											  , a.jo_no
+											  , a.sido_cd
+											  , a.sgg_cd
+											  , a.bsnm_no
+											  , a.rcrit_psn
+											  , a.reg_dt
+											  , a.clos_dt
+											  <choose>
+											  	<when test='search_type == "W"'>
+													, to_char(to_date('${today}','YYYYMMDD')-7,'YYYY') as check_date1
+													, to_char(to_date('${today}','YYYYMMDD')-7,'WW') as check_date2
+												</when>
+											  	<when test='search_type == "M"'>
+													, to_char(add_months(to_date('${today}','YYYYMMDD'),-1),'YYYYMM') as check_date
+												</when>			
+											    <otherwise>
+													 , TO_CHAR(TO_DATE('${today}','YYYYMMDD')-1,'YYYYMMDD') as check_date
+											    </otherwise>
+											  </choose>											
+										   from srv_dt_job_sm_refine a
+										  where 1=1
+										  <if test="sido_cd != null and sido_cd != '99'">
+										  	and sido_cd = '${sido_cd}'
+										  </if>
+										  <if test="sgg_cd != null and sgg_cd != '999'">
+											and sgg_cd = '${sgg_cd}'
+										  </if>
+										  <choose>
+										  	<when test='search_type == "W"'>
+												and a.create_dt like to_char(to_date('${today}','YYYYMMDD')-7,'YYYY')||'%'
+												and to_char(to_date(a.create_dt,'YYYYMMDD'),'WW') = to_char(to_date('${today}','YYYYMMDD')-7,'WW')	
+											</when>	
+										  	<when test='search_type == "M"'>
+												and a.create_dt like to_char(add_months(to_date('${today}','YYYYMMDD'),-1),'YYYYMM')||'%'
+											</when>			
+										    <otherwise>
+												 and a.create_dt = TO_CHAR(TO_DATE('${today}','YYYYMMDD')-1,'YYYYMMDD')
+										    </otherwise>
+										  </choose>
+										),
+			w_srv_dt_job_sm_refine2_sum as (select count(*) as all_jo_cnt
+											 	 , count(distinct a.bsnm_no) as all_corp_cnt
+											 	 , sum(a.rcrit_psn) as all_rcrit_psn_cnt
+											 	 <choose>
+											 	 	<when test='search_type == "W"'>
+														, count(case when a.reg_dt like a.check_date1||'%' and to_char(to_date(a.reg_dt,'YYYYMMDD'),'WW') = a.check_date2 then 1 else null end) as new_jo_cnt
+														, count(distinct case when a.reg_dt like a.check_date1||'%' and to_char(to_date(a.reg_dt,'YYYYMMDD'),'WW') = a.check_date2 then a.bsnm_no else null end) as new_corp_cnt
+														, sum(case when a.reg_dt like a.check_date1||'%' and to_char(to_date(a.reg_dt,'YYYYMMDD'),'WW') = a.check_date2 then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+														, count(case when a.clos_dt like a.check_date1||'%' and to_char(to_date(a.clos_dt,'YYYYMMDD'),'WW') = a.check_date2 then 1 else null end) as clos_jo_cnt
+														, count(distinct case when a.clos_dt like a.check_date1||'%' and to_char(to_date(a.clos_dt,'YYYYMMDD'),'WW') = a.check_date2 then a.bsnm_no else null end) as clos_corp_cnt
+														, sum(case when a.clos_dt like a.check_date1||'%' and to_char(to_date(a.clos_dt,'YYYYMMDD'),'WW') = a.check_date2 then a.rcrit_psn else 0 end) as clos_rcrit_psn_cnt
+													</when>	
+												  	<when test='search_type == "M"'>
+														, count(case when a.reg_dt like a.check_date||'%' then 1 else null end) as new_jo_cnt
+														, count(distinct case when a.reg_dt like a.check_date||'%' then a.bsnm_no else null end) as new_corp_cnt
+														, sum(case when a.reg_dt like a.check_date||'%' then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+														, count(case when a.clos_dt like a.check_date||'%' then 1 else null end) as clos_jo_cnt
+														, count(distinct case when a.clos_dt like a.check_date||'%' then a.bsnm_no else null end) as clos_corp_cnt
+														, sum(case when a.clos_dt like a.check_date||'%' then a.rcrit_psn else 0 end) as clos_rcrit_psn_cnt
+													</when>			
+												    <otherwise>
+														, count(case when a.reg_dt like a.check_date||'%' then 1 else null end) as new_jo_cnt
+														, count(distinct case when a.reg_dt like a.check_date||'%' then a.bsnm_no else null end) as new_corp_cnt
+														, sum(case when a.reg_dt like a.check_date||'%' then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+														, count(case when a.clos_dt like a.check_date||'%' then 1 else null end) as clos_jo_cnt
+														, count(distinct case when a.clos_dt like a.check_date||'%' then a.bsnm_no else null end) as clos_corp_cnt
+														, sum(case when a.clos_dt like a.check_date||'%' then a.rcrit_psn else 0 end) as clos_rcrit_psn_cnt
+												    </otherwise>
+												 </choose>
+											  from w_srv_dt_job_sm_refine2 a
+											 where 1=1
+											   and a.row_num = 1
+											)
+		select '${today}' as reg_dt
+			 , nvl(b.all_jo_cnt,0) as all_jo_cnt
+			 , nvl(b.all_corp_cnt,0) as all_corp_cnt
+			 , nvl(b.all_rcrit_psn_cnt,0) as all_rcrit_psn_cnt
+			 , nvl(b.new_jo_cnt,0) as new_jo_cnt
+			 , nvl(b.new_corp_cnt,0) as new_corp_cnt
+			 , nvl(b.new_rcrit_psn_cnt,0) as new_rcrit_psn_cnt
+			 , nvl(b.clos_jo_cnt,0) as clos_jo_cnt
+			 , nvl(b.clos_corp_cnt,0) as clos_corp_cnt
+			 , nvl(b.clos_rcrit_psn_cnt,0) as clos_rcrit_psn_cnt
+			 , nvl(b.all_jo_cnt,0)-nvl(c.all_jo_cnt,0) as all_jo_cnt_c
+			 , nvl(b.all_corp_cnt,0)-nvl(c.all_corp_cnt,0) as all_corp_cnt_c
+			 , nvl(b.all_rcrit_psn_cnt,0)-nvl(c.all_rcrit_psn_cnt,0) as all_rcrit_psn_cnt_c
+			 , nvl(b.new_jo_cnt,0)-nvl(c.new_jo_cnt,0) as new_jo_cnt_c
+			 , nvl(b.new_corp_cnt,0)-nvl(c.new_corp_cnt,0) as new_corp_cnt_c
+			 , nvl(b.new_rcrit_psn_cnt,0)-nvl(c.new_rcrit_psn_cnt,0) as new_rcrit_psn_cnt_c
+			 , nvl(b.clos_jo_cnt,0)-nvl(c.clos_jo_cnt,0) as clos_jo_cnt_c
+			 , nvl(b.clos_corp_cnt,0)-nvl(c.clos_corp_cnt,0) as clos_corp_cnt_c
+			 , nvl(b.clos_rcrit_psn_cnt,0)-nvl(c.clos_rcrit_psn_cnt,0) as clos_rcrit_psn_cnt_c
+		 from (select 1 from dual) a
+		 	  left outer join w_srv_dt_job_sm_refine_sum b on 1=1
+		 	  left outer join w_srv_dt_job_sm_refine2_sum c on 1=1
+		 -->
+	</select>
+	
+	<!-- 오늘의 구인현황 > 상세 조회 -->
+	<select id="getTodayStatusDetail" parameterType="hashmap" resultType="hashmap">
+		<!-- select reg_dt,
+			'전체구인' as title_nm,
+			sum(all_corp) as corp_cnt,
+			sum(all_jo) as jo_cnt
+		from(
+			select  
+				reg_dt,
+				all_corp_cnt as all_corp,
+				all_jo_cnt as all_jo
+			from srv_dt_job_board_sm
+			where 1=1
+			<if test='today != "undefined"'>
+				and reg_dt = #{today}
+			</if>
+		)
+		group by reg_dt		 -->
+		<!-- 2019-07-03 [김남민] 오늘의 구인현황 srv_dt_job_board_sm 사용으로 임시 변경 START -->
+		select reg_dt
+			<if test="series == 'ALL'">
+			 , '전체구인' as title_nm
+			 , all_jo_cnt as jo_cnt
+			 , all_corp_cnt as corp_cnt
+			 , all_rcrit_psn_cnt as rcrit_psn_cnt
+			 , all_jo_cnt - all_jo_cnt_y as jo_cnt_c
+			 , all_corp_cnt - all_corp_cnt_y as corp_cnt_c
+			 , all_rcrit_psn_cnt - all_rcrit_psn_cnt_y as rcrit_psn_cnt_c
+			 </if>
+			 <if test="series == 'NEW'">
+			 , '구인신규 등록' as title_nm
+			 , new_jo_cnt as jo_cnt
+			 , new_corp_cnt as corp_cnt
+			 , new_rcrit_psn_cnt as rcrit_psn_cnt			 
+			 , new_jo_cnt - new_jo_cnt_y as jo_cnt_c
+			 , new_corp_cnt - new_corp_cnt_y as corp_cnt_c
+			 , new_rcrit_psn_cnt - new_rcrit_psn_cnt_y as rcrit_psn_cnt_c
+			 </if>
+		  from (
+				select 
+					<!-- 2019.07.03[한광희]  일자리 정보 누락 처리(값이 Null일 경우 전일 데이터 사용) START -->
+					<choose>
+						<when test="data_today != null">
+							'${today}' as reg_dt
+						</when>			
+				    	<otherwise>
+							a.reg_dt
+				    	</otherwise>
+				 	</choose>
+				 	<!-- 2019.07.03[한광희]  일자리 정보 누락 처리(값이 Null일 경우 전일 데이터 사용) END -->
+					 , sum(a.all_jo_cnt) as all_jo_cnt
+					 , sum(a.all_corp_cnt) as all_corp_cnt
+					 , sum(a.all_rcrit_psn_cnt) as all_rcrit_psn_cnt
+					 , max(b.all_jo_cnt_y) as all_jo_cnt_y
+					 , max(b.all_corp_cnt_y) as all_corp_cnt_y
+					 , max(b.all_rcrit_psn_cnt_y) as all_rcrit_psn_cnt_y					 
+					 , sum(a.new_jo_cnt) as new_jo_cnt
+					 , sum(a.new_corp_cnt) as new_corp_cnt
+					 , sum(a.new_rcrit_psn_cnt) as new_rcrit_psn_cnt					 										 
+					 , max(b.new_jo_cnt_y) as new_jo_cnt_y
+					 , max(b.new_corp_cnt_y) as new_corp_cnt_y
+					 , max(b.new_rcrit_psn_cnt_y) as new_rcrit_psn_cnt_y
+				  from srv_dt_job_board_sm a
+					   left join  ( select #{today} as reg_dt
+										 , sum(all_jo_cnt) as all_jo_cnt_y
+										 , sum(all_corp_cnt) as all_corp_cnt_y
+										 , sum(all_rcrit_psn_cnt) as all_rcrit_psn_cnt_y
+										 , sum(new_jo_cnt) as new_jo_cnt_y
+										 , sum(new_corp_cnt) as new_corp_cnt_y
+										 , sum(new_rcrit_psn_cnt) as new_rcrit_psn_cnt_y
+									  from srv_dt_job_board_sm
+									 where 1=1
+									 <if test="today != null">
+										and reg_dt = TO_CHAR(TO_DATE(#{today},'yyyymmdd')-1,'yyyymmdd')
+									 </if>
+									 <if test="sido_cd != null and sido_cd != '99'">
+									   and sido_cd = #{sido_cd}
+									 </if>
+									 <if test="sgg_cd != null and sgg_cd != '999'">
+									   and sgg_cd = #{sgg_cd}
+									 </if>											   
+									 group by reg_dt ) b 
+						on a.reg_dt = b.reg_dt
+				 where 1=1
+				 <if test="today != null">
+				 	<!-- 2019.07.03[한광희]  일자리 정보 누락 처리(값이 Null일 경우 전일 데이터 사용) START -->
+				 	<choose>
+						<when test="data_today != null">
+							and a.reg_dt = '${data_today}'
+						</when>			
+				    	<otherwise>
+							and a.reg_dt = '${today}'
+				    	</otherwise>
+				 	</choose>
+				 	<!-- 2019.07.03[한광희]  일자리 정보 누락 처리(값이 Null일 경우 전일 데이터 사용) END -->
+				 </if>
+				 <if test="sido_cd != null and sido_cd != '99'">
+				   and sido_cd = #{sido_cd}
+				 </if>
+				 <if test="sgg_cd != null and sgg_cd != '999'">
+				   and sgg_cd = #{sgg_cd}
+				 </if>				   
+				 group by a.reg_dt
+		 		) z
+		<!-- 2019-07-03 [김남민] 오늘의 구인현황 srv_dt_job_board_sm 사용으로 임시 변경 END -->
+		<!-- 2019-06-18 [김남민] srv_dt_job_board_sm 조회 쿼리 제거 START -->
+		<!-- with w_srv_dt_job_sm_refine as (
+			select
+				row_number() over(partition by a.jo_no order by a.create_dt desc) as row_num
+				,a.jo_no
+				,a.sido_cd
+				,a.sgg_cd
+				,a.bsnm_no
+				,a.rcrit_psn
+				,a.reg_dt
+				,a.clos_dt
+				<choose>
+					<when test='search_type == "W"'>
+						,to_char(to_date('${today}','YYYYMMDD'),'YYYYWW') as check_date
+					</when>		
+					<when test='search_type == "M"'>
+						,substring('${today}',1,6) as check_date
+					</when>	
+				    <otherwise>
+						,'${today}' as check_date
+				    </otherwise>
+				 </choose>
+			from
+				srv_dt_job_sm_refine a
+			where 1=1
+				<if test="sido_cd != null and sido_cd != '99'">
+					and a.sido_cd = '${sido_cd}'
+				</if>
+				<if test="sgg_cd != null and sgg_cd != '999'">
+					and a.sgg_cd = '${sgg_cd}'
+				</if>
+				<choose>
+					<when test='search_type == "W"'>
+						and to_char(to_date(a.create_dt,'YYYYMMDD'),'YYYYWW') = to_char(to_date('${today}','YYYYMMDD'),'YYYYWW')
+					</when>		
+					<when test='search_type == "M"'>
+						and a.create_dt like substring('${today}',1,6)||'%' /* substring 느림 */
+					</when>	
+					<otherwise>
+						and a.create_dt = '${today}'
+					</otherwise>
+				</choose>
+		),
+		w_srv_dt_job_sm_refine_sum as (
+			select
+				<if test="series == 'ALL'">
+					count(*) as all_jo_cnt
+					,count(distinct a.bsnm_no) as all_corp_cnt
+					,sum(a.rcrit_psn) as all_rcrit_psn_cnt
+				</if>
+				<if test="series == 'NEW'">
+					<choose>
+						<when test='search_type == "W"'>
+							count(case when to_char(to_date(a.reg_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then 1 else null end) as new_jo_cnt
+							,count(distinct case when to_char(to_date(a.reg_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then a.bsnm_no else null end) as new_corp_cnt
+							,sum(case when to_char(to_date(a.reg_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+						</when>		
+						<when test='search_type == "M"'>
+							count(case when a.reg_dt like a.check_date||'%' then 1 else null end) as new_jo_cnt
+							,count(distinct case when a.reg_dt like a.check_date||'%' then a.bsnm_no else null end) as new_corp_cnt
+							,sum(case when a.reg_dt like a.check_date||'%' then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+						</when>	
+						<otherwise>
+							count(case when a.reg_dt = a.check_date then 1 else null end) as new_jo_cnt
+							,count(distinct case when a.reg_dt = a.check_date then a.bsnm_no else null end) as new_corp_cnt
+							,sum(case when a.reg_dt = a.check_date then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+						</otherwise>
+					</choose>
+				</if>
+			from
+				w_srv_dt_job_sm_refine a
+			where 1=1
+				and a.row_num = 1
+		),
+		w_srv_dt_job_sm_refine2 as (
+			select
+				row_number() over(partition by a.jo_no order by a.create_dt desc) as row_num
+				,a.jo_no
+				,a.sido_cd
+				,a.sgg_cd
+				,a.bsnm_no
+				,a.rcrit_psn
+				,a.reg_dt
+				,a.clos_dt
+				<choose>
+					<when test='search_type == "W"'>
+						,to_char(to_date('${today}','YYYYMMDD')-7,'YYYYWW') as check_date
+					</when>		
+					<when test='search_type == "M"'>
+						,to_char(add_months(to_date('${today}','YYYYMMDD'),-1),'YYYYMM') as check_date
+					</when>	
+					<otherwise>
+						,to_char(to_date('${today}','YYYYMMDD')-1,'YYYYMMDD') as check_date
+					</otherwise>
+				</choose>
+			from
+				srv_dt_job_sm_refine a
+			where 1=1
+				<if test="sido_cd != null and sido_cd != '99'">
+					and a.sido_cd = '${sido_cd}'
+				</if>
+				<if test="sgg_cd != null and sgg_cd != '999'">
+					and a.sgg_cd = '${sgg_cd}'
+				</if>
+				<choose>
+					<when test='search_type == "W"'>
+						and to_char(to_date(a.create_dt,'YYYYMMDD'),'YYYYWW') = to_char(to_date('${today}','YYYYMMDD')-7,'YYYYWW')
+					</when>		
+					<when test='search_type == "M"'>
+						and a.create_dt like to_char(add_months(to_date('${today}','YYYYMMDD'),-1),'YYYYMM')||'%'
+					</when>	
+					<otherwise>
+						and a.create_dt = to_char(to_date('${today}','YYYYMMDD')-1,'YYYYMMDD')
+					</otherwise>
+				</choose>
+		),
+		w_srv_dt_job_sm_refine2_sum as (
+			select
+				<if test="series == 'ALL'">
+					count(*) as all_jo_cnt
+					,count(distinct a.bsnm_no) as all_corp_cnt
+					,sum(a.rcrit_psn) as all_rcrit_psn_cnt
+				</if>
+				<if test="series == 'NEW'">
+					<choose>
+						<when test='search_type == "W"'>
+							count(case when to_char(to_date(a.reg_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then 1 else null end) as new_jo_cnt
+							,count(distinct case when to_char(to_date(a.reg_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then a.bsnm_no else null end) as new_corp_cnt
+							,sum(case when to_char(to_date(a.reg_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+						</when>		
+						<when test='search_type == "M"'>
+							count(case when a.reg_dt like a.check_date||'%' then 1 else null end) as new_jo_cnt
+							,count(distinct case when a.reg_dt like a.check_date||'%' then a.bsnm_no else null end) as new_corp_cnt
+							,sum(case when a.reg_dt like a.check_date||'%' then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+						</when>	
+						<otherwise>
+							count(case when a.reg_dt = a.check_date then 1 else null end) as new_jo_cnt
+							,count(distinct case when a.reg_dt = a.check_date then a.bsnm_no else null end) as new_corp_cnt
+							,sum(case when a.reg_dt = a.check_date then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+						</otherwise>
+					</choose>
+				</if>
+			from
+				w_srv_dt_job_sm_refine2 a
+			where 1=1
+				and a.row_num = 1
+		)
+		select
+			<choose>
+				<when test='search_type == "W"'>
+					to_char(to_date('${today}','YYYYMMDD'),'YYYYWW') as reg_dt
+				</when>		
+				<when test='search_type == "M"'>
+					substring('${today}',1,6) as reg_dt
+				</when>	
+				<otherwise>
+					'${today}' as reg_dt
+				</otherwise>
+			</choose>
+			<if test="series == 'ALL'">
+			, '전체구인' as title_nm
+			, nvl(b.all_jo_cnt,0) as jo_cnt
+			, nvl(b.all_corp_cnt,0) as corp_cnt
+			, nvl(b.all_rcrit_psn_cnt,0) as rcrit_psn_cnt
+			, nvl(b.all_jo_cnt,0)-nvl(c.all_jo_cnt,0) as jo_cnt_c
+			, nvl(b.all_corp_cnt,0)-nvl(c.all_corp_cnt,0) as corp_cnt_c
+			, nvl(b.all_rcrit_psn_cnt,0)-nvl(c.all_rcrit_psn_cnt,0) as rcrit_psn_cnt_c
+			</if>
+			<if test="series == 'NEW'">
+			, '구인신규 등록' as title_nm
+			, nvl(b.new_jo_cnt,0) as jo_cnt
+			, nvl(b.new_corp_cnt,0) as corp_cnt
+			, nvl(b.new_rcrit_psn_cnt,0) as rcrit_psn_cnt			 
+			, nvl(b.new_jo_cnt,0)-nvl(c.new_jo_cnt,0) as jo_cnt_c
+			, nvl(b.new_corp_cnt,0)-nvl(c.new_corp_cnt,0) as corp_cnt_c
+			, nvl(b.new_rcrit_psn_cnt,0)-nvl(c.new_rcrit_psn_cnt,0) as rcrit_psn_cnt_c
+			</if>
+		from
+			(select 1 from dual) a
+			left outer join w_srv_dt_job_sm_refine_sum b on 1=1
+			left outer join w_srv_dt_job_sm_refine2_sum c on 1=1 -->
+		<!-- 2019-06-18 [김남민] srv_dt_job_board_sm 조회 쿼리 제거 END -->
+	</select>
+	
+	<!-- 오늘의 구인현황 신규상세 조회 -->
+	<select id="getTodayStatusNewDetail" parameterType="hashmap" resultType="hashmap">
+		<!-- 2019-07-03 [김남민] 오늘의 구인현황 srv_dt_job_board_sm 사용으로 임시 변경 START -->
+		select reg_dt,
+			'구인 신규 등록' as title_nm,
+			sum(new_corp) as corp_cnt,
+			sum(new_jo) as jo_cnt
+		from(
+			select  
+				reg_dt,
+				new_corp_cnt as new_corp,
+				new_jo_cnt as new_jo
+			from srv_dt_job_board_sm
+			where 1=1
+			<if test='today != "undefined"'>
+				and reg_dt = #{today}
+			</if>
+		)
+		group by reg_dt
+		<!-- 2019-07-03 [김남민] 오늘의 구인현황 srv_dt_job_board_sm 사용으로 임시 변경 END -->
+		 <!-- 2019-06-18 [김남민] srv_dt_job_board_sm 조회 쿼리 제거 START -->
+		<!-- with w_srv_dt_job_sm_refine as (
+			select
+				row_number() over(partition by a.jo_no order by a.create_dt desc) as row_num
+				,a.jo_no
+				,a.sido_cd
+				,a.sgg_cd
+				,a.bsnm_no
+				,a.rcrit_psn
+				,a.reg_dt
+				,a.clos_dt
+				<choose>
+					<when test='search_type == "W"'>
+						,to_char(to_date('${today}','YYYYMMDD'),'YYYYWW') as check_date
+					</when>		
+					<when test='search_type == "M"'>
+						,substring('${today}',1,6) as check_date
+					</when>	
+				    <otherwise>
+						,'${today}' as check_date
+				    </otherwise>
+				 </choose>
+			from
+				srv_dt_job_sm_refine a
+			where 1=1
+				<choose>
+					<when test='search_type == "W"'>
+						and to_char(to_date(a.create_dt,'YYYYMMDD'),'YYYYWW') = to_char(to_date('${today}','YYYYMMDD'),'YYYYWW')
+					</when>		
+					<when test='search_type == "M"'>
+						and a.create_dt like substring('${today}',1,6)||'%' /* substring 느림 */
+					</when>	
+					<otherwise>
+						and a.create_dt = '${today}'
+					</otherwise>
+				</choose>
+		),
+		w_srv_dt_job_sm_refine_sum as (
+			select
+				count(*) as all_jo_cnt
+				,count(distinct a.bsnm_no) as all_corp_cnt
+				,sum(a.rcrit_psn) as all_rcrit_psn_cnt
+				<choose>
+					<when test='search_type == "W"'>
+						,count(case when to_char(to_date(a.reg_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then 1 else null end) as new_jo_cnt
+						,count(distinct case when to_char(to_date(a.reg_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then a.bsnm_no else null end) as new_corp_cnt
+						,sum(case when to_char(to_date(a.reg_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+						,count(case when to_char(to_date(a.clos_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then 1 else null end) as clos_jo_cnt
+						,count(distinct case when to_char(to_date(a.clos_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then a.bsnm_no else null end) as clos_corp_cnt
+						,sum(case when to_char(to_date(a.clos_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then a.rcrit_psn else 0 end) as clos_rcrit_psn_cnt
+					</when>		
+					<when test='search_type == "M"'>
+						,count(case when a.reg_dt like a.check_date||'%' then 1 else null end) as new_jo_cnt
+						,count(distinct case when a.reg_dt like a.check_date||'%' then a.bsnm_no else null end) as new_corp_cnt
+						,sum(case when a.reg_dt like a.check_date||'%' then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+						,count(case when a.clos_dt like a.check_date||'%' then 1 else null end) as clos_jo_cnt
+						,count(distinct case when a.clos_dt like a.check_date||'%' then a.bsnm_no else null end) as clos_corp_cnt
+						,sum(case when a.clos_dt like a.check_date||'%' then a.rcrit_psn else 0 end) as clos_rcrit_psn_cnt
+					</when>	
+					<otherwise>
+						,count(case when a.reg_dt = a.check_date then 1 else null end) as new_jo_cnt
+						,count(distinct case when a.reg_dt = a.check_date then a.bsnm_no else null end) as new_corp_cnt
+						,sum(case when a.reg_dt = a.check_date then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+						,count(case when a.clos_dt = a.check_date then 1 else null end) as clos_jo_cnt
+						,count(distinct case when a.clos_dt = a.check_date then a.bsnm_no else null end) as clos_corp_cnt
+						,sum(case when a.clos_dt = a.check_date then a.rcrit_psn else 0 end) as clos_rcrit_psn_cnt
+					</otherwise>
+				</choose>
+			from
+				w_srv_dt_job_sm_refine a
+			where 1=1
+				and a.row_num = 1
+		)
+		select
+			'구인 신규 등록' as title_nm
+			, nvl(b.new_jo_cnt,0) as jo_cnt
+			, nvl(b.new_corp_cnt,0) as corp_cnt
+			, nvl(b.new_rcrit_psn_cnt,0) as rcrit_psn_cnt
+		from
+			(select 1 from dual) a
+			left outer join w_srv_dt_job_sm_refine_sum b on 1=1 -->
+		<!-- 2019-06-18 [김남민] srv_dt_job_board_sm 조회 쿼리 제거 END -->
+	</select>
+	
+	<!-- 오늘의 구인현황 마감상세 조회 -->
+	<select id="getTodayStatusCloseDetail" parameterType="hashmap" resultType="hashmap">
+		<!-- 2019-07-03 [김남민] 오늘의 구인현황 srv_dt_job_board_sm 사용으로 임시 변경 START -->
+		select reg_dt,
+			'구인 종료 마감' as title_nm,
+			sum(clos_corp) as corp_cnt,
+			sum(clos_jo) as jo_cnt
+		from(
+			select  
+				reg_dt,
+				clos_corp_cnt as clos_corp,
+				clos_jo_cnt as clos_jo
+			from srv_dt_job_board_sm
+			where 1=1
+			<if test='today != "undefined"'>
+				and reg_dt = #{today}
+			</if>
+			
+		)
+		group by reg_dt
+		<!-- 2019-07-03 [김남민] 오늘의 구인현황 srv_dt_job_board_sm 사용으로 임시 변경 END -->
+		<!-- 2019-06-18 [김남민] srv_dt_job_board_sm 조회 쿼리 제거 START -->
+		<!-- with w_srv_dt_job_sm_refine as (
+			select
+				row_number() over(partition by a.jo_no order by a.create_dt desc) as row_num
+				,a.jo_no
+				,a.sido_cd
+				,a.sgg_cd
+				,a.bsnm_no
+				,a.rcrit_psn
+				,a.reg_dt
+				,a.clos_dt
+				<choose>
+					<when test='search_type == "W"'>
+						to_char(to_date('${today}','YYYYMMDD'),'YYYYWW') as check_date
+					</when>		
+					<when test='search_type == "M"'>
+						,substring('${today}',1,6) as check_date
+					</when>	
+				    <otherwise>
+						,'${today}' as check_date
+				    </otherwise>
+				 </choose>
+			from
+				srv_dt_job_sm_refine a
+			where 1=1
+				<choose>
+					<when test='search_type == "W"'>
+						and to_char(to_date(a.create_dt,'YYYYMMDD'),'YYYYWW') = to_char(to_date('${today}','YYYYMMDD'),'YYYYWW')
+					</when>		
+					<when test='search_type == "M"'>
+						and a.create_dt like substring('${today}',1,6)||'%' /* substring 느림 */
+					</when>	
+					<otherwise>
+						and a.create_dt = '${today}'
+					</otherwise>
+				</choose>
+		),
+		w_srv_dt_job_sm_refine_sum as (
+			select
+				count(*) as all_jo_cnt
+				,count(distinct a.bsnm_no) as all_corp_cnt
+				,sum(a.rcrit_psn) as all_rcrit_psn_cnt
+				<choose>
+					<when test='search_type == "W"'>
+						,count(case when to_char(to_date(a.reg_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then 1 else null end) as new_jo_cnt
+						,count(distinct case when to_char(to_date(a.reg_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then a.bsnm_no else null end) as new_corp_cnt
+						,sum(case when to_char(to_date(a.reg_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+						,count(case when to_char(to_date(a.clos_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then 1 else null end) as clos_jo_cnt
+						,count(distinct case when to_char(to_date(a.clos_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then a.bsnm_no else null end) as clos_corp_cnt
+						,sum(case when to_char(to_date(a.clos_dt,'YYYYMMDD'),'YYYYWW') = a.check_date then a.rcrit_psn else 0 end) as clos_rcrit_psn_cnt
+					</when>		
+					<when test='search_type == "M"'>
+						,count(case when a.reg_dt like a.check_date||'%' then 1 else null end) as new_jo_cnt
+						,count(distinct case when a.reg_dt like a.check_date||'%' then a.bsnm_no else null end) as new_corp_cnt
+						,sum(case when a.reg_dt like a.check_date||'%' then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+						,count(case when a.clos_dt like a.check_date||'%' then 1 else null end) as clos_jo_cnt
+						,count(distinct case when a.clos_dt like a.check_date||'%' then a.bsnm_no else null end) as clos_corp_cnt
+						,sum(case when a.clos_dt like a.check_date||'%' then a.rcrit_psn else 0 end) as clos_rcrit_psn_cnt
+					</when>	
+					<otherwise>
+						,count(case when a.reg_dt = a.check_date then 1 else null end) as new_jo_cnt
+						,count(distinct case when a.reg_dt = a.check_date then a.bsnm_no else null end) as new_corp_cnt
+						,sum(case when a.reg_dt = a.check_date then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+						,count(case when a.clos_dt = a.check_date then 1 else null end) as clos_jo_cnt
+						,count(distinct case when a.clos_dt = a.check_date then a.bsnm_no else null end) as clos_corp_cnt
+						,sum(case when a.clos_dt = a.check_date then a.rcrit_psn else 0 end) as clos_rcrit_psn_cnt
+					</otherwise>
+				</choose>
+			from
+				w_srv_dt_job_sm_refine a
+			where 1=1
+				and a.row_num = 1
+		)
+		select
+			'구인 종료 마감' as title_nm
+			, nvl(b.clos_jo_cnt,0) as jo_cnt
+			, nvl(b.clos_corp_cnt,0) as corp_cnt
+			, nvl(b.clos_rcrit_psn_cnt,0) as rcrit_psn_cnt
+		from
+			(select 1 from dual) a
+			left outer join w_srv_dt_job_sm_refine_sum b on 1=1 -->
+		<!-- 2019-06-18 [김남민] srv_dt_job_board_sm 조회 쿼리 제거 END -->
+	</select>
+	
+	<!-- 오늘의 구인현황 > 전체 조회 (그래프)
+			날짜범위 조회 기능 - 2018.12.06	ywKim	신규: 쿼리문 hjh 
+	-->
+	<select id="getIntroData" parameterType="hashmap" resultType="hashmap">
+		<!-- 2019-07-03 [김남민] 오늘의 구인현황 srv_dt_job_board_sm 사용으로 임시 변경 START -->
+		select
+			  reg_dt
+			, '전체구인업체수' as class_nm
+			, '0' as rank
+			, sum(all_corp_cnt) as sum_cnt
+			, '97' as corp_per
+			, sum(all_corp_cnt) as corp_irdsrate
+		from
+		(
+			select  
+			<choose>
+				<when test='search_type == "W"'>
+					SUBSTRING(reg_dt,1,4) || TO_CHAR(TO_DATE(reg_dt,'YYYYMMDD'),'WW') AS reg_dt 
+				</when>
+				<when test='search_type == "M"'>
+					SUBSTRING(reg_dt,1,6) AS reg_dt
+				</when>
+				<when test='search_type == "Q"'>
+					SUBSTRING(reg_dt,1,4) || LPAD(TO_CHAR(TO_DATE(SUBSTRING(reg_dt,1,6), 'YYYYMM'), 'q'), 2, '0') AS reg_dt
+				</when>
+				<when test='search_type == "H"'>
+					SUBSTRING(reg_dt,1,4) || LPAD(CEIL(TO_CHAR(TO_DATE(SUBSTRING(reg_dt,1,6), 'YYYYMM'), 'q') / 2), 2, '0') AS reg_dt
+				</when>				
+			    <otherwise>
+					reg_dt 
+			    </otherwise>
+			</choose>
+				, all_corp_cnt
+			  FROM srv_dt_job_board_sm
+			 WHERE 1=1
+			   AND reg_dt BETWEEN #{from_yyyymmdd} AND #{to_yyyymmdd} 
+			<if test="sido_cd != null and sido_cd != '99'">
+			   AND sido_cd = #{sido_cd}
+			 </if>
+			 <if test="sgg_cd != null and sgg_cd != '999'">
+			   AND sgg_cd = #{sgg_cd}
+			 </if>			
+		)
+		group by reg_dt
+		union all
+		select
+			  reg_dt
+			, '전체구인자수' as class_nm
+			, '1' as rank
+			, sum(all_rcrit_psn_cnt) as sum_cnt
+			, '76' as corp_per
+			, sum(all_rcrit_psn_cnt) as corp_irdsrate
+		from(
+			SELECT  
+			<choose>
+				<when test='search_type == "W"'>
+					SUBSTRING(reg_dt,1,4) || TO_CHAR(TO_DATE(reg_dt,'YYYYMMDD'),'WW') AS reg_dt 
+				</when>
+				<when test='search_type == "M"'>
+					SUBSTRING(reg_dt,1,6) AS reg_dt
+				</when>
+				<when test='search_type == "Q"'>
+					SUBSTRING(reg_dt,1,4) || LPAD(TO_CHAR(TO_DATE(SUBSTRING(reg_dt,1,6), 'YYYYMM'), 'q'), 2, '0') AS reg_dt
+				</when>
+				<when test='search_type == "H"'>
+					SUBSTRING(reg_dt,1,4) || LPAD(CEIL(TO_CHAR(TO_DATE(SUBSTRING(reg_dt,1,6), 'YYYYMM'), 'q') / 2), 2, '0') AS reg_dt
+				</when>				
+			    <otherwise>
+					reg_dt 
+			    </otherwise>
+			</choose>								
+				, all_rcrit_psn_cnt
+			FROM srv_dt_job_board_sm
+			WHERE 1=1
+			  AND reg_dt BETWEEN #{from_yyyymmdd} AND #{to_yyyymmdd}
+			<if test="sido_cd != null and sido_cd != '99'">
+			  and sido_cd = #{sido_cd}
+			 </if>
+			 <if test="sgg_cd != null and sgg_cd != '999'">
+			  and sgg_cd = #{sgg_cd}
+			 </if>
+		)
+		group by reg_dt
+		union all
+		select
+			  reg_dt
+			, '신규구인업체수' as class_nm
+			, '2' as rank
+			, sum(new_corp_cnt)  as sum_cnt
+			, '56' as corp_per
+			, sum(new_corp_cnt) as corp_irdsrate
+		from(
+			select  
+			<choose>
+				<when test='search_type == "W"'>
+					SUBSTRING(reg_dt,1,4) || TO_CHAR(TO_DATE(reg_dt,'YYYYMMDD'),'WW') AS reg_dt 
+				</when>
+				<when test='search_type == "M"'>
+					SUBSTRING(reg_dt,1,6) AS reg_dt
+				</when>
+				<when test='search_type == "Q"'>
+					SUBSTRING(reg_dt,1,4) || LPAD(TO_CHAR(TO_DATE(SUBSTRING(reg_dt,1,6), 'YYYYMM'), 'q'), 2, '0') AS reg_dt
+				</when>
+				<when test='search_type == "H"'>
+					SUBSTRING(reg_dt,1,4) || LPAD(CEIL(TO_CHAR(TO_DATE(SUBSTRING(reg_dt,1,6), 'YYYYMM'), 'q') / 2), 2, '0') AS reg_dt
+				</when>				
+			    <otherwise>
+					reg_dt 
+			    </otherwise>
+			</choose>
+				, new_corp_cnt
+			from srv_dt_job_board_sm
+			where 1=1
+			  AND reg_dt BETWEEN #{from_yyyymmdd} AND #{to_yyyymmdd}
+			<if test="sido_cd != null and sido_cd != '99'">
+			  and sido_cd = #{sido_cd}
+			 </if>
+			 <if test="sgg_cd != null and sgg_cd != '999'">
+			  and sgg_cd = #{sgg_cd}
+			 </if>
+		)
+		group by reg_dt
+		union all
+		select
+			  reg_dt
+			, '신규구인자수' as class_nm
+			, '3' as rank
+			, sum(new_rcrit_psn_cnt) as sum_cnt
+		 	, '79' as corp_per
+		 	, sum(new_rcrit_psn_cnt) as corp_irdsrate
+		from(
+			select  
+			<choose>
+				<when test='search_type == "W"'>
+					SUBSTRING(reg_dt,1,4) || TO_CHAR(TO_DATE(reg_dt,'YYYYMMDD'),'WW') AS reg_dt 
+				</when>
+				<when test='search_type == "M"'>
+					SUBSTRING(reg_dt,1,6) AS reg_dt
+				</when>
+				<when test='search_type == "Q"'>
+					SUBSTRING(reg_dt,1,4) || LPAD(TO_CHAR(TO_DATE(SUBSTRING(reg_dt,1,6), 'YYYYMM'), 'q'), 2, '0') AS reg_dt
+				</when>
+				<when test='search_type == "H"'>
+					SUBSTRING(reg_dt,1,4) || LPAD(CEIL(TO_CHAR(TO_DATE(SUBSTRING(reg_dt,1,6), 'YYYYMM'), 'q') / 2), 2, '0') AS reg_dt
+				</when>				
+			    <otherwise>
+					reg_dt 
+			    </otherwise>
+			</choose>
+				, new_rcrit_psn_cnt
+			from srv_dt_job_board_sm
+			where 1=1
+			  AND reg_dt BETWEEN #{from_yyyymmdd} AND #{to_yyyymmdd}
+			<if test="sido_cd != null and sido_cd != '99'">
+			   and sido_cd = #{sido_cd}
+			 </if>
+			 <if test="sgg_cd != null and sgg_cd != '999'">
+			   and sgg_cd = #{sgg_cd}
+			 </if>
+		)
+		group by reg_dt
+		order by reg_dt, rank
+		<!-- 2019-07-03 [김남민] 오늘의 구인현황 srv_dt_job_board_sm 사용으로 임시 변경 END -->
+		<!-- 2019-06-18 [김남민] srv_dt_job_board_sm 조회 쿼리 제거 START -->
+		<!-- with w_srv_dt_job_sm_refine as (
+			select
+				<choose>
+					<when test='search_type == "W"'>
+						row_number() over(partition by a.jo_no, SUBSTRING(a.create_dt,1,4) || TO_CHAR(TO_DATE(a.create_dt,'YYYYMMDD'),'WW') order by a.create_dt desc) as row_num
+						,SUBSTRING(a.create_dt,1,4) || TO_CHAR(TO_DATE(a.create_dt,'YYYYMMDD'),'WW') as group_dt
+						,case when SUBSTRING(a.reg_dt,1,4) || TO_CHAR(TO_DATE(a.reg_dt,'YYYYMMDD'),'WW') = SUBSTRING(a.create_dt,1,4) || TO_CHAR(TO_DATE(a.create_dt,'YYYYMMDD'),'WW') then 'Y' else 'N' end as reg_check
+					</when>
+					<when test='search_type == "M"'>
+						row_number() over(partition by a.jo_no, SUBSTRING(a.create_dt,1,6) order by a.create_dt desc) as row_num
+						,SUBSTRING(a.create_dt,1,6) as group_dt
+						,case when SUBSTRING(a.reg_dt,1,6) = SUBSTRING(a.create_dt,1,6) then 'Y' else 'N' end as reg_check
+					</when>
+					<when test='search_type == "Q"'>
+						row_number() over(partition by a.jo_no, SUBSTRING(a.create_dt,1,4) || LPAD(TO_CHAR(TO_DATE(SUBSTRING(a.create_dt,1,6), 'YYYYMM'), 'q'), 2, '0') order by a.create_dt desc) as row_num
+						,SUBSTRING(a.create_dt,1,4) || LPAD(TO_CHAR(TO_DATE(SUBSTRING(a.create_dt,1,6), 'YYYYMM'), 'q'), 2, '0') as group_dt
+						,case when SUBSTRING(a.reg_dt,1,4) || LPAD(TO_CHAR(TO_DATE(SUBSTRING(a.reg_dt,1,6), 'YYYYMM'), 'q'), 2, '0') = SUBSTRING(a.create_dt,1,4) || LPAD(TO_CHAR(TO_DATE(SUBSTRING(a.create_dt,1,6), 'YYYYMM'), 'q'), 2, '0') then 'Y' else 'N' end as reg_check
+					</when>
+					<when test='search_type == "H"'>
+						row_number() over(partition by a.jo_no, SUBSTRING(a.create_dt,1,4) || LPAD(CEIL(TO_CHAR(TO_DATE(SUBSTRING(a.create_dt,1,6), 'YYYYMM'), 'q') / 2), 2, '0') order by a.create_dt desc) as row_num
+						,SUBSTRING(a.create_dt,1,4) || LPAD(CEIL(TO_CHAR(TO_DATE(SUBSTRING(a.create_dt,1,6), 'YYYYMM'), 'q') / 2), 2, '0') as group_dt
+						,case when SUBSTRING(a.reg_dt,1,4) || LPAD(CEIL(TO_CHAR(TO_DATE(SUBSTRING(a.reg_dt,1,6), 'YYYYMM'), 'q') / 2), 2, '0') = SUBSTRING(a.create_dt,1,4) || LPAD(CEIL(TO_CHAR(TO_DATE(SUBSTRING(a.create_dt,1,6), 'YYYYMM'), 'q') / 2), 2, '0') then 'Y' else 'N' end as reg_check
+					</when>				
+				    <otherwise>
+				    	row_number() over(partition by a.jo_no, a.create_dt order by a.create_dt desc) as row_num
+				    	1 as row_num
+						,a.create_dt as group_dt
+						,case when a.reg_dt = a.create_dt then 'Y' else 'N' end as reg_check
+				    </otherwise>
+				</choose>
+				,a.jo_no
+				,a.sido_cd
+				,a.sgg_cd
+				,a.bsnm_no
+				,a.rcrit_psn
+				,a.reg_dt
+				,a.clos_dt
+			from
+				srv_dt_job_sm_refine a
+			where 1=1
+				<if test="sido_cd != null and sido_cd != '99'">
+					and a.sido_cd = '${sido_cd}'
+				</if>
+				<if test="sgg_cd != null and sgg_cd != '999'">
+					and a.sgg_cd = '${sgg_cd}'
+				</if>
+				and a.create_dt between '${from_yyyymmdd}' and '${to_yyyymmdd}'
+		),
+		w_srv_dt_job_sm_refine_sum as (
+			select
+				a.group_dt as reg_dt
+				,count(*) as all_jo_cnt
+				,count(distinct a.bsnm_no) as all_corp_cnt
+				,sum(a.rcrit_psn) as all_rcrit_psn_cnt
+				,count(case when a.reg_check = 'Y' then 1 else null end) as new_jo_cnt
+				,count(distinct case when a.reg_check = 'Y' then a.bsnm_no else null end) as new_corp_cnt
+				,sum(case when a.reg_check = 'Y' then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+			from
+				w_srv_dt_job_sm_refine a
+			where 1=1
+				and a.row_num = 1
+			group by
+				a.group_dt
+		)
+		select
+			a.reg_dt
+			, case
+				when b.rank = '0' then '전체구인업체수'
+				when b.rank = '1' then '전체구인자수'
+				when b.rank = '2' then '신규구인업체수'
+				when b.rank = '3' then '신규구인자수'
+			  end as class_nm
+			, b.rank
+			, case
+				when b.rank = '0' then nvl(a.all_corp_cnt,0)
+				when b.rank = '1' then nvl(a.all_rcrit_psn_cnt,0)
+				when b.rank = '2' then nvl(a.new_corp_cnt,0)
+				when b.rank = '3' then nvl(a.new_rcrit_psn_cnt,0)
+			  end as sum_cnt
+			, case
+				when b.rank = '0' then '97'
+				when b.rank = '1' then '76'
+				when b.rank = '2' then '56'
+				when b.rank = '3' then '79'
+			  end as corp_per
+			, case
+				when b.rank = '0' then nvl(a.all_corp_cnt,0)
+				when b.rank = '1' then nvl(a.all_rcrit_psn_cnt,0)
+				when b.rank = '2' then nvl(a.new_corp_cnt,0)
+				when b.rank = '3' then nvl(a.new_rcrit_psn_cnt,0)
+			  end as corp_irdsrate
+		from
+			w_srv_dt_job_sm_refine_sum a
+			inner join (
+				select '0' as rank from dual union all
+				select '1' as rank from dual union all
+				select '2' as rank from dual union all
+				select '3' as rank from dual
+			)b on 1=1
+		order by a.reg_dt, b.rank -->
+		<!-- 2019-06-18 [김남민] srv_dt_job_board_sm 조회 쿼리 제거 END -->
+	</select>
+	
+	<!-- 오늘의 구인현황 > 상세 조회 (그래프)
+			날짜범위 조회 기능 - 2018.12.06	ywKim	신규: 쿼리문 hjh 
+	-->
+	<select id="getIntroDataDetail" parameterType="hashmap" resultType="hashmap">
+		<!-- SELECT reg_dt
+		     , 'all' as class_nm
+		     , sum(all_corp_cnt) as corp_cnt
+		     , sum(all_rcrit_psn_cnt) as rcrit_psn_cnt
+		     , '1' as rank
+		  FROM srv_dt_job_board_sm
+		 WHERE reg_dt BETWEEN to_char((to_date(#{today}, 'YYYYMMDD')-10), 'YYYYMMDD') AND #{today}
+		 GROUP BY reg_dt -->
+		 <!-- 2019-07-03 [김남민] 오늘의 구인현황 srv_dt_job_board_sm 사용으로 임시 변경 START -->
+		 select
+			  reg_dt
+			, ${seriesIndex} as rank
+			<if test="seriesIndex == 0">
+			, '전체구인업체수' as class_nm			
+			, sum(all_corp_cnt) as sum_cnt
+			, '97' as corp_per
+			, sum(all_corp_cnt) as corp_irdsrate
+			</if>
+			<if test="seriesIndex == 1">
+			, '전체구인자수' as class_nm
+			, sum(all_rcrit_psn_cnt) as sum_cnt
+			, '76' as corp_per
+			, sum(all_rcrit_psn_cnt) as corp_irdsrate
+			</if>
+			<if test="seriesIndex == 2">
+			, '신규구인업체수' as class_nm
+			, sum(new_corp_cnt)  as sum_cnt
+			, '56' as corp_per
+			, sum(new_corp_cnt) as corp_irdsrate
+			</if>
+			<if test="seriesIndex == 3">
+			, '신규구인자수' as class_nm
+			, sum(new_rcrit_psn_cnt) as sum_cnt
+		 	, '79' as corp_per
+		 	, sum(new_rcrit_psn_cnt) as corp_irdsrate
+			</if>
+		from(
+			select  
+			<choose>
+				<when test='search_type == "W"'>
+					SUBSTRING(reg_dt,1,4) || TO_CHAR(TO_DATE(reg_dt,'YYYYMMDD'),'WW') AS reg_dt 
+				</when>
+				<when test='search_type == "M"'>
+					SUBSTRING(reg_dt,1,6) AS reg_dt
+				</when>
+				<when test='search_type == "Q"'>
+					SUBSTRING(reg_dt,1,4) || LPAD(TO_CHAR(TO_DATE(SUBSTRING(reg_dt,1,6), 'YYYYMM'), 'q'), 2, '0') AS reg_dt
+				</when>
+				<when test='search_type == "H"'>
+					SUBSTRING(reg_dt,1,4) || LPAD(CEIL(TO_CHAR(TO_DATE(SUBSTRING(reg_dt,1,6), 'YYYYMM'), 'q') / 2), 2, '0') AS reg_dt
+				</when>				
+			    <otherwise>
+					reg_dt 
+			    </otherwise>
+			</choose>				
+				<if test="seriesIndex == 0">
+				, all_corp_cnt
+				</if>
+				<if test="seriesIndex == 1">
+				, all_rcrit_psn_cnt
+				</if>
+				<if test="seriesIndex == 2">
+				, new_corp_cnt
+				</if>
+				<if test="seriesIndex == 3">
+				, new_rcrit_psn_cnt
+				</if>
+			from srv_dt_job_board_sm
+			where 1=1
+				AND reg_dt BETWEEN #{from_yyyymmdd} AND #{to_yyyymmdd}
+			<if test="sido_cd != null and sido_cd != '99'">
+			   and sido_cd = #{sido_cd}
+			 </if>
+			 <if test="sgg_cd != null and sgg_cd != '999'">
+			   and sgg_cd = #{sgg_cd}
+			 </if>			
+		)
+		group by reg_dt
+		<!-- 2019-07-03 [김남민] 오늘의 구인현황 srv_dt_job_board_sm 사용으로 임시 변경 END -->
+		<!-- 2019-06-18 [김남민] srv_dt_job_board_sm 조회 쿼리 제거 START -->
+		<!-- with w_srv_dt_job_sm_refine as (
+			select
+				<choose>
+					<when test='search_type == "W"'>
+						row_number() over(partition by a.jo_no, SUBSTRING(a.create_dt,1,4) || TO_CHAR(TO_DATE(a.create_dt,'YYYYMMDD'),'WW') order by a.create_dt desc) as row_num
+						,SUBSTRING(a.create_dt,1,4) || TO_CHAR(TO_DATE(a.create_dt,'YYYYMMDD'),'WW') as group_dt
+						,case when SUBSTRING(a.reg_dt,1,4) || TO_CHAR(TO_DATE(a.reg_dt,'YYYYMMDD'),'WW') = SUBSTRING(a.create_dt,1,4) || TO_CHAR(TO_DATE(a.create_dt,'YYYYMMDD'),'WW') then 'Y' else 'N' end as reg_check
+					</when>
+					<when test='search_type == "M"'>
+						row_number() over(partition by a.jo_no, SUBSTRING(a.create_dt,1,6) order by a.create_dt desc) as row_num
+						,SUBSTRING(a.create_dt,1,6) as group_dt
+						,case when SUBSTRING(a.reg_dt,1,6) = SUBSTRING(a.create_dt,1,6) then 'Y' else 'N' end as reg_check
+					</when>
+					<when test='search_type == "Q"'>
+						row_number() over(partition by a.jo_no, SUBSTRING(a.create_dt,1,4) || LPAD(TO_CHAR(TO_DATE(SUBSTRING(a.create_dt,1,6), 'YYYYMM'), 'q'), 2, '0') order by a.create_dt desc) as row_num
+						,SUBSTRING(a.create_dt,1,4) || LPAD(TO_CHAR(TO_DATE(SUBSTRING(a.create_dt,1,6), 'YYYYMM'), 'q'), 2, '0') as group_dt
+						,case when SUBSTRING(a.reg_dt,1,4) || LPAD(TO_CHAR(TO_DATE(SUBSTRING(a.reg_dt,1,6), 'YYYYMM'), 'q'), 2, '0') = SUBSTRING(a.create_dt,1,4) || LPAD(TO_CHAR(TO_DATE(SUBSTRING(a.create_dt,1,6), 'YYYYMM'), 'q'), 2, '0') then 'Y' else 'N' end as reg_check
+					</when>
+					<when test='search_type == "H"'>
+						row_number() over(partition by a.jo_no, SUBSTRING(a.create_dt,1,4) || LPAD(CEIL(TO_CHAR(TO_DATE(SUBSTRING(a.create_dt,1,6), 'YYYYMM'), 'q') / 2), 2, '0') order by a.create_dt desc) as row_num
+						,SUBSTRING(a.create_dt,1,4) || LPAD(CEIL(TO_CHAR(TO_DATE(SUBSTRING(a.create_dt,1,6), 'YYYYMM'), 'q') / 2), 2, '0') as group_dt
+						,case when SUBSTRING(a.reg_dt,1,4) || LPAD(CEIL(TO_CHAR(TO_DATE(SUBSTRING(a.reg_dt,1,6), 'YYYYMM'), 'q') / 2), 2, '0') = SUBSTRING(a.create_dt,1,4) || LPAD(CEIL(TO_CHAR(TO_DATE(SUBSTRING(a.create_dt,1,6), 'YYYYMM'), 'q') / 2), 2, '0') then 'Y' else 'N' end as reg_check
+					</when>				
+				    <otherwise>
+				    	row_number() over(partition by a.jo_no, a.create_dt order by a.create_dt desc) as row_num
+				    	1 as row_num
+						,a.create_dt as group_dt
+						,case when a.reg_dt = a.create_dt then 'Y' else 'N' end as reg_check
+				    </otherwise>
+				</choose>
+				,a.jo_no
+				,a.sido_cd
+				,a.sgg_cd
+				,a.bsnm_no
+				,a.rcrit_psn
+				,a.reg_dt
+				,a.clos_dt
+			from
+				srv_dt_job_sm_refine a
+			where 1=1
+				<if test="sido_cd != null and sido_cd != '99'">
+					and a.sido_cd = '${sido_cd}'
+				</if>
+				<if test="sgg_cd != null and sgg_cd != '999'">
+					and a.sgg_cd = '${sgg_cd}'
+				</if>
+				and a.create_dt between '${from_yyyymmdd}' and '${to_yyyymmdd}'
+		),
+		w_srv_dt_job_sm_refine_sum as (
+			select
+				a.group_dt as reg_dt
+				<if test="seriesIndex == 0">
+				,count(distinct a.bsnm_no) as all_corp_cnt
+				</if>
+				<if test="seriesIndex == 1">
+				,sum(a.rcrit_psn) as all_rcrit_psn_cnt
+				</if>
+				<if test="seriesIndex == 2">
+				,count(distinct case when a.reg_check = 'Y' then a.bsnm_no else null end) as new_corp_cnt
+				</if>
+				<if test="seriesIndex == 3">
+				,sum(case when a.reg_check = 'Y' then a.rcrit_psn else 0 end) as new_rcrit_psn_cnt
+				</if>
+			from
+				w_srv_dt_job_sm_refine a
+			where 1=1
+				and a.row_num = 1
+			group by
+				a.group_dt
+		)
+		<if test="seriesIndex == 0">
+		select
+			a.reg_dt
+			, ${seriesIndex} as rank
+			, '전체구인업체수' as class_nm
+			, '0' as rank
+			, nvl(a.all_corp_cnt,0) as sum_cnt
+			, '97' as corp_per
+			, nvl(a.all_corp_cnt,0) as corp_irdsrate
+		from
+			w_srv_dt_job_sm_refine_sum a
+		order by
+			a.reg_dt
+		</if>
+		<if test="seriesIndex == 1">
+		select
+			a.reg_dt
+			, ${seriesIndex} as rank
+			, '전체구인자수' as class_nm
+			, '1' as rank
+			, nvl(a.all_rcrit_psn_cnt,0) as sum_cnt
+			, '76' as corp_per
+			, nvl(a.all_rcrit_psn_cnt,0) as corp_irdsrate
+		from
+			w_srv_dt_job_sm_refine_sum a
+		order by
+			a.reg_dt
+		</if>
+		<if test="seriesIndex == 2">
+		select
+			a.reg_dt
+			, ${seriesIndex} as rank
+			, '신규구인업체수' as class_nm
+			, '2' as rank
+			, nvl(a.new_corp_cnt,0) as sum_cnt
+			, '56' as corp_per
+			, nvl(a.new_corp_cnt,0) as corp_irdsrate
+		from
+			w_srv_dt_job_sm_refine_sum a
+		order by
+			a.reg_dt
+		</if>
+		<if test="seriesIndex == 3">
+		select
+			a.reg_dt
+			, ${seriesIndex} as rank
+			, '신규구인자수' as class_nm
+			, '3' as rank
+			, nvl(a.new_rcrit_psn_cnt,0) as sum_cnt
+			, '79' as corp_per
+			, nvl(a.new_rcrit_psn_cnt,0) as corp_irdsrate
+		from
+			w_srv_dt_job_sm_refine_sum a
+		order by
+			a.reg_dt
+		</if> -->
+		<!-- 2019-06-18 [김남민] srv_dt_job_board_sm 조회 쿼리 제거 END -->
+	</select>
+	
+	<!-- 오늘의 구인현황 신규 조회 (그래프) -->
+	<select id="getIntroDataNewDetail" parameterType="hashmap" resultType="hashmap">
+		SELECT reg_dt
+		     , 'new' as class_nm
+		     , sum(new_corp_cnt) as corp_cnt
+		     , sum(new_rcrit_psn_cnt) as rcrit_psn_cnt
+		     , '2' as rank
+		  FROM srv_dt_job_board_sm
+		 WHERE reg_dt BETWEEN to_char((to_date(#{today}, 'YYYYMMDD')-10), 'YYYYMMDD') AND #{today}
+		 GROUP BY reg_dt
+	</select>
+	
+	<!-- 오늘의 구인현황 마감 조회 (그래프) -->
+	<select id="getIntroDataCloseDetail" parameterType="hashmap" resultType="hashmap">		
+		SELECT reg_dt
+		     , 'close' as class_nm
+		     , sum(clos_corp_cnt) as corp_cnt
+		     , sum(clos_rcrit_psn_cnt) as rcrit_psn_cnt
+		     , '3' as rank
+		  FROM srv_dt_job_board_sm
+		 WHERE reg_dt BETWEEN to_char((to_date(#{today}, 'YYYYMMDD')-10), 'YYYYMMDD') AND #{today}
+		 GROUP BY reg_dt
+	</select>
+	
+	<!-- 오늘의 구인현황 시도 데이터보드 조회 
+			- 주, 월 단위로 조회 가능하도록 수정 - 2019.01.15	ywKim	변경
+	-->
+	<select id="getTodayStatusSidoDataBoard" parameterType="hashmap" resultType="hashmap">
+		<!-- 2019-07-03 [김남민] 오늘의 구인현황 srv_dt_job_board_sm 사용으로 임시 변경 START -->
+		SELECT
+			'${today}' AS REG_DT
+		<choose>	
+			<!-- 2019-04-30[한광희]:읍면동단위 표시를 위한 수정 시작:시군구 선택시 읍면동 정보 조회 -->
+			<when test="sgg_cd != null and sgg_cd != '999'">
+			 , sido_cd||sgg_cd||emdong_cd as adm_cd
+			 , (select max(emdong_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd||sgg_cd||emdong_cd = a.sido_cd||a.sgg_cd||a.emdong_cd) as adm_nm
+			</when>
+			<!-- 2019-04-30[한광희]:읍면동단위 표시를 위한 수정 종료 -->		
+			<when test="sido_cd != null and sido_cd != '99'">
+			 , sido_cd||sgg_cd as adm_cd
+			 , (select max(sgg_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd||sgg_cd = a.sido_cd||a.sgg_cd) as adm_nm
+			</when>			
+	   		<otherwise>
+			 , sido_cd as adm_cd
+		 	 , (select max(sido_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd = a.sido_cd) as adm_nm 
+	   		</otherwise>
+		</choose>
+		<if test="detail_type == 'ALL-COR'">					 			 
+			 , sum(all_corp_cnt) as right_data_val
+			 <!-- 2019-01-21 (전체 조회 시) 지도에 마우스 오버시 나오는 툴팁에 구인자수 추가. -->
+			 , sum(all_rcrit_psn_cnt) as right_data_val2
+		</if>
+		<if test="detail_type == 'ALL-PSN'">
+			 , sum(all_rcrit_psn_cnt) as right_data_val
+		</if>
+		<if test="detail_type == 'NEW-COR'">
+			 , sum(new_corp_cnt) as right_data_val
+		</if>
+		<if test="detail_type == 'NEW-PSN'">
+			 , sum(new_rcrit_psn_cnt) as right_data_val
+		</if>
+		  FROM srv_dt_job_board_sm a
+		 WHERE 1=1
+		   AND reg_dt BETWEEN #{from_yyyymmdd} AND #{to_yyyymmdd}
+		<if test="sido_cd != null and sido_cd != '99'">
+		   AND sido_cd = #{sido_cd}
+		</if>
+		<!-- 2019-04-30[한광희]:읍면동단위 표시를 위한 수정 시작:시군구 선택시 읍면동 정보 조회 -->
+		<if test="sgg_cd != null and sgg_cd != '999'">
+		   AND sgg_cd = #{sgg_cd}
+		</if>
+		<!-- 2019-04-30[한광희]:읍면동단위 표시를 위한 수정 종료 -->
+		<choose>	
+			<!-- 2019-04-30[한광희]:읍면동단위 표시를 위한 수정 시작:시군구 선택시 읍면동 정보 조회 -->
+			<when test="sgg_cd != null and sgg_cd != '999'">
+		 GROUP BY sido_cd, sgg_cd, emdong_cd
+			</when>
+			<!-- 2019-04-30[한광희]:읍면동단위 표시를 위한 수정 종료 -->			
+			<when test="sido_cd != null and sido_cd != '99'">
+		 GROUP BY sido_cd, sgg_cd
+			</when>			
+		    <otherwise>
+		 GROUP BY sido_cd 
+		    </otherwise>
+		</choose>
+		<!-- 2019-07-03 [김남민] 오늘의 구인현황 srv_dt_job_board_sm 사용으로 임시 변경 END -->
+		<!-- 2019-06-18 [김남민] srv_dt_job_board_sm 조회 쿼리 제거 START -->
+		<!-- with w_srv_dt_job_sm_refine as (
+			select
+				row_number() over(partition by a.jo_no order by a.create_dt desc) as row_num
+				,a.jo_no
+				,a.sido_cd
+				,a.sgg_cd
+				,a.emdong_cd
+				,a.bsnm_no
+				,a.rcrit_psn
+				,a.reg_dt
+				,a.clos_dt
+			from
+				srv_dt_job_sm_refine a
+			where 1=1
+				<if test="sido_cd != null and sido_cd != '99'">
+					and a.sido_cd = '${sido_cd}'
+				</if>
+				<if test="sgg_cd != null and sgg_cd != '999'">
+					and a.sgg_cd = '${sgg_cd}'
+				</if>
+				and a.create_dt between '${from_yyyymmdd}' and '${to_yyyymmdd}'
+		),
+		w_srv_pg_admbord_sido as (
+			select sido_cd, max(sido_nm) AS sido_nm
+			from srv_pg_admbord
+			where base_year = '${bnd_year}'
+			group by sido_cd
+		),
+		w_srv_pg_admbord_sgg as (
+			select sido_cd, sgg_cd, max(sgg_nm) AS sgg_nm
+			from srv_pg_admbord
+			where base_year = '${bnd_year}'
+			group by sido_cd, sgg_cd
+		),
+		w_srv_pg_admbord_emdong as (
+			select sido_cd, sgg_cd, emdong_cd, max(emdong_nm) AS emdong_nm
+			from srv_pg_admbord
+			where base_year = '${bnd_year}'
+			group by sido_cd, sgg_cd, emdong_cd
+		)
+		select
+			<choose>
+				<when test='search_type == "W"'>
+					TO_CHAR(TO_DATE('${today}','YYYYMMDD'),'YYYYWW') AS REG_DT
+				</when>
+				<when test='search_type == "M"'>
+					SUBSTRING('${today}', 1, 6) AS REG_DT
+				</when>				
+			    <otherwise>
+					'${today}' AS REG_DT
+			    </otherwise>
+			</choose>
+			<choose>				
+				2019-04-30[한광희]:읍면동단위 표시를 위한 수정 시작:시군구 선택시 읍면동 정보 조회
+				<when test="sgg_cd != null and sgg_cd != '999'">
+				,a.sido_cd||a.sgg_cd||a.emdong_cd as adm_cd
+				,d.emdong_nm as adm_nm
+				</when>
+				2019-04-30[한광희]:읍면동단위 표시를 위한 수정 종료
+				<when test="sido_cd != null and sido_cd != '99'">
+				,a.sido_cd||a.sgg_cd as adm_cd
+				,c.sgg_nm as adm_nm
+				</when>
+				<otherwise>
+				,a.sido_cd as adm_cd
+				,b.sido_nm as adm_nm 
+			    </otherwise>
+			</choose>
+			<if test="detail_type == 'ALL-COR'">					 			 
+				, count(distinct a.bsnm_no) as right_data_val
+				2019-01-21 (전체 조회 시) 지도에 마우스 오버시 나오는 툴팁에 구인자수 추가.
+				, sum(a.rcrit_psn) as right_data_val2
+			</if>
+			<if test="detail_type == 'ALL-PSN'">
+				, sum(a.rcrit_psn) as right_data_val
+			</if>
+			<if test="detail_type == 'NEW-COR'">
+				, count(distinct case when a.reg_dt between '${from_yyyymmdd}' and '${to_yyyymmdd}' then a.bsnm_no else null end) as right_data_val
+				, sum(case when a.reg_dt between '${from_yyyymmdd}' and '${to_yyyymmdd}' then a.rcrit_psn else 0 end) as right_data_val2
+			</if>
+			<if test="detail_type == 'NEW-PSN'">
+				, sum(case when a.reg_dt between '${from_yyyymmdd}' and '${to_yyyymmdd}' then a.rcrit_psn else 0 end) as right_data_val
+			</if>
+		from
+			w_srv_dt_job_sm_refine a
+			left outer join w_srv_pg_admbord_sido b on b.sido_cd = a.sido_cd
+			left outer join w_srv_pg_admbord_sgg c on c.sido_cd = a.sido_cd and c.sgg_cd = a.sgg_cd
+			left outer join w_srv_pg_admbord_emdong d on d.sido_cd = a.sido_cd and d.sgg_cd = a.sgg_cd and d.emdong_cd = a.emdong_cd
+		where 1=1
+			and a.row_num = 1
+			<choose>
+				2019-04-30[한광희]:읍면동단위 표시를 위한 수정 시작:시군구 선택시 읍면동 정보 조회
+				<when test="sgg_cd != null and sgg_cd != '999'">
+					and d.emdong_nm is not null
+				</when>
+				2019-04-30[한광희]:읍면동단위 표시를 위한 수정 종료
+				<when test="sido_cd != null and sido_cd != '99'">
+					and c.sgg_nm is not null
+				</when>
+				<otherwise>
+					and b.sido_nm is not null
+				</otherwise>
+			</choose>
+		<choose>	
+			2019-04-30[한광희]:읍면동단위 표시를 위한 수정 시작:시군구 선택시 읍면동 정보 조회
+			<when test="sgg_cd != null and sgg_cd != '999'">
+		 	group by a.sido_cd ,a.sgg_cd ,a.emdong_cd, d.emdong_nm
+			</when>
+			2019-04-30[한광희]:읍면동단위 표시를 위한 수정 종료			
+			<when test="sido_cd != null and sido_cd != '99'">
+		 	group by a.sido_cd ,a.sgg_cd, c.sgg_nm
+			</when>			
+		    <otherwise>
+		    group by a.sido_cd, b.sido_nm
+		    </otherwise>
+		</choose> -->
+		<!-- 2019-06-18 [김남민] srv_dt_job_board_sm 조회 쿼리 제거 END -->
+	</select>
+	
+	<!-- 오늘의 구인현황 시군구 데이터보드 조회 -->
+	<select id="getTodayStatusSggDataBoard" parameterType="hashmap" resultType="hashmap">
+		<!-- 2019-07-03 [김남민] 오늘의 구인현황 srv_dt_job_board_sm 사용으로 임시 변경 START -->
+		SELECT sido_cd
+			 , sgg_cd
+		     , sum(all_corp_cnt) as corp_cnt
+			 , sum(all_rcrit_psn_cnt) as rcrit_psn_cnt
+		  FROM srv_dt_job_board_sm
+		 WHERE reg_dt = #{today}
+		   AND sido_cd = #{sido_cd}
+		 GROUP BY sido_cd, sgg_cd
+		<!-- 2019-07-03 [김남민] 오늘의 구인현황 srv_dt_job_board_sm 사용으로 임시 변경 END -->
+		<!-- 2019-06-18 [김남민] srv_dt_job_board_sm 조회 쿼리 제거 START -->
+		<!-- with w_srv_dt_job_sm_refine as (
+			select
+				row_number() over(partition by a.jo_no order by a.create_dt desc) as row_num
+				,a.jo_no
+				,a.sido_cd
+				,a.sgg_cd
+				,a.bsnm_no
+				,a.rcrit_psn
+			from
+				srv_dt_job_sm_refine a
+			where 1=1
+				and a.sido_cd = '${sido_cd}'
+				and a.create_dt = '${today}'
+		)
+		select
+			a.sido_cd
+			,a.sgg_cd
+			,count(distinct a.bsnm_no) as corp_cnt
+			,sum(a.rcrit_psn) as rcrit_psn_cnt
+		from
+			w_srv_dt_job_sm_refine a
+		where 1=1
+			and a.row_num = 1
+		group by
+			a.sido_cd
+			,a.sgg_cd -->
+		<!-- 2019-06-18 [김남민] srv_dt_job_board_sm 조회 쿼리 제거 END -->
+	</select>
+	
+	<!-- 오늘의 구인현황 최신등록일 조회
+		가장 마지막에 등록된 데이터의 생성일자를 구함
+		2018.11.05	ywKim	신규 
+	-->
+	<select id="getLatestRegDate" parameterType="hashmap" resultType="String">
+		<!-- 2019-07-03 [김남민] 오늘의 구인현황 srv_dt_job_board_sm 사용으로 임시 변경 START -->
+		SELECT MAX(REG_DT) AS LATEST_DATE	
+		  FROM SRV_DT_JOB_BOARD_SM
+		<!-- 2019-07-03 [김남민] 오늘의 구인현황 srv_dt_job_board_sm 사용으로 임시 변경 END -->
+		<!-- 2019.06.17[한광희] 오늘의 구인현황 기간조회 기능활성화에 따른 주석처리 
+		SELECT MAX(CREATE_DT) AS LATEST_DATE	
+		  FROM SRV_DT_JOB_SM_REFINE
+		-->
+	</select>
+</mapper>

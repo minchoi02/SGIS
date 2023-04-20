@@ -1,0 +1,1044 @@
+const defaultCenter = [1009818, 1790781];
+(function(W, D) {
+	W.$administStatsMap = W.$administStatsMap || {};
+	$(document).ready(function() {
+		srvLogWrite('O0', '14', '01', '01', '', '');
+		$administStatsMap.event.setUIEvent();
+		
+		//보도자 이름 변경
+      	$("#press_release_text").text(
+        	$('meta[name="sub-title"]').attr("content")
+      	);
+      	
+      	$(".leftCol .btnNavThematic").click(function(){
+			if(!$(this).hasClass('active')){
+        		$(this).addClass('active');
+        		$(".nav-layer").css("display","block");
+        	}else{
+        		$(this).removeClass('active');
+        		$(".nav-layer").css("display","none");
+        	}
+        });
+		
+		$(".locationboxwrap2").click(function(){
+			if(!$(this).hasClass('active')){
+        		$(this).addClass('active');
+        		$("#filter").css("display","block");
+        	}else{
+        		$(this).removeClass('active');
+        		$("#filter").css("display","none");
+        	}
+		})
+		
+		$(".data-year").click(function(){
+			if(!$(this).hasClass('active')){
+        		$(this).addClass('active');
+
+        	}else{
+        		$(this).removeClass('active');
+
+        	}
+		})
+		
+		$(".dashOpen").click(function(){
+			if(!$(this).hasClass('active')){
+        		$(this).addClass('active');
+        		$(".dashAbsolute").animate({
+    	            'height' : '60vh'
+    	        }); 
+
+        	}else{
+        		$(this).removeClass('active');
+        		$(".dashAbsolute").animate({
+    	            'height' : '50px'
+    	        }); 
+
+        	}
+			
+		})
+		
+		
+	});
+	let isLoad = false;
+	$(window).on("orientationchange",function(){
+		setTimeout(function(){
+			$administStatsMap.event.mapResize();
+		},100);
+	});
+	$administStatsMap.consts = {
+		sidoAll : "up:00",
+		sidoAll2:"000,211,221,222,223,224,225,226,229,231,232,233,234,235,236,237,238,239",
+		sidoAll3:"211,221,222,223,224,225,226,229,231,232,233,234,235,236,237,238,239",
+		sidoAll4:"00,11,21,22,23,24,25,26,29,31,32,33,34,35,36,37,38,39",
+	};
+	$administStatsMap.ui = {
+		info:{},
+		mapTotalVal:0,
+		apiParam : {},
+		/**
+		 * @name         : tooltipMap 
+		 * @description  : 레이어 팝업으로 나오는 지도에대한 툴팁
+		 */
+		tooltipMap:{
+			mapTotalVal:0,
+			selectedAdmCd:null,//선택된 지역 코드
+			selectedAdmNm:"전국",//선택된 지역 이름
+			title:null,//선택된 데이터의 타이틀
+			isShowYear:true,
+			/**
+			 * @name                     : tooltipMap 
+			 * @description              : 레이어 팝업으로 나오는 지도에대한 툴팁
+			 * @param tooltipCallback    : tooltip callback
+			 * @param endCallback        : 로직 다 돌고 난 후 콜백
+			 */
+			show:function({tooltipCallback,endCallback}){
+				$administStatsMap.ui.tooltipMap.selectedAdmNm = $administStatsMap.ui.selectedAdmNm;
+				if(typeof tooltipCallback === "function"){
+					tooltipCallback();
+				}
+				$("#tooltip-map-tooltip").hide();
+				$("#tooltip-map-container,.dim").show();
+				$administStatsMap.ui.map["tooltip-map"].bnd_year = $administStatsMap.ui.year;
+				$administStatsMap.ui.map["tooltip-map"].gMap.invalidateSize();
+				if($administStatsMap.ui.map["tooltip-map"].dataBoundary){
+					$administStatsMap.ui.map["tooltip-map"].dataBoundary.remove()
+				}
+				$("#tooltip-map-tooltip [data-id=region-name]").text($administStatsMap.ui.tooltipMap.selectedAdmNm);
+				if(typeof endCallback === "function"){
+					endCallback();
+				}
+				
+			}
+		},
+		locationNameArray:["전국"],//현재 지역 명칭array
+		admCd : null,//지도에 뿌려준 코드
+		selectedAdmNm : "전국",//선택된 지역 이름
+		year : null,//지도에 뿌려준 년도
+		yearList : [],//조회할 수 있는 년도 리스트
+		theme:null,//현재 페이지 테마 명
+		map : {},//지도
+		isAtdrc : false,	// 비자치구 여부  (ex 수원시 (5자리) 클릭시 구정보 조회) / census 조회시 true면 5자리라도 조회 안하도록
+		/**
+		 * @name         : getMataDataUrl
+		 * @description  : kosis url 조회
+		 * @param survId : 조사ID
+		 */
+		getMataDataUrl:function(survId){
+			$.ajax({
+				method: "POST",
+				async: true,
+				url: sgisContextPath + "/ServiceAPI/totSurv/common/getTotSurvInfo.json",
+				data: {"survId": survId},
+				dataType: "json",
+				success: function(res) {
+					if (res.errCd == "0") {
+						// 총조사시각화정보
+						window.open(res.result.totSurvInfo[0].surv_url,"_blank"); 
+					}
+				},
+				error: function(e) {
+					console.error(e);
+				}
+			});
+		},
+		/**
+		 * @name         : themeData 
+		 * @description  : 테마에 대한 필요 정보들
+		 */
+		themeData:{
+			pressReleaseNewly:{//보도자료에서 사용될 연도별 파라미터 
+				"2019":"384690",
+				"2018":"377115",
+				"2017":"370326",
+				"2016":"362609",
+				"2015":"356061"
+			},
+			pressReleaseRetun:{ 
+				"2020":"390245",
+				"2019":"383320",
+				"2018":"375541",
+				"2017":"368580",
+				"2016":"361342",
+				"2015":"354827"
+			},
+			pressReleaseMiddl:{ 
+				"2019":"386979",
+				"2018":"379564",
+				"2017":"372101",
+			},
+			pressReleaseHouse:{ 
+				"2019":"386145",
+				"2018":"378776",
+				"2017":"371696",
+				"2016":"364721",
+				"2015":"358111",
+				"2014":"350653",
+				"2013":"332636",
+				"2012":"310870",
+			},
+			newly : {//신혼 부부
+				defaultColor : "#de5d90",
+				name:"신혼 부부",
+				tooltipTitle : function(){
+					if($administStatsMap.ui.admCd==null||$administStatsMap.ui.admCd=="00"){
+						return "전체 신혼부부 수";
+					}else{
+						return $administStatsMap.ui.selectedAdmNm+" 신혼부부 수";
+					}
+				},
+				mapData : {
+					getParameters : function(){
+						return {
+							org_id_list : "101",
+							tbl_id_list : "DT_1NW1001,DT_1NW2034,DT_1NW3034,DT_1NW2023,DT_1NW2028,DT_1NW2017,DT_1NW2026,DT_1NW2024,DT_1NW2032"
+						};
+					},
+					getDataParameters : function(){
+						return $.extend({},{
+							ov_l1_list : $administStatsMap.consts.sidoAll4,
+							regn_dataKey : "CHAR_ITM_ID",
+							regn_title : "신혼부부 수(전체)",
+							regn_color : "#BCBCBC"
+						},$administStatsMap.ui.themeData.newly.mapData.getParameters());
+					},
+					unit:"쌍"
+				}
+			},
+			house : {//주택 소유
+				defaultColor : "#f16b41",
+				name:"주택 소유",
+				tooltipTitle : function(){
+					return "개인 소유 주택 수";
+				},
+				mapData : {
+					getParameters : function(){
+						return {
+							org_id_list : "101",
+							tbl_id_list : "DT_1OH0501,DT_1IN1502,DT_1OH0504,DT_1OH0402,DT_1OH0403,DT_1OH0418,DT_1OH0404,DT_1OH0419,DT_1OH0405,DT_1OH0420"
+						};
+					},
+					getDataParameters : function(){
+						return {
+							surv_year_list : $administStatsMap.ui.year,
+							org_id_list : "101",
+							tbl_id_list : "DT_1OH0501",
+							list_var_ord_list : "",
+							char_itm_id_list : "T002",
+							prt_type : "",
+							adm_cd : "",
+							ov_l1_list : $administStatsMap.consts.sidoAll,
+							ov_l2_list : "",
+							ov_l3_list : "",
+							ov_l4_list : "",
+							ov_l5_list : "",
+							category : "",
+							odr_col_list : "",
+							odr_type : "",
+							regn_dataKey : "CHAR_ITM_ID",
+							regn_title : "개인이 소유한 주택 수",
+							regn_color : "#338CCA"
+						};
+					},
+					unit:"호"
+				}
+			},
+			middl : {//중장년층
+				defaultColor : "#598aac",
+				name:"중장년층",
+				tooltipTitle : function(){
+					return "중·장년층 인구 수";
+				},
+				mapData : {
+					getParameters : function(){
+						return {
+							org_id_list : "101",
+							tbl_id_list : "DT_1MA0001,DT_1MA0002,DT_1MA0003,DT_1MA0026,DT_1MA0028,DT_1MA0022,DT_1MA0023,DT_1MA0024,DT_1MA0030,DT_1MA0021"
+						};
+					},
+					getDataParameters : function(){
+						return {
+							surv_year_list : $administStatsMap.ui.year,
+							org_id_list : "101",
+							tbl_id_list : "DT_1MA0001",
+							list_var_ord_list : "",
+							char_itm_id_list : "T001",
+							prt_type : "",
+							adm_cd : "",
+							ov_l1_list : $administStatsMap.consts.sidoAll,
+							ov_l2_list : "A11",
+							ov_l3_list : "0",
+							ov_l4_list : "",
+							ov_l5_list : "",
+							category : "",
+							odr_col_list : "",
+							odr_type : "",
+							regn_dataKey : "OV_L3_ID",
+							regn_title : "중∙장년층 인구",
+							regn_color : "#BCBCBC"
+						};
+					},
+					unit:"명"
+				}
+			},
+			retun : {//귀농어·귀촌인
+				defaultColor : "#78340",
+				name:"귀농어·귀촌인",
+				tooltipTitle : function(){
+					if($administStatsMap.ui.admCd==null||$administStatsMap.ui.admCd=="00"){
+						return "전체 "+$administStatsMap.ui.themeData.retun.name+" 가구수";
+					}else{
+						if($administStatsMap.ui.themeData.retun.name == "귀농어·귀촌인"){
+							return $administStatsMap.ui.selectedAdmNm+" 귀농 가구 수";
+						}else{
+						return $administStatsMap.ui.selectedAdmNm+" "+$administStatsMap.ui.themeData.retun.name+" 가구수";
+						}
+					}				
+				},
+				mapData : {
+					getTableId : function(){
+						if( "귀농" == $administStatsMap.ui.themeData.retun.name || "귀농어·귀촌인" == $administStatsMap.ui.themeData.retun.name ){
+							return "DT_1A02008";
+						}else if( "귀어" == $administStatsMap.ui.themeData.retun.name ){
+							return "DT_1A02029";
+						}else if( "귀촌" == $administStatsMap.ui.themeData.retun.name ){
+							return "DT_1A02020";
+						}
+					},
+					getParameters : function(){
+						return {
+							org_id_list : "101",
+							tbl_id_list : "DT_1A02008,DT_1A02029,DT_1A02020,DT_1A02002,DT_1A02023,DT_1A02015,DT_1A02003,DT_1A02024,DT_1A02016"
+						};
+					},
+					getDataParameters : function(){
+						return {
+							surv_year_list : $administStatsMap.ui.year,
+							org_id_list : "101",
+							tbl_id_list : this.getTableId(),
+							char_itm_id_list : "T01",
+							list_var_ord_list : "",
+							adm_cd : "",
+							ov_l1_list : $administStatsMap.consts.sidoAll,
+							ov_l2_list : "00",
+							ov_l3_list : "",
+							ov_l4_list : "",
+							ov_l5_list : "",
+							odr_col_list : "",
+							odr_type : "",
+							regn_dataKey : "CHAR_ITM_ID",
+							regn_title : "귀농 수",
+							regn_color : "#BCBCBC"
+						};
+					},
+					unit:"가구"
+				}
+			},
+		},
+		/**
+		 * @name         : getData
+		 * @description  : 총조사 시각화 지도에 대한데이터 얻기 
+		 */
+		getData:function(callback){
+			common_loading(true);
+			$("#map-tooltip").hide();
+			var themeInfo = $administStatsMap.ui.themeData[$administStatsMap.ui.theme];
+			var _this = this;
+			this.admCd = this.admCd==null?"00":this.admCd;
+			this.year = this.map.map.bnd_year;
+			let parameters = $.extend(true, {
+				surv_year_list : this.year
+			}
+			, themeInfo.mapData.getDataParameters()
+			, $administStatsMap.ui.apiParam["DT_1NW1001"]
+			);
+			if( $administStatsMap.ui.theme == "newly" ){
+				parameters = {
+					surv_year_list: "2020",
+					org_id_list: "101",
+					tbl_id_list: "DT_1NW1001",
+					list_var_ord_list:"",
+					char_itm_id_list: "T10",
+					prt_type:"",
+					adm_cd:"",
+					ov_l1_list: "00,11,21,22,23,24,25,26,29,31,32,33,34,35,36,37,38,39",
+					ov_l2_list:"",
+					ov_l3_list:"",
+					ov_l4_list:"",
+					ov_l5_list:"",
+					category:"",
+					odr_col_list:"",
+					odr_type:"",
+					opt_chartSno: "8",
+					regn_chartId: "regnChart"
+				}
+			}
+			$.ajax({
+				method : "GET",
+//				method: "POST",
+				async: true,
+//				url: sgisContextPath + "/view/kosisApi/TotsurvStatData.do",
+				url: sgis4thApiPath,
+				data: parameters,
+				dataType: "json",
+				success: function(res) {
+					let resultMapData = $administStatsMap.utils.convertMapData({res,parameters});
+					$administStatsMap.ui.mapTotalVal = 0;
+					let totalArray = resultMapData.result.mapData;
+					for (var i = 0; i < totalArray.length; i++) {
+						if (totalArray[i].adm_cd != "00") {
+							$administStatsMap.ui.mapTotalVal += parseFloat($.isNumeric(totalArray[i].dt) ? totalArray[i].dt : 0);
+						}
+					}
+					_this.map.map.setStatsData({
+						adm_cd: "00",
+						admCdKey:"adm_cd",
+						showData : "dt",
+						unit : themeInfo.mapData.unit,
+						callback:function(data){
+							setSummaryData(res);
+//							_this.map.map.gMap.setView(defaultCenter,1);
+							_this.map.map.gMap.fitBounds(_this.map.map.dataBoundary);
+							isLoad = true;
+							if(typeof callback==="function"){
+								callback();
+							}
+						}
+					},resultMapData.result.mapData,parameters);
+				},
+				complete : function(){
+					common_loading(false);
+				}
+			});
+		},
+		/**
+		 * @name        : getAreaBndryParameters
+		 * @description : 지역 파라미터 데이터 얻기
+		 */
+		getAreaBndryParameters:function(){
+			let result = {};
+			if(!$.heum.hasData($administStatsMap.ui.admCd)||$administStatsMap.ui.admCd.length == 2){
+				if($.heum.hasData($administStatsMap.ui.admCd)&&$administStatsMap.ui.admCd!="00"){
+					result.area_bndry_se = "sgg";
+					result.sido_cd = $administStatsMap.ui.admCd;
+					result.sgg_cd = "999";
+				}else{
+					result.area_bndry_se = "sido";
+				}
+			}else if($administStatsMap.ui.admCd.length == 5){
+				result.area_bndry_se = "sgg";
+				result.sido_cd = $administStatsMap.ui.admCd.substring(0,2);
+				result.sgg_cd = $administStatsMap.ui.admCd.substring(2,5);
+			}else if($administStatsMap.ui.admCd.length == 7){
+				result.area_bndry_se = "emdong";
+			}else{
+				result.area_bndry_se = "totreg";
+			}
+			return result;
+		},
+		/**
+		 * @name        : createMap
+		 * @description : 지도 생성
+		 * @param id    : html tag id
+		 */
+		createMap: function(id) {
+			if($.heum.hasData($administStatsMap.ui.theme)){
+				var themeInfo = $administStatsMap.ui.themeData[$administStatsMap.ui.theme];
+				this.map[id] = new sMap.map();
+				const year = $("#year-list button[aria-checked=true]").data("value");
+				$("#data-year").text(year);
+				//console.log(year);
+				this.map[id].bnd_year = year;
+				this.map[id].createMap($administStatsMap, id, {
+					defaultColor : themeInfo.defaultColor,
+					zoom:2,
+					currentDefaultZoom:2,
+					isZoomControl : true,//줌 컨트롤 버튼 생성 유무
+					isCurrentControl : false,//현재위치 버튼 생성 유무
+					isMapControlButton : false,//지도 컨트롤 박스 생성 유무 
+					isMapStatToggleControl : false,//통계 폴리곤 토글 버튼 생성 유무 
+												  //createMap 할때 넘겨준 객체에서 ui.setStats이란 메소드가 존재해야합니다. ex : $administStatsMap.ui.setStats
+					mapStatToggleOption : //통계 폴리곤 토글 버튼의 옵션
+					{
+						defaultShowMapStat : false,//초기에 지도의 통계를 보여줄지의 유무
+						callback : function(isOn){//콜백(on유무)
+						}
+					},
+					isMapCaptionToggleControl : false,//통계 캡션 토글 버튼 생성 유무
+					mapCaptionToggleOption : //통계 캡션 토글 옵션
+					{
+						defaultShowCaption : true,//초기에 지도의 통계 캡션을 보여줄지의 유무
+						callback : function(isOn){//콜백(on유무)
+						}
+					},
+					isHideLegendControl : false,//범례 컨트롤 숨김 유무
+					isMapSizeControl : true,//지도 전체화면 버튼 생성 유무
+					isMapNavigator : true,//지도 네비게이션 생성 유무
+					navigatorOption : //지도 네비게이션 옵션
+					{
+						id : "map-navigator-"//네비게이터 아이디(ex : navigator-sido 면 sido를 제거하고 navigator)
+					},
+					isLegendControl : true,//범례 컨트롤 생성 유무
+					legendOption : //범례 옵션
+					{
+						//legend 객체에 있는 옵션을 참고해주세요
+					}
+				});
+//				this.map[id].addControlEvent("movestart");
+//				this.map[id].addControlEvent("moveend");
+//				this.map[id].addControlEvent("zoomstart");
+//				this.map[id].addControlEvent("zoomend");
+//				this.map[id].addControlEvent("drag");
+//				this.map[id].addControlEvent("dragend");
+				if(id!=="tooltip-map"){
+					this.getData();
+				}
+			}
+		},
+		setStats : function(){
+		},
+		
+		/**
+		 * checkIsAtdrc
+		 * 비자치구 여부 체크 
+		 * admCd
+		 */
+		checkIsAtdrc : function(admCd,isReturn){
+			let result = false;
+			if(isReturn!==true){
+				$administStatsMap.ui.isAtdrc = false;
+			}
+			// 비자치구 여부 체크
+			if(admCd != undefined && admCd.length == 5){
+				// ajax 시작
+				$.ajax({
+					method: "POST",
+					async: false,
+					url: sgisContextPath + "/ServiceAPI/totSurv/common/getAtdrcCheck.json",
+					data: {year:$administStatsMap.ui.map.map.bnd_year, region_cd:admCd},
+					dataType: "json",
+				}).done(function (res) { // 완료
+					if(res.errCd == "0") {
+						result = res.result.rslt;
+				
+					}
+				});
+			}
+			if(isReturn===true){
+				return result;
+			}else{
+				$administStatsMap.ui.isAtdrc = result;
+			}
+		},
+		setRankText:function(parameters,callback){
+			$.ajax({
+				method: "POST",
+				async: true,	
+				url: sgisContextPath + "/ServiceAPI/totSurv/common/getTotSurvRegionCount.json",
+				data: parameters, 
+				dataType: "json",
+				success: function(res) {
+					$("#ranking").empty();
+					if(res.errCd=="0"){
+						if($administStatsMap.ui.admCd.length == 2){
+							$("#ranking").append(
+								$.heum.setThousandSeparator(res.result.maxRank[0].cnt)+"개 시도 중 순위",
+								$("<a/>",{"href":"#","class":"notice notice--gray"}).click(function(){
+									$('#ranking-tooltip').show();
+									return false;
+								})
+							);
+						}else if($administStatsMap.ui.admCd.length == 5){
+							if($administStatsMap.ui.isAtdrc == true){
+								$("#ranking").append(
+									$.heum.setThousandSeparator(res.result.maxRank[2].cnt) + "개 비자치구 중 순위",
+									$("<a/>",{"href":"#","class":"notice notice--gray"}).click(function(){
+										$('#ranking-tooltip-3').show();
+										return false;
+									})
+								);
+							} else {
+								$("#ranking").append(
+									$.heum.setThousandSeparator(res.result.maxRank[1].cnt) + "개 시군구 중 순위",
+									$("<a/>",{"href":"#","class":"notice notice--gray"}).click(function(){
+										$('#ranking-tooltip-2').show();
+										return false;
+									})
+								);
+							}
+						}
+					}
+					if(typeof callback === "function"){
+						callback();
+					}
+				},
+				error: function(e) {
+					console.error(e);
+				}
+			});
+		},
+		setChartTitle:function(){
+			var themeInfo = $administStatsMap.ui.themeData[$administStatsMap.ui.theme];
+			const year = $("#year-list button[aria-checked=true]").data("value");
+			$("#data-year").text(year);
+			$("[data-id=text-year]").each(function(){
+				$(this).empty().append(
+					year+($.heum.hasData($(this).data("append-text"))?$(this).data("append-text"):""),
+					($.heum.hasData($(this).data("tooltip"))?
+						$("<a/>",{"class":"notice notice--gray","href":"#","data-tooltip":$(this).data("tooltip")}).click(function(){
+							$("#"+$(this).data("tooltip")).show();
+							return false;
+						})
+					:""),
+					($administStatsMap.ui.theme=="fishery"?(themeInfo.fisheryType=="sea"?"(해수면)":"(내수면)"):"")
+//					,
+//					($.heum.hasData($(this).data("title-unit"))?$("<span/>",{"text":$(this).data("title-unit")}):"")
+				);
+			});
+//			$("[data-id=title-unit]").each(function(){
+//				$(this).append($("<span/>",{"text":$(this).data("title-unit")}));
+//			});
+		}
+	};
+	$administStatsMap.callbackFunc = {
+		/**
+		 * @name         : didMapMoveStart
+		 * @description  : 지도 이동시 발생하는 콜백
+		 *                 map객체에서 이벤트 등록이 필요합니다.
+		 *                 ex : map.addControlEvent("movestart"); 
+		 * @date         : 2016. 08. 03. 
+		 * @author	     : 나광흠
+		 * @history      :
+		 * @param event  : event
+		 * @param map    : 지도에 관련된 객체
+		 */
+		didMapMoveStart : function(event,map){
+		},
+		/**
+		 * @name         : didMapMoveEnd
+		 * @description  : 지도 이동 종료시 발생하는 콜백
+		 *                 map객체에서 이벤트 등록이 필요합니다.
+		 *                 ex : map.addControlEvent("moveend"); 
+		 * @date         : 2016. 08. 03. 
+		 * @author	     : 나광흠
+		 * @history      :
+		 * @param event  : event
+		 * @param map    : 지도에 관련된 객체
+		 */
+		didMapMoveEnd : function(event,map){
+		},
+		/**
+		 * @name         : didMapZoomStart
+		 * @description  : 지도 줌변경 시작시 발생하는 콜백
+		 *                 map객체에서 이벤트 등록이 필요합니다.
+		 *                 ex : map.addControlEvent("zoomstart"); 
+		 * @date         : 2016. 08. 03. 
+		 * @author	     : 나광흠
+		 * @history      :
+		 * @param event  : event
+		 * @param map    : 지도에 관련된 객체
+		 */
+		didMapZoomStart : function(event,map){
+		},
+		/**
+		 * @name         : didMapZoomEnd
+		 * @description  : 지도 줌변경 종료시 발생하는 콜백
+		 *                 map객체에서 이벤트 등록이 필요합니다.
+		 *                 ex : map.addControlEvent("zoomend"); 
+		 * @date         : 2016. 08. 03. 
+		 * @author	     : 나광흠
+		 * @history      :
+		 * @param event  : event
+		 * @param map    : 지도에 관련된 객체
+		 */
+		didMapZoomEnd : function(event,map){
+		},
+		/**
+		 * @name         : didMapDrag
+		 * @description  : 지도 드래그시 발생하는 콜백
+		 *                 map객체에서 이벤트 등록이 필요합니다.
+		 *                 ex : map.addControlEvent("drag"); 
+		 * @date         : 2016. 08. 03. 
+		 * @author	     : 나광흠
+		 * @history      :
+		 * @param event  : event
+		 * @param map    : 지도에 관련된 객체
+		 */
+		didMapDrag : function(event,map){
+		},
+		/**
+		 * @name         : didMapDragEnd
+		 * @description  : 지도 드래그 종료시 발생하는 콜백
+		 *                 map객체에서 이벤트 등록이 필요합니다.
+		 *                 ex : map.addControlEvent("dragend"); 
+		 * @date         : 2016. 08. 03. 
+		 * @author	     : 나광흠
+		 * @history      :
+		 * @param event  : event
+		 * @param map    : 지도에 관련된 객체
+		 */
+		didMapDragEnd : function(event,map){
+		},
+		/**
+		 * @name          : didSelectedPolygon
+		 * @description   : 경계 선택시 발생하는 콜백
+		 * @date          : 2016. 08. 03. 
+		 * @author	      : 나광흠
+		 * @history       :
+		 * @param event   : event
+		 * @param feature : 경계 정보
+		 * @param type    : 경계 타입
+		 * @param map     : 지도에 관련된 객체
+		 */
+		didSelectedPolygon : function(event, feature, type, map){
+			if(type==="data"){
+				$("[data-type=tooltip]").hide();
+				const tooltip = map.target=="tooltip-map"?"tooltip-map-tooltip":"map-tooltip";
+				$("#"+tooltip).hide();
+				common_loading(true);
+				var themeInfo = $administStatsMap.ui.themeData[$administStatsMap.ui.theme];
+				$("#"+tooltip+" [data-id=map-unit]").text(themeInfo.mapData.unit);
+				const isAtdrc = $administStatsMap.ui.checkIsAtdrc(feature.properties.adm_cd,true);
+				if(map.target!=="tooltip-map"){
+					$administStatsMap.ui.admCd = feature.properties.adm_cd;
+					$administStatsMap.ui.selectedAdmNm = feature.info[0].result.region_nm;
+					$("#location-text").empty();
+					$administStatsMap.ui.locationNameArray.forEach(function(item){
+						$("#location-text").append($("<p/>",{"text":item}));
+					});
+					//$("#location-text").append($("<p/>",{"text":feature.info[0].result.region_nm}));
+					$("#map-tooltip [data-id=title]").text($("#year-list button[aria-checked=true]").data("value")+"년 총 "+themeInfo.name);
+					$("#map-navigator-sido button[data-value="+$administStatsMap.ui.admCd+"]").trigger("click");
+				}
+//				$("[data-id=year-region-name]").text($administStatsMap.ui.map.map.bnd_year+"년 "+feature.info[0].result.region_nm);
+				$("#"+tooltip+" [data-id=region-name]").text(feature.info[0].result.region_nm);
+				$administStatsMap.ui.isAtdrc = isAtdrc;
+				var total;
+				if(map.target=="tooltip-map"){
+					total = $administStatsMap.ui.tooltipMap.mapTotalVal
+				}else{
+					total = $administStatsMap.ui.mapTotalVal;
+				}
+				var ratio = 0;
+				if (total != 0 && total != "" && total != undefined && total!=null) {
+					if (feature.info.length > 0) {
+						ratio = (($.isNumeric(feature.info[0].result.dt) ? feature.info[0].result.dt : 0) / total * 100).toFixed(1)
+					} else {
+						ratio = 0;
+					}
+				} else {
+					ratio = 100;
+				}
+				//TODO 현재 툴팁의 전국대비는 신혼부부만 해놨습니다. 나머지 필요하신 분은 추가해주세요
+				let ratioData;
+				if(
+					(
+						map.target==="tooltip-map"&&
+						$administStatsMap.ui.tooltipMap.mapTotalVal!==null
+					)||map.target!=="tooltip-map"
+				){
+					if($administStatsMap.ui.tooltipMap.mapTotalVal > 0 ){
+						ratioData = $("<p/>").append($("<span/>",{"text":"(전국대비 "+ratio+"%)"}));
+					}
+				}
+				
+//				let ratioData = map.target!=="tooltip-map"?$("<p/>").append($("<span/>",{"text":"(전국대비 "+ratio+"%)"})):null;
+				$("#"+map.target+"-tooltip").empty().append(
+					$("<div/>",{"class":"modal__header d-flex justify-content-between align-items-center"}).append(
+						$("<h3/>",{"class":"modal__tit","text":(map.target!=="tooltip-map"?themeInfo.tooltipTitle():$administStatsMap.ui.tooltipMap.title)}),
+						$("<a/>",{"href":"#","class":"btn__cancel"}).click(function(){
+							$(this).parents("[id$=-tooltip]").hide();
+							return false;
+						}).append($("<span/>",{"class":"btn-close btn-close--black"}))
+					),
+					$("<div/>",{"class":"modal__body"}).append(
+						$("<p/>").append(
+							$("<span/>",{"class":"color-blue","text":feature.info[0].result.region_nm})
+						),
+						$("<p/>").append(
+							$("<span/>",{"class":"color-red","text":$.heum.setThousandSeparator(feature.info[0].result[feature.info[0].showData])}),feature.info[0].unit
+						),
+						ratioData
+					)
+				);
+				$("#"+map.target+"-tooltip").show();
+				common_loading(false);
+				if(map.target!=="tooltip-map"){
+					createTotSur();
+				}
+				
+			}
+		},
+		/**
+		 * @name          : didSyncPolygon
+		 * @description   : 여러개의 지도가 존재할시 싱크 맞출때 필요한 콜백
+		 * @date          : 2016. 08. 03. 
+		 * @author	      : 나광흠
+		 * @history       :
+		 * @param event   : event
+		 * @param feature : 경계 정보
+		 * @param type    : 경계 타입
+		 * @param map     : 지도에 관련된 객체
+		 */
+		didSyncPolygon : function(event, feature, type, map){
+		},
+		/**
+		 * @name          : didCurrentLocationCircle
+		 * @description   : 현재위치 표시해주는 marker주변 circle을 클릭시 발생하는 콜백
+		 *                  map 객체에서 currentLocationMarker,currentLocationCircle가 true로 되어있어야합니다
+		 * @date          : 2016. 08. 03. 
+		 * @author	      : 나광흠
+		 * @history       :
+		 * @param event   : event
+		 * @param layer   : 경계
+		 * @param map     : 지도에 관련된 객체
+		 */
+		didCurrentLocationCircle : function(event, layer, map){
+		},
+		/**
+		 * @name        : didEndBoundary
+		 * @description : 경계 다 그리고 난 후 발생하는 콜백
+		 * @date        : 2016. 08. 03. 
+		 * @author	    : 나광흠
+		 * @history     :
+		 * @param map   : 지도에 관련된 객체
+		 * @param data  : 경계의 통계 정보
+		 */
+		didEndBoundary : function(map,data){
+		}
+	};
+	$administStatsMap.event = {
+		/**
+		 * @name         : setUIEvent
+		 * @description  : UI에서 사용하는 이벤트 및 초기설정을 수행한다. 
+		 * @date         : 2016. 08. 03. 
+		 * @author	     : 나광흠
+		 * @history      :
+		 */
+		setUIEvent: function() {
+			this.mapResize();
+			let parameters = $.heum.getAllParameter();
+			const parameterAdmCd = parameters.admCd;
+			$administStatsMap.ui.theme = parameters.theme;
+			const themeInfo = $administStatsMap.ui.themeData[$administStatsMap.ui.theme];
+			const themeParameters = themeInfo.mapData.getParameters();
+			/* API 파라미터 setting */
+			$administStatsMap.utils.getAPIParam({
+				tblIdList : themeParameters.tbl_id_list,
+				callback : function(res) {
+					$administStatsMap.ui.apiParam = res;
+				}
+			});
+			$("#year-list").empty();
+			$.ajax({
+				method: "POST",
+				async: false,
+				url: sgisContextPath + "/ServiceAPI/administStats/common/getYearList.json",
+				data: themeParameters, 
+				dataType: "json",
+				success: function(res) {
+					if (res.errCd == "0") {
+						$administStatsMap.ui.yearList = [];
+						if($.heum.hasData(res.result.resultList)&&res.result.resultList.length>0){
+							$("#year-alert").text("‘"+themeInfo.name+" 통계’의 조사주기 및 공표주기는 1년입니다.");
+							for(var i=parseInt(res.result.resultList[0].stattbEndYear);i>=parseInt(res.result.resultList[0].stattbBeginYear);i--){
+								$administStatsMap.ui.yearList.push(i);
+								$("#year-list").append($("<button/>",{"type":"button","class":"option__btn","text":i+"년","data-value":i}).click(function(){
+									$(this).parent().children().attr("aria-checked",false);
+									$(this).attr("aria-checked",true);
+								}));
+							}
+							const parameterYearButton = $("#year-list button[data-value="+$.heum.getAllParameter().year+"]");
+							if(parameterYearButton.length>0){
+								parameterYearButton.trigger("click");
+							}else{
+								$("#year-list>button:first").trigger("click");
+							}
+						}
+					}
+				},
+				error: function(e) {
+					console.error(e);
+				}
+			});
+			const year = $("#year-list button[aria-checked=true]").data("value");
+			if($.heum.hasData(parameterAdmCd)&&parameterAdmCd!="00"){
+				$.ajax({
+					type: "GET",
+					url: openApiPath+"/OpenAPI3/addr/stage.json",
+					data:{
+						accessToken:accessToken,
+						pg_yn:0
+					},
+					dataType: "json",
+					async : false,
+					success: function(res) {
+						if(res.errCd=="0"){
+							res.result.some((data)=>{
+								if(data.cd==parameterAdmCd.substring(0,2)){
+									$administStatsMap.ui.locationNameArray.push(data.addr_name);
+									$administStatsMap.ui.admCd = data.cd;
+									return true;
+								}
+							})
+						}
+					}
+				});
+				if(parameterAdmCd.length>=5){
+					$.ajax({
+						type: "POST",
+						url: contextPath+"/m2021/map/totSurv/getSggList.json",
+						data:{
+							year:year,
+							sido_cd:parameterAdmCd.substring(2,5)
+						},
+						dataType: "json",
+						async : false,
+						success: function(res) {
+							if(res.errCd=="0"){
+								res.result.some((data)=>{
+									if(data.sgg_cd==parameterAdmCd.substring(2,5)){
+										$administStatsMap.ui.locationNameArray.push(data.sgg_nm);
+										$administStatsMap.ui.admCd += data.sgg_cd;
+										return true;
+									}
+								})
+							}
+						}
+					});
+				}
+				$("#location-text").empty();
+				$administStatsMap.ui.locationNameArray.forEach(function(item){
+					$("#location-text").append($("<p/>",{"text":item}));
+				});
+			}
+			$administStatsMap.ui.createMap("map");
+			$administStatsMap.ui.createMap("tooltip-map");
+			// 맵 이미지 저장
+			$("[data-save-image=true]").click(function(){
+				const _this = this;
+				if(confirm($(_this).data("confirm-text"))){
+					common_loading(true);
+					let options = {
+						logging: true,
+						useCORS: false,
+						proxy: sgisContextPath+"/ServiceAPI/community/html2canvasproxy.jsonp"
+					};
+					html2canvas($("#"+$(_this).data("target"))[0], options).then(function(canvas) {
+						var themeInfo = $administStatsMap.ui.themeData[$administStatsMap.ui.theme];
+						var a = document.createElement('a');
+						a.href = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+						a.download = themeInfo.name+".png";
+						a.click();
+						common_loading(false);
+					});
+				}
+				return false;
+			});
+			//지역이동 버튼 이벤트
+			$("#detail-area-button").click(()=>{
+				$administStatsMap.ui.map.map.dataBoundary.eachLayer(function(layer){
+					if($administStatsMap.ui.admCd==layer.feature.properties.adm_cd){
+						$administStatsMap.ui.locationNameArray.push(layer.feature.info[0].result.region_nm);
+						$("#location-text").empty();
+						$administStatsMap.ui.locationNameArray.forEach(function(item){
+							$("#location-text").append($("<p/>",{"text":item}));
+						});
+						$("#map-tooltip").hide();
+	//					$administStatsMap.ui.map.gMap.setView(sop.utmk(layer.feature.properties.x, layer.feature.properties.y), $administStatsMap.ui.map.getZoomToCd($administStatsMap.ui.admCd));
+						$administStatsMap.ui.getData(true);
+					}
+				});
+				return false;
+			});
+			//보도자료 버튼 이벤트
+			$("#press-release-button").click(()=>{
+				let pressRelease;
+				if( $administStatsMap.ui.theme == "newly" ){
+					pressRelease = "1/6/6";
+				} else if( $administStatsMap.ui.theme == "retun" ){
+					pressRelease = "1/8/11";
+				} else if( $administStatsMap.ui.theme == "middl" ){
+					pressRelease = "1/6/8";
+				} else if( $administStatsMap.ui.theme == "house" ){
+					pressRelease = "1/10/4";
+				}
+				if(pressRelease){
+					const openTarget = window.open("about:blank");
+					openTarget.location.href = "https://kostat.go.kr/portal/korea/kor_nw/" + pressRelease + "/index.board"
+				}
+//				
+//				if($.heum.hasData(pressRelease)){
+//					const openTarget = window.open("about:blank");
+//
+//					openTarget.location.href = "https://www.kostat.go.kr/portal/korea/kor_nw/1/1/index.board?bmode=read&bSeq=&aSeq="+pressRelease;
+//				}else{
+//					alert($administStatsMap.ui.year+"년 "+themeInfo.name+" 데이터는 보도자료가 존재하지 않습니다");
+//				}
+				return false;
+			});
+			//필터 이벤트
+			$("#filter-form").submit(()=>{
+				const year = $("#year-list button[aria-checked=true]").data("value");
+				$administStatsMap.ui.locationNameArray = ["전국"];
+				let sidoButton = $("#map-navigator-sido button[aria-checked=true]:not([data-value=00])");
+				if(sidoButton.length>0){
+					$administStatsMap.ui.locationNameArray.push(sidoButton.text());
+					srvLogWrite('O0', '14', '03', '02', year+"년 "+$administStatsMap.ui.locationNameArray[1], '');
+				}else{
+					srvLogWrite('O0', '14', '03', '02', year+"년 "+$administStatsMap.ui.locationNameArray[0], '');
+				}
+				$("#location-text").empty();
+				$administStatsMap.ui.locationNameArray.forEach(function(item){
+					$("#location-text").append($("<p/>",{"text":item}));
+				});
+				$administStatsMap.ui.setChartTitle();
+				$administStatsMap.ui.map.map.bnd_year = year;
+				$administStatsMap.ui.year = year;
+				$("#filter-close-button").trigger("click");
+				$administStatsMap.ui.admCd = "00";
+				const admCd = $administStatsMap.ui.map.map.mapNavigation.getAdmCd()
+				$administStatsMap.ui.checkIsAtdrc($administStatsMap.ui.admCd);
+				$administStatsMap.ui.getData(function(){
+					$administStatsMap.ui.map.map.dataBoundary.eachLayer(function(layer){
+						if(admCd == "00") {
+							$administStatsMap.ui.selectedAdmNm = "전국";
+						} else {
+							if(layer.feature.properties.adm_cd==admCd){
+								layer.fire("click");
+							}
+						}
+					})
+				});
+				return false;
+			});
+			$administStatsMap.ui.setChartTitle();
+		},
+		/**
+		 * @name         : mapResize
+		 * @description  : UI 리사이즈에 대한 이벤트. 
+		 * @date         : 2017. 08. 03. 
+		 * @author	     : 나광흠
+		 * @history      :
+		 */
+		mapResize: function(){
+			$administStatsMap.event.setMapSize();
+			if(isLoad === true){
+				createTotSur();
+			}
+		},
+		/**
+		 * @name         : setMapSize
+		 * @description  : 지도 사이즈 변경
+		 * @date         : 2016. 08. 03. 
+		 * @author	     : 나광흠
+		 * @history      :
+		 */
+		setMapSize: function(){
+			Object.keys($administStatsMap.ui.map).forEach(function(key){
+				if($administStatsMap.ui.map[key]&&$administStatsMap.ui.map[key].gMap){
+					$administStatsMap.ui.map[key].gMap.invalidateSize();
+				}
+			});
+		}
+	};
+}(window, document));

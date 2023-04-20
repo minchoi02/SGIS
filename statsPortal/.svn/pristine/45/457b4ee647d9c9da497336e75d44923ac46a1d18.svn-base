@@ -1,0 +1,350 @@
+<%
+/**************************************************************************************************************************
+* Program Name  : 지역변화분석지도 JSP  
+* File Name     : statsMain.jsp
+* Comment       : 
+* History       : (주)아이티밴드, 조세진, 장시연 2022-10-17
+*
+**************************************************************************************************************************/
+%>
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<!DOCTYPE html>
+<html lang="ko" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <title>지역변화분석지도</title>
+
+  
+  <script src="/js/plugins/jquery.min.js"></script>
+  <!-- 
+  <script src="https://sgisapi.kostat.go.kr/OpenAPI3/auth/javascriptAuth?consumer_key=590a2718c58d41d9ae3b"></script>
+   -->  
+
+  <link rel="stylesheet" href="/js/lvs/slick-carousel/1.8.1/slick.css" />
+  <link rel="stylesheet" href="/js/lvs/slick-carousel/1.8.1/slick-theme.css" />
+  <script src="/js/lvs/slick-carousel/1.8.1/slick.min.js"></script>
+  
+ 
+  <link rel="stylesheet"  href="/js/plugins/jquery-easyui-1.4/sop.css" />
+  
+  <!-- highchart local -->
+  <script src="/js/lvs/hightcharts/highcharts.js"></script>
+  <script src="/js/lvs/hightcharts/highcharts-more.js"></script>
+  <script src="/js/lvs/hightcharts/solid-gauge-v10.js"></script>  
+  <script src="/js/lvs/hightcharts/exporting.js"></script>
+  <script src="/js/lvs/hightcharts/export-data.js"></script>
+  <script src="/js/lvs/hightcharts/accessibility.js"></script>
+  <script src="/js/lvs/hightcharts/funnel.js"></script>
+  <script src="/js/lvs/hightcharts/heatmap.js"></script>
+  <script src="/js/lvs/hightcharts/treemap.js"></script>
+  
+  <!-- rSlider  -->
+  <script src="/js/lvs/rSlider.min.js"></script>
+
+   <link rel="stylesheet" href="/css/lvs/reset.css">
+   <link rel="stylesheet" href="/css/lvs/rSlider.css">
+   <link rel="stylesheet" href="/css/lvs/font.css">
+   <link rel="stylesheet" href="/css/lvs/component.css?ver=0.1">
+   <link rel="stylesheet" href="/css/lvs/extendBoard.css">
+   
+	<script  src="/js/plugins/jquery-easyui-1.4/sop-src.js"></script>
+	<script   src="/js/plugins/jquery.sha256.js"></script>
+	<script   src="/js/plugins/durian-v2.0.js"></script>
+	<script   src="/js/common/sop.portal.absAPI.js"></script>
+   <script   src="/js/common/common.js?ver=0.2"></script>
+   <!-- 
+       오픈api참조용 함수
+   <script src="/js/common/mapNavigation.js"></script>
+    -->
+   
+   <script src="/js/lvs/pageContentsMainData.js?ver=0.22"></script>    
+   <script src="/js/lvs/pageContentsData.js?ver=0.22"></script>
+   <script src="/js/lvs/pageContentsData2.js?ver=0.22"></script>
+   <script src="/js/lvs/pageContentsData3.js?ver=0.32"></script>   
+   
+   <script src="/js/lvs/chartConfig.js?ver=0.26"></script>
+   <script src="/js/lvs/lvsVarConfig.js?ver=0.32"></script>
+   <script src="/js/lvs/lvsVarMapXyConfig.js?ver=0.14"></script>
+   <script src="/js/lvs/lvsCommon.js?ver=0.44"></script>
+   <script src="/js/lvs/lvsPageFunc1.js"></script>
+   
+  <script>
+
+
+    $(document).ready(function () {
+    	accessTokenInfo();
+    	setTimeout(function(){
+        	if(accessToken != "none" && mapInfo.accessToken =="none") {
+        		mapInfo.accessToken = accessToken ; 
+        	} 
+        	
+        	fn_init_event_config();  //이벤트등록lvsCommon.js
+        	fn_hichart_option();    //하이차트옵션 등록lvsCommon.js
+        	fn_init_map();
+	        fn_init_left_menu();   // 왼쪽메뉴 먼저 그리고 주소상태에 따라 disable 처리        	
+    	},500);
+    	
+     });
+    
+    //삭제예정
+    function fn_xyinfo(){
+    	/*
+    	var center = map.getCenter();
+                            var level = map.getZoom();
+                            var bounds = map.getBounds();
+                            var swLatLng = bounds.getSouthWest(); 
+                            var neLatLng = bounds.getNorthEast();
+                            */
+        let center = mapInfo.map.getCenter();                            
+    	let x = center.x ;
+    	let y = center.y ;
+    	let level = mapInfo.map.getZoom();
+    	
+    	let obj={region_cd:mapInfo.region_cd, x2:x, y2:y, level:level} ;
+    	let text = "#region_cd#:{x:#x2#,y:#y2#,x2:#x2#,y2:#y2#,level:#level#}," ;
+    	text = fn_temp_replaceAll(text, obj);
+    	$("#xyInfo").html(text);
+    	
+    }
+  	   
+  </script>
+</head>
+
+    <!-- 임시 지도 영역 시작 -->
+    <div class="mapWrapper" id="mapWrapper" style="z-index:0">지도영역</div>
+    <!-- 임시 지도 영역 끝 -->
+
+    <!-- 좌측 메뉴 모음 시작 -->
+    <div class="header">
+
+        <!-- 좌측 상단 로고 박스 시작 -->
+        <div class="logo_box">
+            <a rel="" href="/" class="layerOpen logo">
+                <img src="/images/lvs/img/logo.png" alt="SGIS포털이동하기">
+            </a>
+            <h1 onclick="openPopup('type1')">지역변화 분석지도</h1>
+        </div>
+        <!-- 좌측 상단 로고 박스 끝 -->
+
+        <!-- 메뉴 버튼 영역 시작 -->
+        <div class="menu">
+            <button type="button" name="button" class="btn_extend active" id="btn_extend"
+                onclick="fn_boardController(this,'type1')" data-type="type1" data-link="board1">
+                <p>우리동네 상황판</p>
+            </button>
+            <ul class="gnb" id="tabIndicator">
+                <li><a href="javascript:void(0)" data-link="tab1" onclick="fn_boardController(this,'type2')">
+                	<div class="round_box1"></div><span>인구·가구</span></a></li>
+                <li><a href="javascript:void(0)" data-link="tab2" onclick="fn_boardController(this,'type2')">
+                	<div class="round_box2"></div><span>주거·교통</span></a></li>
+                <li><a href="javascript:void(0)" data-link="tab3" onclick="fn_boardController(this,'type2')">
+                	<div class="round_box3"></div><span>복지·문화</span></a></li>
+                <li><a href="javascript:void(0)" data-link="tab4" onclick="fn_boardController(this,'type2')">
+                	<div class="round_box4"></div><span>노동·경제</span></a></li>
+                <li><a href="javascript:void(0)" data-link="tab5" onclick="fn_boardController(this,'type2')">
+                	<div class="round_box5"></div><span>안전·환경</span></a></li>
+            </ul>
+        </div>
+        <!-- 메뉴 버튼 영역 끝 -->
+
+        <!-- 추천지표 보기, 모든지표 보기 영역 시작-->
+        <div class="tab_container">
+            <div class="tabs">
+                <ul id="tabIndicatorSub" class="tabCommon">
+                    <li><a href="javascript:void(0)" data-link="tab0"
+                            onclick="fn_boardController(this,'type2')">추천 지표 보기</a></li>
+                    <li><a href="javascript:void(0)" rel="sub2" data-tabname="tab3"
+                            onclick="fn_boardController(this,'type3')" data-link="sub2">모든 지표 보기</a></li>
+                </ul>
+            </div>
+        </div>
+        <!-- 추천지표 보기 모든지표 보기 영역 끝 -->
+
+        <!-- 모든 지표 보기 영역 시작 -->
+        <div id="sub2" class="tab_content3">
+            <div class="main_contents_all_stat_condition">
+            </div>
+            <!-- 모든지표보기 일반 타입 시작 -->
+            <div class="checkbox_listWrap">
+            </div>
+            <!-- 모든지표보기 일반 타입 끝 -->
+        </div>
+        <!-- 모든지표보기 영역 끝 -->
+
+    </div>
+    <!-- 좌측 메뉴 모음 끝 -->
+
+
+    <!-- 상단 위치 표시 영역 시작 -->
+    <div class="control_top">
+        <div class="localinfo">
+           <div class="province ">
+            <!-- <img src="" alt=""> -->
+            <span id="curSido" onclick="selectViewMode(1)">대전광역시</span>
+          </div>
+          <div class="county active">
+            <span id="curSgg" onclick="selectViewMode(2)">서구</span>
+          </div>
+          
+          <div class="subCounty" style='display:none'>
+            <span id="curEmd" onclick="selectViewMode(3)">가장동</span>
+          </div>
+
+          <div class="selected_data">
+            <span id="curStat">총인구</span>
+          </div>
+          
+          <!--           
+          <div class="selected_data" onclick="fn_xyinfo()">
+            <span>좌표</span>
+          </div>
+          
+          <div class="xyinfotext" onclick="fn_xyinfo()">
+            <span id="xyInfo"></span>
+          </div>
+           -->
+
+          
+        </div>
+    </div>
+    
+
+    <!-- 상단 위치 표시 영역 끝 -->
+
+    <!-- 데이터보드 버튼 시작 -->
+    <button class="btn_data_open" type="button" name="button" onclick="fn_toggleBoard()">데이터보드</button>
+    <!-- 데이터보드 버튼 끝 -->
+
+    <!-- 데이터보드 영역 시작 -->
+    <div class="extend_data_wrap active exBoard" id="extendBoard">
+
+        <!-- 데이터보드 상단 헤더 시작 -->
+        <div class="extend_data_header" data-attr="header">
+            <h2 id="exBoardTitle">우리동네 상황판</h2>
+            <div class="extend_panel">
+                <button class="data_player play" type="button" name="button" data-status="play"
+                    onclick="sliderTimerStart()">
+                    <i class="icon controller"></i>
+                </button>
+                <button class="data_player pause" type="button" name="button" data-status="pause"
+                    onclick="sliderTimerPause()">
+                    <i class="icon controller"></i>
+                </button>
+                <a href="#" class="location_more">다른 지역 선택</a>
+                <!-- 시범서비스 기간 영역 미노출 -->
+                <span style="display:none"></span>
+                <a href="#" style="display:none">이용가이드</a>
+                <button class="btn_download" type="button" name="button" style="display:none">
+                    <img src="/images/lvs/icon/icon-import.png" alt="">
+                </button>
+                <!-- 시범서비스 기간 영역 미노출 end -->
+                <button class="btn_data_close" type="button" name="button" onclick="fn_toggleBoard()">
+                    <img src="/images/lvs/icon/icon-close.png" alt="">
+                </button>
+                <div class="location_more_box">
+                    <div class="heading">
+                        <span>다른지역 선택하기</span>
+                        <button id="btn_close" type="button" name="button"></button>
+                    </div>
+                    <div class="content">
+                        <strong>내위치</strong>
+                	    <span id="myFullAddr">대전광역시 서구 대덕대로 242번길 15</span>                        
+                        <div>
+                            <form>
+                    		    <select name="location_select" id="sido_select" onchange="fn_changeLocation('sido');">                                
+                                    <option value="" selected="selected">시/도</option>
+                                    <option value="충청북도">세종특별자치도</option>
+                                    <option value="대전광역시">대전광역시</option>
+                                </select>
+                    		  <select name="location_select" id="sgg_select" >                                
+                                    <option value="" selected="selected">시/군/구</option>
+                                    <option value="청주시">세종특별자치시</option>
+                                    <option value="서구">서구</option>
+                                </select>
+                            </form>
+                  		    <button type="button" name="button" onclick="fn_redrawMap();">검색</button>                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 데이터보드 상단 헤더 끝 -->
+        <!-- 우리동네 상황판 콘텐츠 시작 -->
+        <div id="data-large-body">
+   			<div class='extend_data_01 extendBoard' data-attr='type1' style="display: block;">
+   			</div>
+   			<div class='extend_data_02 extendBoard' data-attr='type2' >
+   			</div>        
+   			<div class='extend_data_03 extendBoard' data-attr='type3' >
+   			</div>        
+        </div>        
+        
+        <!-- 우리동네 상황판 콘텐츠 끝 -->
+        <!--  보드 2 -->
+         <!--  보드333 -->        
+
+    </div>
+    <!-- 데이터보드 영역 끝 -->
+    <div class="control_foot extend">
+        <button class="map_data_display" type="button" name="button" onclick="fn_data_display(this);">데이터</button>
+        
+        <div class="control_btn_wrap">
+          <button class="pl" type="button" name="button" onclick="mapInfo.map.zoomIn()">
+            <img src="/images/lvs/icon/icon-zoom-in.png" alt="지도축소">
+          </button>
+          
+          <button class="dot" type="button" name="button" onclick="mapInfo.map.setView(sop.utmk(mapInfo.x2, mapInfo.y2), mapInfo.level)">
+            <img src="/images/lvs/icon/dot.png" alt="초기화">
+            <!-- 시군구 -->
+          </button>
+          <button class="mi" type="button" name="button" onclick="mapInfo.map.zoomOut()">
+            <img src="/images/lvs/icon/icon-zoom-out.png" alt="지도확대">
+          </button>
+        </div>
+      </div>
+      
+      <!-- 
+        //우리동네상황판
+        
+       -->
+	<div class="tooltip_layer" id="board1_tooltip_layer" style="z-index:100">
+	</div>
+	
+      <!-- 
+        // 추천지표용      
+       -->
+	<div class="tooltip_layer" id="board2_tooltip_layer" style="z-index:100">
+		<h5 class="title">#name#</h5>
+		<p class="desc">#name#</p>
+		<div class="badge">
+		  <span class="level active">#levelName#</span>
+		  <span class="year">#yearList#</span>
+		</div>
+		<p class="noti">#comments#</p>
+	</div>
+	
+	
+	<div class="loading">
+		<div class="lds-roller">
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+		</div>
+	</div>
+	
+	
+</body>
+
+
+
+</script>
+</html>

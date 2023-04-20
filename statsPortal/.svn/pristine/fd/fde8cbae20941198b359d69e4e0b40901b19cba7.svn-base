@@ -1,0 +1,377 @@
+// 테마별 지표 js
+
+const dummyDataTemp1 = [
+    {"gubun":"인구가구","title":"총 인구","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,541323,451231]},
+    {"gubun":"인구가구","title":"남자인구","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,654321,456123]},
+    {"gubun":"인구가구","title":"여자인구","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,456123,546123]},
+    {"gubun":"인구가구","title":"가구","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,554123,546123]},
+    {"gubun":"인구가구","title":"1인 가구 변화","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,321654,521365]},
+    {"gubun":"인구가구","title":"65세 이상 1인 가구 변화","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,412563,541236]},
+    {"gubun":"인구가구","title":"15세 미만 유소년 인구 변화","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,412563,632541]},
+    {"gubun":"인구가구","title":"65세 이상 고령자 인구 변화","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,341256,521463]}
+]
+const dummyDataTemp2 = [
+    {"gubun":"주거교통","title":"주택(호)","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구"],"chartData":[456789,451263]},
+    {"gubun":"주거교통","title":"단독주택","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구"],"chartData":[456789,521463]},
+    {"gubun":"주거교통","title":"아파트현황","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구"],"chartData":[456789,632541]},
+    {"gubun":"주거교통","title":"1인당 자동차 등록대수","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구"],"chartData":[456789,325416]}
+]
+
+const dummyDataTemp3 = [
+    {"gubun":"복지문화","title":"보육업체 현황","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,521463,632541]},
+    {"gubun":"복지문화","title":"보건시설 1개당 65세 이상 노인","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,412563,325416]},
+    {"gubun":"복지문화","title":"교원 1인당 학생수","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,632541,632541]},
+    {"gubun":"복지문화","title":"어린이집 분포 현황","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,521463,325416]}
+]
+
+const dummyDataTemp4 = [
+    {"gubun":"노동경제","title":"사업체수","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구"],"chartData":[456789,412563]},
+    {"gubun":"노동경제","title":"종사자수","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구"],"chartData":[456789,254163]},
+    {"gubun":"노동경제","title":"고용율","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구"],"chartData":[456789,325416]},
+    {"gubun":"노동경제","title":"재정자립도 현황","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구"],"chartData":[456789,521463]}
+]
+
+const dummyDataTemp5 = [
+    {"gubun":"안전환경","title":"보행자 교통사고 발생 현황","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,456789,456789]},
+    {"gubun":"안전환경","title":"무더위 쉼터 현황","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,456789,456789]},
+    {"gubun":"안전환경","title":"도시공원 분포 현황","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,456789,456789]}
+]
+
+
+/**
+ * 테마별 지표 데이터보드 생성
+ * @param {string} theme  theme1 인구가구, theme2 주거교통, theme3 복지문화, theme4 노동경제, theme5 안전환경
+ * @param {string} target target1: 주요지표, ???? :  테마별 모든 지표 항목 호출 파라미터
+ */
+async function exboardType2Sync(theme,target="") {
+    let data = await getThemeData2(theme);
+    let ids = await exboardType2Html2(data);
+    let activeTarget = "" // 데이터보드 추천지표 첫번째 선택 아이템 
+    
+    ids.forEach((i,index) => {
+        layerColumnType2(ids[index],data[index]); // 차트 생성
+    })
+
+    // 슬라이더
+    if(data.length > 4) {
+        exboardType2Slider2();
+        activeTarget = $('#tabType2Content').find('.slick-active').find('.rcmdItem').eq(0)
+    } else {
+        activeTarget = $('#tabType2Content').find('.rcmdItem').eq(0)
+    }
+
+    // // 변화그래프 기본 show
+    $("#tab4_1").show();
+
+    // 탭별 차트 렌더러
+    rcmdItemSelector2(activeTarget);
+}
+
+/**
+ * 데이터보드 테마별 항목 호출 promise 
+ * @param {string} theme 지표 항목 tab1 인구가구, tab2 주거교통, tab3 복지문화, tab4 노동경제, tab5 안전환경
+ * @return 테마 데이터
+ */
+const getThemeData2 = (theme) => {
+    return new Promise((resolve) => {
+
+        // ajax로 변경 
+        let dataGroup = {"인구가구":dummyDataTemp1,"주거교통":dummyDataTemp2,"복지문화":dummyDataTemp3,"노동경제":dummyDataTemp4,"안전환경":dummyDataTemp5}
+        let name = ""
+
+        if(theme == "tab1") name = "인구가구";
+        else if(theme == "tab2") name = "주거교통";
+        else if(theme == "tab3") name = "복지문화";
+        else if(theme == "tab4") name = "노동경제";
+        else if(theme == "tab5") name = "안전환경";
+
+        resolve(dataGroup[name]);
+    })
+
+}
+
+/**
+ * 데이터보드 테마별 주요지표 html 생성
+ * @param {json} data 
+ * @return 차트 아이디 array
+ */
+const exboardType2Html2 = (data) => {
+    return new Promise ((resolve) => {
+        let chartIds = [];
+        $("#tabType2Content").empty();
+        data.forEach((item, index) => {
+            let html = "";
+
+            html += '<div class="content rcmdItem" onclick="rcmdItemSelector2(this)">'; // 아이템 이벤트 클릭 
+            html += '<div class="head">'
+            html += '<h5>'+item.title+'</h5>';
+            html += '<img src="/images/lvs/icon/icon-tooltip.png" alt="">';
+            html += '</div>'
+            html += '<p>'+numberFormat(item.totalCount)+'</p>';
+            html += '<ul class="chart_box">';
+            html += '<li><img class="family_base" src="/images/lvs/icon/icon-img01.png" alt=""></li>';
+            html += '<li class="chart">';
+            html += '<div id="type2ChartId'+index+'" style="width:120px; height:70px"></div>';
+            html += '</li>';
+            html += '</ul>';
+            html += '<div class="base_year">';
+            html += '<span>기준 '+item.baseYear+'</span>';
+            html += '<span>(단위:'+item.unit+')</span>';
+            html += '</div>';
+            html += '</div>';
+
+            
+            $("#tabType2Content").append(html);
+            chartIds.push("type2ChartId"+index);
+        }) 
+
+        resolve(chartIds)
+    })
+}
+
+
+/**
+ * 데이터 확장보드2 추천지표 슬라이더
+ * @returns reslove
+ */
+const exboardType2Slider2 = () => {
+    return new Promise((resolve, reject) => {
+        let target = $('#tabType2Content')
+        let boardSts = $("#extendBoard").hasClass("active");
+        let sts = target.hasClass('slick-initialized') // true 렌더 상태
+        let options = {
+            slidesToShow: 4,
+            slidesToScroll: 4,
+            centerPadding:'20px',
+            dots: true,
+            speed: 300,
+            arrows:false,
+            autoplay: false,
+            autoplaySpeed: 2000,
+            
+        }
+        if(boardSts) {
+            delete options.vertical
+        } else {
+            options.vertical = true 
+        }
+
+        if (!sts) target.slick(options)
+        else    target.slick('refresh');
+
+
+
+        resolve();
+    })
+}
+
+/**
+ * 데이터 확장보드2 추천지표 선택 
+ * @param {element} obj 선택 요소 파라미터 
+ */
+const rcmdItemSelector2 = (obj) => {
+    let itemList = document.querySelectorAll('.rcmdItem')
+    itemList.forEach((item) => { $(item).removeClass('active')})
+    $(obj).addClass('active')
+
+    let title = $(obj).children('.head').children('h5').text();
+
+    $("#tab4_1").children('.title').text(title) // 변화그래프 타이틀
+    $("#tab4_3").children('.title').text(title) // 읍면동 순위 타이틀
+
+    
+    // 임시 더미데이터 생성
+    let dummyData = {"title":title,"category":[],"data":[]} // 변화그래프 탭 차트
+    let dummyData2 = {"title":title,"category":[],"data":[]} // 지역내순위 탭 차트
+    let dummyData3 = {"title":title,"category":[2000,2005,2010,2015,2016,2017,2018,2019,2020],
+                        "originTitle":"대전광역시 서구",
+                        "vrsTitle":"비교선택지역",
+                        "originData":[],
+                        'vrsData':[]} // 타 자자체 비교 탭 차트
+    let dummyData4 = {"title":title,"category":[2000,2005,2010,2015,2016,2017,2018,2019,2020],
+                        "originTitle":"대전광역시",
+                        "vrsTitle":"비교선택지역",
+                        "originData":[],
+                        'vrsData':[]} // 타 자자체 비교 탭 차트
+
+    let count = makeRandomData(5,12);
+    for(i=0; i<count; i++){
+        dummyData.category.push(2010+i);
+        dummyData.data.push(makeRandomData(100,500))
+    }
+
+    count = makeRandomData(5,12);
+    for(i=0; i<count; i++){
+        dummyData2.category.push(2010+i);
+        dummyData2.data.push(makeRandomData(10,500))
+    }
+
+
+    for(i=0; i<dummyData3.category.length; i++) {
+        dummyData3.originData.push(makeRandomData(100,2000))
+        // dummyData3.vrsData.push(makeRandomData(100,2000))
+    }
+
+    for(i=0; i<dummyData4.category.length; i++) {
+        dummyData4.originData.push(makeRandomData(100,2000))
+        // dummyData3.vrsData.push(makeRandomData(100,2000))
+    }
+
+    let data = [dummyData,dummyData2,dummyData3,dummyData4]
+
+    // 차트 render
+    tab4ChartRender2(data)
+    
+    // 타지역비교 비교지역선택 초기화
+    vrsRegionDelete2('row1')
+    vrsRegionDelete2('row2')
+    
+    // 타지역비교 데이터 테이블 생성 
+    makeRegionTable(data[2],"crnt_tbdoy1","crnt") // 상단 선택 데이터 테이블
+    makeRegionTable(data[3],"crnt_tbdoy2","crnt") // 하단 선택 데이터테이블
+
+}
+
+/**
+ * 추천지표 변화그래프 차트 렌더
+ * @param {json} data 데이터
+ */
+const tab4ChartRender2 = (data) => {
+    combiLineColumn('tab4_chart1',data[0]); 
+    combiLineColumn('tab4_chart3',data[1]);
+    multiAxisLineColumn('vrsChart1',data[2])
+    multiAxisLineColumn('vrsChart2',data[3])
+}
+
+
+/**
+ * 추천지표 타 지자체 비교 비교지역 추가 버튼 클릭 이벤트
+ * @param {element} obj 클릭 대상 엘리먼트
+ * @returns 지역 이름
+ */
+const openVrsRegionPopup2 = (obj) => {
+
+    $("#vrsRegionElement").val($(obj).data('target'))
+    $(".vrsRegionPopup").show();
+    $(".vrsRegionPopup").css('left',event.layerX)
+    $(".vrsRegionPopup").css('top',event.layerY)
+
+}
+
+// 비교지역선택 팝업 닫기
+const selectVrsRegionPopupClose2 = () => {
+    $(".vrsRegionPopup").hide();
+}
+
+// 비교지역선택 팝업 확인
+const vrsRegionPopupSelect2 = () => {
+    let targetValue = $("#vrsRegionElement").val();
+
+    let nameLevel1 = $('select[name=level1] option:selected').text();  // 시도 네임
+    let nameLevel2 = $('select[name=level2] option:selected').text();  // 시군구 네임
+    let nameLevel3 = $('select[name=level3] option:selected').text();  // 읍면동 네임
+    if(nameLevel1 == "시/도") nameLevel1 = "";
+    if(nameLevel2 == "시/군/구") nameLevel2 = "";
+    if(nameLevel3 == "읍/면/동") nameLevel3 = "";
+    let selectRegionName = nameLevel1 + " " + nameLevel2+ " " +nameLevel3;
+
+
+    if(nameLevel1 == "") {
+        alert("지역을 선택해주세요.") 
+        return false;
+    }
+
+    if(targetValue == "row1") {
+        $(".row1Target").css('display','flex');;
+        $(".row1Target").children('.regionName').text(selectRegionName)
+        $("#row1_vrs_off").hide();
+        $("#row1_vrs_on").show();
+    } else if (targetValue == "row2") {
+        $(".row2Target").css('display','flex');;
+        $(".row2Target").children('.regionName').text(selectRegionName)
+        $("#row2_vrs_off").hide();
+        $("#row2_vrs_on").show();
+    }   
+
+    // 차트 업데이트 
+    updateVrsRegionInfo2(selectRegionName,targetValue);
+
+    $(".vrsRegionPopup").hide();
+
+}
+
+/**
+ * 비교지역선택 차트,테이블 업데이트
+ * @param {string} region 지역코드 or 이름 전달
+ * @param {string} target 차트 구분 파라미터
+ * 
+ */
+const updateVrsRegionInfo2 = (region="",target) => {
+
+    let dummyData = {category:[2000,2005,2010,2015,2016,2017,2018,2019,2020],"vrsData":[],"vrsTitle":region};
+    let chartId;
+    let tableId;
+
+    // 더미데이터 생성
+    for(i=0; i < 9; i++) {
+        dummyData.vrsData.push(makeRandomData(100,600));
+    }
+
+    if(target == "row1") { 
+        chartId = 'vrsChart1'
+        tableId = 'vrs_tbdoy1'
+    } else if (target == "row2") { 
+        chartId = 'vrsChart2'
+        tableId = 'vrs_tbdoy2'
+    };
+
+    $("#"+chartId).highcharts().series[1].setData(dummyData.vrsData);
+    $("#"+chartId).highcharts().series[1].name = dummyData.vrsTitle
+
+    makeRegionTable(dummyData,tableId,'vrs');
+
+}
+
+/**
+ * 추천지표 타 지자체 비교 비교지역 삭제
+ * @param {string} row 대상 구분 파라미터
+ */
+const vrsRegionDelete2 = (row) => {
+
+    let chartId; 
+    if(row == "row1") {
+        $(".row1Target").hide();
+        $("#row1_vrs_on").hide();
+        $("#row1_vrs_off").show();
+        chartId = "vrsChart1";
+
+    } else if (row == "row2") {
+        $(".row2Target").hide();
+        $("#row2_vrs_on").hide();
+        $("#row2_vrs_off").show();
+        chartId = "vrsChart2";
+    }
+
+    $("#"+chartId).highcharts().series[1].setData();
+    $("#"+chartId).highcharts().series[1].name = ""
+
+}
+
+/**
+ * 추천지표 타 지자체 비교 테이블 생성
+ * @param {json} data 데이터 테이블 생성
+ * @param {string} id 대상 테이블 id
+ * @param {string} type crnt: 선택 지역 테이블, vrs: 비교지역 테이블
+ */
+const makeRegionTable2 = (data,id,type) => {
+    
+    let tableData;
+
+    if(type == "crnt") tableData = data.originData
+    else if(type == "vrs") tableData = data.vrsData
+
+    $("#"+id).empty();
+    for(i=0; i < data.category.length; i++) {
+        $("#"+id).append('<tr><td>'+data.category[i]+'</td><td>'+numberFormat(tableData[i])+'</td></tr>');
+    }
+}

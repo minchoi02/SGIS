@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="UPLOADData"> 
+	<select id="getSearchUSER"  parameterType="Map" resultType="Map">
+		select * from
+		(
+			select SEARCH_WORD,REL_SEARCH_WORD,ROWNUM R
+			from SRV_DT_RELSEARCHWORD
+			where 1=1
+			<if test="SEARCH_TYPE == 'search'">  		                	
+				<if test="SEARCH_WORD != null">
+				    	and SEARCH_WORD like  #{SEARCH_WORD} 
+				</if>
+			</if>
+			<if test="SEARCH_TYPE == 'assoc'">  		                	
+				<if test="SEARCH_WORD != null">
+				    	and REL_SEARCH_WORD like  #{SEARCH_WORD} 
+				</if>
+			</if>
+			
+			and SEARCH_WORD is not NULL
+			and  ROWNUM <![CDATA[<=]]> #{END_INDEX}
+		)
+		where R <![CDATA[>=]]> #{START_INDEX}
+	</select>
+	<select id="getSearchUSERCount"  parameterType="hashmap" resultType="int">
+		
+			SELECT COUNT(SEARCH_WORD) AS CNT
+			FROM SRV_DT_RELSEARCHWORD
+			<if test="SEARCH_WORD !=null">
+				WHERE SEARCH_WORD like  #{SEARCH_WORD}
+			</if>
+		
+	</select>	
+</mapper>

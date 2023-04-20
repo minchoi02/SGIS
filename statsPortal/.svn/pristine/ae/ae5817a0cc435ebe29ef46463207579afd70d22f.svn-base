@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SbrStatsXsql">
+
+	<!-- 산업분류에 포함되는 모든 대분류 테마코드 정보를 조회한다, 전국사업체조사의 테마업종 및 interactiveMapBtn의 createPOIBtn 메서드에서 사용된다. -->
+	<select id = "selectCensusBigThemeInfo" resultType="hashmap">
+		SELECT 
+			B_THEME_CD
+			, MIN(B_THEME_CD_NM) AS B_THEME_CD_NM
+		FROM 
+			CMM_CD_THEME
+		WHERE 
+			/*B_THEME_CD != ''*/
+			LENGTH(B_THEME_CD) = '1'
+			AND B_THEME_CD != '99'
+		GROUP 
+			BY B_THEME_CD
+		ORDER BY 
+			B_THEME_CD
+	</select>
+	
+	<!-- 특정 산업분류의 대분류에 속하는 소분류 테마코드 정보를 조회한다, 전국사업체조사의 테마업종 및 interactiveMapBtn의 createPOIBtn 메서드에서 사용된다. -->
+	<select id="selectCensusSmallThemeInfo" resultType="hashmap">
+		SELECT 
+			THEME_CD
+			, S_THEME_CD_NM
+			, ORDER_NO
+		FROM 
+			CMM_CD_THEME
+		WHERE 
+			/*B_THEME_CD != '' 
+			AND B_THEME_CD != '99'*/
+			LENGTH(B_THEME_CD) = '1'
+			AND THEME_CD != #{b_theme_cd}||'000'
+			AND B_THEME_CD = #{b_theme_cd}
+		ORDER BY
+			ORDER_NO
+	</select>
+	
+	
+	<!-- 코드리스트  -->
+	<select id="selectCodeList" resultType="hashmap">
+		SELECT 
+			THEME_CD
+			,ORDER_NO
+		FROM 
+			CMM_CD_THEME
+		WHERE 
+			LENGTH(B_THEME_CD) = '1'
+			AND THEME_CD like  #{b_theme_cd}||'%'
+		ORDER BY
+			ORDER_NO
+	</select>
+	
+	<!-- 테스트 -->
+	<select id="selectBizeCodeList" resultType="hashmap">
+		select ksic_2_cd , ksic_3_cd , ksic_2_nm , ksic_3_nm 
+		  from cmm_cd_corpclass
+		  where ksic_2_cd  != '00'
+		  group by ksic_2_cd, ksic_3_cd , ksic_2_nm , ksic_3_nm
+		  order by ksic_2_cd asc 
+	</select>
+	
+	
+	<!-- 테스트 -->
+	<select id="selectTestData" resultType="String">
+		select count(*) as data1
+		from CMM_CD_THEME 
+	</select>
+	
+	<!-- 종합분석 시계열 데이터  -->
+	<select id="selectCompanyCount" resultType="map">
+		SELECT company_cnt
+		FROM sbr_test
+		ORDER BY base_year ASC
+	</select>
+
+	<!-- 종합분석 활동현황 데이터 -->
+	<select id="activeCompanyCount" resultType="map">
+		select active_cnt, deactive_cnt
+		from sbr_test 
+		where base_year = '2020' and bord_type = 'A' and bord_code ='2501000' and biz_code = '110'
+	</select>	
+	
+	<!-- 종합분석 업종분석 개폐업현황 데이터 -->
+	<select id="opneCloseCompanyCount" resultType="map">
+		select biz_cd, opbiz_co, clsbiz_co 
+			from srv_dt_sbr_bord_biz_detcnd_sm_test 
+			where (biz_cd = '999' OR biz_cd = '11') and cnd_cd = '999'
+			and base_year = '2020' and bord_type = '12' and bord_cd = '11210'
+			order by biz_cd desc;
+	</select>	
+</mapper>

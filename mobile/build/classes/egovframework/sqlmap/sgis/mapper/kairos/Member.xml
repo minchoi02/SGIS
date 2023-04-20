@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.sgis.member.service.mapper.kairos.MemberMapper">
+	<select id="selectMemberInfo" parameterType="String" resultType="memberVO">
+		SELECT	
+			member_id,
+			pw,
+			member_nm,
+			pw_fail_cnt,
+			login_limit_yn
+		FROM srv_dt_memberinfo
+		<where>
+			<choose>
+				<when test="value != null and value != ''">
+						member_id = #{value}
+					AND combine_login_yn != 'Y'
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose>
+		</where>
+	</select>
+	<update id="updateMemberInfo">
+		UPDATE srv_dt_memberinfo
+		<set>
+			pw_fail_cnt=#{pw_fail_cnt},
+			last_access_ip=#{last_access_ip},
+			last_access_dt=SYSDATE
+		</set>
+		<where>
+			<choose>
+				<when test="member_id != null and member_id != ''">
+						member_id = #{member_id}
+					AND combine_login_yn != 'Y'
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose>
+		</where>
+	</update>
+	<select id="selectHistparaminfo" resultType="historyVO">
+		SELECT
+			SRV_DT_STATSEARCHHIST.hist_id,
+			SRV_DT_STATSEARCHHIST.hist_nm,
+			SRV_DT_STATSEARCHHIST.map_type,
+			SRV_DT_STATSEARCHHIST.hist_type,
+			SRV_DT_STATHISTPARAMINFO.seq,
+			SRV_DT_STATHISTPARAMINFO.api_call_url,
+			SRV_DT_STATHISTPARAMINFO.param_info
+		FROM SRV_DT_STATHISTPARAMINFO
+		INNER JOIN SRV_DT_STATSEARCHHIST ON SRV_DT_STATHISTPARAMINFO.hist_id = SRV_DT_STATSEARCHHIST.hist_id
+		<where>
+			<choose>
+				<when test="hist_id != null and hist_id != ''">
+					SRV_DT_STATHISTPARAMINFO.hist_id = #{hist_id}
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose>
+		</where>
+		ORDER BY REG_TS DESC
+	</select>
+	<insert id="insertHistoryInfo" parameterType="historyVO">
+		INSERT INTO SRV_DT_STATSEARCHHIST(
+			hist_id,
+			member_id,
+			hist_type,
+			map_type,
+			hist_nm,
+			exp,
+			reg_ts
+		)VALUES(
+			#{hist_id},
+			#{member_id},
+			#{hist_type},
+			#{map_type},
+			#{hist_nm},
+			#{exp},
+			SYSDATE
+		)
+	</insert>
+	<insert id="insertHistoryParameter" parameterType="historyVO">
+		INSERT INTO SRV_DT_STATHISTPARAMINFO(
+			hist_id,
+			seq,
+			api_call_url,
+			param_info
+		)VALUES(
+			#{hist_id},
+			1,
+			#{api_call_url},
+			#{param_info}
+		)		
+	</insert>
+	<select id="selectHistoryCount" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM SRV_DT_STATSEARCHHIST
+		<where>
+			<choose>
+				<when test="member_id != null and member_id != ''">
+						member_id = #{member_id}
+					<if test="hist_type != null and hist_type != ''">
+						AND hist_type = #{hist_type}
+					</if>
+					<if test="map_type != null and map_type != ''">
+						AND map_type = #{map_type}
+					</if>
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose>
+		</where>
+	</select>
+	<select id="selectHistoryList" resultType="egovMap">
+		SELECT
+			hist_id,
+			hist_nm,
+			TO_CHAR(reg_ts, 'YYYY.MM.DD HH24:MI:SS') as reg_ts
+		FROM SRV_DT_STATSEARCHHIST
+		<where>
+			<choose>
+				<when test="member_id != null and member_id != ''">
+						member_id = #{member_id}
+					<if test="hist_type != null and hist_type != ''">
+						AND hist_type = #{hist_type}
+					</if>
+					<if test="map_type != null and map_type != ''">
+						AND map_type = #{map_type}
+					</if>
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose>
+		</where>
+		ORDER BY reg_ts DESC
+		LIMIT ${holder.pageSize*(holder.page-1)+1},${holder.pageSize}
+	</select>
+</mapper>

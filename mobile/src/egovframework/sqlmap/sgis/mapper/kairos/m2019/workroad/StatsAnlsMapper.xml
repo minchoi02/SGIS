@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.sgis.m2019.workroad.service.mapper.kairos.StatsAnlsMapper">
+
+	<!-- 업종선택 -->
+	<select id="selectStatsAnalsTypeOfIndustry" resultType="HashMap" parameterType="HashMap">
+		SELECT A.S_CLASS_CD 						/* 산업분류 코드 */
+		     , MAX(A.S_CLASS_CD_NM) S_CLASS_CD_NM 	/* 산업분류 코드명 */
+		  FROM CMM_CD_COMCD A
+		     , SRV_DT_KOSIS_DATA B
+		 WHERE A.B_CLASS_CD = 'INDCLA' 				/* 산업분류 */
+		   AND B.LINK_ID = 'I3201' 					/* 시도/산업/사업체구분별 사업체수 종사자수 */
+		   AND A.S_CLASS_CD = B.C2
+		 GROUP BY A.S_CLASS_CD
+		 ORDER BY A.S_CLASS_CD
+	</select>
+	
+	<!-- 업종선택 (중분류) -->
+	<select id="selectStatsAnalsTypeOfIndustryMiddleClassification" resultType="HashMap" parameterType="HashMap">
+		SELECT 
+			S_CLASS_CD AS CD 
+			, S_CLASS_CD_NM AS NM
+			, CD_EXP AS EXP
+		  FROM CMM_CD_COMCD
+		 WHERE 1=1
+		   AND B_CLASS_CD = 'JDS02S'
+		   <!-- 2019.12.05[한광희] 2017년 정보추가로 인한 제외 처리 -->
+		   AND S_CLASS_CD NOT IN ('A01', 'A02', 'A03', 'B05', 'B06', 'B07', 'B08', 'T97', 'T98', 'U99')
+		 ORDER BY S_CLASS_CD_ORDER
+	</select>
+	
+	<!-- 사업체수&종사자수 조회 -->
+	<select id="selectStatsAnalsMapDataCount" resultType="HashMap" parameterType="HashMap">
+		SELECT C1 AS ADM_CD			/* 시도코드 */
+			 , C1_NM AS ADM_NM		/* 시도명 */
+			 , DT 					/* 사업체 수 */
+			 , UNIT_NM
+			 /* 2019.10.01[한광희] 사업체수 종사자수 기준년도 및 출처 추가. START */
+			 , PRD_DE				/* 기준년도 */
+			 , (SELECT COLCT_SOURCE
+				  FROM SRV_DT_JOB_STAT_DATA_INFO
+				 WHERE LINK_ID = 'I3201'
+			   ) AS COLCT_SOURCE	/* 출처 */
+			 /* 2019.10.01[한광희] 사업체수 종사자수 기준년도 및 출처 추가. END */
+		  FROM SRV_DT_KOSIS_DATA
+		 WHERE LINK_ID = 'I3201' 	/* 시도/산업/사업체구분별 사업체수 종사자수 */
+		   <if test='itm_id != null and itm_id != ""'>
+		   	   AND ITM_ID = #{itm_id} 	/* 사업체수, 종사자수(개) */
+		   </if>
+		   AND C3 = '0' /* 계 */
+		   <if test='c2 != null and c2 != ""'>
+			   AND C2 = #{c2}		/* 업종구분(전체는 숫자0) */
+		   </if>
+		   AND C1 <![CDATA[<>]]> '00' /* 전국 제외 */
+		   AND PRD_DE = (SELECT MAX(PRD_DE)
+		                   FROM SRV_DT_KOSIS_DATA
+						  WHERE LINK_ID = 'I3201'
+						    <if test='itm_id != null and itm_id != ""'>
+							  	AND ITM_ID = #{itm_id} 	/* 사업체수, 종사자수(개) */
+							</if>
+						 )
+		 ORDER BY C1
+	</select>
+		
+	<!-- 일자리 추이 조회 -->
+	<select id="selectStatsAnalsJobTransition" resultType="HashMap" parameterType="HashMap">
+		SELECT LINK_ID
+			 , '구인 인원' AS LINK_NM
+			 , DT
+			 , UNIT_NM
+			 , C1
+			 , C1_NM
+			 , PRD_DE
+		  FROM SRV_DT_KOSIS_DATA
+		 WHERE LINK_ID = 'E3208'
+		  AND C1 = '00'
+		  AND ITM_ID = 'T10' 
+		  AND PRD_DE = (SELECT MAX(PRD_DE)
+					      FROM SRV_DT_KOSIS_DATA
+					     WHERE LINK_ID = 'E3208'
+			    		   AND C1 = '00'
+						   AND ITM_ID = 'T10'
+					    )
+		UNION ALL
+		SELECT LINK_ID
+			 , '구직 건수' AS LINK_NM
+			 , DT
+			 , UNIT_NM
+			 , C1
+			 , C1_NM
+			 , PRD_DE
+		  FROM SRV_DT_KOSIS_DATA
+		 WHERE LINK_ID = 'E3218'
+		   AND C1 = '00' 
+		   AND ITM_ID = 'T70'
+		   AND PRD_DE = (SELECT MAX(PRD_DE)
+					      FROM SRV_DT_KOSIS_DATA
+					     WHERE LINK_ID = 'E3218'
+						   AND C1 = '00' 
+						   AND ITM_ID = 'T70'
+					    )
+		UNION ALL
+		SELECT LINK_ID
+			 , '기업 생성' AS LINK_NM
+			 , DT
+			 , UNIT_NM
+			 , C1
+			 , C1_NM
+			 , PRD_DE
+		  FROM SRV_DT_KOSIS_DATA
+		 WHERE LINK_ID = 'I3206'
+		   AND C1 = '00' 
+		   AND ITM_ID = '16142T1'
+		   AND PRD_DE = (SELECT MAX(PRD_DE)
+					      FROM SRV_DT_KOSIS_DATA
+					     WHERE LINK_ID = 'I3206'
+						   AND C1 = '00' 
+						   AND ITM_ID = '16142T1'
+					    )
+		UNION ALL
+		SELECT LINK_ID
+			 , '기업 소멸' AS LINK_NM
+			 , DT
+			 , UNIT_NM
+			 , C1
+			 , C1_NM
+			 , PRD_DE
+		  FROM SRV_DT_KOSIS_DATA
+		 WHERE LINK_ID = 'I3207'
+		   AND C1 = '00' 
+		   AND ITM_ID = 'T001'
+		   AND PRD_DE = (SELECT MAX(PRD_DE)
+					      FROM SRV_DT_KOSIS_DATA
+					     WHERE LINK_ID = 'I3207'
+						   AND C1 = '00' 
+						   AND ITM_ID = 'T001'
+					    )
+	</select>
+	
+	<!-- 일자리 만족도 조회 -->
+	<select id="selectStatsAnalsJobSatisfactionDegree" resultType="HashMap" parameterType="HashMap">
+		SELECT 
+			SUM(TO_NUMBER(DT)) AS DT  <!-- 2020-07-17 [곽제욱] 일자리만족도 kosis 데이터 변경으로 수정 (ITM_ID : T30 => T11, T12) -->
+			 , LINK_ID
+			 , '일자리 만족도' AS LINK_NM
+			 , PRD_DE 
+			 , UNIT_NM
+			 , C1 AS C1
+			 , C1_NM AS C1_NM
+		  FROM SRV_DT_KOSIS_DATA 
+		 WHERE LINK_ID = 'E3503'
+		   AND ITM_ID IN ('T11', 'T12') <!-- 2020-07-17 [곽제욱] 일자리만족도 kosis 데이터 변경으로 수정 (ITM_ID : T30 => T11, T12) -->
+		   AND C1 = '00' 
+		   AND PRD_DE BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(SYSDATE),-132),'YYYY')
+		   AND TO_CHAR(SYSDATE, 'YYYY')
+		GROUP BY LINK_ID, PRD_DE, UNIT_NM, C1, C1_NM <!-- 2020-07-17 [곽제욱] 일자리만족도 kosis 데이터 변경으로 수정 (ITM_ID : T30 => T11, T12) -->
+		ORDER BY PRD_DE
+	</select>
+	
+</mapper>

@@ -1,0 +1,48 @@
+package kostat.sop.OpenAPI3.search.address;
+
+public class RegexPattern {
+
+	private static final String strPatSido = "(강원|경기|경상|전라)($|도)|(광주|대구|대전|부산|울산|인천)($|시|광역시)|(경남|경북|전남|전북|충남|충북)|"
+										   + "(경상|전라|충청)(도|남도|북도)|(서울|서울시|서울특별시|제주|제주도|제주특별자치도|세종|세종시|세종특별자치시)";
+	//private static final String strPatSido = "(강원|강원도|경기|경기도|경상도|경남|경상남도|경북|경상북도|광주|대구|대구시|대구광역시|대전|부산|부산시|부산광역시|서울|서울시|서울특별시|울산|울산시|울산광역시|인천|인천시|인천광역시"
+					  					   //+ "|전라도|전남|전라남도|전북|전라북도|제주|제주도|제주특별자치도|충청도|충남|충청남도|충북|충청북도)";
+	
+	//private static final String strPatSigungu = ".*시|.*군|.*구";
+	private static final String strPatSigungu = ".*|.*|.*";
+	private static final String strDong 	 = ".*동|.*면|.*읍";
+	private static final String strGilRo 	 = ".*길|.*로";
+	private static final String strPatri 	 = ".*리";
+	private static final String strGibun 	 = "[0-9]+[0-9\\-]*[\\s]*(번지)*$|[0-9]+[0-9\\-]*|산[0-9]+[0-9\\-]*";
+	
+	
+	private static final String strGroupPattern = "(/^" + strPatSido + ")"
+												+ "()";
+	
+	public static String GetSido(){
+		return  strPatSido;
+	}
+	
+	public static String GetSigungu(){
+		return  strPatSigungu;
+	}
+	public static String GetDong(){
+		return  strDong;
+	}
+
+	public static String GetGilRo(){
+		return  strGilRo;
+	}
+	
+	public static String GetRi(){
+		return strPatri;
+	}
+	
+	public static String GetGibun(){
+		return strGibun;
+	}
+	
+	public static String GetGroupPattern(){
+		return strGroupPattern;
+	}
+	
+}

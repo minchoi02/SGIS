@@ -1,0 +1,51 @@
+package kostat.lbdms.ServiceAPI.controller.service.impl;
+
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import kostat.lbdms.ServiceAPI.controller.service.DnmtService;
+import kostat.lbdms.ServiceAPI.controller.service.mapper.DnmtMapper;
+
+@Service("dnmtService")
+public class DnmtServiceImpl implements DnmtService{
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(DnmtServiceImpl.class);
+
+	@Resource(name="dnmtMapper")
+	private DnmtMapper dnmtMapper;
+
+	@Override
+	public List selectDnmtInfoList(Map mapParameter) throws SQLException {
+		// TODO Auto-generated method stub
+		return dnmtMapper.selectDnmtInfoList(mapParameter);
+	}
+
+	@Override
+	public void createDnmtInfo(Map mapParameter) throws SQLException {
+		dnmtMapper.createDnmtInfo(mapParameter);
+	}
+
+    @Override
+    public Map selectDnmtDetail(Map mapParameter) throws SQLException {
+        // TODO Auto-generated method stub
+        return dnmtMapper.selectDnmtDetail(mapParameter);
+    }
+
+    @Override
+    public void deleteDnmt(Map mapParameter) throws SQLException {
+        dnmtMapper.deleteDnmt(mapParameter);
+
+    }
+
+
+
+
+
+}

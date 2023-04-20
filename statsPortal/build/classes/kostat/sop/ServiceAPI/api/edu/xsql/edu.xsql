@@ -1,0 +1,650 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="edu">
+
+<select id="selectEduThemaList" parameterType="hashmap"  resultType="hashmap">
+/*selectEduThemaList 주제 목록 */
+	SELECT   * 
+	  FROM   SRV_DT_EDUTHEMA 
+	 WHERE   SCHOOL_GRADE = #{school_grade}
+	   AND   SRV_YN = 'Y'
+  ORDER BY   ORDER_NO ASC
+</select>
+
+<select id="selectEduIssueList" parameterType="hashmap"  resultType="hashmap">
+/*selectEduIssueList 이슈 목록 */
+	SELECT   * 
+	  FROM   SRV_DT_EDUISSUE 
+  ORDER BY   ORDER_NO ASC
+</select>
+
+	
+<select id="selectEduIssueContentsList" parameterType="hashmap"  resultType="hashmap">
+/*selectEduIssueContentsList 이슈보기 콘텐츠 목록 */
+	SELECT * 
+	  FROM
+			(
+				SELECT	*  ,  ROW_NUMBER() OVER (ORDER BY ORDER_NO ASC) AS ROWIDX
+				FROM	SRV_DT_EDUCONTENTS
+				WHERE	1=1
+				AND		SRV_YN = 'Y'
+				<if test='null != issue_id and "" != issue_id'>
+				AND ISSUE_ID = #{issue_id}
+				</if>
+				ORDER BY ORDER_NO ASC
+			)
+	<![CDATA[		
+	WHERE ROWIDX >= #{startRow}
+	  AND ROWIDX <= #{endRow}
+ 	]]>		
+ 	
+</select>
+
+<select id="selectEduIssueContentsListCount" parameterType="hashmap"  resultType="int">
+/*selectEduIssueContentsListCount 이슈보기 콘텐츠 목록 갯수*/
+
+		SELECT	COUNT(*) AS TOTAL_COUNT  
+		FROM	SRV_DT_EDUCONTENTS
+		WHERE	1=1
+		AND		SRV_YN = 'Y'
+		<if test='null != issue_id and "" != issue_id'>
+		AND ISSUE_ID = #{issue_id}
+		</if>
+ 	
+</select>
+
+
+<select id="selectEduContentsList" parameterType="hashmap"  resultType="hashmap">
+/*selectEduContentsList 수업하기 콘텐츠 목록 */
+	SELECT * 
+	  FROM
+			(
+				SELECT	*  ,  ROW_NUMBER() OVER (ORDER BY ORDER_NO ASC) AS ROWIDX
+				FROM	SRV_DT_EDUCONTENTS
+				WHERE	1=1
+				AND		SRV_YN = 'Y'
+				<if test='2 == srv_type'>
+				AND		THEMA_ID IN ( 
+										SELECT THEMA_ID
+										FROM   SRV_DT_EDUTHEMA 
+										WHERE  1 = 1 
+				<if test='null != school_grade and "" != school_grade'>
+										AND    SCHOOL_GRADE = #{school_grade} --학교등급 
+				</if>
+										AND	   SRV_YN = 'Y'
+									)
+				</if>
+				<if test='null != thema_id and "" != thema_id'>
+				AND THEMA_ID = #{thema_id}
+				</if>
+				<if test='"Y" == main_yn'>
+				AND MAIN_YN = 'Y'
+				</if>
+				ORDER BY ORDER_NO ASC
+			)
+	<if test='"Y" != main_yn'>
+	<![CDATA[		
+	WHERE ROWIDX >= #{startRow}
+	  AND ROWIDX <= #{endRow}
+ 	]]>		
+ 	</if>
+</select>
+
+<select id="selectEduContentsListCount" parameterType="hashmap"  resultType="int">
+/* selectEduContentsListCount 콘텐츠 목록 개수*/
+	SELECT	COUNT(*) AS TOTAL_COUNT  
+	  FROM	SRV_DT_EDUCONTENTS
+	 WHERE	1=1
+	   AND	SRV_YN = 'Y'
+	<if test='2 == srv_type'>
+	   AND	THEMA_ID IN ( 
+							SELECT THEMA_ID
+							  FROM SRV_DT_EDUTHEMA 
+							 WHERE 1 = 1 
+	<if test='null != school_grade and "" != school_grade'>
+							   AND SCHOOL_GRADE = #{school_grade} --학교등급 
+	</if>
+							   AND SRV_YN = 'Y'
+						 )
+	</if>
+	<if test='null != thema_id and "" != thema_id'>
+	   AND  THEMA_ID = #{thema_id}
+	</if>
+	<if test='"Y" == main_yn'>
+	   AND  MAIN_YN = 'Y'
+	</if>
+	   ORDER BY ORDER_NO
+</select>
+
+<select id="selectEduContents" parameterType="hashmap"  resultType="hashmap">
+/* selectEduContents 콘텐츠 상세 정보 조회 */
+	SELECT	* , (SELECT THEMA_NM FROM SRV_DT_EDUTHEMA B WHERE B.THEMA_ID = A.THEMA_ID) AS THEMA_NM, (SELECT ISSUE_NM FROM SRV_DT_EDUISSUE B WHERE B.ISSUE_ID = A.ISSUE_ID) AS ISSUE_NM 
+	  FROM  SRV_DT_EDUCONTENTS A
+	 WHERE  1 = 1
+	<if test='null != contents_id and "" != contents_id'>
+	   AND  CONTENTS_ID = #{contents_id}
+	</if>
+	   AND	SRV_YN = 'Y'
+</select>
+
+<select id="selectEduContentsHashtagList" parameterType="hashmap"  resultType="hashmap">
+/* selectEduContentsHashtagList 콘텐츠 해시태그 목록 조회*/
+	SELECT	KWRD , CONTENTS_ID
+	  FROM  SRV_DT_EDUCONTENTS_HASHTAG
+	 WHERE  1 = 1
+	<if test='null != contents_id and "" != contents_id'>
+	   AND  CONTENTS_ID = #{contents_id}
+	</if>
+</select>
+
+<select id="selectEduMainContentsList" parameterType="hashmap"  resultType="hashmap">
+/* selectEduMainContentsList 초등중등 메인 콘텐츠 목록 조회 */
+	SELECT CONTENTS_TITLE, THEMA_ID, (SELECT THEMA_NM FROM SRV_DT_EDUTHEMA B WHERE B.THEMA_ID = A.THEMA_ID) AS THEMA_NM, CONTENTS_ID, ICON_FILE_NM
+	  FROM SRV_DT_EDUCONTENTS A
+	 WHERE SRV_YN = 'Y'
+	   AND MAIN_YN = 'Y'
+	   AND THEMA_ID IN ( 
+						SELECT THEMA_ID
+						FROM SRV_DT_EDUTHEMA 
+						WHERE 1 = 1
+						<if test='null != school_grade and "" != school_grade'>
+						AND SCHOOL_GRADE = #{school_grade} --학교등급
+						</if> 
+						AND SRV_YN = 'Y'
+						)
+	<if test='"M" == school_grade'>
+	   AND THEMA_ID = #{thema_id}
+	</if>
+</select>
+	
+	
+<select id="selectEduContentsQuiz" parameterType="hashmap"  resultType="hashmap">	
+/* selectEduContentsQuiz 콘텐츠 랜덤퀴즈 */	
+	SELECT TOP 1 *
+	  FROM SRV_DT_EDUCONTENTS_QUIZ
+	 WHERE CONTENTS_ID = #{contents_id}
+	 ORDER BY RAND() 
+</select>
+
+
+<select id="selectEduNextContents" parameterType="hashmap"  resultType="hashmap">
+/* selectEduNextContents 다음 콘텐츠*/
+	SELECT * ,
+				CASE 
+				WHEN   B.THEMA_ID IN (SELECT THEMA_ID FROM SRV_DT_EDUCONTENTS WHERE CONTENTS_ID = #{contents_id})
+				THEN   'N'
+				ELSE   'Y'
+				END AS THEMA_NEXT
+ 
+	FROM (		 
+		 SELECT TOP 1 CONTENTS_ID , thema_id 
+		 FROM   SRV_DT_EDUCONTENTS  A 
+		 WHERE  A.THEMA_ID IN (SELECT THEMA_ID FROM SRV_DT_EDUTHEMA WHERE SCHOOL_GRADE = #{school_grade})
+		 AND    A.ORDER_NO > (SELECT ORDER_NO FROM SRV_DT_EDUCONTENTS WHERE CONTENTS_ID = #{contents_id} AND  SRV_YN = 'Y' ORDER BY ORDER_NO DESC )
+		 ORDER BY A.ORDER_NO ASC 
+		) B
+</select>
+
+
+<select id="selectEduRecommendContents" parameterType="hashmap"  resultType="hashmap">
+/*selectEduRecommendContents 추천콘텐츠 조회 */
+	<if test='"H" != school_grade'>
+	SELECT TOP 3 *
+	</if>
+	<if test='"H" == school_grade'>
+	SELECT TOP 10 *
+	</if>
+	FROM   SRV_DT_EDUCONTENTS
+	WHERE  1 = 1
+	AND    THEMA_ID != #{thema_id}
+	AND    THEMA_ID IN ( 
+							SELECT THEMA_ID
+							FROM SRV_DT_EDUTHEMA 
+							WHERE 1 = 1
+							AND SCHOOL_GRADE = #{school_grade}
+							AND SRV_YN = 'Y'
+	)
+	AND	SRV_YN = 'Y'
+	ORDER  BY RAND() 
+</select>
+
+<select id="selectEduTchpgmHashtagList" parameterType="hashmap"  resultType="hashmap">
+/* selectEduTchpgmHashtagList 교안 해시태그 목록 조회*/
+	SELECT	KWRD , TCHPGM_SEQ
+	  FROM  SRV_DT_EDUTCHPGM_HASHTAG
+	 WHERE  1 = 1
+	<if test='null != tchpgm_seq and "" != tchpgm_seq'>
+	   AND  TCHPGM_SEQ = #{tchpgm_seq}
+	</if>
+</select>
+
+
+<select id="selectEduTchpgmList" parameterType="hashmap"  resultType="hashmap">
+/* selectEduTchpgmList 교안 목록 조회 */
+	SELECT *, TO_CHAR(REG_TS, 'yyyy.MM.dd') AS REG_DT,
+	CASE 
+	<![CDATA[
+	WHEN THE_DAY < REG_TS
+	]]>		 
+	THEN 'new'
+	ELSE ' '
+	END AS NEW_TYPE
+	FROM 
+	(
+		SELECT 	
+				<if test='"Y" == main_yn'>
+				TOP 3   
+				</if>
+					   TCHPGM_SEQ
+					 , TCHPGM_TITLE
+					 , TCHPGM_CN 
+					 , HITS
+					 , MEMBER_ID 
+					 , REG_TS
+					 ,(SYSDATE-7) AS THE_DAY
+		FROM		   SRV_DT_EDUTCHPGM
+		WHERE 		   OPEN_YN = 'Y'
+		AND 		   DEL_YN = 'N'
+	<if test='null != school_grade and "" != school_grade'>
+		AND 		   SCHOOL_GRADE = #{school_grade}
+	</if>
+	
+		ORDER BY 	   REG_TS DESC
+		)
+</select>
+
+<select id="selectEduWithMapList" parameterType="hashmap"  resultType="hashmap">
+/* selectEduWithMapList 함께하는지도 목록 */
+		WITH POI_CNT AS 
+		(
+		 SELECT CMMNTY_MAP_ID, COUNT(1) CNT 
+		   FROM SRV_DT_CMMNTY_POI 
+		  GROUP BY CMMNTY_MAP_ID
+		), 
+			JOIN_CNT AS 
+		(
+		 SELECT A.CMMNTY_MAP_ID, COUNT(1) CNT 
+		   FROM SRV_DT_CMMNTY_APPROVAL A , SRV_DT_CMMNTY_MAP B 
+		  WHERE A.CMMNTY_MAP_ID = B.CMMNTY_MAP_ID 
+			AND B.CMMNTY_PARTCPTN_GRANT_YN='Y' 
+			AND APPROVAL_DISTINCT LIKE '%A%' 
+		  GROUP BY A.CMMNTY_MAP_ID
+		  UNION ALL
+		 SELECT A.CMMNTY_MAP_ID, COUNT(1) CNT 
+		   FROM SRV_DT_CMMNTY_MAP_REG_MBER_LIST A, SRV_DT_CMMNTY_MAP B 
+		  WHERE A.CMMNTY_MAP_ID = B.CMMNTY_MAP_ID 
+			AND B.CMMNTY_PARTCPTN_GRANT_YN='M'
+		  GROUP BY A.CMMNTY_MAP_ID 
+		  UNION ALL
+		 SELECT A.CMMNTY_MAP_ID, COUNT(DISTINCT A.USR_ID) CNT 
+		   FROM SRV_DT_CMMNTY_POI A, SRV_DT_CMMNTY_MAP B 
+		  WHERE A.CMMNTY_MAP_ID = B.CMMNTY_MAP_ID 
+			AND B.CMMNTY_PARTCPTN_GRANT_YN NOT IN ('Y', 'M') 
+		  GROUP BY A.CMMNTY_MAP_ID
+
+		)
+		SELECT 
+		<if test='"Y" == main_yn'>
+		TOP 3 
+		</if>
+		       A.CMMNTY_MAP_ID
+			  ,A.CMMNTY_MAP_NM
+			  ,A.CMMNTY_PARTCPTN_GRANT_YN
+			  ,A.REG_DATE
+			  ,CASE 
+				<![CDATA[
+				WHEN (SYSDATE-7) < REG_DATE
+				]]>		 
+				THEN 'new'
+				ELSE ' '
+				END AS NEW_TYPE
+			  ,A.USR_ID
+			  ,NVL(POI_CNT.CNT,0) AS POI_CNT
+			  ,NVL(JOIN_CNT.CNT, 0) AS JOIN_CNT
+		FROM  SRV_DT_CMMNTY_MAP A, POI_CNT, JOIN_CNT
+		WHERE A.CMMNTY_MAP_ID = POI_CNT.CMMNTY_MAP_ID  (+)
+   		  AND A.CMMNTY_MAP_ID = JOIN_CNT.CMMNTY_MAP_ID (+)
+		  <if test='"M" == school_grade'>
+		  AND A.FROM_CE = 'M'
+		  </if>
+		  <if test='"H" == school_grade'>
+		  AND A.FROM_CE = 'H'
+		  </if>
+		  AND A.TEMP_SAVE_YN = 'N'
+		  AND A.LOCK_YN='N'
+     ORDER BY REG_DATE DESC
+</select>
+
+<select id="selectEduWithMapListHashtagList" parameterType="hashmap"  resultType="hashmap">
+/* selectEduWithMapListHashtagList 함께하는 지도 해시태그 조회*/
+	SELECT	KWRD , CMMNTY_MAP_ID
+	  FROM  SRV_DT_CMMNTY_KWRD
+	 WHERE  1 = 1
+	<if test='null != cmmnty_map_id and "" != cmmnty_map_id'>
+	   AND  CMMNTY_MAP_ID = #{cmmnty_map_id}
+	</if>
+</select>
+
+<select id="selectPopularSrchwrdGroupByThema" parameterType="hashmap"  resultType="hashmap">
+/* selectPopularSrchwrdGroupByThema 주제별 인기검색어 top 5 */
+	SELECT TOP 5 * 
+	FROM   SRV_DT_EDUSRCHWRD
+	<if test='null != thema_id and "" != thema_id'>
+	WHERE  SRCHWRD IN (SELECT KWRD FROM SRV_DT_EDUCONTENTS_HASHTAG WHERE CONTENTS_ID LIKE #{thema_id} || '%')
+	</if>
+	ORDER BY SEARCH_CNT DESC
+</select>
+
+
+<select id="selectRelationKwrdList" parameterType="hashmap"  resultType="hashmap">
+/* selectRelationKwrdList 고등 연관검색어 목록 조회 */
+<if test='null != kwrd and "" != kwrd'>
+<![CDATA[	
+SELECT  * , REPLACE(KWRD, #{kwrd}, '<span>' || #{kwrd} || '</span>') AS KWRDTAG  /*검색 키워드 강조 HTML  */
+]]>
+</if>
+<if test='null == kwrd or "" == kwrd'>
+SELECT  *
+</if>
+
+FROM 
+(
+	SELECT A.KWRD, CHARINDEX(#{kwrd}, A.KWRD) AS IDX
+	FROM SRV_DT_EDUCONTENTS_HASHTAG A 
+	WHERE A.CONTENTS_ID LIKE 'H%'
+	AND   KWRD LIKE '%' || #{kwrd}  || '%'
+	GROUP BY KWRD 
+	
+	UNION DISTINCT
+	
+	SELECT B.KWRD, CHARINDEX(#{kwrd}, B.KWRD) AS IDX
+	FROM   (
+			SELECT TCHPGM_SEQ , SCHOOL_GRADE
+			FROM SRV_DT_EDUTCHPGM X 
+			WHERE 1= 1
+			AND X.DEL_YN ='N' 
+			AND X.OPEN_YN = 'Y'
+			AND X.SCHOOL_GRADE = 'H') A 
+	LEFT OUTER JOIN SRV_DT_EDUTCHPGM_HASHTAG B ON A.TCHPGM_SEQ = B.TCHPGM_SEQ
+	WHERE B.KWRD LIKE '%' || #{kwrd}  || '%'
+	GROUP BY B.KWRD
+	
+	UNION DISTINCT
+		
+	SELECT KWRD, CHARINDEX(#{kwrd}, KWRD) AS IDX
+	FROM   SRV_DT_CMMNTY_KWRD KWRD
+	WHERE  1= 1 
+	AND    KWRD.CMMNTY_MAP_ID IN (
+									SELECT C.CMMNTY_MAP_ID 
+									FROM   SRV_DT_CMMNTY_MAP C
+									WHERE  1=1
+									AND    FROM_CE = 'H'
+									AND    TEMP_SAVE_YN = 'N'
+									AND    LOCK_YN='N'							
+						    	  )  	
+	AND   KWRD LIKE '%' || #{kwrd}  || '%'
+)
+WHERE 1 = 1  
+ORDER BY IDX
+</select>
+
+
+<select id="selectSearchContentsListCnt" parameterType="hashmap"  resultType="int">
+/* selectSearchContentsListCnt 해시태그 검색 - 수업하기 결과 수*/
+SELECT 
+  		  COUNT(*) AS CNT
+FROM SRV_DT_EDUCONTENTS A
+WHERE A.CONTENTS_ID IN (
+						SELECT C.CONTENTS_ID FROM SRV_DT_EDUCONTENTS_HASHTAG C
+						WHERE 1 = 1
+						<if test='null != kwrd and "" != kwrd'>
+						AND    C.KWRD LIKE  '%' || #{kwrd} || '%'
+						</if>
+					    )  
+  AND A.THEMA_ID    IN ( 
+						SELECT D.THEMA_ID
+						FROM   SRV_DT_EDUTHEMA  D
+						WHERE  1 = 1
+						AND    D.SCHOOL_GRADE = 'H'
+						AND    D.SRV_YN = 'Y'
+	)
+  AND A.SRV_YN = 'Y'
+</select>
+
+
+<select id="selectSearchTchpgmListCnt" parameterType="hashmap"  resultType="int">
+/* selectSearchTchpgmListCnt 해시태그 검색 - 교안  결과 수*/
+SELECT 
+		 COUNT(*) AS CNT
+FROM    SRV_DT_EDUTCHPGM
+WHERE   TCHPGM_SEQ IN (
+						SELECT TCHPGM_SEQ 
+						FROM SRV_DT_EDUTCHPGM_HASHTAG
+						<if test='null != kwrd and "" != kwrd'>
+						WHERE KWRD LIKE  '%' || #{kwrd} || '%'
+						</if>
+					  )  
+AND 	DEL_YN = 'N'
+AND 	OPEN_YN = 'Y'
+AND		SCHOOL_GRADE = 'H'
+</select>
+
+<select id="selectSearchWithMapListCnt" parameterType="hashmap"  resultType="int">
+/* selectSearchWithMapListCnt 해시태그 검색 - 함께하는지도 결과 수  */
+	SELECT  
+	 	  count(*)
+
+	FROM SRV_DT_CMMNTY_MAP A
+	WHERE 1 =1 
+	  AND A.CMMNTY_MAP_ID IN (
+					SELECT C.cmmnty_map_id FROM SRV_DT_CMMNTY_KWRD C
+					WHERE C.KWRD LIKE  '%' || #{kwrd} || '%'
+				    )  
+	  AND A.FROM_CE = 'H'
+	  AND A.TEMP_SAVE_YN = 'N'
+	  AND A.LOCK_YN='N'
+</select>
+
+<select id="selectSearchContentsList" parameterType="hashmap"  resultType="hashmap">
+/* selectSearchContentsList 해시태그 검색 (수업하기) */
+SELECT * FROM (
+SELECT 
+  		  <if test='"Y" == all_yn'>
+		  TOP 3
+		  </if> 
+		  A.CONTENTS_ID
+		, A.CONTENTS_TITLE 
+		, A.THEMA_ID 
+		, A.BODY_FILE_NM
+		, (SELECT B.THEMA_NM FROM SRV_DT_EDUTHEMA B WHERE B.THEMA_ID = A.THEMA_ID) AS THEMA_NM
+		<if test='"N" == all_yn'>
+		,  ROW_NUMBER() OVER (ORDER BY order_no DESC) AS ROWIDX
+		</if>
+FROM SRV_DT_EDUCONTENTS A
+WHERE A.CONTENTS_ID IN (
+						SELECT C.CONTENTS_ID FROM SRV_DT_EDUCONTENTS_HASHTAG C
+						WHERE  1 = 1 
+						<if test='null != kwrd and "" != kwrd'>
+						AND    C.KWRD LIKE  '%' || #{kwrd} || '%'
+						</if>
+					    )  
+  AND A.THEMA_ID    IN ( 
+						SELECT D.THEMA_ID
+						FROM   SRV_DT_EDUTHEMA  D
+						WHERE  1 = 1
+						AND    D.SCHOOL_GRADE = 'H'
+						AND    D.SRV_YN = 'Y'
+						)
+  AND A.SRV_YN = 'Y'
+ORDER BY ORDER_NO
+)
+<if test='"N" == all_yn'>
+	<![CDATA[		
+	WHERE ROWIDX >= #{startRow}
+	AND ROWIDX <= #{endRow}
+ 	]]>	
+</if> 
+</select>
+
+
+
+<select id="selectSearchTchpgmList" parameterType="hashmap"  resultType="hashmap">
+/* selectSearchTchpgmList 해시태그 검색 (배우는지도) */
+	SELECT *, TO_CHAR(REG_TS, 'yyyy.MM.dd') AS REG_DT,
+	CASE 
+	<![CDATA[
+	WHEN THE_DAY < REG_TS
+	]]>		 
+	THEN 'new'
+	ELSE ' '
+	END AS NEW_TYPE
+	FROM 
+	(
+	SELECT 
+			  <if test='"Y" == all_yn'>
+			  TOP 3 
+			  </if>
+			  TCHPGM_SEQ
+			, TCHPGM_TITLE
+			, TCHPGM_CN
+			, HITS
+			, MEMBER_ID
+			,(SYSDATE-7) AS THE_DAY
+			, REG_TS 
+	FROM    SRV_DT_EDUTCHPGM
+	WHERE   TCHPGM_SEQ IN (
+							SELECT TCHPGM_SEQ 
+							FROM SRV_DT_EDUTCHPGM_HASHTAG
+							<if test='null != kwrd and "" != kwrd'>
+							WHERE KWRD LIKE  '%' || #{kwrd} || '%'
+							</if>
+						  )  
+	AND 	DEL_YN = 'N'
+	AND 	OPEN_YN = 'Y'
+	AND		SCHOOL_GRADE = 'H'
+	ORDER BY REG_TS DESC
+)
+</select>
+
+
+
+<select id="selectSearchWithMapList" parameterType="hashmap"  resultType="hashmap">
+/* selectSearchWithMapList 해시태그 검색 (함께하는지도) */
+		WITH POI_CNT AS 
+			(
+			 SELECT CMMNTY_MAP_ID, COUNT(1) CNT 
+			   FROM SRV_DT_CMMNTY_POI 
+			  GROUP BY CMMNTY_MAP_ID
+			), 
+			 JOIN_CNT AS 
+			(
+			 SELECT A.CMMNTY_MAP_ID, COUNT(1) CNT 
+			   FROM SRV_DT_CMMNTY_APPROVAL A , SRV_DT_CMMNTY_MAP B 
+			  WHERE A.CMMNTY_MAP_ID = B.CMMNTY_MAP_ID 
+				AND B.CMMNTY_PARTCPTN_GRANT_YN='Y' 
+				AND APPROVAL_DISTINCT LIKE '%A%' 
+			  GROUP BY A.CMMNTY_MAP_ID
+			  UNION ALL
+			 SELECT A.CMMNTY_MAP_ID, COUNT(1) CNT 
+			   FROM SRV_DT_CMMNTY_MAP_REG_MBER_LIST A, SRV_DT_CMMNTY_MAP B 
+			  WHERE A.CMMNTY_MAP_ID = B.CMMNTY_MAP_ID 
+				AND B.CMMNTY_PARTCPTN_GRANT_YN='M'
+			  GROUP BY A.CMMNTY_MAP_ID 
+			  UNION ALL
+			 SELECT A.CMMNTY_MAP_ID, COUNT(DISTINCT A.USR_ID) CNT 
+			   FROM SRV_DT_CMMNTY_POI A, SRV_DT_CMMNTY_MAP B 
+			  WHERE A.CMMNTY_MAP_ID = B.CMMNTY_MAP_ID 
+				AND B.CMMNTY_PARTCPTN_GRANT_YN NOT IN ('Y', 'M') 
+			  GROUP BY A.CMMNTY_MAP_ID
+			)
+	SELECT * FROM 
+	(
+			SELECT  
+			 <if test='"Y" == all_yn'>
+			  TOP 3
+			 </if>
+	  		 	   A.CMMNTY_MAP_ID
+				  ,A.CMMNTY_MAP_NM
+				  ,A.CMMNTY_PARTCPTN_GRANT_YN
+				  ,TO_CHAR(A.REG_DATE, 'yyyy.MM.dd') as REG_DATE
+				  ,A.USR_ID
+				  ,NVL(POI_CNT.CNT,0) AS POI_CNT
+				  ,NVL(JOIN_CNT.CNT, 0) AS JOIN_CNT
+			<if test='"N" == all_yn'>
+				  ,ROW_NUMBER() OVER (ORDER BY reg_date DESC) AS ROWIDX
+			</if>
+				 
+			FROM SRV_DT_CMMNTY_MAP A, POI_CNT, JOIN_CNT
+			WHERE A.CMMNTY_MAP_ID = POI_CNT.CMMNTY_MAP_ID  (+)
+	   		  AND A.CMMNTY_MAP_ID = JOIN_CNT.CMMNTY_MAP_ID (+)
+			  AND A.CMMNTY_MAP_ID IN (
+							SELECT C.CMMNTY_MAP_ID FROM SRV_DT_CMMNTY_KWRD C
+							WHERE C.KWRD LIKE  '%' || #{kwrd} || '%'
+						    )  
+			  AND A.FROM_CE = 'H'
+			  AND A.TEMP_SAVE_YN = 'N'
+			  AND A.LOCK_YN='N'
+	) X
+		WHERE 1 = 1 
+		<if test='"Y" != all_yn'>
+		<![CDATA[		
+		  AND ROWIDX >= #{startRow}
+		  AND ROWIDX <= #{endRow}
+	 	]]>	
+	 	</if>
+
+</select>
+
+
+<insert id="insertSearchCnt" parameterType="hashmap" >
+/* insertSearchCnt 해시태그 검색 집계 insert or update +1 */
+MERGE INTO SRV_DT_EDUSRCHWRD
+USING DUAL
+ON   (SRCHWRD = #{kwrd})
+
+WHEN MATCHED THEN
+UPDATE SET SEARCH_CNT = (SELECT SEARCH_CNT+1 FROM SRV_DT_EDUSRCHWRD WHERE SRCHWRD = #{kwrd})
+WHERE SRCHWRD = #{kwrd}
+
+WHEN NOT MATCHED THEN 
+INSERT (SRCHWRD_SEQ, SRCHWRD, SEARCH_CNT)
+VALUES ((SELECT MAX(TO_INT(SRCHWRD_SEQ))+1 FROM SRV_DT_EDUSRCHWRD ) , #{kwrd} , 1);
+</insert>
+
+
+<insert id="insertTeacher" parameterType="hashmap" >
+/* insertTeacher 교사 등록 신청 */
+	MERGE INTO SRV_DT_EDUTEACHER
+	USING DUAL
+	ON  (member_id = #{member_id})
+	
+	WHEN MATCHED THEN
+	UPDATE SET SCHOOL_GRADE = #{school_grade}, GRANT_STATE = 'ASSENT', SUBJECT = #{subject}
+	WHERE member_id = #{member_id}
+	
+	WHEN NOT MATCHED THEN 
+	INSERT (APPLY_SEQ, MEMBER_ID, SIDO_CD, SCHOOL_GRADE, SUBJECT, GRANT_STATE, REG_TS) 
+	VALUES (#{apply_seq}, #{member_id}, #{sido_cd}, #{school_grade}, #{subject}, 'ASSENT', SYSDATE);
+</insert>
+
+<select id="selectTeacherInfo" parameterType="hashmap"  resultType="hashmap">
+/* selectTeacherInfo 교사 권한 정보 조회  */
+	SELECT GRANT_STATE
+	  FROM SRV_DT_EDUTEACHER
+	 WHERE 1 = 1
+	   AND member_id = #{member_id}
+</select>
+
+<select id="selectMainBoardList" parameterType="hashmap"  resultType="hashmap">
+/*selectMainBoardList 메인페이지 게시판 목록 top2 */
+
+	SELECT   TOP 2 A.BOARD_CD , A.POST_NO , A.POST_TITLE , A.POST_TITLE_EN , A.POST_CONTENT 
+		    ,TO_CHAR(A.REG_TS, 'YYYY.MM.DD') AS REG_TS 
+	FROM 	 SRV_DT_BOARD A 
+	WHERE    A.BOARD_CD = #{board_cd}
+	AND      A.POST_DEPTH = 0 	
+	ORDER BY PRIORITY_DISP_YN DESC
+			,POST_NO DESC 
+</select>
+
+</mapper>

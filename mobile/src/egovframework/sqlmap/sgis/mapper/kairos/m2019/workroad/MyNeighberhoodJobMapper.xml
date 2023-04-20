@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.sgis.m2019.workroad.service.mapper.kairos.MyNeighberhoodJobMapper">
+	
+	<!--내 주변 일자리 건수 -->
+	<select id="myNeighberhoodJobListCount" parameterType="hashmap" resultType="int">
+		select
+			count(*) as cnt
+		from
+			srv_dt_job_sm t
+			inner join (
+				select max(create_dt) as create_dt from srv_dt_job_sm s1
+			) mcd on mcd.create_dt = t.create_dt
+		where 1=1
+			<!-- 마감일 (today 이후이어야 함) -->
+			and t.clos_dt <![CDATA[>=]]> to_char(sysdate, 'YYYYMMDD')
+			<!-- 조회구분 (1: 내 주변 , 2: 맞춤, 3: 마감임박) -->
+			<if test='list_gubun != null and list_gubun == "3"'>
+				and t.clos_dt <![CDATA[<=]]> to_char(sysdate+7, 'YYYYMMDD')
+			</if>
+			<!-- 시도 -->
+			<if test='sido_cd != null and sido_cd != "" and sido_cd != "99" and sido_cd != "all" '>
+				and t.sido_cd = #{sido_cd}
+			</if>
+			<!-- 시군구 -->
+			<if test='sgg_cd != null and sgg_cd != "" and sgg_cd != "999" and sgg_cd != "all" '>
+				and t.sgg_cd = #{sgg_cd}
+			</if>
+			<!-- 기업명칭 -->
+			<if test='COMPANY_NAME != null and COMPANY_NAME != ""'>
+				and lower(t.corp_nm) like '%'||lower('${COMPANY_NAME}')||'%'
+			</if>
+			<!-- 기업형태 -->
+			<if test='company_type_list != null and company_type_list != ""'>
+				and t.entrprs_type in
+				<foreach collection="company_type_list" item="items" open="(" separator="," close=")"> 
+					#{items} 
+				</foreach>
+			</if>
+			<!-- 직종분류 (모집직종) -->
+			<if test='classification_list != null and classification_list != ""'>
+				<foreach collection="classification_list" item="items" open="AND (" separator="OR" close=")">
+				(t.rcrit_jssfc like '${items}%')
+				</foreach>
+			</if>
+			<!-- 급여수준 -->
+			<if test='salaly_sql != null and salaly_sql != ""'>
+				${salaly_sql}
+			</if>
+			<!-- 고용형태 -->
+			<if test='employment_type_list != null and employment_type_list != ""'>
+				and t.emplym_type in
+				<foreach collection="employment_type_list" item="items" open="(" separator="," close=")"> 
+					#{items} 
+				</foreach>
+			</if>
+			<!-- 학력 -->
+			<if test='academic_ability_list != null and academic_ability_list != ""'>
+				and t.acdmcr in
+				<foreach collection="academic_ability_list" item="items" open="(" separator="," close=")"> 
+					#{items} 
+				</foreach>
+			</if>
+			<!-- 경력 -->
+			<if test='career_list != null and career_list != ""'>
+				and t.career in
+				<foreach collection="career_list" item="items" open="(" separator="," close=")"> 
+					#{items} 
+				</foreach>
+			</if>
+			<!-- 산업분류 -->
+			<if test='industry_classification_list != null and industry_classification_list != ""'>
+				<foreach collection="industry_classification_list" item="items" open="AND (" separator="OR" close=")">
+				(t.indust_class like '${items}%')
+				</foreach>
+			</if>
+	</select>
+	
+	<!--내 주변 일자리 목록 -->
+	<select id="myNeighberhoodJobList" parameterType="hashmap" resultType="hashmap">
+		select
+			t.jo_no
+			,t.jo_data_div  /* W - 워크넷, I - 인쿠르트 */
+			,t.jo_data_key /* 구인인증번호 */
+			,t.corp_nm /* 회사명 */
+			,t.reg_dt /* 등록일 */
+			,t.clos_dt /* 마감일 */
+			,t.recru_nm /* 채용명 */
+			,t.wage_type /* 급여구분 */
+			,(select s_class_cd_nm from cmm_cd_comcd where b_class_cd = 'WAGETY' and  s_class_cd = wage_type) as wage_type_nm  /* 급여구분명 */
+			,t.salary /* 급여금액 */
+			,(select s_class_cd_nm from cmm_cd_comcd where b_class_cd = 'CAREER' and  s_class_cd = career) as career_nm /* 경력명 */
+			,(select s_class_cd_nm from cmm_cd_comcd where b_class_cd = 'ACDMCR' and  s_class_cd = acdmcr) as acdmcr_nm /* 학력명 */
+			,t.main_nm /* 대표자명 */
+			,t.labrr_cnt /* 근로자수 */
+			,t.cap /* 자본금 */
+			,t.year_sales /* 연매출액 */
+			,(select s_class_cd_nm from cmm_cd_comcd where b_class_cd = 'WORKTY' and  s_class_cd = work_type) as work_type_nm  /* 근무형태명 */
+			,t.main_biz_content /* 주요사업내용 */
+			,t.work_addr /* 근무지 */
+			,'근무시간(데이터없음)' as work_time /* 근무시간 */
+			,(select s_class_cd_nm from cmm_cd_comcd where b_class_cd = 'EMPTYP' and  s_class_cd = emplym_type) as emplym_type_nm  /* 고용형태명 */
+			,t.indust_class /* 산업분류 */
+			,(select s_class_cd_nm from cmm_cd_comcd where b_class_cd = 'INDCLA' and  s_class_cd = indust_class) as indust_class_nm  /* 산업분류명 */
+			,t.x as pt_x /* x */
+			,t.y as pt_y /* y */ 
+			,t.sido_cd /* 시도코드 */
+			,t.sgg_cd /* 시군구코드 */
+			,t.emdong_cd /* 읍면동코드 */
+			
+			<!-- ,t.work_type
+			,t.jo_auth_no /* 워크넷 구인인증번호 */
+			,t.pblanc_no /* 인쿠르트 공고번호 */
+			,t.entrprs_type
+			,t.corp_sz 
+			,t.rcrit_jssfc 
+			,t.emplym_type
+			,t.acdmcr
+			,t.career
+			,t.jo_no
+			,'상용' as gubun 
+			,'직무내용(데이터없음)' as dty_content
+			,t.career
+			,t.acdmcr
+			,t.work_region
+			,t.salary
+			,t.emplym_type
+			,t.work_type -->
+		from
+			srv_dt_job_sm t
+			inner join (
+				select max(create_dt) as create_dt from srv_dt_job_sm s1
+			) mcd on mcd.create_dt = t.create_dt
+			
+		where 1=1
+			<!-- 마감일 (today 이후이어야 함) -->
+			and t.clos_dt <![CDATA[>=]]> to_char(sysdate, 'YYYYMMDD')
+			<!-- 조회구분 (1: 내 주변 , 2: 맞춤, 3: 마감임박) -->
+			<if test='list_gubun != null and list_gubun == "3"'>
+				and t.clos_dt <![CDATA[<=]]> to_char(sysdate+7, 'YYYYMMDD')
+			</if>
+			<!-- 시도 -->
+			<if test='sido_cd != null and sido_cd != "" and sido_cd != "99" and sido_cd != "all" '>
+				and t.sido_cd = #{sido_cd}
+			</if>
+			<!-- 시군구 -->
+			<if test='sgg_cd != null and sgg_cd != "" and sgg_cd != "999" and sgg_cd != "all" '>
+				and t.sgg_cd = #{sgg_cd}
+			</if>
+			<!-- 기업명칭 -->
+			<if test='COMPANY_NAME != null and COMPANY_NAME != ""'>
+				and lower(t.corp_nm) like '%'||lower('${COMPANY_NAME}')||'%'
+			</if>
+			<!-- 기업형태 -->
+			<if test='company_type_list != null and company_type_list != ""'>
+				and t.entrprs_type in
+				<foreach collection="company_type_list" item="items" open="(" separator="," close=")"> 
+					#{items} 
+				</foreach>
+			</if>
+			<!-- 직종분류 (모집직종) -->
+			<if test='classification_list != null and classification_list != ""'>
+				<foreach collection="classification_list" item="items" open="AND (" separator="OR" close=")">
+				(t.rcrit_jssfc like '${items}%')
+				</foreach>
+			</if>
+			<!-- 급여수준 -->
+			<if test='salaly_sql != null and salaly_sql != ""'>
+				${salaly_sql}
+			</if>
+			<!-- 고용형태 -->
+			<if test='employment_type_list != null and employment_type_list != ""'>
+				and t.emplym_type in
+				<foreach collection="employment_type_list" item="items" open="(" separator="," close=")"> 
+					#{items} 
+				</foreach>
+			</if>
+			<!-- 학력 -->
+			<if test='academic_ability_list != null and academic_ability_list != ""'>
+				and t.acdmcr in
+				<foreach collection="academic_ability_list" item="items" open="(" separator="," close=")"> 
+					#{items} 
+				</foreach>
+			</if>
+			<!-- 경력 -->
+			<if test='career_list != null and career_list != ""'>
+				and t.career in
+				<foreach collection="career_list" item="items" open="(" separator="," close=")"> 
+					#{items} 
+				</foreach>
+			</if>
+			<!-- 산업분류 -->
+			<if test='industry_classification_list != null and industry_classification_list != ""'>
+				<foreach collection="industry_classification_list" item="items" open="AND (" separator="OR" close=")">
+				(t.indust_class like '${items}%')
+				</foreach>
+			</if>
+			<!-- 회사규모 -->
+			<!-- <if test='COMPANY_SIZE != null and COMPANY_SIZE != ""'>
+				and t.corp_sz in
+				<foreach collection="COMPANY_SIZE" item="items" open="(" separator="," close=")"> 
+					#{items} 
+				</foreach>
+			</if> -->
+			<!-- 근무형태 -->
+			<!-- <if test='WORK_TYPE != null and WORK_TYPE != ""'>
+				and t.work_type in
+				<foreach collection="WORK_TYPE" item="items" open="(" separator="," close=")"> 
+					#{items} 
+				</foreach>
+			</if> -->
+		order by
+			<choose>
+				<when test='list_sort == "REG_DT" '>
+					t.reg_dt, t.recru_nm
+				</when>
+				<when test='list_sort == "REG_DT_DESC" '>
+					t.reg_dt desc, t.recru_nm
+				</when>
+				<when test='list_sort == "CLOS_DT" '>
+					t.clos_dt, t.recru_nm
+				</when>
+				<when test='list_sort == "CLOS_DT_DESC" '>
+					t.clos_dt desc, t.recru_nm
+				</when>
+				<when test='list_sort == "SALARY" '>
+					t.salary, t.recru_nm
+				</when>
+				<when test='list_sort == "SALARY_DESC" '>
+					t.salary desc, t.recru_nm
+				</when>
+				<when test='list_sort == "DISTANCE" and my_x != null and my_x != "" and my_y != null and my_y != "" '>
+					sqrt(power(abs(t.x-${my_x}),2)+power(abs(t.y-${my_y}),2)), t.recru_nm
+				</when>
+				<when test='list_sort == "DISTANCE_DESC" and my_x != null and my_x != "" and my_y != null and my_y != "" '>
+					sqrt(power(abs(t.x-${my_x}),2)+power(abs(t.y-${my_y}),2)) desc, t.recru_nm
+				</when>
+				<otherwise>
+					t.recru_nm
+				</otherwise>
+			</choose>
+	</select>
+	
+	<!--내 주변 일자리 조회 -->
+	<select id="myNeighberhoodJobSelect" parameterType="hashmap" resultType="hashmap">
+		select t.jo_no
+		     , t.jo_data_div        /* W - 워크넷, I - 인쿠르트 */
+		     , t.jo_data_key        /* 구인인증번호 */
+		     , t.corp_nm            /* 회사명 */
+		     , t.reg_dt             /* 등록일 */
+		     , t.clos_dt            /* 마감일 */
+		     , t.recru_nm           /* 채용명 */
+		     , t.wage_type          /* 급여구분 */
+		     , (select s_class_cd_nm from cmm_cd_comcd where s_class_cd = t.wage_type and b_class_cd = 'WAGETY') as wage_type_nm        /* 급여구분명 */
+		     , t.salary             /* 급여금액 */
+		     , (select s_class_cd_nm from cmm_cd_comcd where s_class_cd = t.career and b_class_cd = 'CAREER')  as career_nm             /* 경력명 */
+		     , (select s_class_cd_nm from cmm_cd_comcd where s_class_cd = t.acdmcr and b_class_cd = 'ACDMCR') as acdmcr_nm              /* 학력명 */
+		     , t.main_nm            /* 대표자명 */
+		     , t.labrr_cnt          /* 근로자수 */
+		     , t.cap                /* 자본금 */
+		     , t.year_sales         /* 연매출액 */
+		     , (select s_class_cd_nm from cmm_cd_comcd where s_class_cd = t.work_type and b_class_cd = 'WORKTY') as work_type_nm        /* 근무형태명 */
+		     , t.main_biz_content   /* 주요사업내용 */
+		     , t.work_addr          /* 근무지 */
+		     , '근무시간(데이터없음)' as work_time /* 근무시간 */
+		     , (select s_class_cd_nm from cmm_cd_comcd where s_class_cd = t.emplym_type and b_class_cd = 'EMPTYP') as emplym_type_nm    /* 고용형태명 */
+		     , t.indust_class       /* 산업분류 */
+		     , nvl(((select s_class_cd_nm from cmm_cd_comcd where s_class_cd = t.indust_class and b_class_cd = 'INDCLA')),'기타') as indust_class_nm /* 산업분류명 */
+		
+		     , t.x as pt_x          /* x */
+		     , t.y as pt_y          /* y */
+		
+		     , t.sido_cd            /* 시도코드 */
+		     , t.sgg_cd             /* 시군구코드 */
+		     , t.emdong_cd          /* 읍면동코드 */
+		  from
+		        srv_dt_job_sm t
+		        inner join (
+		            select max(create_dt) as create_dt from srv_dt_job_sm s1
+		        ) mcd on mcd.create_dt = t.create_dt
+		
+		 where 1=1
+		   and t.jo_no =   #{jo_no}
+	</select>
+	
+	<!-- 생활환경 정보 조회 -->
+	<select id="livingEnvironmentSelect" parameterType="hashmap" resultType="hashmap">	
+		select
+			nvl(round(avg(ord.order), 2), 0) avg_order
+			,nvl(round(avg(ord.order_no), 2), 0) avg_order_no
+			,nvl(round(avg(ord.value), 2), 0) avg_value
+			,nvl(round(avg(ord.z_score), 2), 0) z_score
+			,count(ord.z_score) z_score_cnt
+			,a.b_class_idx_id
+			,a.b_class_idx_nm
+			,case when count(ord.b_class_idx_id) > 0 then 'Y' else 'N' end as data_yn
+		from
+			srv_dt_lclas_ix a
+			left outer join srv_dt_emdong_ix_order ord on ord.b_class_idx_id = a.b_class_idx_id
+														<if test='sido_cd != null and sido_cd != "" and sido_cd != "99" '>
+															and ord.sido_cd = #{sido_cd}
+														</if>
+														<if test='sgg_cd != null and sgg_cd != "" and sgg_cd != "999" '>
+															and ord.sgg_cd = #{sgg_cd}
+														</if>
+														<if test='emdong_cd != null and emdong_cd != "" '>
+															and ord.emdong_cd = #{emdong_cd}
+														</if>
+		where 1=1
+			and a.recmd_region_search_disp_yn = 'Y'
+		group by 
+			a.b_class_idx_nm,
+			a.b_class_idx_id
+		order by
+			a.b_class_idx_id
+	</select>
+	
+	<!-- 생활환경 정보 상세조회 -->
+	<select id="livingEnvironmentSelect2" parameterType="hashmap" resultType="hashmap">	
+		select
+			nvl(round(avg(ord.order), 2), 0) avg_order
+			,nvl(round(avg(ord.order_no), 2), 0) avg_order_no
+			,nvl(round(avg(ord.value), 2), 0) avg_value
+			,nvl(round(avg(ord.z_score), 2), 0) z_score
+			,count(ord.z_score) z_score_cnt
+			,b.m_class_idx_nm
+			,b.m_class_idx_id
+			,a.b_class_idx_id
+			,a.b_class_idx_nm
+			,case when count(ord.m_class_idx_id) > 0 then 'Y' else 'N' end as data_yn
+		from
+			srv_dt_lclas_ix a
+			inner join srv_dt_mlsfc_ix b on b.b_class_idx_id = a.b_class_idx_id
+			left outer join srv_dt_emdong_ix_order ord on ord.b_class_idx_id = a.b_class_idx_id and ord.m_class_idx_id = b.m_class_idx_id
+														<if test='sido_cd != null and sido_cd != "" and sido_cd != "99" '>
+															and ord.sido_cd = #{sido_cd}
+														</if>
+														<if test='sgg_cd != null and sgg_cd != "" and sgg_cd != "999" '>
+															and ord.sgg_cd = #{sgg_cd}
+														</if>
+														<if test='emdong_cd != null and emdong_cd != "" '>
+															and ord.emdong_cd = #{emdong_cd}
+														</if>
+		where 1=1
+			<if test='main_yn != null and main_yn == "Y" '>
+				and (
+				<!-- 1. 녹지비율/HML0001/HMM0003 -->
+				(a.b_class_idx_id = 'HML0001' and b.m_class_idx_id = 'HMM0003')
+				<!-- 2. 공동주택비율/HML0002/HMM0004 -->
+				or (a.b_class_idx_id = 'HML0002' and b.m_class_idx_id = 'HMM0004')
+				<!-- 3. 청장년인구비율/HML0003/HMM0009 -->
+				or (a.b_class_idx_id = 'HML0003' and b.m_class_idx_id = 'HMM0009')
+				<!-- 4. 교통사고 안전/HML0004/HMM0014 -->
+				or (a.b_class_idx_id = 'HML0004' and b.m_class_idx_id = 'HMM0014')
+				<!-- 5. 대중교통 이용률/HML0005/HMM0018 -->
+				or (a.b_class_idx_id = 'HML0005' and b.m_class_idx_id = 'HMM0018')
+				<!-- 6. 고등교육기관 수/HML0006/HMM0021 -->
+				or (a.b_class_idx_id = 'HML0006' and b.m_class_idx_id = 'HMM0021')
+				<!-- 7. 문화시설 수/HML0007/HMM0027 -->
+				or (a.b_class_idx_id = 'HML0007' and b.m_class_idx_id = 'HMM0027')
+				)
+			</if>
+			and a.recmd_region_search_disp_yn = 'Y'
+			and b.default_value is not null
+		group by 
+			b.m_class_idx_nm
+			,b.m_class_idx_id
+			,a.b_class_idx_nm
+			,a.b_class_idx_id
+		order by
+			a.b_class_idx_id
+			,b.m_class_idx_id
+	</select>
+	
+</mapper>

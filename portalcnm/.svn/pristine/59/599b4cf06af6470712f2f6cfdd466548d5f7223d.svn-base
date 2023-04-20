@@ -1,0 +1,861 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans    http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<!-- **************************************************************************************************** -->
+	<!-- 테스트 API 8000 -->
+	<!-- **************************************************************************************************** -->
+
+	<!-- Notice Count, API 8001 -->
+
+	<bean name="/auth/noSession.*" class="kostat.sop.ServiceAPI.api.auth.NoSession"></bean>
+	<bean name="/auth/getSession.*" class="kostat.sop.ServiceAPI.api.auth.GetSession"></bean>
+	<bean name="/auth/setSession.*" class="kostat.sop.ServiceAPI.api.auth.SetSession"></bean>
+	<bean name="/ServiceAPI/COMMON/getBCD.*" class="kostat.sop.ServiceAPI.api.common.GetBCD">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/COMMON/getAPIClass.*" class="kostat.sop.ServiceAPI.api.common.GetAPIClass">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/CM/MyPage/loadInfo.*" class="kostat.sop.ServiceAPI.api.cm.LoadInfo">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/CM/MyPage/updateInfo.*" class="kostat.sop.ServiceAPI.api.cm.UpdateInfo">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/CM/MyPage/logout.*" class="kostat.sop.ServiceAPI.api.cm.Logout">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/MN/APIStat/stat.*" class="kostat.sop.ServiceAPI.api.mn.apistat.APIStat">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/MN/APIStatDetail/getSeriesData.*" class="kostat.sop.ServiceAPI.api.mn.apistat.GetSeriesData">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/MN/APIStatDetail/getSeriesLoadData.*" class="kostat.sop.ServiceAPI.api.mn.apistat.GetSeriesLoadData">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/MN/APISearch/searchAPI.*" class="kostat.sop.ServiceAPI.api.mn.apistat.SearchAPI">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/MN/SRVStat/srvPageView.*" class="kostat.sop.ServiceAPI.api.mn.srvstat.SRVPageView">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/MN/SRVStat/statSRV.*" class="kostat.sop.ServiceAPI.api.mn.srvstat.SRVStat">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/MN/SRVStat/searchMemberValue.*" class="kostat.sop.ServiceAPI.api.mn.srvstat.SearchMemberValue">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/MN/SRVStat/statSRVDetail.*" class="kostat.sop.ServiceAPI.api.mn.srvstat.SRVStatDetail">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/MN/SRVStat/searchMember.*" class="kostat.sop.ServiceAPI.api.mn.srvstat.SearchMember">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/MN/RELStat/areaStat.*" class="kostat.sop.ServiceAPI.api.mn.relstat.RELAreaStat">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/MN/RELStat/wordStat.*" class="kostat.sop.ServiceAPI.api.mn.relstat.RELWordStat">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+		<!-- 20160527 나광흠 추가 시작 -->
+	<bean name="/ServiceAPI/MN/CommunityStat/getAllCommunityList.*" class="kostat.sop.ServiceAPI.api.mn.communitystat.GetAllCommunityList">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/MN/CommunityStat/getCommunityStat.*" class="kostat.sop.ServiceAPI.api.mn.communitystat.GetCommunityStat">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 20160527 나광흠 추가 종료 -->
+	<bean name="/ServiceAPI/AK/UPLOADData/searchUser.*" class="kostat.sop.ServiceAPI.api.ak.uploaddata.SearchUser"> 
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/AK/UPLOADData/searchUserData.*" class="kostat.sop.ServiceAPI.api.ak.uploaddata.SearchUserData">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/AK/UPLOADData/deleteUserData.*" class="kostat.sop.ServiceAPI.api.ak.uploaddata.deleteUserData">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/AK/UPLOADData/updateUserData.*" class="kostat.sop.ServiceAPI.api.ak.uploaddata.updateUserData">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/AK/UPLOADData/downloadFile.*" class="kostat.sop.ServiceAPI.api.ak.uploaddata.DownLoadFile">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/AK/USESRVStat/statSum.*" class="kostat.sop.ServiceAPI.api.ak.usesrvstat.USESRVSumStat">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/AK/USESRVStat/statUSESRV.*" class="kostat.sop.ServiceAPI.api.ak.usesrvstat.USESRVStat">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/AK/USESRVSearch/statSum.*"
+		class="kostat.sop.ServiceAPI.api.ak.usesrvsearch.USESRVSumStat">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/AK/USESRVSearch/searchUSESRV.*"
+		class="kostat.sop.ServiceAPI.api.ak.usesrvsearch.USESRVSearch">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/AK/USESRVSearch/getUSESRVInfo.*"
+		class="kostat.sop.ServiceAPI.api.ak.usesrvsearch.GetUSESRVInfo">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/AK/USESRVSearch/deleteUSESRV.*" class="kostat.sop.ServiceAPI.api.ak.usesrvsearch.DelUSESRV">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/AK/USESRVSearch/updateUSESRV.*"
+		class="kostat.sop.ServiceAPI.api.ak.usesrvsearch.UpdateUSESRV">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/KOSISManage/searchKosis.*" class="kostat.sop.ServiceAPI.api.dt.kosismanage.SearchKosis">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/KOSISManage/updateKosis.*" class="kostat.sop.ServiceAPI.api.dt.kosismanage.UpdateKosis">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/KOSISManage/sidoKosis.*" class="kostat.sop.ServiceAPI.api.dt.kosismanage.SidoKosis">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/KOSISManage/sggKosis.*" class="kostat.sop.ServiceAPI.api.dt.kosismanage.SGGKosis">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/KOSISManage/admKosis.*" class="kostat.sop.ServiceAPI.api.dt.kosismanage.ADMKosis">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	
+	<!-- 2018.02.26 jrj add -->
+	<bean name="/ServiceAPI/DT/KOSISManage/searchKosisError.*" class="kostat.sop.ServiceAPI.api.dt.kosismanage.SearchKosisError">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	
+	<!-- 2016. 07. 19 j.h.Seok add -->
+	<bean name="/ServiceAPI/DT/KOSISManage/allBaseYears.*" class="kostat.sop.ServiceAPI.api.dt.kosismanage.AllBaseYears">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	
+	<bean name="/ServiceAPI/DT/KOSISManage/searchSopAdmCode.*" class="kostat.sop.ServiceAPI.api.dt.kosismanage.SOPAdmCode">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	
+	<bean name="/ServiceAPI/DT/KOSISManage/deleteKosisCode.*" class="kostat.sop.ServiceAPI.api.dt.kosismanage.DeleteKosisCode">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	
+	<bean name="/ServiceAPI/DT/KOSISManage/updateKosisCode.*" class="kostat.sop.ServiceAPI.api.dt.kosismanage.UpdateKosisCode">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	
+	
+	<bean name="/ServiceAPI/DT/THBookManage/deleteTHBook.*" class="kostat.sop.ServiceAPI.api.dt.thbookmanage.DelTHBook">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/THBookManage/searchTHBook.*"
+		class="kostat.sop.ServiceAPI.api.dt.thbookmanage.SearchTHBook">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/THBookManage/addTHBook.*" class="kostat.sop.ServiceAPI.api.dt.thbookmanage.AddTHBook">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/THBookManage/updateTHBook.*"
+		class="kostat.sop.ServiceAPI.api.dt.thbookmanage.UpdateTHBook">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/TTIPManage/searchTTIP.*"
+		class="kostat.sop.ServiceAPI.api.dt.ttipmanage.SearchTTIP">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/TTIPManage/checkTTIP.*"
+		class="kostat.sop.ServiceAPI.api.dt.ttipmanage.CheckTTIPID">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/TTIPManage/addTTIP.*"
+		class="kostat.sop.ServiceAPI.api.dt.ttipmanage.AddTTIP">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/TTIPManage/deleteTTIP.*" class="kostat.sop.ServiceAPI.api.dt.ttipmanage.DelTTIP">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/TTIPManage/getTTIP.*" class="kostat.sop.ServiceAPI.api.dt.ttipmanage.GetTTIP">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/TTIPManage/updateTTIP.*"
+		class="kostat.sop.ServiceAPI.api.dt.ttipmanage.UpdateTTIP">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/PubDataManage/searchPubData.*"
+		class="kostat.sop.ServiceAPI.api.dt.pubdatamanage.SearchPubData">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/RELManage/searchREL.*" class="kostat.sop.ServiceAPI.api.dt.relmanage.SearchREL">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/RELManage/checkREL.*" class="kostat.sop.ServiceAPI.api.dt.relmanage.CheckREL">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/RELManage/deleteREL.*" class="kostat.sop.ServiceAPI.api.dt.relmanage.DelREL">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/RELManage/addREL.*" class="kostat.sop.ServiceAPI.api.dt.relmanage.AddREL">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/RELManage/updateREL.*" class="kostat.sop.ServiceAPI.api.dt.relmanage.UpdateREL">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/JITManage/searchJIT.*" class="kostat.sop.ServiceAPI.api.dt.jitmanage.SearchJIT">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/JITManage/deleteJIT.*" class="kostat.sop.ServiceAPI.api.dt.jitmanage.DelJIT">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/JITManage/updateActive.*"
+		class="kostat.sop.ServiceAPI.api.dt.jitmanage.UpdateActiveState">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/JITManage/getJITType.*" class="kostat.sop.ServiceAPI.api.dt.jitmanage.GetJITType">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/JITManage/addDATAJIT.*" class="kostat.sop.ServiceAPI.api.dt.jitmanage.AddDATAJIT">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/JITManage/addMAPJIT.*" class="kostat.sop.ServiceAPI.api.dt.jitmanage.AddMAPJIT">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/JITManage/loadJITinfo.*" class="kostat.sop.ServiceAPI.api.dt.jitmanage.LoadJITInfo">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/JITManage/updateDATAJIT.*" class="kostat.sop.ServiceAPI.api.dt.jitmanage.UpdateDATAJIT">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/JITManage/updateMAPJIT.*" class="kostat.sop.ServiceAPI.api.dt.jitmanage.UpdateMAPJIT">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/ThemaMapManage/getThemaID.*"
+		class="kostat.sop.ServiceAPI.api.dt.themamapmanage.GetThemaID">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/ThemaMapManage/getThemaICON.*"
+		class="kostat.sop.ServiceAPI.api.dt.themamapmanage.GetThemaICON">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/ThemaMapManage/addPlusThemaMap.*"
+		class="kostat.sop.ServiceAPI.api.dt.themamapmanage.AddPlusThemaMap">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/ThemaMapManage/searchThemaMap.*"
+		class="kostat.sop.ServiceAPI.api.dt.themamapmanage.SearchThemaMap">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/ThemaMapManage/searchThemaMapOne.*"
+		class="kostat.sop.ServiceAPI.api.dt.themamapmanage.SearchThemaMapMainOne">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/ThemaMapManage/searchThemaMapMain.*"
+		class="kostat.sop.ServiceAPI.api.dt.themamapmanage.SearchThemaMapMain">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/ThemaMapManage/getThemaMapParam.*"
+		class="kostat.sop.ServiceAPI.api.dt.themamapmanage.GetThemaMapParam">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/ThemaMapManage/addThemaMap.*"
+		class="kostat.sop.ServiceAPI.api.dt.themamapmanage.AddThemaMap">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/ThemaMapManage/updateThemaMap.*"
+		class="kostat.sop.ServiceAPI.api.dt.themamapmanage.UpdateThemaMap">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/ThemaMapManage/updateNewThemaMap.*"
+		class="kostat.sop.ServiceAPI.api.dt.themamapmanage.UpdatePlusThemaMap">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/ThemaMapManage/addThemaMapFile.*"
+		class="kostat.sop.ServiceAPI.api.dt.themamapmanage.AddThemaMapFile">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/ThemaMapManage/addThemaMapFileUpload.*"
+		class="kostat.sop.ServiceAPI.api.dt.themamapmanage.AddThemaMapFileUpload">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/ThemaMapManage/deleteThemaMap.*"
+		class="kostat.sop.ServiceAPI.api.dt.themamapmanage.DelThemaMap">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/ThemaMapManage/deleteThemaMapList.*"
+		class="kostat.sop.ServiceAPI.api.dt.themamapmanage.DelThemaMapList">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/ThemaMapManage/updateThemaMapT.*"
+		class="kostat.sop.ServiceAPI.api.dt.themamapmanage.UpdateThemaMapT">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/AccessManage/searchAccess.*" class="kostat.sop.ServiceAPI.api.dt.accessmanage.SearchAccess">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/AccessManage/updateAccess.*" class="kostat.sop.ServiceAPI.api.dt.accessmanage.UpdateAccess">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/AccessManage/searchManagerInfo.*" class="kostat.sop.ServiceAPI.api.dt.accessmanage.SearchManagerInfo">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/AccessManage/addAccess.*" class="kostat.sop.ServiceAPI.api.dt.accessmanage.AddAccess">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/AccessManage/deleteAccess.*" class="kostat.sop.ServiceAPI.api.dt.accessmanage.DelAccess">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/PubDataManage/updatePubData.*" class="kostat.sop.ServiceAPI.api.dt.pubdatamanage.UpdatePubData">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>	
+	<bean name="/ServiceAPI/DT/PubDataManage/addPubData.*" class="kostat.sop.ServiceAPI.api.dt.pubdatamanage.AddPubData">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/PubDataManage/deletePubData.*" class="kostat.sop.ServiceAPI.api.dt.pubdatamanage.DelPubData">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/ThMetaManage/searchMetaData.*" class="kostat.sop.ServiceAPI.api.dt.thmetamanage.SearchMetaData">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean> 
+	<bean name="/ServiceAPI/DT/ThMetaManage/updateMetaData.*" class="kostat.sop.ServiceAPI.api.dt.thmetamanage.UpdateMetaData">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>	
+	<bean name="/ServiceAPI/DT/ThMetaManage/addMetaData.*" class="kostat.sop.ServiceAPI.api.dt.thmetamanage.AddMetaData">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/ThMetaManage/deleteMetaData.*" class="kostat.sop.ServiceAPI.api.dt.thmetamanage.DelMetaData">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/searchCommunityMapList.*" class="kostat.sop.ServiceAPI.api.dt.communitymanage.SearchCommunityMapList">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/searchCommunityMapPoiList.*" class="kostat.sop.ServiceAPI.api.dt.communitymanage.SearchCommunityMapPoiList">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/getCommunityMapStatList.*" class="kostat.sop.ServiceAPI.api.dt.communitymanage.GetCommunityMapStatList">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/getCommunityMapReplyList.*" class="kostat.sop.ServiceAPI.api.dt.communitymanage.GetCommunityMapReplyList">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/updateCommunityMap.*" class="kostat.sop.ServiceAPI.api.dt.communitymanage.UpdateCommunityMap">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 20161020 나광흠 수정 -->
+	<bean name="/ServiceAPI/DT/deleteCommunityMapPoi.*" class="kostat.sop.ServiceAPI.api.dt.communitymanage.DeleteCommunityMapPoi">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/QAManage/getType.*" class="kostat.sop.ServiceAPI.api.qa.qamanage.GetType">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/QAManage/searchQA.*" class="kostat.sop.ServiceAPI.api.qa.qamanage.SearchQA">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- mng_s 20171109_김건민 -->
+	<bean name="/ServiceAPI/QA/QAManage/searchAPI.*" class="kostat.sop.ServiceAPI.api.qa.qamanage.SearchAPI">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- mng_e 20171109_김건민 -->
+	<bean name="/ServiceAPI/QA/QAManage/deleteQA.*" class="kostat.sop.ServiceAPI.api.qa.qamanage.DelQA">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/QAManage/getQuestion.*" class="kostat.sop.ServiceAPI.api.qa.qamanage.GetQuestion">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- mng_s 20171113_김건민 -->
+	<bean name="/ServiceAPI/QA/QAManage/getAPIQuestion.*" class="kostat.sop.ServiceAPI.api.qa.qamanage.GetAPIQuestion">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- mng_e 20171113_김건민 -->
+	<bean name="/ServiceAPI/QA/QAManage/getAnswer.*" class="kostat.sop.ServiceAPI.api.qa.qamanage.GetAnswer">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/QAManage/replyQuestion.*" class="kostat.sop.ServiceAPI.api.qa.qamanage.ReplyQuestion">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/QAManage/updateAnswer.*" class="kostat.sop.ServiceAPI.api.qa.qamanage.UpdateAnswer">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/BoardManage/searchFAQ.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.SearchFAQ">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- mng_s 20171113_김건민 -->
+	<bean name="/ServiceAPI/QA/BoardManage/searchGrid.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.SearchGrid">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/BoardManage/getGridQuestion.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.GetGridQuestion">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- mng_e 20171113_김건민 -->
+	<bean name="/ServiceAPI/QA/BoardManage/getFAQ.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.GetFAQ">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/BoardManage/searchBoard.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.SearchBoard">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/BoardManage/searchMediaIntro.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.SearchMediaIntro">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/BoardManage/devsearchBoard.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.DevSearchBoard">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/BoardManage/getBoard.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.GetBoard">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/BoardManage/getMediaIntro.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.GetMediaIntro">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/BoardManage/devgetBoard.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.DevGetBoard">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/BoardManage/deleteFAQ.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.DelFAQ">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/BoardManage/addFAQ.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.AddFAQ">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/BoardManage/updateFAQ.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.UpdateFAQ">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/DevfaqManage/searchFAQ.*"
+		class="kostat.sop.ServiceAPI.api.qa.devfaqmanage.DevSearchFAQ">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/DevfaqManage/searchBanner.*"
+		class="kostat.sop.ServiceAPI.api.qa.devfaqmanage.DevSearchBanner">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/DevfaqManage/addFAQ.*" class="kostat.sop.ServiceAPI.api.qa.devfaqmanage.DevAddFAQ">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/DevfaqManage/addBanner.*" class="kostat.sop.ServiceAPI.api.qa.devfaqmanage.DevAddBanner">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/DevfaqManage/getFAQ.*" class="kostat.sop.ServiceAPI.api.qa.devfaqmanage.DevGetFAQ">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/DevfaqManage/getBanner.*" class="kostat.sop.ServiceAPI.api.qa.devfaqmanage.DevGetBanner">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/DevfaqManage/updateBanner.*" class="kostat.sop.ServiceAPI.api.qa.devfaqmanage.DevUpdateBanner">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/DevfaqManage/updateFAQ.*"
+		class="kostat.sop.ServiceAPI.api.qa.devfaqmanage.DevUpdateFAQ">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/DevfaqManage/delFAQ.*" class="kostat.sop.ServiceAPI.api.qa.devfaqmanage.DevDelFAQ">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/DevfaqManage/delBanner.*" class="kostat.sop.ServiceAPI.api.qa.devfaqmanage.DevDelBanner">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/BoardManage/deleteBoard.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.DelBoard">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/BoardManage/deleteMediaIntro.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.DelMediaIntro">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/BoardManage/devdeleteBoard.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.DevDelBoard">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/BoardManage/addBoard.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.AddBoard">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/BoardManage/devaddBoard.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.DevAddBoard">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/BoardManage/addBoardFile.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.AddBoardFile">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/BoardManage/devaddBoardFile.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.DevAddBoardFile">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/devfaqmanage/DevAddBannerFile.*" class="kostat.sop.ServiceAPI.api.qa.devfaqmanage.DevAddBannerFile">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/BoardManage/updateBoard.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.UpdateBoard">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/BoardManage/devupdateBoard.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.DevUpdateBoard">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/BoardManage/downloadFile.*" class="kostat.sop.ServiceAPI.api.qa.boardmanage.DownLoadFile">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	
+	<!-- 20180130 jrj -->
+	<bean name="/ServiceAPI/QA/ReqBoard/searchReqBoard.*" class="kostat.sop.ServiceAPI.api.qa.reqBoard.SearchReqBoard">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/ReqBoard/addReqBoardFile.*" class="kostat.sop.ServiceAPI.api.qa.reqBoard.AddReqBoardFile">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/ReqBoard/addReqBoard.*" class="kostat.sop.ServiceAPI.api.qa.reqBoard.AddReqBoard">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/ReqBoard/getReqBoard.*" class="kostat.sop.ServiceAPI.api.qa.reqBoard.GetReqBoard">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/ReqBoard/getReqBoardChart.*" class="kostat.sop.ServiceAPI.api.qa.reqBoard.GetReqBoardChart">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/ReqBoard/getReqBoardListExcel.*" class="kostat.sop.ServiceAPI.api.qa.reqBoard.GetReqBoardListExcel">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/ReqBoard/delReqBoard.*" class="kostat.sop.ServiceAPI.api.qa.reqBoard.DelReqBoard">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/ReqBoard/getCodeList.*" class="kostat.sop.ServiceAPI.api.qa.reqBoard.GetReqBoardCodeList">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	
+	
+	<bean name="/ServiceAPI/MB/MEMBER/searchMember.*" class="kostat.sop.ServiceAPI.api.mb.member.SearchMember">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/MB/MEMBER/getMemberCNT.*" class="kostat.sop.ServiceAPI.api.mb.member.GetMemberCNT">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/MB/MEMBER/deleteMember.*" class="kostat.sop.ServiceAPI.api.mb.member.DelMember">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/MB/MEMBER/getMemberInfo.*" class="kostat.sop.ServiceAPI.api.mb.member.GetMemberInfo">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/MB/MEMBER/updateMemberInfo.*" class="kostat.sop.ServiceAPI.api.mb.member.UpdateMemberInfo">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/MB/MANAGER/searchManager.*" class="kostat.sop.ServiceAPI.api.mb.manager.SearchManager">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/MB/MANAGER/getManagerInfo.*" class="kostat.sop.ServiceAPI.api.mb.manager.GetManagerInfo">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/MB/MANAGER/deleteManager.*" class="kostat.sop.ServiceAPI.api.mb.manager.DelManager">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/MB/MANAGER/updateManagerInfo.*"
+		class="kostat.sop.ServiceAPI.api.mb.manager.UpdateManagerInfo"> 
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/EXCEL/GetApiDetailExcel.excel" class="kostat.sop.ServiceAPI.api.excel.GetApiDetailExcel">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/EXCEL/GetRELStatExcel.excel" class="kostat.sop.ServiceAPI.api.excel.GetRELStatExcel">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/EXCEL/GetSRVStatDetailExcel.excel" class="kostat.sop.ServiceAPI.api.excel.GetSRVStatDetailExcel">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/EXCEL/GetCommunityMapListExcel.excel" class="kostat.sop.ServiceAPI.api.excel.GetCommunityMapListExcel">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/CM/GpkiInfoReg.*" class="kostat.sop.ServiceAPI.api.cm.login.GpkiInfoReg">
+
+	</bean>
+	<bean name="/ServiceAPI2/CM/GpkiLogin.*" class="kostat.sop.ServiceAPI.api.cm.login.GpkiLogin">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/CommunityNoticeManage/searchBoard.*" class="kostat.sop.ServiceAPI.api.qa.communitymanage.SearchCommunityNotice">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/CommunityNoticeManage/getBoard.*" class="kostat.sop.ServiceAPI.api.qa.communitymanage.GetCommunityNotice">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/CommunityNoticeManage/deleteBoard.*" class="kostat.sop.ServiceAPI.api.qa.communitymanage.DelCommunityNotice">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/CommunityNoticeManage/addBoard.*" class="kostat.sop.ServiceAPI.api.qa.communitymanage.AddCommunityNotice">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/CommunityNoticeManage/addBoardFile.*" class="kostat.sop.ServiceAPI.api.qa.communitymanage.AddCommunityNoticeFile">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/QA/CommunityNoticeManage/updateBoard.*" class="kostat.sop.ServiceAPI.api.qa.communitymanage.UpdateCommunityNotice">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+
+
+	<!-- lkh 추가 start -->
+	<bean name="/ServiceAPI/MN/UseCurrentState/useCurrentState.*" class="kostat.sop.ServiceAPI.api.mn.useCurrentState.UseCurrentState">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	
+	<bean name="/s-portalcnm/ServiceAPI/MN/UseCurrentState/getMyData2.json" class="kostat.sop.ServiceAPI.api.mn.useCurrentState.mapper.UseMyDataState">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- lkh 추가 end -->
+	
+	<!-- Gallery -->
+	<bean name="/ServiceAPI/DT/GalleryManage/searchGallery.*" class="kostat.sop.ServiceAPI.api.dt.gallerymanage.SearchGallery">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	
+	<!-- 통계주제도 POI 테마코드검색 -->
+	<bean name="/ServiceAPI/DT/ThemaMapManage/getPOICODE.*" class="kostat.sop.ServiceAPI.api.dt.themamapmanage.GetPOICODE">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	
+	<!-- mng_s 2017. 08. 04 석진혁 -->
+	<!-- 통계주제도 POI 산업분류코드검색 -->
+	<bean name="/ServiceAPI/DT/ThemaMapManage/getPOICorpClassCODE.*" class="kostat.sop.ServiceAPI.api.dt.themamapmanage.GetPOICorpClassCODE">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- mng_e 2017. 08. 04 석진혁 -->
+
+	<!-- 우수사례선정 -->
+	<bean name="/ServiceAPI/DT/GalleryManage/exclncGallery.*" class="kostat.sop.ServiceAPI.api.dt.gallerymanage.ExclncGallery">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	
+	<!-- 우수사례선정 -->
+	<bean name="/ServiceAPI/DT/GalleryManage/updateDispYnGallery.*" class="kostat.sop.ServiceAPI.api.dt.gallerymanage.DispYnGallery">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	
+	<!-- 통계갤러리 상세 조회 -->
+	<bean name="/ServiceAPI/DT/GalleryManage/getGallery.*" class="kostat.sop.ServiceAPI.api.dt.gallerymanage.GetGallery">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	
+	<!-- 통계갤러리 이미지 아이콘 리스트 조회 -->
+	<bean name="/ServiceAPI/DT/GalleryManage/getGalleryImgIconList.*" class="kostat.sop.ServiceAPI.api.dt.gallerymanage.GetGalleryImgIconList">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	
+	<!-- 모바일 서비스 관리 리스트 조회 -->
+	<bean name="/ServiceAPI/DT/MobileManage/searchMobileManage.*" class="kostat.sop.ServiceAPI.api.dt.mobileManage.SearchMobileManage">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	
+	<!-- 모바일 서비스 관리 add 추가 -->
+	<bean name="/ServiceAPI/DT/MobileManage/addMobileManage.*" class="kostat.sop.ServiceAPI.api.dt.mobileManage.AddMobileManage">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	
+	<!-- 모바일 서비스 관리 del 삭제 -->
+	<bean name="/ServiceAPI/DT/MobileManage/delMobileManage.*" class="kostat.sop.ServiceAPI.api.dt.mobileManage.DelMobileManage">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	
+	<!-- 모바일 서비스 관리 update 수정 -->
+	<bean name="/ServiceAPI/DT/MobileManage/updateMobileManage.*" class="kostat.sop.ServiceAPI.api.dt.mobileManage.UpdateMobileManage">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 통계주제도 목록조회 -->
+	<bean name="/ServiceAPI/DT/ThemaMapManage/getThemaMapList.*" class="kostat.sop.ServiceAPI.api.dt.themamapmanage.GetThemaList">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 통계주제도 등록 -->
+	<bean name="/ServiceAPI/DT/ThemaMapManage/registerThemaMapList.*" class="kostat.sop.ServiceAPI.api.dt.themamapmanage.RegisterThemaMap">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 통계주제도 데이터 등록  -->
+	<bean name="/ServiceAPI/DT/PubDataManage/regPubData.*" class="kostat.sop.ServiceAPI.api.dt.pubdatamanage.RegPubData">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 통계주제도 데이터마트 속성 등록(기본데이터)  -->
+	<bean name="/ServiceAPI/DT/PubDataManage/regPubDataID.*" class="kostat.sop.ServiceAPI.api.dt.pubdatamanage.RegPubDataID">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 통계주제도 데이터마트 속성 등록(증감데이터)  -->
+	<bean name="/ServiceAPI/DT/PubDataManage/regPubRegPubDataChange.*" class="kostat.sop.ServiceAPI.api.dt.pubdatamanage.RegPubDataChange">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 통계주제도 데이터마트 속성 삭제  -->
+	<bean name="/ServiceAPI/DT/PubDataManage/regDelPubData.*" class="kostat.sop.ServiceAPI.api.dt.pubdatamanage.RegDelPubData">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 통계주제도 데이터마트 속성 삭제  -->
+	<bean name="/ServiceAPI/DT/PubDataManage/delPubChData.*" class="kostat.sop.ServiceAPI.api.dt.pubdatamanage.DelPubChData">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 통계주제도 데이터마트 속성 리스트조회  -->
+	<bean name="/ServiceAPI/DT/PubDataManage/RegThemaID.*" class="kostat.sop.ServiceAPI.api.dt.pubdatamanage.RegThemaID">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 통계주제도 기본데이터마트 업데이트 리스트조회  -->
+	<bean name="/ServiceAPI/DT/PubDataManage/regUpdateThemaData.*" class="kostat.sop.ServiceAPI.api.dt.pubdatamanage.RegUpdateThemaData">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 통계주제도 증감데이터마트 업데이트 리스트조회  -->
+	<bean name="/ServiceAPI/DT/PubDataManage/regUpdateThemaChange.*" class="kostat.sop.ServiceAPI.api.dt.pubdatamanage.RegUpdateThemaChange">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 정책 카테고리 리스트조회  -->
+	<bean name="/ServiceAPI/DT/PolicyMapManager.policyMapData.*" class="kostat.sop.ServiceAPI.api.dt.policymapmanager.PolicyMapData">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 정책 카테고리 수정 -->
+	<bean name="/ServiceAPI/DT/PolicyMapManager.policyMapDataUpdate.*" class="kostat.sop.ServiceAPI.api.dt.policymapmanager.PolicyMapDataUpdate">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 정책 카테고리 삭제 -->
+	<bean name="/ServiceAPI/DT/PolicyMapManager.policyMapDataDelete.*" class="kostat.sop.ServiceAPI.api.dt.policymapmanager.PolicyMapDataDelete">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 지자체 데이터 리스트조회  -->
+	<bean name="/ServiceAPI/DT/OpenDataManage/OpenDataList.*" class="kostat.sop.ServiceAPI.api.dt.opendatamapmanager.OpenDataList">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 지자체 데이터 수정 -->
+	<bean name="/ServiceAPI/DT/OpenDataManage/OpenDataModify.*" class="kostat.sop.ServiceAPI.api.dt.opendatamapmanager.OpenDataUpdate">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 지자체 데이터 삭제 -->
+	<bean name="/ServiceAPI/DT/OpenDataManage/OpenDataDel.*" class="kostat.sop.ServiceAPI.api.dt.opendatamapmanager.OpenDataDel">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 통계주제도 목록수정목록조회 -->
+	<bean name="/ServiceAPI/DT/ThemaMapManage/getThemaMapModyList.*" class="kostat.sop.ServiceAPI.api.dt.themamapmanage.GetThemaModyList">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 자료제공 파일 압축-->
+	<bean name="/ServiceAPI/Common/makeZipFile.*" class="kostat.sop.ServiceAPI.api.common.MakeZipFile">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 자료제공 파일 압축 여부 확인-->
+	<bean name="/ServiceAPI/Common/getDetaildataCount.*" class="kostat.sop.ServiceAPI.api.common.GetMakeFile">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 자료제공 파일 압축-->
+	<bean name="/ServiceAPI/Common/newMakeZipFile.*" class="kostat.sop.ServiceAPI.api.common.NewMakeZipFile">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!--2019년반영 시작-->
+	<!-- 자료제공 파일 압축(모든 시도, 시군구 출력)-->
+	<bean name="/ServiceAPI/Common/allMakeZipFile.*" class="kostat.sop.ServiceAPI.api.common.AllMakeZipFile">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!--2019년반영 끝-->
+	<!-- 정보관리 설명문구 메뉴 조회  -->
+	<bean name="/ServiceAPI/DT/TTIPManage/getTipDiv.*" class="kostat.sop.ServiceAPI.api.dt.ttipmanage.GetTTIPDIV">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 정책통계지도 카테고리 조회  -->
+	<bean name="/ServiceAPI/DT/policyCategoryManage/searchPolicyCategory.*" class="kostat.sop.ServiceAPI.api.dt.policyCategorymanage.SearchPolicyCategory">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 정책통계지도 카테고리  수정  -->
+	<bean name="/ServiceAPI/DT/policyCategoryManage/updatePolicyCategory.*" class="kostat.sop.ServiceAPI.api.dt.policyCategorymanage.UpdatePolicyCategory">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 정책통계지도 카테고리  등록  -->
+	<bean name="/ServiceAPI/DT/policyCategoryManage/AddPolicyCategory.*" class="kostat.sop.ServiceAPI.api.dt.policyCategorymanage.AddPolicyCategory">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 정책통계지도 카테고리  삭제  -->
+	<bean name="/ServiceAPI/DT/policyCategoryManage/delPolicyCategory.*" class="kostat.sop.ServiceAPI.api.dt.policyCategorymanage.DelPolicyCategory">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 정책통계지도 카테고리  메뉴목록조회  -->
+	<bean name="/ServiceAPI/DT/policymapmanager/getCateDIV.*" class="kostat.sop.ServiceAPI.api.dt.policyCategorymanage.GetCateDIV">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	
+	<!-- 2019-07-30 [김남민] 관리자 > 서비스 관리 > 일자리 맵. END -->
+	<!-- 일자리맵 일자리 통계정보 집계 시작 -->
+	<!-- kostat.sop.ServiceAPI.api.dt.workRoadStatsInfoSm 하위에 생성 -->
+	<!-- 일자리 통계정보 집계 목록 -->
+	<bean name="/ServiceAPI/DT/workRoadStatsInfoSm/SearchWorkRoadStatsInfoSm.*" class="kostat.sop.ServiceAPI.api.dt.workRoadStatsInfoSm.SearchWorkRoadStatsInfoSm">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 일자리 통계정보 집계 조회 -->
+	<bean name="/ServiceAPI/DT/workRoadStatsInfoSm/GetWorkRoadStatsInfoSm.*" class="kostat.sop.ServiceAPI.api.dt.workRoadStatsInfoSm.GetWorkRoadStatsInfoSm">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 일자리 통계정보 집계 등록 -->
+	<bean name="/ServiceAPI/DT/workRoadStatsInfoSm/AddWorkRoadStatsInfoSm.*" class="kostat.sop.ServiceAPI.api.dt.workRoadStatsInfoSm.AddWorkRoadStatsInfoSm">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 일자리 통계정보 집계 수정 -->
+	<bean name="/ServiceAPI/DT/workRoadStatsInfoSm/UpdateWorkRoadStatsInfoSm.*" class="kostat.sop.ServiceAPI.api.dt.workRoadStatsInfoSm.UpdateWorkRoadStatsInfoSm">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 일자리 통계정보 집계 삭제 -->
+	<bean name="/ServiceAPI/DT/workRoadStatsInfoSm/DelWorkRoadStatsInfoSm.*" class="kostat.sop.ServiceAPI.api.dt.workRoadStatsInfoSm.DelWorkRoadStatsInfoSm">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 일자리 통계정보 집계 처리 -->
+	<bean name="/ServiceAPI/DT/workRoadStatsInfoSm/CallWorkRoadStatsInfoSm.*" class="kostat.sop.ServiceAPI.api.dt.workRoadStatsInfoSm.CallWorkRoadStatsInfoSm">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 일자리 통계정보 집계 엑셀 -->
+	<bean name="/ServiceAPI/DT/workRoadStatsInfoSm/ExcelWorkRoadStatsInfoSm.excel" class="kostat.sop.ServiceAPI.api.dt.workRoadStatsInfoSm.ExcelWorkRoadStatsInfoSm">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 일자리맵 일자리 통계정보 집계 종료 -->
+	<!-- 2019-07-30 [김남민] 관리자 > 서비스 관리 > 일자리 맵. END -->
+	
+	<!-- 2019.07.31[한광희] 일자리맵 일자리 통계정보 관리 START -->
+	<!-- kostat.sop.ServiceAPI.api.dt.workRoadStatsItemManage 하위에 생성 -->
+	<!-- 일자리맵 일자리 통계정보 관리 조회 -->
+	<bean name="/ServiceAPI/DT/WorkRoadStatsItemManage/searchWorkRoadStatsItemManage.*" class="kostat.sop.ServiceAPI.api.dt.workRoadStatsItemManage.SearchWorkRoadStatsItemManage">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 일자리맵 일자리 통계정보 관리 상세 조회 -->
+	<bean name="/ServiceAPI/DT/WorkRoadStatsItemManage/getWorkRoadStatsItemManage.*" class="kostat.sop.ServiceAPI.api.dt.workRoadStatsItemManage.GetWorkRoadStatsItemManage">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 일자리맵 일자리 통계정보 관리 삭제 -->
+	<bean name="/ServiceAPI/DT/WorkRoadStatsItemManage/deleteWorkRoadStatsItemManage.*" class="kostat.sop.ServiceAPI.api.dt.workRoadStatsItemManage.DelWorkRoadStatsItemManage">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 일자리맵 일자리 통계정보 관리 연계 ID 중복 체크 -->
+	<bean name="/ServiceAPI/DT/WorkRoadStatsItemManage/checkLINKID.*" class="kostat.sop.ServiceAPI.api.dt.workRoadStatsItemManage.CheckLINKID">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 일자리맵 일자리 통계정보 관리 등록 -->
+	<bean name="/ServiceAPI/DT/WorkRoadStatsItemManage/addWorkRoadStatsItemManage.*" class="kostat.sop.ServiceAPI.api.dt.workRoadStatsItemManage.AddWorkRoadStatsItemManage">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 일자리맵 일자리 통계정보 관리 수정 -->
+	<bean name="/ServiceAPI/DT/WorkRoadStatsItemManage/updateWorkRoadStatsItemManage.*" class="kostat.sop.ServiceAPI.api.dt.workRoadStatsItemManage.UpdateWorkRoadStatsItemManage">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 일자리맵 일자리 통계정보 관리 엑셀 -->
+	<bean name="/ServiceAPI/DT/WorkRoadStatsItemManage/excelWorkRoadStatsItemManage.excel" class="kostat.sop.ServiceAPI.api.dt.workRoadStatsItemManage.ExcelWorkRoadStatsItemManage">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 2019.07.31[한광희] 일자리맵 일자리 통계정보 관리 END -->
+	
+	<!-- 2020.05.12[곽제욱] 일자리맵 일자리 코드정보 START -->
+	<!-- 일자리맵 일자리 코드정보 조회 -->
+	<bean name="/ServiceAPI/DT/workRoadCodeInfo/searchWorkRoadCodeInfo.*" class="kostat.sop.ServiceAPI.api.dt.workRoadCodeInfo.SearchWorkRoadCodeInfo">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 일자리맵 일자리 코드정보 엑셀다운로드 -->
+	<bean name="/ServiceAPI/DT/workRoadCodeInfo/excelWorkRoadCodeInfo.*" class="kostat.sop.ServiceAPI.api.dt.workRoadCodeInfo.ExcelWorkRoadCodeInfo">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<!-- 2020.05.12[곽제욱] 일자리맵 일자리 코드정보 END -->
+	
+	<bean name="/ServiceAPI/DT/workRoadMnbyStats/getWorkRoadMnbyStatsAddressList.*" class="kostat.sop.ServiceAPI.api.dt.workRoadMnbyStats.GetWorkRoadMnbyStatsAddressList">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/workRoadMnbyStats/searchWorkRoadMnbyStats.*" class="kostat.sop.ServiceAPI.api.dt.workRoadMnbyStats.SearchWorkRoadMnbyStats">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/workRoadMnbyStats/getWorkRoadMnbyStatsRegYearList.*" class="kostat.sop.ServiceAPI.api.dt.workRoadMnbyStats.GetWorkRoadMnbyStatsRegYearList">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/workRoadMnbyStats/getWorkRoadMnbyStatsRegMonthList.*" class="kostat.sop.ServiceAPI.api.dt.workRoadMnbyStats.GetWorkRoadMnbyStatsRegMonthList">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/workRoadMnbyStats/getWorkRoadMnbyStatsCmprList.*" class="kostat.sop.ServiceAPI.api.dt.workRoadMnbyStats.GetWorkRoadMnbyStatsCmprList">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/workRoadMnbyStats/searchWorkRoadMnbyStatsResve.*" class="kostat.sop.ServiceAPI.api.dt.workRoadMnbyStats.SearchWorkRoadMnbyStatsResve">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/workRoadMnbyStats/getWorkRoadMnbyStatsResveCount.*" class="kostat.sop.ServiceAPI.api.dt.workRoadMnbyStats.GetWorkRoadMnbyStatsResveCount">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/workRoadMnbyStats/addWorkRoadMnbyStatsResve.*" class="kostat.sop.ServiceAPI.api.dt.workRoadMnbyStats.AddWorkRoadMnbyStatsResve">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	<bean name="/ServiceAPI/DT/workRoadMnbyStats/delWorkRoadMnbyStatsResve.*" class="kostat.sop.ServiceAPI.api.dt.workRoadMnbyStats.DelWorkRoadMnbyStatsResve">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+</beans>

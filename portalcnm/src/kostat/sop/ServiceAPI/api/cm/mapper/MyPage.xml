@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MyPage"> 
+	<select id="loadInfo" parameterType="String" resultType="Map">
+		select 
+		EMAIL,
+		CP_NO,
+		DEPT,
+		MANAGER_GRADE,
+		JOB_POS,
+		EXT_NO,
+		MANAGER_ID,
+		MANAGER_NM,
+		TEL_NO
+		from MNG_DT_MANAGERINFO
+		where MANAGER_ID= #{MANAGER_ID}
+	</select>
+	<select id="getGrade" parameterType="String" resultType="Map">
+		select MANAGER_ID,MANAGER_GRADE from MNG_DT_MANAGERINFO 
+		where MANAGER_ID= #{MANAGER_ID}
+	</select>
+	<update id="updateInfo" parameterType="Map" >
+		update MNG_DT_MANAGERINFO 
+		<trim suffix="" suffixOverrides=",">
+		 <set>
+			 <if test="EMAIL != null">
+			 EMAIL = #{EMAIL},
+			 </if>
+			 <if test="CP_NO != null">
+			 CP_NO = #{CP_NO},
+			 </if>
+			 <if test="DEPT != null">
+			 DEPT = #{DEPT},
+			 </if>
+			 <if test="JOB_POS != null">
+			 JOB_POS = #{JOB_POS},
+			 </if>
+			 <if test="EXT_NO != null">
+			 EXT_NO = #{EXT_NO},
+			 </if>
+			 <if test="TEL_NO != null">
+			 TEL_NO = #{TEL_NO},
+			 </if>
+		 </set>
+		</trim>  
+		where MANAGER_ID=#{MANAGER_ID}
+	</update>
+	<update id="logout" parameterType="String">
+		update MNG_DT_MANAGERINFO set LAST_LOGOUT_TS = sysdate 
+		where MANAGER_ID = #{MANAGER_ID}
+	</update>
+</mapper>

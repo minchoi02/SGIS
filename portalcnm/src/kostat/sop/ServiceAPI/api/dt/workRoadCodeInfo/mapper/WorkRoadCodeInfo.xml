@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="WorkRoadCodeInfo">
+
+	<!-- 일자리 코드정보 목록 건수 -->
+	<select id="getSearchWorkRoadCodeInfoCount" parameterType="hashmap" resultType="int">
+		SELECT
+			COUNT(*) AS CNT
+		FROM
+			CMM_CD_COMCD A
+		WHERE 1=1
+			<if test='SEARCH_TYPE == "B_CLASS_CD"'>
+				<if test='SEARCH_WORD != null and SEARCH_WORD != ""'>
+					AND A.B_CLASS_CD LIKE '%'||#{SEARCH_WORD}||'%'
+				</if>
+			</if>
+			<if test='SEARCH_TYPE == "B_CLASS_CD_NM"'>
+				<if test='SEARCH_WORD != null and SEARCH_WORD != ""'>
+					AND A.B_CLASS_CD_NM LIKE '%'||#{SEARCH_WORD}||'%'
+				</if>
+			</if>
+			<if test='SEARCH_TYPE == "S_CLASS_CD"'>
+				<if test='SEARCH_WORD != null and SEARCH_WORD != ""'>
+					AND A.S_CLASS_CD LIKE '%'||#{SEARCH_WORD}||'%'
+				</if>
+			</if>
+			<if test='SEARCH_TYPE == "S_CLASS_CD_NM"'>
+				<if test='SEARCH_WORD != null and SEARCH_WORD != ""'>
+					AND A.S_CLASS_CD_NM LIKE '%'||#{SEARCH_WORD}||'%'
+				</if>
+			</if>
+			<if test='SEARCH_TYPE == "CD_EXP"'>
+				<if test='SEARCH_WORD != null and SEARCH_WORD != ""'>
+					AND A.CD_EXP LIKE '%'||#{SEARCH_WORD}||'%'
+				</if>
+			</if>
+		AND A.B_CLASS_CD in ('CAREER', 'ACDMCR', 'WAGETY', 'EMPTYP', 'WORKTY', 'INDCLA', 'ENTTYP', 'JDSTAR')
+	</select>
+
+	<!-- 일자리 코드정보 목록 -->
+	<select id="getSearchWorkRoadCodeInfo" parameterType="Map" resultType="Map">
+		SELECT * FROM
+		(
+			SELECT
+				ROW_NUMBER() OVER(ORDER BY A.B_CLASS_CD) AS ROW_NUM
+				,A.B_CLASS_CD
+				,A.S_CLASS_CD
+				,A.B_CLASS_CD_NM
+				,A.S_CLASS_CD_NM
+				,A.CD_EXP
+			FROM
+				CMM_CD_COMCD A
+			WHERE 1=1
+			<if test='SEARCH_TYPE == "B_CLASS_CD"'>
+				<if test='SEARCH_WORD != null and SEARCH_WORD != ""'>
+					AND A.B_CLASS_CD LIKE '%'||#{SEARCH_WORD}||'%'
+				</if>
+			</if>
+			<if test='SEARCH_TYPE == "B_CLASS_CD_NM"'>
+				<if test='SEARCH_WORD != null and SEARCH_WORD != ""'>
+					AND A.B_CLASS_CD_NM LIKE '%'||#{SEARCH_WORD}||'%'
+				</if>
+			</if>
+			<if test='SEARCH_TYPE == "S_CLASS_CD"'>
+				<if test='SEARCH_WORD != null and SEARCH_WORD != ""'>
+					AND A.S_CLASS_CD LIKE '%'||#{SEARCH_WORD}||'%'
+				</if>
+			</if>
+			<if test='SEARCH_TYPE == "S_CLASS_CD_NM"'>
+				<if test='SEARCH_WORD != null and SEARCH_WORD != ""'>
+					AND A.S_CLASS_CD_NM LIKE '%'||#{SEARCH_WORD}||'%'
+				</if>
+			</if>
+			<if test='SEARCH_TYPE == "CD_EXP"'>
+				<if test='SEARCH_WORD != null and SEARCH_WORD != ""'>
+					AND A.CD_EXP LIKE '%'||#{SEARCH_WORD}||'%'
+				</if>
+			</if>
+			AND A.B_CLASS_CD in ('CAREER', 'ACDMCR', 'WAGETY', 'EMPTYP', 'WORKTY', 'INDCLA', 'ENTTYP', 'JDSTAR')
+		)
+		WHERE 1=1
+		<if test='START_INDEX != null and START_INDEX != ""'>
+		  AND ROW_NUM <![CDATA[>=]]> #{START_INDEX}
+		</if>
+		<if test='END_INDEX != null and END_INDEX != ""'>
+		  AND ROW_NUM <![CDATA[<=]]> #{END_INDEX}
+		</if>
+		ORDER BY ROW_NUM
+	</select>
+		
+</mapper>

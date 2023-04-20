@@ -1,0 +1,569 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@include file="/WEB-INF/jsp/includes/taglib.jsp" %>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<title>우리동네 생활업종</title>
+<meta name="title" content="살고싶은 우리동네">
+<link rel="stylesheet" href="${ctx }/resources/m2020/css/subpage.css" />
+<link rel="stylesheet" href="${ctx }/resources/m2020/css/style.css" />
+<!-- 하단 리스트 Swiper -->
+<link rel="stylesheet" href="${ctx }/resources/m2020/plugins/swiper.css" />
+<script src="${ctx }/resources/m2020/plugins/swiper.min.js" type="text/javascript"></script>
+<!-- 하단 리스트 위 아래 Swipe 이벤트 -->
+<script src="${ctx }/resources/m2020/plugins/jquery.touchSwipe.min.js" type="text/javascript"></script>
+<!-- 좌우 스크롤 -->
+<script src="${ctx }/resources/m2020/js/jquery.touchFlow.js" type="text/javascript"></script>
+
+<!-- 기본 js -->
+<script src="${ctx }/resources/m2020/js/biz/bizMap.js"></script>
+<script src="${ctx }/resources/m2020/js/biz/bizMap.api.js"></script>
+
+</head>
+
+<body>
+	<!-- 팝업 배경 START -->
+	<div class="popBack" style="display: none;">
+		<div id="popup_back" class="aside_back"></div>
+	</div>
+	<!-- 팝업 배경 END -->
+	
+	<!-- 지도 선택에 따른 정보 팝업 START -->
+	<div class="popWrap" id="popup_area_click" style="display: none;">
+		<div class="MapselectpopCon">
+		<button id="popup_area_click_close" class="btn_popClose" type="button" style="margin-top: -15px; margin-right: -15px; margin-bottom: -10px;"></button> <!-- 2020.9.08 [한광희] 닫기버튼 추가 -->
+			<ul>
+				<li>
+	  				<span id="bizMapAreaTitle"></span>
+				</li>
+				<li>
+					<span id="bizMapAreaDataTitle"></span>
+	      			<span id="bizMapAreaData"></span>
+				</li>
+				<li style="line-height: 2.5em; margin-top: 10px;">
+					<a class="databoardBtnPopup" id="databoardBtnPopup">데이터보드</a>		
+				</li>
+			</ul>
+		</div>
+	</div>
+	<!-- 지도 선택에 따른 정보 팝업 END -->
+	
+	<div class="nav-2022">
+		<div class="leftCol">
+			<span class="btnNavThematic">우리동네 생활업종
+				<svg width="12" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 8C6.71875 8 6.46875 7.90625 6.28125 7.71875L1.28125 2.71875C0.875 2.34375 0.875 1.6875 1.28125 1.3125C1.65625 0.90625 2.3125 0.90625 2.6875 1.3125L7 5.59375L11.2812 1.3125C11.6562 0.90625 12.3125 0.90625 12.6875 1.3125C13.0938 1.6875 13.0938 2.34375 12.6875 2.71875L7.6875 7.71875C7.5 7.90625 7.25 8 7 8Z" /></svg>
+			</span>
+			<span class="btnNavThematic2">음식 <svg width="12" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 8C6.71875 8 6.46875 7.90625 6.28125 7.71875L1.28125 2.71875C0.875 2.34375 0.875 1.6875 1.28125 1.3125C1.65625 0.90625 2.3125 0.90625 2.6875 1.3125L7 5.59375L11.2812 1.3125C11.6562 0.90625 12.3125 0.90625 12.6875 1.3125C13.0938 1.6875 13.0938 2.34375 12.6875 2.71875L7.6875 7.71875C7.5 7.90625 7.25 8 7 8Z" /></svg></span>
+			<span class="btnNavThematic3">한식 <svg width="12" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 8C6.71875 8 6.46875 7.90625 6.28125 7.71875L1.28125 2.71875C0.875 2.34375 0.875 1.6875 1.28125 1.3125C1.65625 0.90625 2.3125 0.90625 2.6875 1.3125L7 5.59375L11.2812 1.3125C11.6562 0.90625 12.3125 0.90625 12.6875 1.3125C13.0938 1.6875 13.0938 2.34375 12.6875 2.71875L7.6875 7.71875C7.5 7.90625 7.25 8 7 8Z" /></svg></span>
+		</div>
+		
+	</div>
+	<div class="nav-layer">
+		<ul>
+			<li><a href="${ctx }/m2020/map/house/recomendHouseMap.sgis">추천지역찾기</a></li>
+			<li><a href="${ctx }/m2020/map/house/houseSearchMap.sgis">간편동네찾기</a></li>
+			<li><a href="${ctx }/m2020/map/house/houseStatusMap.sgis">주거현황보기</a></li>
+			<li><a href="${ctx }/m2020/map/biz/bizMap.sgis">우리동네 생활업종</a></li>
+			
+		</ul>
+	</div>
+	<!-- Initialize Swiper -->
+	<script>
+		var swiper = new Swiper('.swiper-container', {
+			slidesPerView : 2.6,	// 2020.09.15[한광희] 메뉴 swipe 수정
+			spaceBetween : 10,
+			initialSlide: 3,
+			pagination : {
+				el : '.swiper-pagination',
+				clickable : true,
+			},
+		});
+		srvLogWrite('O0', '09', '05', '01', '우리동네 생활업종 지도화면 메인', '');
+	</script>
+	<!-- 메뉴 버튼 Swiper END -->
+	<style>
+	.nav-layer2 { position:absolute; z-index:100; top:4px; left:120px; background-color:#fff; border:1px solid #757678; box-sizing:border-box; font-size:12px; color:#3d3d3d; display:none; }
+	.nav-layer2 #biztab div { box-sizing:border-box; padding:5px 10px;}
+	.nav-layer3 { position:absolute; z-index:100; top:4px;  left:187px; background-color:#fff; border:1px solid #757678; box-sizing:border-box; font-size:12px; color:#3d3d3d; display:none;}
+	.nav-layer3 .bizItemBox {  }
+	.nav-layer3 .bizItemBox div { box-sizing:border-box; padding:5px 10px;}
+	</style>
+	<div class="contentBox" id="mapArea">
+		<div class="MapArea" style="min-height:500px;">
+			<!-- 지도 영역 START -->
+			<div class="Map" style="overflow: hidden; position: fixed; top: 101px; width: 100%;">
+				<div id="map"></div>
+			</div>
+			<!-- 지도 영역 END -->
+			
+			<!-- Swiper -->
+			<div class="nav-layer2" style="">
+				<div class="" id="biztab">
+					<!-- 2020.12.02[심창무] 테마코드 변경으로 인한 수정 START -->
+					<!-- 2020.10.20[한광희] 테마코드 변경으로 인한 수정 START -->
+					<!-- <div class="swiper-slide subSelectTab on" data-index="1">음식점</div>
+					<div class="swiper-slide subSelectTab" data-index="2">도소매</div>
+					<div class="swiper-slide subSelectTab" data-index="3">서비스</div>
+					<div class="swiper-slide subSelectTab" data-index="4">숙박</div>
+
+					<div class="swiper-slide subSelectTab on" data-index="1">음식</div>
+					<div class="swiper-slide subSelectTab" data-index="2">소매업</div>
+					<div class="swiper-slide subSelectTab" data-index="3">생활서비스</div>
+					<div class="swiper-slide subSelectTab" data-index="4">교육</div>
+					<div class="swiper-slide subSelectTab" data-index="5">여가생활</div>
+					<div class="swiper-slide subSelectTab" data-index="6">숙박</div> -->
+					<!-- 2020.10.20[한광희] 테마코드 변경으로 인한 수정 END -->
+				
+					<div class="" data-index="1">음식</div>
+					<div class="" data-index="2">소매업</div>
+					<div class="" data-index="3">생활서비스</div>
+					<div class="" data-index="4">숙박</div>
+					<div class="" data-index="5">여가생활</div>
+					<div class="" data-index="6">교육</div>
+					<div class="" data-index="7">의료</div>
+					<div class="" data-index="8">공공</div>
+					<!-- 2020.12.02[심창무] 테마코드 변경으로 인한 수정 END -->
+				</div>
+			</div>
+			<!-- Initialize Swiper -->
+			<script>
+		      var swiper = new Swiper('.swiper-container01', {
+		        slidesPerView: 4, 
+		        spaceBetween: 10,
+		        pagination: {
+		          el: '.swiper-pagination',
+		          clickable: true,
+		        },
+		      });
+		    </script>
+			
+		    <div class="nav-layer3" id="bizItem">
+		    	<!-- 2020.12.02[심창무] 테마코드 변경으로 인한 수정 START -->
+		    	<!-- 음식 START -->
+		    	<div style="display: block;" id="bizItem_1">
+					<div class="bizItemBox">
+						<div class=" on" id="theme_cd_5001" name="theme_cd" data-id="5001">한식</div>
+						<div class="" id="theme_cd_5002" name="theme_cd" data-id="5002">중식</div>
+						<div class="" id="theme_cd_5003" name="theme_cd" data-id="5003">일식</div>
+						<div class="" id="theme_cd_5004" name="theme_cd" data-id="5004">분식</div>
+						<div class="" id="theme_cd_5005" name="theme_cd" data-id="5005">서양식</div>
+						<div class="" id="theme_cd_5006" name="theme_cd" data-id="5006">제과점</div>
+						<div class="" id="theme_cd_5007" name="theme_cd" data-id="5007">패스트푸드</div>
+						<div class="" id="theme_cd_5008" name="theme_cd" data-id="5008">치킨</div>
+						<div class="" id="theme_cd_5009" name="theme_cd" data-id="5009" style="min-width:105px;">호프/간이주점</div> <!-- 2020-12-02 [심창무] 테마코드 관련 수정 -->
+						<div class="" id="theme_cd_5010" name="theme_cd" data-id="5010">카페</div>
+						<div class="" id="theme_cd_5011" name="theme_cd" data-id="5011">기타 외국식</div>
+						<div class="" id="theme_cd_5011" name="theme_cd" data-id="" style="visibility:hidden"></div> <!-- 20201203 박은식 - 스와이프 매뉴 추가하여 일부 매뉴 숨겨지는 현상 처리 -->
+					</div>
+				</div>
+				<!-- 음식 END -->
+
+				<!-- 소매업 START -->
+				<div style="display: none;" id="bizItem_2">
+					<div class="bizItemBox">
+						<div class="" id="theme_cd_1001" name="theme_cd" data-id="1001">인테리어</div>
+						<div class="" id="theme_cd_2001" name="theme_cd" data-id="2001">문구점</div>
+						<div class="" id="theme_cd_2002" name="theme_cd" data-id="2002">서점</div>
+						<div class="" id="theme_cd_2003" name="theme_cd" data-id="2003">편의점</div>
+						<div class="" id="theme_cd_2004" name="theme_cd" data-id="2004">식료품점</div>
+						<div class="" id="theme_cd_2005" name="theme_cd" data-id="2005">휴대폰점</div>
+						<div class="" id="theme_cd_2006" name="theme_cd" data-id="2006">의류</div>
+						<div class="" id="theme_cd_2007" name="theme_cd" data-id="2007" style="min-width:105px;">화장품/방향제</div>
+						<div class="" id="theme_cd_2008" name="theme_cd" data-id="2008">철물점</div>
+						<div class="" id="theme_cd_2009" name="theme_cd" data-id="2009">주유소</div>
+						<div class="" id="theme_cd_2010" name="theme_cd" data-id="2010">꽃집</div>
+						<div class="" id="theme_cd_2011" name="theme_cd" data-id="2011">슈퍼마켓</div>
+						<div class="" id="theme_cd_9001" name="theme_cd" data-id="9001" style="min-width:120px;">백화점/중대형마트</div>
+						<div class="" id="theme_cd_C001" name="theme_cd" data-id="C001">가구</div>
+						<div class="" id="theme_cd_C002" name="theme_cd" data-id="C002">가전제품</div>
+						<div class="" id="theme_cd_C003" name="theme_cd" data-id="C003">통신판매</div>
+						<div class="" id="theme_cd_C004" name="theme_cd" data-id="C004">신발</div>
+						<div class="" id="theme_cd_C004" name="theme_cd" data-id="" style="visibility:hidden"></div> <!-- 20201203 박은식 - 스와이프 매뉴 추가하여 일부 매뉴 숨겨지는 현상 처리 -->
+					</div>
+				</div>
+				<!-- 소매업 END -->
+
+				<!-- 생활서비스 START -->
+				<div style="display: none;" id="bizItem_3">
+					<div class="bizItemBox">
+						<div class="" id="theme_cd_1002" name="theme_cd" data-id="1002">목욕탕</div>
+						<div class="" id="theme_cd_1007" name="theme_cd" data-id="1007">이발소</div>
+						<div class="" id="theme_cd_1006" name="theme_cd" data-id="1006" style="min-width:100px;">부동산중개업</div>
+						<div class="" id="theme_cd_1008" name="theme_cd" data-id="1008">미용실</div>
+						<div class="" id="theme_cd_1009" name="theme_cd" data-id="1009">세탁소</div>
+						<div class="" id="theme_cd_9002" name="theme_cd" data-id="9002">은행</div>
+						<div class="" id="theme_cd_D001" name="theme_cd" data-id="D001" style="min-width:100px;">생활용품임대</div>
+						<div class="" id="theme_cd_D002" name="theme_cd" data-id="D002">독서실</div>
+						<div class="" id="theme_cd_D003" name="theme_cd" data-id="D003" style="min-width:100px;">생활용품수리</div>
+						<div class="" id="theme_cd_D004" name="theme_cd" data-id="D004">카센터</div>
+						<div class="" id="theme_cd_D005" name="theme_cd" data-id="D005">피부/미용</div>
+						<div class="" id="theme_cd_D006" name="theme_cd" data-id="D006">마사지</div>
+						<div class="" id="theme_cd_D007" name="theme_cd" data-id="D007">택배/배달</div>
+						<div class="" id="theme_cd_D007" name="theme_cd" data-id="" style="visibility:hidden"></div> <!-- 20201203 박은식 - 스와이프 매뉴 추가하여 일부 매뉴 숨겨지는 현상 처리 -->
+					</div>
+				</div>
+				<!-- 생활서비스 END -->
+
+				<!-- 숙박 START -->
+				<div style="display: none;" id="bizItem_4">
+					<div class="bizItemBox">
+						<div class="" id="theme_cd_4001" name="theme_cd" data-id="4001">호텔</div>
+						<div class="" id="theme_cd_4002" name="theme_cd" data-id="4002" style="min-width:155px;">여관(모텔포함) 및 여인숙</div>
+						<div class="" id="theme_cd_4003" name="theme_cd" data-id="4003">펜션</div>
+						<div class="" id="theme_cd_G001" name="theme_cd" data-id="G001">민박</div>
+						<div class="" id="theme_cd_G001" name="theme_cd" data-id="" style="visibility:hidden"></div> <!-- 20201203 박은식 - 스와이프 매뉴 추가하여 일부 매뉴 숨겨지는 현상 처리 -->
+					</div>
+				</div>
+				<!-- 숙박 END -->
+
+				<!-- 여가생활 START -->
+				<div style="display: none;" id="bizItem_5">
+					<div class="bizItemBox">
+						<div class="" id="theme_cd_1010" name="theme_cd" data-id="1010">PC방</div>
+						<div class="" id="theme_cd_1011" name="theme_cd" data-id="1011">노래방</div>
+						<div class="" id="theme_cd_9004" name="theme_cd" data-id="9004" style="min-width:100px;">극장/영화관</div>
+						<div class="" id="theme_cd_9005" name="theme_cd" data-id="9005" style="min-width:100px;">도서관/박물관</div>
+						<div class="" id="theme_cd_F001" name="theme_cd" data-id="F001" style="min-width:100px;">생활체육시설</div>
+						<div class="" id="theme_cd_F002" name="theme_cd" data-id="F002">여행사</div>
+						<div class="" id="theme_cd_F002" name="theme_cd" data-id="" style="visibility:hidden"></div> <!-- 20201203 박은식 - 스와이프 매뉴 추가하여 일부 매뉴 숨겨지는 현상 처리 -->
+					</div>
+				</div>
+				<!-- 여가생활 END -->
+
+				<!-- 교육 START -->
+				<div style="display: none;" id="bizItem_6">
+					<div class="bizItemBox">
+						<div class="" id="theme_cd_1003" name="theme_cd" data-id="1003">교습학원</div>
+						<div class="" id="theme_cd_1004" name="theme_cd" data-id="1004">어학원</div>
+						<div class="" id="theme_cd_1005" name="theme_cd" data-id="1005">예체능학원</div>
+						<div class="" id="theme_cd_7001" name="theme_cd" data-id="7001">초등학교</div>
+						<div class="" id="theme_cd_7002" name="theme_cd" data-id="7002">중학교</div>
+						<div class="" id="theme_cd_7003" name="theme_cd" data-id="7003">고등학교</div>
+						<div class="" id="theme_cd_7004" name="theme_cd" data-id="7004">전문대학</div>
+						<div class="" id="theme_cd_7005" name="theme_cd" data-id="7005">대학교</div>
+						<div class="" id="theme_cd_7006" name="theme_cd" data-id="7006">대학원</div>
+						<div class="" id="theme_cd_7007" name="theme_cd" data-id="7007" style="min-width:100px;">어린이보육업</div>
+						<div class="" id="theme_cd_I001" name="theme_cd" data-id="I001" style="min-width:100px;">기술직업훈련</div>
+						<div class="" id="theme_cd_I001" name="theme_cd" data-id="" style="visibility:hidden"></div> <!-- 20201203 박은식 - 스와이프 매뉴 추가하여 일부 매뉴 숨겨지는 현상 처리 -->
+					</div>
+				</div>
+				<!-- 교육 END -->
+
+				<!-- 의료 START -->
+				<div style="display: none;" id="bizItem_7">
+					<div class="bizItemBox">
+						<div class="" id="theme_cd_9003" name="theme_cd" data-id="9003">병원</div>
+						<div class="" id="theme_cd_J001" name="theme_cd" data-id="J001">동물병원</div>
+						<div class="" id="theme_cd_J002" name="theme_cd" data-id="J002">약국</div>
+						<div class="" id="theme_cd_J003" name="theme_cd" data-id="J003">한방병원</div>
+						<div class="" id="theme_cd_8007" name="theme_cd" data-id="8007">기타의료업</div>
+					</div>
+				</div>
+				<!-- 의료 END -->
+
+				<!-- 공공 START -->
+				<div style="display: none;" id="bizItem_8">
+					<div class="bizItemBox">
+						<div class="" id="theme_cd_6001" name="theme_cd" data-id="6001">우체국</div>
+						<div class="" id="theme_cd_6002" name="theme_cd" data-id="6002">행정기관</div>
+						<div class="" id="theme_cd_6003" name="theme_cd" data-id="6003">경찰/지구대</div>
+						<div class="" id="theme_cd_6004" name="theme_cd" data-id="6004">소방서</div>
+					</div>
+				</div>
+				<!-- 공공 END -->
+
+		    	<!-- 2020.10.20[한광희] 테마코드 변경으로 인한 수정 START
+		    	음식 START
+		    	<div style="display: flex;" id="bizItem_1">
+					<div>
+						<div class="subSelectTab on" id="theme_cd_5001" name="theme_cd" data-id="5001">한식</div>
+						<div class="subSelectTab" id="theme_cd_5002" name="theme_cd" data-id="5002">중식</div>
+						<div class="subSelectTab" id="theme_cd_5003" name="theme_cd" data-id="5003">일식</div>
+						<div class="subSelectTab" id="theme_cd_5004" name="theme_cd" data-id="5004">분식</div>
+						<div class="subSelectTab" id="theme_cd_5005" name="theme_cd" data-id="5005">서양식</div>
+						<div class="subSelectTab" id="theme_cd_5006" name="theme_cd" data-id="5006">제과점</div>
+						<div class="subSelectTab" id="theme_cd_5007" name="theme_cd" data-id="5007">패스트푸드</div>
+						<div class="subSelectTab" id="theme_cd_5008" name="theme_cd" data-id="5008">치킨</div>
+						<div class="subSelectTab" id="theme_cd_5009" name="theme_cd" data-id="5009" style="min-width:105px;">호프 및 간이주점</div>
+						<div class="subSelectTab" id="theme_cd_5010" name="theme_cd" data-id="5010">카페</div>
+						<div class="subSelectTab" id="theme_cd_5011" name="theme_cd" data-id="5011">기타 외국식</div>
+					</div>
+				</div>
+				음식 END
+
+				소매업 START
+				<div style="display: none;" id="bizItem_2">
+					<div>
+						<div class="subSelectTab" id="theme_cd_1001" name="theme_cd" data-id="1001">인테리어</div>
+						<div class="subSelectTab" id="theme_cd_2001" name="theme_cd" data-id="2001">문구점</div>
+						<div class="subSelectTab" id="theme_cd_2002" name="theme_cd" data-id="2002">서점</div>
+						<div class="subSelectTab" id="theme_cd_2003" name="theme_cd" data-id="2003">편의점</div>
+						<div class="subSelectTab" id="theme_cd_2004" name="theme_cd" data-id="2004">식료품점</div>
+						<div class="subSelectTab" id="theme_cd_2005" name="theme_cd" data-id="2005">휴대폰점</div>
+						<div class="subSelectTab" id="theme_cd_2006" name="theme_cd" data-id="2006">의류</div>
+						<div class="subSelectTab" id="theme_cd_2007" name="theme_cd" data-id="2007" style="min-width: 105px;">화장품/방향제</div>
+						<div class="subSelectTab" id="theme_cd_2008" name="theme_cd" data-id="2008">철물점</div>
+						<div class="subSelectTab" id="theme_cd_2009" name="theme_cd" data-id="2009">주유소</div>
+						<div class="subSelectTab" id="theme_cd_2010" name="theme_cd" data-id="2010">꽃집</div>
+						<div class="subSelectTab" id="theme_cd_2011" name="theme_cd" data-id="2011">슈퍼마켓</div>
+					</div>
+				</div>
+				소매업 END
+
+				생활서비스 START
+				<div style="display: none;" id="bizItem_3">
+					<div>
+						<div class="subSelectTab" id="theme_cd_1002" name="theme_cd" data-id="1002">목욕탕</div>
+						<div class="subSelectTab" id="theme_cd_1007" name="theme_cd" data-id="1007">이발소</div>
+						<div class="subSelectTab" id="theme_cd_1006" name="theme_cd" data-id="1006" style="min-width: 100px;">부동산중개업</div>
+						<div class="subSelectTab" id="theme_cd_1008" name="theme_cd" data-id="1008">미용실</div>
+						<div class="subSelectTab" id="theme_cd_1009" name="theme_cd" data-id="1009">세탁소</div>
+					</div>
+				</div>
+				생활서비스 END
+
+				교육 START
+				<div style="display: none;" id="bizItem_4">
+					<div>
+						<div class="subSelectTab" id="theme_cd_1003" name="theme_cd" data-id="1003">교습학원</div>
+						<div class="subSelectTab" id="theme_cd_1004" name="theme_cd" data-id="1004">어학원</div>
+						<div class="subSelectTab" id="theme_cd_1005" name="theme_cd" data-id="1005">예체능학원</div>
+					</div>
+				</div>
+				교육 END
+
+				여가생활 START
+				<div style="display: none;" id="bizItem_5">
+					<div>
+						<div class="subSelectTab" id="theme_cd_1010" name="theme_cd" data-id="1010">PC방</div>
+						<div class="subSelectTab" id="theme_cd_1011" name="theme_cd" data-id="1011">노래방</div>
+					</div>
+				</div>
+				여가생활 END
+
+				숙박 START
+				<div style="display: none;" id="bizItem_6">
+					<div>
+						<div class="subSelectTab" id="theme_cd_4001" name="theme_cd" data-id="4001">호텔</div>
+						<div class="subSelectTab" id="theme_cd_4002" name="theme_cd" data-id="4002" style="min-width:160px;">여관(모텔포함) 및 여인숙</div>
+						<div class="subSelectTab" id="theme_cd_4003" name="theme_cd" data-id="4003">팬션</div>
+					</div>
+				</div>
+				숙박 END
+
+		    	음식점(11종) START
+				<div style="display: flex;" id="bizItem_1">
+					<div>
+						<div class="subSelectTab on" id="theme_cd_5001" name="theme_cd" data-id="5001">한식</div>
+						<div class="subSelectTab" id="theme_cd_5002" name="theme_cd" data-id="5002">중식</div>
+						<div class="subSelectTab" id="theme_cd_5003" name="theme_cd" data-id="5003">일식</div>
+						<div class="subSelectTab" id="theme_cd_5004" name="theme_cd" data-id="5004">분식</div>
+						<div class="subSelectTab" id="theme_cd_5005" name="theme_cd" data-id="5005">서양식</div>
+						<div class="subSelectTab" id="theme_cd_5006" name="theme_cd" data-id="5006">제과점</div>
+						<div class="subSelectTab" id="theme_cd_5007" name="theme_cd" data-id="5007">패스트푸드</div>
+						<div class="subSelectTab" id="theme_cd_5008" name="theme_cd" data-id="5008">치킨</div>
+						<div class="subSelectTab" id="theme_cd_5009" name="theme_cd" data-id="5009" style="min-width:105px;">호프 및 간이주점</div>
+						<div class="subSelectTab" id="theme_cd_5010" name="theme_cd" data-id="5010">카페</div>
+						<div class="subSelectTab" id="theme_cd_5011" name="theme_cd" data-id="5011">기타 외국식</div>
+					</div>
+				</div>
+				음식점(11종) END
+
+				도소매(11종) START
+				<div style="display: none;" id="bizItem_2">
+					<div>
+						<div class="subSelectTab" id="theme_cd_2001" name="theme_cd" data-id="2001">문구점</div>
+						<div class="subSelectTab" id="theme_cd_2002" name="theme_cd" data-id="2002">서점</div>
+						<div class="subSelectTab" id="theme_cd_2003" name="theme_cd" data-id="2003">편의점</div>
+						<div class="subSelectTab" id="theme_cd_2004" name="theme_cd" data-id="2004">식료품점</div>
+						<div class="subSelectTab" id="theme_cd_2005" name="theme_cd" data-id="2005">휴대폰점</div>
+						<div class="subSelectTab" id="theme_cd_2006" name="theme_cd" data-id="2006">의류</div>
+						<div class="subSelectTab" id="theme_cd_2007" name="theme_cd" data-id="2007" style="min-width: 105px;">화장품/방향제</div>
+						<div class="subSelectTab" id="theme_cd_2008" name="theme_cd" data-id="2008">철물점</div>
+						<div class="subSelectTab" id="theme_cd_2009" name="theme_cd" data-id="2009">주유소</div>
+						<div class="subSelectTab" id="theme_cd_2010" name="theme_cd" data-id="2010">꽃집</div>
+						<div class="subSelectTab" id="theme_cd_2011" name="theme_cd" data-id="2011">슈퍼마켓</div>
+					</div>
+				</div>
+				도소매(11종) END
+
+				서비스(11종) START
+				<div style="display: none;" id="bizItem_3">
+					<div>
+						<div class="subSelectTab" id="theme_cd_1001" name="theme_cd" data-id="1001">인테리어</div>
+						<div class="subSelectTab" id="theme_cd_1002" name="theme_cd" data-id="1002">목욕탕</div>
+						<div class="subSelectTab" id="theme_cd_1003" name="theme_cd" data-id="1003">교습학원</div>
+						<div class="subSelectTab" id="theme_cd_1004" name="theme_cd" data-id="1004">어학원</div>
+						<div class="subSelectTab" id="theme_cd_1005" name="theme_cd" data-id="1005">예체능학원</div>
+						<div class="subSelectTab" id="theme_cd_1006" name="theme_cd" data-id="1006" style="min-width: 100px;">부동산중개업</div>
+						<div class="subSelectTab" id="theme_cd_1007" name="theme_cd" data-id="1007">이발소</div>
+						<div class="subSelectTab" id="theme_cd_1008" name="theme_cd" data-id="1008">미용실</div>
+						<div class="subSelectTab" id="theme_cd_1009" name="theme_cd" data-id="1009">세탁소</div>
+						<div class="subSelectTab" id="theme_cd_1010" name="theme_cd" data-id="1010">PC방</div>
+						<div class="subSelectTab" id="theme_cd_1011" name="theme_cd" data-id="1011">노래방</div>
+					</div>
+				</div>
+				서비스(11종) END
+
+				숙박(3종) START
+				<div style="display: none;" id="bizItem_4">
+					<div>
+						<div class="subSelectTab" id="theme_cd_4001" name="theme_cd" data-id="4001">호텔</div>
+						<div class="subSelectTab" id="theme_cd_4002" name="theme_cd" data-id="4002" style="min-width:160px;">여관(모텔포함) 및 여인숙</div>
+						<div class="subSelectTab" id="theme_cd_4003" name="theme_cd" data-id="4003">팬션</div>
+					</div>
+				</div>
+				숙박(3종) END -->
+				<!-- 2020.10.20[한광희] 테마코드 변경으로 인한 수정 END -->
+				<!-- 2020.12.02[심창무] 테마코드 변경으로 인한 수정 END -->
+			</div>
+			
+			<!-- 생활환경 정보 START -->
+			<div id="lifeEnvironmentToggle" class="btn_infoView infoOff"></div>
+			<!-- 생활환경 정보 END -->
+			
+			<div class="resultWrap">
+				<!-- 내 위치 버튼 START -->
+				<div class="currenPositionWrap">
+					<div class="currenPosition" style="bottom: 0;">
+						<!-- <span id="myMapAreaText"></span> -->
+						
+						<div class="locationboxwrap" id="selectArea">
+							<span class="selectAreaIcon">
+								<svg width="17" height="17" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<path d="M13.125 6.25C13.125 10.625 7.5 14.375 7.5 14.375C7.5 14.375 1.875 10.625 1.875 6.25C1.875 4.75816 2.46763 3.32742 3.52252 2.27252C4.57742 1.21763 6.00816 0.625 7.5 0.625C8.99184 0.625 10.4226 1.21763 11.4775 2.27252C12.5324 3.32742 13.125 4.75816 13.125 6.25Z" stroke="#4F4F4F" stroke-linecap="round" stroke-linejoin="round"/>
+									<path d="M7.5 8.125C8.53553 8.125 9.375 7.28553 9.375 6.25C9.375 5.21447 8.53553 4.375 7.5 4.375C6.46447 4.375 5.625 5.21447 5.625 6.25C5.625 7.28553 6.46447 8.125 7.5 8.125Z" stroke="#4F4F4F" stroke-linecap="round" stroke-linejoin="round"/>
+								</svg>						
+							</span>
+							<span id="myMapAreaText" class="selectArea">전국</span>
+						</div>
+						
+						
+						<button id="myMapLocation" class="btn_goPostion" type="button">
+							<svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<path d="M8.49918 14.1727C11.6323 14.1727 14.1722 11.6328 14.1722 8.49967C14.1722 5.36655 11.6323 2.82666 8.49918 2.82666C5.36607 2.82666 2.82617 5.36655 2.82617 8.49967C2.82617 11.6328 5.36607 14.1727 8.49918 14.1727Z" fill="white" stroke="#4F4F4F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+								<path d="M8.4999 10.5667C9.64163 10.5667 10.5672 9.64114 10.5672 8.49941C10.5672 7.35768 9.64163 6.43213 8.4999 6.43213C7.35817 6.43213 6.43262 7.35768 6.43262 8.49941C6.43262 9.64114 7.35817 10.5667 8.4999 10.5667Z" fill="white" stroke="#4F4F4F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+								<path d="M8.5 2.8269V1" stroke="#4F4F4F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+								<path d="M2.8269 8.49951H1" stroke="#4F4F4F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+								<path d="M8.5 14.1729V15.9998" stroke="#4F4F4F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+								<path d="M14.1729 8.49951H15.9998" stroke="#4F4F4F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+							</svg><!-- 현재위치로 -->
+						</button> 
+					</div> 
+					<div class="databtnWrap"style="bottom:0px !important;">
+						<!-- 2020.09.11[신예리] 웹접근성 문제로 인한 text추가 START -->
+						<!-- 생활환경 정보  -->
+						<button id="lifeEnvironmentToggle" class="btn_infoView infoOff" title="생활환경종합 팝업 열기 버튼">
+							<svg width="18" height="13" viewBox="0 0 18 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<path d="M13.2237 1.15562C11.7734 0.509204 10.1741 2.01021 9.17043 3.20443C8.16124 2.01021 6.56198 0.509204 5.11713 1.15562C3.23661 1.99377 2.32669 4.36031 3.0822 6.44199C3.83772 8.52366 9.14838 12.2761 9.14838 12.2761C9.14838 12.2761 14.4756 8.52366 15.2146 6.44199C15.9535 4.36031 15.1208 1.99377 13.2237 1.15562Z" stroke="#222222" stroke-linejoin="round"/>
+								<path d="M0 7.58142H7.03676L8.44302 4.93002L9.75552 9.2851L11.7408 3.98779L12.7004 7.58142H18" fill="white"/>
+								<path d="M0 7.58142H7.03676L8.44301 4.93002L9.75551 9.2851L11.7408 3.98779L12.7004 7.58142H18" stroke="#222222" stroke-linejoin="round"/>
+							</svg><br />종합
+						</button>
+						<!-- 업종밀집도변화/데이터보드on/off -->
+						<button id="showDataBoardBtn" class="databtn01" style="display: none;" title="업종밀집도 변화 데이터 보드 팝업 버튼">
+							<svg width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<path d="M11.4583 16L8.99989 13.9972L6.54152 16L6 15.4439L8.99989 13L12 15.4439L11.4583 16Z" fill="black"/>
+								<path d="M0.86546 12.13H17.1345V2.86968H0.86546V12.13ZM18 13H0V2H18V13Z" fill="black"/>
+								<path d="M11 1H7V2.4309e-08H11V1Z" fill="black"/>
+								<path d="M4.31963 9H2V8.22463H3.8796L5.9169 6.08001L7.69073 6.92296L9.54785 4.74907H12.5484L13.5059 5.55823L15.3515 4L16 4.54795L13.5059 6.65392L12.1681 5.52427H10.0174L7.95497 7.93759L6.14546 7.07785L4.31963 9" fill="black"/>
+							</svg><br>변화							
+						</button>
+						<!-- 통계수치on/off -->
+						<button id="showNumberBtn" class="databtn01" title="통계수치버튼" style="margin-bottom: 0%;">
+							<svg width="19" height="15" viewBox="0 0 19 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<path d="M10.3029 3.74991C10.5008 2.8286 9.93674 1.83959 9.043 1.5409C8.14927 1.2422 7.2643 1.74693 7.06638 2.66824C6.86846 3.58956 7.43253 4.57857 8.32627 4.87726C9.22 5.17596 10.105 4.67123 10.3029 3.74991Z" stroke="#222222" stroke-linecap="round" stroke-linejoin="round"></path>
+								<path d="M12.3009 12.7572C12.4989 11.8359 11.9348 10.8469 11.0411 10.5482C10.1473 10.2495 9.26235 10.7543 9.06442 11.6756C8.8665 12.5969 9.43057 13.5859 10.3243 13.8846C11.2181 14.1833 12.103 13.6785 12.3009 12.7572Z" stroke="#222222" stroke-linecap="round" stroke-linejoin="round"></path>
+								<path d="M4.59488 10.1816C4.79281 9.26024 4.22874 8.27123 3.335 7.97254C2.44126 7.67384 1.55629 8.17857 1.35837 9.09988C1.16045 10.0212 1.72452 11.0102 2.61826 11.3089C3.512 11.6076 4.39696 11.1029 4.59488 10.1816Z" stroke="#222222" stroke-linecap="round" stroke-linejoin="round"></path>
+								<path d="M17.6418 6.20255C17.8397 5.28124 17.2756 4.29223 16.3819 3.99353C15.4881 3.69484 14.6032 4.19957 14.4052 5.12088C14.2073 6.04219 14.7714 7.0312 15.6651 7.3299C16.5589 7.62859 17.4438 7.12386 17.6418 6.20255Z" stroke="#222222" stroke-linecap="round" stroke-linejoin="round"></path>
+								<path d="M11.6953 10.418L14.782 7.03452" stroke="#222222" stroke-linecap="round" stroke-linejoin="round"></path>
+								<path d="M3.98828 7.84229L7.07496 4.45884" stroke="#222222" stroke-linecap="round" stroke-linejoin="round"></path>
+								<path d="M8.90935 5.07212L10.2262 9.92725" stroke="#222222" stroke-linecap="round" stroke-linejoin="round"></path>
+							</svg><br>수치	
+						</button>
+						<!-- 범례 -->
+						<button onclick="#" id="legendInfoBtn" class="databtn02" title="범례 버튼">
+							<svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<g clip-path="url(#clip0_999_8968)">
+								<path d="M8.50033 1.4165L1.41699 4.95817L8.50033 8.49984L15.5837 4.95817L8.50033 1.4165Z" stroke="#222222" stroke-linecap="round" stroke-linejoin="round"/>
+								<path d="M1.41699 12.0415L8.50033 15.5832L15.5837 12.0415" stroke="#222222" stroke-linecap="round" stroke-linejoin="round"/>
+								<path d="M1.41699 8.5L8.50033 12.0417L15.5837 8.5" stroke="#222222" stroke-linecap="round" stroke-linejoin="round"/>
+								</g>
+								<defs>
+								<clipPath id="clip0_999_8968">
+								<rect width="17" height="17" fill="white"/>
+								</clipPath>
+								</defs>
+							</svg><br />범례
+						</button>
+						<!-- 2020.09.11[신예리] 웹접근성 문제로 인한 text추가 END -->
+						<!-- 범례 tooltip START --> 
+						<div class="tooltipbox" style="top: 0px; right: 45px;"> <!-- 2020.09.08[신예리] 범례 위치 조정 -->
+							<div class="tooltipbox_row">
+								<button type="button" class="syncBtn" id="reverseBtn"></button>
+								<div class="color_checkbox" id="color_range">
+									<!-- 색상선택 영역 -->
+								</div>
+								<button class="ColorRangeClose" id="dataRemarks_close" type="button" title="닫기">닫기</button> <!-- 2020.09.08[신예리] 범례 닫기 버튼 추가 -->
+							</div>
+							<div class="tooltipbox_row"> 
+								<div id="color_list" class="color_checkbox">
+									<!-- 색상 범위 영역 -->
+								</div>
+								<p style="margin-left: 10px;"></p>
+							</div> 
+						</div>
+						<!-- 범례 tooltip END -->
+					</div> 
+				</div>
+				
+				<div class="mapTypeBtnArea" id="bizMapType">
+			    	<ul>
+				        <li class="on" data-type="current-state">생활업종현황</li>
+				        <li data-type="change-business">업종밀집도변화</li>
+			        </ul>
+	    		</div>
+	    		
+	    		<!-- 업종밀집도변화 열지도 범례 START -->
+				<div class="tooltipbox_remarks" id="dataRemarks" style="top: -220px;">
+					<div id="dataRemarkHeat">
+						<div class="remarkersBubble_row">
+						<button class="ColorRangeClose02" id="dataRemarkHeat_close" type="button" title="닫기"></button> <!-- 2020.09.08[신예리] 범례 닫기 버튼 추가 -->
+							<div class="tooltipbox_Vrow">
+								<div class="tooltipbox_Vrow">
+									<p>반지름 조절(Radius)</p>
+									<div class="Rangecontainer">  
+										<div class="Rangeslider heatBlurSlider heatSlider" id="heatRadiusSlider"></div> 
+								  		<span id="heatRadiusText">20</span>
+									</div> 
+									<div class="Rangebottomrow">
+										<p>5</p>
+										<p>40</p>
+									</div>
+								</div>
+								
+								<div class="tooltipbox_Vrow">
+									<p>흐림도 조절(Blur)</p>
+									<div class="Rangecontainer">  
+										<div class="Rangeslider" id="heatBlurSlider"></div>
+								 		<span id="heatBlurText">70</span>
+									</div>
+									<div class="Rangebottomrow">
+										<p>20</p>
+										<p>120</p>
+									</div>
+								</div> 
+							</div> 
+						</div>
+					</div>
+				</div>
+				<!-- 업종밀집도변화 열지도 범례 START -->
+			</div>
+		</div>
+		
+		<!-- 업종밀집도변화 데이터보드 -->
+		<%@include file="/WEB-INF/jsp/m2020/map/biz/changeBusiness.jsp" %>
+		<%@include file="/WEB-INF/jsp/m2020/map/biz/currentState.jsp" %>
+	</div>
+</body>
+</html> 

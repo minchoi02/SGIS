@@ -1,0 +1,194 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@include file="/WEB-INF/jsp/includes/taglib.jsp" %>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<meta name="title" content="총조사 시각화 지도">
+	<meta name="sub-title" content="경제">
+<script>
+$(document).ready(function() {
+	srvLogWrite('O0', '13', '02', '01', '경제', '');
+});
+</script>
+</head>
+<body>
+	<div id="summary-container" class="dashboard__statistics">
+		<h3 class="dashboard__statistics__title"><span data-id="ecnmy-name">9차 산업분류</span> 사업체 총괄</h3>
+		<ul>
+			<c:forEach begin="1" end="3" var="s">
+				<c:choose>
+					<c:when test="${s==1 }">
+						<c:set var="title" value="사업체 수"/>
+						<c:set var="unit" value="개"/>
+					</c:when>
+					<c:when test="${s==2 }">
+						<c:set var="title" value="종사자 수"/>
+						<c:set var="unit" value="명"/>
+					</c:when>
+					<c:when test="${s==3 }">
+						<c:set var="title" value="매출액"/>
+						<c:set var="unit" value="백만원"/>
+					</c:when>
+				</c:choose>
+				<li>
+					<h4>${title }</h4>
+					<p><span data-id="total-number-T${s }0" class="total-num">-</span>${unit }</p>
+					<p><span data-id="total-number-rt-T${s }0" class="state state-up">-%</span></p>
+					<p><span data-id="total-number-data-T${s }0"></span></p>
+				</li>
+			</c:forEach>
+			<li data-type="summary-others" style="display:none;">
+				<h4 id="ranking"></h4>
+				<div class="dashboard__con col-3">
+					<div>
+						<p><span data-id="total-rank-T10" class="total-num">-</span>위</p>
+						<p>사업체 수</p>
+					</div>
+					<div>
+						<p><span data-id="total-rank-T20" class="total-num">-</span>위</p>
+						<p>종사자 수</p>
+					</div>
+					<div>
+						<p><span data-id="total-rank-T30" class="total-num">-</span>위</p>
+						<p>매출액</p>
+					</div>
+				</div>
+				<jsp:include page="./ranking-tooltip.jsp"/>
+			</li>
+		</ul>
+	</div>
+	<div class="dashboard__box" id="area-population-container">
+		<h3 data-id="text-year" data-append-text="년 지역별 사업체 수 분포"></h3>
+		<div class="dashboard__chart" style="height: 250px; background-color: #ddd;">
+			<div id="tree-map"></div>
+			<div data-type="tooltip" class="modal dashboard-layer" style="display:none;"></div>
+		</div>
+		<div class="dashboard__chart__con">
+			<p>출처:통계청,「경제총조사」</p>
+<!-- 			<div class="cf"> -->
+<!-- 				<a href="#" data-save-image="true" data-confirm-text="해당 차트 이미지를 저장하시겠습니까?" data-target="area-population-container">차트 저장</a> -->
+<!-- 			</div> -->
+		</div>	
+	</div>
+	<div class="dashboard__box" id="corp-count-of-industry-chart-container">
+		<h3 data-id="text-year" data-append-text="년 산업별 사업체 수" data-title-unit="(단위 : 천개)"></h3>
+		<div class="dashboard__chart" style="height: 380px;">
+			<div style="height: 370px;overflow: auto">
+				<div id="corp-count-of-industry-chart"style="width:1200px;"></div>
+			</div>
+		</div>
+		<div data-type="tooltip" class="modal dashboard-layer" style="display:none;">
+		</div>
+		<div class="dashboard__chart__con">
+			<p>출처:통계청,「경제총조사」</p>
+			<div class="cf">
+<!-- 				<a href="#" data-save-image="true" data-confirm-text="해당 차트 이미지를 저장하시겠습니까?" data-target="corp-count-of-industry-chartcorp-count-of-industry-chart-container">차트 저장</a> -->
+				<a href="#" onclick='window.open($totSurvMap.ui.themeData.ecnmy.dispOptions[1][0].stattbUrl,"_blank");return false;'>통계표 보기</a>
+			</div>
+		</div>	
+	</div>
+	<div class="dashboard__box" id="worker-count-of-industry-chart-container">
+		<h3 data-id="text-year" data-append-text="년 산업별 종사자 수" data-title-unit="(단위 : 천명)"></h3>
+		<div class="dashboard__chart" style="height: 380px;">
+			<div style="overflow: auto;height: 370px;">
+				<div id="worker-count-of-industry-chart" style="width:1200px;"></div>
+			</div>
+			<div class="legend-container">
+				<div class="legend-box" style="display: inline-block;">
+					<span class="legend-box" style="background-color:rgb(35, 183, 209)"></span>
+					<span class="legend-label">남자</span>
+				</div>
+				<div class="legend-box" style="display: inline-block;">
+					<span class="legend-box" style="background-color:rgb(255, 82, 83);"></span>
+					<span class="legend-label">여자</span>
+				</div>
+			</div>
+		</div>
+		<div data-type="tooltip" class="modal dashboard-layer" style="display:none;">
+		</div>
+		<div class="dashboard__chart__con">
+			<p>출처:통계청,「경제총조사」</p>
+			<div class="cf">
+<!-- 				<a href="#" data-save-image="true" data-confirm-text="해당 차트 이미지를 저장하시겠습니까?" data-target="worker-count-of-industry-chart-container">차트 저장</a> -->
+				<a href="#" onclick='window.open($totSurvMap.ui.themeData.ecnmy.dispOptions[1][0].stattbUrl,"_blank");return false;'>통계표 보기</a>
+			</div>
+		</div>	
+	</div>
+	<div class="dashboard__box" id="sales-of-industry-chart-container">
+		<h3 data-id="text-year" data-append-text="년 산업별 매출액" data-title-unit="(단위 : 백만원)"></h3>
+		<div class="dashboard__chart" style="height: 360px;">
+			<div style="overflow: auto;height: 350px;">
+				<div id="sales-of-industry-chart" style="width:1700px;"></div>
+			</div>
+		</div>
+		<div data-type="tooltip" class="modal dashboard-layer" style="display:none;">
+		</div>
+		<div class="dashboard__chart__con">
+			<p>출처:통계청,「경제총조사」</p>
+			<div class="cf">
+<!-- 				<a href="#" data-save-image="true" data-confirm-text="해당 차트 이미지를 저장하시겠습니까?" data-target="sales-of-industry-chart-container">차트 저장</a> -->
+				<a href="#" onclick='window.open($totSurvMap.ui.themeData.ecnmy.dispOptions[1][0].stattbUrl,"_blank");return false;'>통계표 보기</a>
+			</div>
+		</div>	
+	</div>
+	<div class="dashboard__box" id="profit-ratio-of-industry-chart-container">
+		<h3 data-id="text-year" data-append-text="년 산업별 영업이익률" data-title-unit="(단위 : %)"></h3>
+		<div class="dashboard__chart" style="height: 360px;">
+			<div style="overflow: auto;height: 350px;">
+				<div id="profit-ratio-of-industry-chart" style="width:1000px;"></div>
+			</div>
+		</div>
+		<div data-type="tooltip" class="modal dashboard-layer" style="display:none;">
+		</div>
+		<div class="dashboard__chart__con">
+			<p>출처:통계청,「경제총조사」</p>
+			<div class="cf">
+<!-- 				<a href="#" data-save-image="true" data-confirm-text="해당 차트 이미지를 저장하시겠습니까?" data-target="profit-ratio-of-industry-chart-container">차트 저장</a> -->
+				<a href="#" onclick='window.open($totSurvMap.ui.themeData.ecnmy.dispOptions[1][0].stattbUrl,"_blank");return false;'>통계표 보기</a>
+			</div>
+		</div>	
+	</div>
+	<div class="dashboard__box" id="worker-composition-chart-container">
+		<h3 data-id="text-year" data-append-text="년 보건업·사회복지 서비스업 종사자 구성비" data-title-unit="(단위 : 천명)"></h3>
+		<div class="chart-container" style="position: relative;">
+			<div class="dashboard__chart">
+				<div id="worker-composition-1-chart"></div>
+			</div>
+			<div data-type="tooltip" class="modal dashboard-layer" style="display:none;"></div>
+		</div>
+		<div class="chart-container" style="position: relative;">
+			<div class="dashboard__chart">
+				<div id="worker-composition-2-chart"></div>
+			</div>
+			<div data-type="tooltip" class="modal dashboard-layer" style="display:none;"></div>
+		</div>
+		<div class="dashboard__chart__con">
+			<p>출처:통계청,「경제총조사」</p>
+			<div class="cf">
+<!-- 				<a href="#" data-save-image="true" data-confirm-text="해당 차트 이미지를 저장하시겠습니까?" data-target="worker-composition-chart-container">차트 저장</a> -->
+				<a href="#" onclick='window.open($totSurvMap.ui.themeData.ecnmy.dispOptions[1][0].stattbUrl,"_blank");return false;'>통계표 보기</a>
+			</div>
+		</div>	
+	</div>
+	<script>
+    
+        $(function(){
+        
+            var _match2 = $('.dashboard__map').offset().top;
+            $('body').scroll(function(){
+                var _match = $('body').scrollTop();
+                
+                
+              
+                if(_match >= _match2){
+                    
+                    $('.map__above').addClass('sticky')
+                } else {
+                    $('.map__above').removeClass('sticky')
+                }
+                
+            })
+        })
+        </script>
+</body>
+</html> 

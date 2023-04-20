@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.sgis.m2020.main.service.mapper.kairos.MainMapper">
+	
+	<!-- 메인화면 공지사항 조회 -->
+	<select id="selectMainBoardList" parameterType="hashmap" resultType="hashmap">
+		SELECT TOP 2
+			   BOARD_CD
+			 , POST_NO
+			 , POST_TITLE
+			 , TO_CHAR(REG_TS,'YYYY-MM-DD') AS REG_TS
+		  FROM SRV_DT_BOARD
+		 WHERE BOARD_CD = #{board_cd}
+		   AND POST_DEPTH = 0
+		 ORDER BY PRIORITY_DISP_YN DESC, POST_NO DESC
+	</select>
+	
+	<!-- 메인화면 통계주제도 조회 -->
+	<select id="selectMainThematicList" parameterType="hashmap" resultType="hashmap">
+		SELECT TOP 3 *
+		  FROM (
+				<if test="cate_id == 'CTGR_005'">
+				SELECT '1' AS SEQ
+					 , 'sAXkcVzk5V202007141335257355ued9032uw' AS STAT_THEMA_MAP_ID
+					 , '코로나19 발생 현황' AS TITLE
+				  FROM DUAL
+				 UNION ALL
+				</if>
+			    SELECT SEQ
+					 , STAT_THEMA_MAP_ID
+					 , TITLE
+				  FROM (SELECT '2' AS SEQ
+				 		     , STAT_THEMA_MAP_ID
+							 , TITLE
+						  FROM MNG_DT_THEMAMAPLIST
+						  LEFT OUTER JOIN (SELECT DET_CD
+												, COUNT(*) AS CNT
+											 FROM SRV_LOG
+											WHERE CALL_TS BETWEEN ADD_MONTHS(SYSDATE, -1)
+											  AND SYSDATE - 1
+											  AND F_CLASS_1_CD = 'B0'
+											  AND F_CLASS_2_CD = '03'
+											  AND F_CLASS_3_CD = '01'
+											  AND F_CLASS_4_CD = '00'
+											GROUP BY DET_CD
+										  ) LOG_DET_CD ON TITLE = LOG_DET_CD.DET_CD
+						 WHERE THEMA_MAP_CATEGORY = #{cate_id}
+						   AND SRV_YN = 'Y'
+						   AND MOBILE_SRV_YN = 'Y'
+						 ORDER BY NVL(LOG_DET_CD.CNT, 0) DESC, PRIORITY_DISP_YN DESC, REG_TS DESC
+					   )
+			   )
+		 ORDER BY SEQ
+	</select>
+	
+	<!-- 메인화면 생활환경종합 조회 -->
+	<select id="selectMainLivingEnvironment" parameterType="hashmap" resultType="hashmap">	
+		SELECT TOP 1
+			   NVL(ROUND(AVG(Z_SCORE), 2), 0) AS Z_SCORE
+			 , B_CLASS_IDX_ID
+		  FROM SRV_DT_EMDONG_IX_ORDER
+		 WHERE 1=1
+		 <if test='sido_cd != null and sido_cd != "" and sido_cd != "99" '>
+		 	AND SIDO_CD = #{sido_cd}
+		 </if>
+		 <if test='sgg_cd != null and sgg_cd != "" and sgg_cd != "999" '>
+		 	AND SGG_CD = #{sgg_cd}
+		 </if>
+		 GROUP BY B_CLASS_IDX_ID
+		 ORDER BY Z_SCORE DESC
+	</select>
+</mapper>

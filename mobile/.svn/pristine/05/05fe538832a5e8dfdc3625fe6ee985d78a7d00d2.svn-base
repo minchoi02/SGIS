@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@include file="/WEB-INF/jsp/m2020/includes/taglib.jsp" %>
+<%@ page trimDirectiveWhitespaces="true" %>
+<html lang="ko">
+<head>
+	<title>[행정통계시각화지도] SGIS plus mobile</title>
+	<%@include file="/WEB-INF/jsp/m2021/includes/includeMapHeaderFile.jsp" %> 
+	<script src="${ctx }/resources/m2021/js/administStatsUtils.js"></script>
+	<script src="${ctx }/resources/m2021/js/administStatsMap.js"></script>
+	<script src="${ctx }/resources/m2021/js/theme/administStats/${param.theme }.js"></script>
+	
+	<sitemesh:write property='head'/>
+	<style>
+		.legend-box{border-radius: 50%;}
+		.modal[data-type=tooltip]{z-index:99;}
+	</style>
+</head>
+<body>
+<!-- <script>
+$(document).ready(function(){
+	var theme = ${param.theme};
+	if(theme == newly){
+		$(".nav-layer li:nth-child(1)").addClass("on3");
+	}
+})
+</script> -->
+	<c:set var="metaTitle" scope="request"><sitemesh:write property='meta.title'/></c:set>
+	<jsp:include page="/WEB-INF/jsp/m2021/includes/includeHeader.jsp"/>
+	<div class="container">
+		<!-- begin:: -->
+		<div class="dashboard">
+			<!-- s::내위치 -->
+			
+			<div class="nav-2022">
+				<div class="leftCol">
+					<span class="btnNavThematic"><sitemesh:write property='meta.sub-title'/>
+						<svg width="12" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 8C6.71875 8 6.46875 7.90625 6.28125 7.71875L1.28125 2.71875C0.875 2.34375 0.875 1.6875 1.28125 1.3125C1.65625 0.90625 2.3125 0.90625 2.6875 1.3125L7 5.59375L11.2812 1.3125C11.6562 0.90625 12.3125 0.90625 12.6875 1.3125C13.0938 1.6875 13.0938 2.34375 12.6875 2.71875L7.6875 7.71875C7.5 7.90625 7.25 8 7 8Z" /></svg>
+					</span>
+					<!-- <span class="maptit03">총인구(명)</span> -->
+				</div>
+				<div class="rightCol">
+					<p id="data-year" class="data-year" style="margin-right:3px;"></p>
+					<div class="locationboxwrap2">
+						<span class="selectAreaIcon2">
+							<svg width="17" height="17" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<path d="M13.125 6.25C13.125 10.625 7.5 14.375 7.5 14.375C7.5 14.375 1.875 10.625 1.875 6.25C1.875 4.75816 2.46763 3.32742 3.52252 2.27252C4.57742 1.21763 6.00816 0.625 7.5 0.625C8.99184 0.625 10.4226 1.21763 11.4775 2.27252C12.5324 3.32742 13.125 4.75816 13.125 6.25Z"  stroke-linecap="round" stroke-linejoin="round"/>
+								<path d="M7.5 8.125C8.53553 8.125 9.375 7.28553 9.375 6.25C9.375 5.21447 8.53553 4.375 7.5 4.375C6.46447 4.375 5.625 5.21447 5.625 6.25C5.625 7.28553 6.46447 8.125 7.5 8.125Z" stroke-linecap="round" stroke-linejoin="round"/>
+							</svg>						
+						</span>
+						<div id="location-text"><p>전국</p></div>
+					</div>
+					<!-- <p id="data-year" class="data-year" style="margin-left:3px;"></p> -->
+				</div>
+			</div>
+		<%-- 	<div class="map__above d-flex" style="justify-content:flex-end;">	
+				<div id="location-text"><p>전국</p></div>
+				<div class="map__above__btn d-flex justify-content-between align-items-center">
+					<p id="data-year" class="data-year"></p>
+					<!-- 이거 추가해야함 -->
+					<a href="#" class="btn__option" onclick="javascript:srvLogWrite('O0', '14', '03', '01', '', ''); $('#filter').animate({'right': '0'},175);return false;"><img src="${ctx }/resources/m2021/img/map/i_option.png" alt="조회"></a>
+				</div>
+			</div> --%>
+			
+			<div class="nav-layer" style="width:140px !important;">
+				<ul>
+					<li id="newly"><a href="/mobile/m2021/map/administStats.sgis?theme=newly" onclick="javascript:srvLogWrite('O0', '51', '01', '08', '행정통계 시각화 지도-신혼부부통계', '')">신혼부부통계</a></li>
+					<li id="house"><a href="/mobile/m2021/map/administStats.sgis?theme=house" onclick="javascript:srvLogWrite('O0', '51', '01', '08', '행정통계 시각화 지도-주택소유통계', '')">주택소유통계</a></li>
+					<li id="middl"><a href="/mobile/m2021/map/administStats.sgis?theme=middl" onclick="javascript:srvLogWrite('O0', '51', '01', '08', '행정통계 시각화 지도-중·장년층행정통계', '')">중·장년층행정통계</a></li>
+					<li id="retun"><a href="/mobile/m2021/map/administStats.sgis?theme=retun" onclick="javascript:srvLogWrite('O0', '51', '01', '08', '행정통계 시각화 지도-귀농어·귀촌인통계', '')">귀농어·귀촌인통계</a></li>
+					<li id="more1"><a href="/mobile/m2021/administStats.sgis?theme=more1" onclick="javascript:srvLogWrite('O0', '51', '01', '08', '행정통계 시각화 지도-일자리행정통계', '')">일자리행정통계</a></li>
+					<li id="more2"><a href="/mobile/m2021/administStats.sgis?theme=more2" onclick="javascript:srvLogWrite('O0', '51', '01', '08', '행정통계 시각화 지도-퇴직연금통계', '')">퇴직연금통계</a></li>
+					<li id="more3"><a href="/mobile/m2021/administStats.sgis?theme=more3" onclick="javascript:srvLogWrite('O0', '51', '01', '08', '행정통계 시각화 지도-임금근로 일자리 동향', '')">임금근로 일자리 동향</a></li>
+				</ul>
+			</div>
+			<div id="administStatsRegionPop" class="popWrap region" style="display:none;">
+				<div class="popBox">
+					<div class="popHeader">
+						<span class="popTitle" id="popupArea_title">관심지역변경</span>
+						<button id="common_popup_area_close" class="btn_popClose" type="button">
+<!-- 							<svg width="15" height="15" viewBox="0 0 15 15" fill="#000" xmlns="http://www.w3.org/2000/svg">
+								<path d="M1 1L13 13" stroke="black" stroke-linecap="round" stroke-linejoin="round"></path>
+								<path d="M13 1L1 13" stroke="black" stroke-linecap="round" stroke-linejoin="round"></path>
+							</svg> -->
+						</button>
+					</div>
+					<div class="select_wrap" style="margin-top: 10px;">
+						<select id="map-navigator-sido"></select>
+					</div>
+	<!-- 				<div id="map-navigator-sido"></div> -->
+					<div class="PopFooter" style="margin-top:10px">
+						<button id="administStatsRegionPopOk" class="btn_popType4" type="button">확인</button>
+					</div>
+					
+				</div>
+				
+			</div>
+			<div id="common_popup_back" class="aside_back" style="z-index:901; display:none;"></div>
+			
+			<div id="year-container" class="option__container" style="display:none;">
+				<div class="popBox">
+					<div class="popHeader">
+						<span class="popTitle" id="">선택년도 변경</span>
+						<button id="common_popup_year_close" class="btn_popClose" type="button">
+<!-- 							<svg width="15" height="15" viewBox="0 0 15 15" fill="#000" xmlns="http://www.w3.org/2000/svg">
+								<path d="M1 1L13 13" stroke="black" stroke-linecap="round" stroke-linejoin="round"></path>
+								<path d="M13 1L1 13" stroke="black" stroke-linecap="round" stroke-linejoin="round"></path>
+							</svg> -->
+						</button>
+					</div>
+					<div class="select_wrap" style="margin-top: 10px;">
+						<select id="year-list"></select>
+					</div>
+	<!-- 				<div id="map-navigator-sido"></div> -->
+					<div class="PopFooter" style="margin-top:10px">
+						<button id="administStatsYearPopOk" class="btn_popType4" type="button">확인</button>
+					</div>
+					
+				</div>
+				
+			</div>
+			
+			<!-- <div id="year-container" class="option__container" style="">
+				<h4>연도 선택</h4>
+				<div class="option__content d-flex justify-content-start">
+					<div id="year-list">
+					</div>
+					<p class="my-5px" id="year-alert"></p>
+				</div>
+				<div id="year-list"></div>
+			</div> -->
+			
+			<!-- e::내위치 -->
+			<div class="dashboard__map" style="background:none;">
+				<c:if test="${param.theme=='retun' }">
+					<div class="administration__city">
+						<a href="#n">귀농</a>
+						<a href="#n">귀어</a>
+						<a href="#n">귀촌</a>
+					</div>
+				</c:if>
+				
+				<div id="map" style="position: relative;height:calc(100vh - 150px)"></div>
+				<div style="width:100%;height: 60vh;top:0;">
+					<div id="map-tooltip" class="modal dashboard-layer" style="display:none;">
+						<div class="modal__header d-flex justify-content-between align-items-center">
+							<h3 data-id="title" class="modal__tit">-</h3>
+							<a href="#" class="btn__cancel" onclick="$('#map-tooltip').hide(); return false;"><span class="btn-close btn-close--black"></span></a>
+						</div>
+						<div class="modal__body">
+							<p><span class="color-blue font-large fwbold" data-id="total-rank"></span><span class="color-blue font-large fwbold">위 </span><span class="color-blue font-large fwbold" data-id="region-name"></span></p>
+							<p><span class="color-red font-large fwbold" data-id="value">-</span><span data-id="map-unit"></span></p>
+							<p>(구성비 <span class="color-red" data-id="ratio">-</span>%)</p>
+							<a id="detail-area-button" href="#">지역 이동</a>
+						</div>						
+					</div>
+				</div>
+			</div>
+			<!--[2022-10-17] 지도 저장 수정  -->
+			<div style="position:absolute; z-index:300; right:0px; bottom:68px">
+				<a href="#" onclick="javascript:srvLogWrite('O0', '14', '04', '01', '', '');" class="icon-point" id="map-download" data-save-image="true" data-confirm-text="해당 지도 이미지를 저장하시겠습니까?" data-target="map">지도 저장</a>
+			</div>
+<!-- 			<div class="text-right">
+				<a href="#" onclick="javascript:srvLogWrite('O0', '13', '04', '01', '', '');" class="icon-point" id="map-download" data-save-image="true" data-confirm-text="해당 지도 이미지를 저장하시겠습니까?" data-target="map">지도 저장</a>
+			</div> -->
+			<div class="dashAbsolute">
+				<h3 class="dashboard__statistics__title dashOpen">
+					<sitemesh:write property='meta.sub-title'/> 총괄
+					<svg width="20" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 8C6.71875 8 6.46875 7.90625 6.28125 7.71875L1.28125 2.71875C0.875 2.34375 0.875 1.6875 1.28125 1.3125C1.65625 0.90625 2.3125 0.90625 2.6875 1.3125L7 5.59375L11.2812 1.3125C11.6562 0.90625 12.3125 0.90625 12.6875 1.3125C13.0938 1.6875 13.0938 2.34375 12.6875 2.71875L7.6875 7.71875C7.5 7.90625 7.25 8 7 8Z"></path></svg>
+				</h3>
+				<div class="scroll">
+					<div class="px15">
+						<sitemesh:write property='body'/>
+					</div>
+					<div class="dashboard__notice">
+						<div class="dashboard__notice__box">
+							차트를 선택하면  색상타입 주제도가 팝업으로 출력되어  
+							통계값을 시각화 지도로 볼 수 있습니다 .
+						</div>
+						<p>위 결과에 대한 자세한 내용은 ‘<span id="press_release_text"></span>’ 보도자료를 참조하시기 바랍니다.</p>
+						<div class="text-center"><a href="#n" onclick="javascript:srvLogWrite('O0', '14', '05', '01', '', '');" id="press-release-button" class="dashboard__notice__btn">보도자료</a></div>
+					</div>
+					<div class="dim" style="z-index:1000;display:none;"></div>
+				</div>
+			</div>
+		</div>
+		<!-- end:: -->
+	</div>
+	<script>
+    
+        $(function(){
+        
+            var _match2 = $('.dashboard__map').offset().top;
+            $('body').scroll(function(){
+                var _match = $('body').scrollTop();
+                
+                
+              
+                if(_match >= _match2){
+                    
+                    $('.map__above').addClass('sticky')
+                } else {
+                    $('.map__above').removeClass('sticky')
+                }
+                
+            })
+            
+            $(".nav-layer li").click(function(){
+    			$(this).addClass('on3');
+    		});
+    		
+            
+        })
+        </script>
+	<jsp:include page="/WEB-INF/jsp/m2021/includes/includeFilter.jsp"/>
+	<jsp:include page="/WEB-INF/jsp/m2021/includes/includeToolipMap.jsp"/>
+	<jsp:include page="/WEB-INF/jsp/m2021/includes/includeFooter.jsp"/>
+</body>
+</html>

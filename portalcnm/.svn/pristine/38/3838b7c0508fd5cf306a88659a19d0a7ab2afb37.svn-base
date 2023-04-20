@@ -1,0 +1,963 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd" >
+<html>
+<head>
+<meta http-equiv="pragma" content="no-cache" />
+<meta http-equiv="cache-control" content="no-cache" />
+<meta http-equiv="expires" content="0" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>SGIS 관리자사이트(CNM)</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<link rel="stylesheet" href="./../include/css/login.css" />
+<link rel="stylesheet" href="./../include/css/default.css" />
+<script type="text/javascript" src="./../include/js/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="./../include/js/default.js"></script>
+<script type="text/javascript" src="../../js/common/includeHead.js"></script>
+<script src="../../js/common/common.js"></script>
+<script type="text/javascript" src="../../js/plugins/plupload/plupload.full.min.js"></script>
+<script type='text/javascript' src='../../js/plugins/jquery.form.js'></script>
+<script type='text/javascript' src='../../js/plugins/ckeditor/ckeditor.js'></script>
+<script type="text/javascript" src="../../js/DT/themaMapAdd.js"></script>
+</head>
+<body>
+	<div class="wrapper">
+		<!-- cls:header start -->
+		<div class="header">
+			<div class="defaultbox">
+				<div class="logo">
+					<a href="#"><img src="./../include/img/pic/pic_logo.png" alt="logo" /></a>
+				</div>
+				<div class="navi">
+					<a href="#">마이페이지</a>
+				</div>
+			</div>
+			<div class="menuWrapper">
+				<div class="menuCnm">
+					<ul>
+						<li><a>서비스 현황</a></li>
+						<li><a>사용자 현황</a></li>
+						<li><a class="on">서비스 관리</a></li>
+						<li><a>정보 관리</a></li>
+						<li><a>게시판 관리</a></li>
+						<li><a>회원 관리</a></li>
+					</ul>
+				</div>
+			</div>
+			<div class="subMenuWrapper">
+				<div class="subMenu"></div>
+			</div>
+		</div>
+		<!-- cls:header end -->
+		<div class="contents">
+			<!-- cls:left start -->
+			<div class="lefitMenuWrapper">
+				<div class="leftTitle">서비스 관리</div>
+				<div class="leftMenu">
+					<ul>
+						<li><a href="./../DT/policyMapManager.html">정책통계지도</a></li>
+						<li><a class="on" href="./../DT/themaMapManage.html">주제도</a>
+							<ul class="sub">
+								<li><a href="./../DT/themaMapManage.html">카테고리</a></li>
+								<li><a class="on" href="./../DT/themaMapMainManage.html">주제도</a></li>
+								<li><a href="./../DT/themaMapRegManager.html">데이터 관리</a>
+							</ul>
+						</li>
+						<li><a href="./../DT/Community.html">통계 소통지도</a></li>	
+						<li><a href="./../DT/KOSISManage.html">KOSIS목록 관리</a></li>
+						<li><a href="./../DT/PUBDataManage.html">공공데이터 관리</a></li>
+						<li><a href="./../DT/BannerManage.html">배너관리</a></li>
+						<li><a href="/s-portalcnm/contents/gsks/gsks_01_04.jsp">자료제공 관리</a></li>
+						<li><a href="./../DT/Gallerylist.html">통계갤러리 관리</a></li>
+						<li><a href="./../DT/MobileManage.html">모바일 서비스 관리</a></li>
+					</ul>
+				</div>
+			</div>
+			<!-- cls:left end -->
+			<div class="acticle">
+				<div class="location">
+					<p>
+						<a><img src="./../include/img/ico/ico_home.png" alt="home" /></a>
+						<span><img src="./../include/img/ico/ico_navi.png" alt="다음" /></span>
+						<span>서비스관리</span> <span><img
+							src="./../include/img/ico/ico_navi.png" alt="다음" /></span> <span
+							class="fontS"> 주제도 </span>
+					</p>
+				</div>
+				<p class="title01">통계주제도 등록 - 관리형(색상, 시계열, 증감, 분할, POI)</p>
+				<div class="tilte03">기본정보</div>
+				<div class="searchBtn04">
+						<a id="addButton" class="easyui-linkbutton" style="cursor: pointer;padding: 0px 7px;font: 11px Arial, Helvetica, sans-serif;color: #f7f1f1;background: #4d74d0;margin-top: -22px;">미리보기</a>
+						<!-- <a id="addButton" style="cursor: pointer;position:absolute;left:834px;top:96px;padding:4px 15px;font:12px Arial, Helvetica, sans-serif;color:#ffffff;background:#4d74d0;" alt="등록, 미리보기">미리보기</a> --> 
+						<a id="cancelButton" style="cursor: pointer"><img src="./../include/img/btn/btn_cancel.png" alt="취소" /></a>
+				</div>
+				<form id="resetForm">
+					<table class="apiTable02" summary="기본정보">
+						<caption>기본정보</caption>
+						<colgroup>
+							<col width="141" />
+							<col width="230" />
+							<col width="141" />
+							<col width="230" />
+						</colgroup>
+						<tbody>
+
+							<tr>
+								<th>주제도 종류</th>
+								<td><select class="input_use08" id="THEMA_SEL"
+									style="width: 180px">
+										<option value="00">선택해주세요</option>
+										<option value="04">증감</option>
+										<option value="05">시계열</option>
+										<option value="03">색상</option>
+										<option value="06">분할</option>
+										<option value="07">POI</option>
+								</select></td>
+								<th>카테고리명</th>
+								<td><select class="input_use08" id="CATEGORY_NM"
+									style="width: 180px">
+								</select></td>
+							</tr>
+							<tr>
+								<th>제목</th>
+								<td colspan="3"><input type="text" class="input_use13"
+									id="THEMA_TITLE" maxlength="100" style="width: 538px;" /></td>
+							</tr>
+							<tr>
+								<th>서비스 여부</th>
+								<td><select class="input_use08" id="SRV_YN"
+									style="width: 180px">
+										<option value="Y" select>예</option>
+										<option value="N">아니오</option>
+
+								</select></td>
+								<th>모바일서비스 여부</th>
+								<td><select class="input_use08" id="MOB_YN"
+									style="width: 180px">
+										<option value="N" select>아니오</option>
+										<option value="Y">예</option>
+
+								</select></td>
+							</tr>
+							<tr id="MOBILE_URL">
+								<th>모바일 서비스URL</th>
+								<td colspan="3"><input type="text" class="input_use13"
+									id="MOB_URL" maxlength="100" /></td>
+							</tr>
+							<tr>
+								<th>관련 통계</th>
+								<td><input type="text" class="input_use08" id="THEMA_AVR"
+									maxlength="100" /></td>
+								<th>자치구 여부</th>
+								<td><select class="input_use08" id="BOR_YN"
+									style="width: 180px">
+										<option value="0" selected>아니오</option>
+										<option value="1">예</option>
+
+								</select></td>
+							</tr>
+							<tr>
+								<th>시작 X</th>
+								<td><input type="text" class="input_use08" id="START_X"
+									maxlength="100" value="989674" /></td>
+								<th>시작 Y</th>
+								<td><input type="text" class="input_use08" id="START_Y"
+									maxlength="100" value="1818313" /></td>
+							</tr>
+							<tr>
+								<th>표현 방법</th>
+								<td><input type="text" class="input_use08" id="DISP_MTHD"
+									maxlength="100" /></td>
+								<th>우선표출 여부</th>
+								<td><select class="input_use08" id="PRIORTY_YN"
+									style="width: 180px">
+										<option value="N" selected>아니오</option>
+										<option value="Y">예</option>
+
+								</select></td>
+							</tr>
+							<tr>
+								<th>최소 축소 레벨</th>
+								<td><select class="input_use08" id="MIN_MAP"
+									style="width: 180px">
+										<option value="01" select>시/도</option>
+										<option value="02">시/군/구</option>
+										<option value="03">읍/면/동</option>
+										<option value="04">집계구</option>
+
+								</select></td>
+								<th>최대 확대 레벨</th>
+								<td><select class="input_use08" id="MAX_MAP"
+									style="width: 180px">
+										<option value="01">시/도</option>
+										<option value="02">시/군/구</option>
+										<option value="03" selected>읍/면/동</option>
+										<option value="04">집계구</option>
+
+								</select></td>
+							</tr>
+							<tr class="POI_area2">
+								<th>데이터ID/년도</th>
+								<td colspan="3">
+									<input type="text" class="input_use08" id="DATA_ID" maxlength="100" disabled />
+									<input type="text" class="input_use08" id="DATA_YEAR" maxlength="100" disabled />
+									<div class="searchBtn04" id="DATASEARCHButton" style="margin-top:10px;">
+										<a style="cursor: pointer"><img src="./../include/img/btn/btn_search.png" alt="검색" /></a>
+									</div>
+								</td>
+							</tr>
+							<tr class="POI_area2">
+								<th>경계년도</th>
+								<td><select class="input_use08" id="LEFT_YEAR" style="width: 180px"></select></td>
+								<th>경계고정</th>
+								<td><select class="input_use08" id="FIX_YN" name="fix_yn"
+									style="width: 180px">
+										<option value="Y" selected>예</option>
+										<option value="N">아니오</option>
+
+								</select></td>
+							</tr>
+							<tr id="MAP_DATA_YEAR_LAY">
+								<th>분할맵ID/년도</th>
+								<td colspan="3"><input type="text" class="input_use08"
+									id="MAP_DATA_ID" maxlength="100" disabled /> <input
+									type="text" class="input_use08" id="MAP_DATA_YEAR"
+									maxlength="100" disabled />
+
+									<div class="searchBtn04" id="MAPDATASEARCHButton">
+										<a style="cursor: pointer"><img
+											src="./../include/img/btn/btn_search.png" alt="검색" /></a>
+									</div></td>
+							</tr>
+							
+							<!-- mng_s 2017. 08. 04 석진혁 -->
+							<tr>
+								<th id="POI_area3">통계년도 정보</th>
+								<td id="POI_area4">
+									<select class="input_use08" id="YEAR_INFO" style="width: 180px">
+									</select>
+								</td>
+								<th id="POI_DISP_YN_AREA" class="POI_area2">POI 여부</th>
+								<td class="POI_area2">
+									<select class="input_use08" id="POI_DISP_YN" style="width: 180px">
+										<option value="N" select>아니오</option>
+										<option value="Y">예</option>
+									</select>
+								</td>
+							</tr>
+							<tr id="POI_area">
+								<th>POI 테마코드</th>
+								<td id="POI_area5">
+									<input type="text" class="input_use08" id="THEME_CD" maxlength="100" style="width:100px;" disabled />
+									<div class="searchBtn04" id="THEMASEARCHButton" style="float:right; margin-top:10px;">
+										<a style="cursor: pointer"><img src="./../include/img/btn/btn_search.png" alt="검색" /></a>
+									</div>
+								</td>
+								<th>POI 산업분류코드</th>
+								<td id="POI_area6">
+									<input type="text" class="input_use08" id="CORP_CLASS_CD" maxlength="100" style="width:100px;" disabled />
+									<div class="searchBtn04" id="CORPCLASSSEARCHButton" style="float:right; margin-top:10px;">
+										<a style="cursor: pointer"><img src="./../include/img/btn/btn_search.png" alt="검색" /></a>
+									</div>
+								</td>
+							</tr>
+							<!-- mng_e 2017. 08. 04 석진혁 -->
+							
+							<tr>
+								<th>설 명</th>
+								<td colspan="3"><textarea rows="20" cols="100"
+										class="input_use15" id="THEMA_EXP" style="resize: none"
+										maxlength="1000"></textarea></td>
+							</tr>
+						</tbody>
+					</table>
+				</form>
+
+				<form id="resetFormA">
+					<div class="tilte03" id="THEMA_T">OO형 정보A</div>
+					<table class="apiTable02" summary="기본정보">
+						<caption>기본정보</caption>
+						<colgroup>
+							<col width="141" />
+							<col width="230" />
+							<col width="141" />
+							<col width="230" />
+						</colgroup>
+						<tbody>
+
+							<tr id="chart_title1">
+								<th>표출정보 차트 명</th>
+								<td colspan="3"><input type="text" class="input_use13"
+									style="width: 538px;" id="LEFT_CHART" maxlength="33" /></td>
+							</tr>
+							<tr>
+								<th>표출정보 명</th>
+								<td><input type="text" class="input_use08" id="LEFT_TITLE"
+									maxlength="3" /></td>
+								<th>표출정보 단위</th>
+								<td><input type="text" class="input_use08" id="LEFT_UNIT"
+									maxlength="5" /></td>
+							</tr>
+							<tr>
+								<th>표출정보 툴팁 명</th>
+								<td colspan="3"><input type="text" class="input_use13"
+									id="LEFT_TTIP" maxlength="100" style="width: 538px;" /></td>
+							</tr>
+							<tr>
+								<th>표출정보 출처</th>
+								<td colspan="3"><input type="text" class="input_use13"
+									id="LEFT_SOURCE_URL" maxlength="100" style="width: 538px;" /></td>
+							</tr>
+							<!-- 분할맵일경우 -->
+							<tr id="MAP_TTIP_TITLEA1">
+								<th>분할맵 명</th>
+								<td><input type="text" class="input_use08"
+									id="LEFT_MAP_TITLE" maxlength="3" /></td>
+								<th>분할맵 단위</th>
+								<td><input type="text" class="input_use08"
+									id="LEFT_MAP_UNIT" maxlength="5" /></td>
+							</tr>
+							<tr id="MAP_TTIP_TITLEA2">
+								<th>분할맵 툴팁 명</th>
+								<td colspan="3"><input type="text" class="input_use13"
+									id="LEFT_MAP_TTIP_TITLE" maxlength="100" style="width: 538px;" /></td>
+							</tr>
+							<tr id="MAP_TTIP_TITLEA3">
+								<th>분할맵 출처</th>
+								<td colspan="3"><input type="text" class="input_use13"
+									id="LEFT_MAP_INFO" maxlength="100" style="width: 538px;" /></td>
+							</tr>
+						</tbody>
+					</table>
+					<div id="div_sido">
+						<a><input type="checkbox" id="add_check_sido"
+							name="add_check_sido" checked="true" style='margin-top: 15px;' />
+							시 / 도</a> <input type="hidden" id="data_sido" />
+					</div>
+					<table class="apiTable02" id="sido_table">
+						<tr id="EXMPL_TR">
+							<th>단계</th>
+							<td colspan="9"><select class="input_use08" id="EXMPL_SIDO">
+									<option value="5">5단계</option>
+									<option value="6">6단계</option>
+									<option value="7" selected>7단계</option>
+									<option value="8">8단계</option>
+									<option value="9">9단계</option>
+									<option value="10">10단계</option>
+							</select></td>
+						</tr>
+						<tr id="TRA_SIDO">
+							<th id="TH1_SIDO">1</th>
+							<td><input type="text" id="SEP1_SIDO" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH2_SIDO">2</th>
+							<td><input type="text" id="SEP2_SIDO" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH3_SIDO">3</th>
+							<td><input type="text" id="SEP3_SIDO" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH4_SIDO">4</th>
+							<td><input type="text" id="SEP4_SIDO" maxlength=50
+								class="input_use17" /></td>
+							<th>5</th>
+							<td id="TD5_SIDO"><input type="text" id="SEP5_SIDO"
+								maxlength=50 class="input_use17" /></td>
+						</tr>
+						<tr id="TRB_SIDO">
+
+							<th id="TH6_SIDO">6</th>
+							<td id="TD6_SIDO"><input type="text" id="SEP6_SIDO"
+								maxlength=50 class="input_use17" /></td>
+							<th id="TH7_SIDO">7</th>
+							<td id="TD7_SIDO"><input type="text" id="SEP7_SIDO"
+								maxlength=50 class="input_use17" /></td>
+							<th id="TH8_SIDO">8</th>
+							<td id="TD8_SIDO"><input type="text" id="SEP8_SIDO"
+								maxlength=50 class="input_use17" /></td>
+							<th id="TH9_SIDO">9</th>
+							<td id="TD9_SIDO"><input type="text" id="SEP9_SIDO"
+								maxlength=50 class="input_use17" /></td>
+							<th id="TH10_SIDO">10</th>
+							<td id="TD10_SIDO"><input type="text" id="SEP10_SIDO"
+								maxlength=50 class="input_use17" /></td>
+						</tr>
+					</table>
+					<div id="div_sigugun">
+						<a><input type="checkbox" id="add_check_sigugun"
+							name="add_check_sigugun" style='margin-top: 15px;' /> 시 / 구 / 군</a>
+						<input type="hidden" id="data_gugn" />
+					</div>
+					<table class="apiTable02" id="sigugun_table">
+						<tr id="EXMPL_TR">
+							<th>단계</th>
+							<td colspan="9"><select class="input_use08"
+								id="EXMPL_SIGUGUN">
+									<option value="5">5단계</option>
+									<option value="6">6단계</option>
+									<option value="7" selected>7단계</option>
+									<option value="8">8단계</option>
+									<option value="9">9단계</option>
+									<option value="10">10단계</option>
+							</select></td>
+						</tr>
+						<tr id="TRA_SIGUGUN">
+							<th id="TH1_SIGUGUN">1</th>
+							<td><input type="text" id="SEP1_SIGUGUN" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH2_SIGUGUN">2</th>
+							<td><input type="text" id="SEP2_SIGUGUN" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH3_SIGUGUN">3</th>
+							<td><input type="text" id="SEP3_SIGUGUN" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH4_SIGUGUN">4</th>
+							<td><input type="text" id="SEP4_SIGUGUN" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH5_SIGUGUN">5</th>
+							<td id="TD5"><input type="text" id="SEP5_SIGUGUN"
+								maxlength=50 class="input_use17" /></td>
+						</tr>
+						<tr id="TRB">
+
+							<th id="TH6_SIGUGUN">6</th>
+							<td id="TD6_SIGUGUN"><input type="text" id="SEP6_SIGUGUN"
+								maxlength=50 class="input_use17" /></td>
+							<th id="TH7_SIGUGUN">7</th>
+							<td id="TD7_SIGUGUN"><input type="text" id="SEP7_SIGUGUN"
+								maxlength=50 class="input_use17" /></td>
+							<th id="TH8_SIGUGUN">8</th>
+							<td id="TD8_SIGUGUN"><input type="text" id="SEP8_SIGUGUN"
+								maxlength=50 class="input_use17" /></td>
+							<th id="TH9_SIGUGUN">9</th>
+							<td id="TD9_SIGUGUN"><input type="text" id="SEP9_SIGUGUN"
+								maxlength=50 class="input_use17" /></td>
+							<th id="TH10_SIGUGUN">10</th>
+							<td id="TD10_SIGUGUN"><input type="text" id="SEP10_SIGUGUN"
+								maxlength=50 class="input_use17" /></td>
+						</tr>
+					</table>
+					<div id="div_dong">
+						<a><input type="checkbox" id="add_check_dong"
+							name="add_check_dong" style='margin-top: 15px;' /> 읍 / 면 / 동</a> <input
+							type="hidden" id="data_dong" />
+					</div>
+					<table class="apiTable02" id="dong_table">
+						<tr id="EXMPL_TR">
+							<th>단계</th>
+							<td colspan="9"><select class="input_use08" id="EXMPL_DONG">
+									<option value="5">5단계</option>
+									<option value="6">6단계</option>
+									<option value="7" selected>7단계</option>
+									<option value="8">8단계</option>
+									<option value="9">9단계</option>
+									<option value="10">10단계</option>
+							</select></td>
+						</tr>
+						<tr id="TRA">
+							<th id="TH1_DONG">1</th>
+							<td><input type="text" id="SEP1_DONG" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH2_DONG">2</th>
+							<td><input type="text" id="SEP2_DONG" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH3_DONG">3</th>
+							<td><input type="text" id="SEP3_DONG" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH4_DONG">4</th>
+							<td><input type="text" id="SEP4_DONG" maxlength=50
+								class="input_use17" /></td>
+							<th>5</th>
+							<td id="TD5"><input type="text" id="SEP5_DONG" maxlength=50
+								class="input_use17" /></td>
+						</tr>
+						<tr id="TRB">
+
+							<th id="TH6_DONG">6</th>
+							<td id="TD6_DONG"><input type="text" id="SEP6_DONG"
+								maxlength=50 class="input_use17" /></td>
+							<th id="TH7_DONG">7</th>
+							<td id="TD7_DONG"><input type="text" id="SEP7_DONG"
+								maxlength=50 class="input_use17" /></td>
+							<th id="TH8_DONG">8</th>
+							<td id="TD8_DONG"><input type="text" id="SEP8_DONG"
+								maxlength=50 class="input_use17" /></td>
+							<th id="TH9_DONG">9</th>
+							<td id="TD9_DONG"><input type="text" id="SEP9_DONG"
+								maxlength=50 class="input_use17" /></td>
+							<th id="TH10_DONG">10</th>
+							<td id="TD10_DONG"><input type="text" id="SEP10_DONG"
+								maxlength=50 class="input_use17" /></td>
+						</tr>
+					</table>
+					<div id="div_ex">
+						<a><input type="checkbox" id="add_check_ex"
+							name="add_check_ex" style='margin-top: 15px;' /> 집계구</a> <input
+							type="hidden" id="data_ex" />
+					</div>
+					<table class="apiTable02" id="ex_table">
+						<tr id="EXMPL_TR">
+							<th>단계</th>
+							<td colspan="9"><select class="input_use08" id="EXMPL_EX">
+									<option value="5">5단계</option>
+									<option value="6">6단계</option>
+									<option value="7" selected>7단계</option>
+									<option value="8">8단계</option>
+									<option value="9">9단계</option>
+									<option value="10">10단계</option>
+							</select></td>
+						</tr>
+						<tr id="TRA">
+							<th id="TH1_EX">1</th>
+							<td><input type="text" id="SEP1_EX" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH2_EX">2</th>
+							<td><input type="text" id="SEP2_EX" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH3_EX">3</th>
+							<td><input type="text" id="SEP3_EX" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH4_EX">4</th>
+							<td><input type="text" id="SEP4_EX" maxlength=50
+								class="input_use17" /></td>
+							<th>5</th>
+							<td id="TD5"><input type="text" id="SEP5_EX" maxlength=50
+								class="input_use17" /></td>
+						</tr>
+						<tr id="TRB">
+
+							<th id="TH6_EX">6</th>
+							<td id="TD6_EX"><input type="text" id="SEP6_EX" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH7_EX">7</th>
+							<td id="TD7_EX"><input type="text" id="SEP7_EX" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH8_EX">8</th>
+							<td id="TD8_EX"><input type="text" id="SEP8_EX" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH9_EX">9</th>
+							<td id="TD9_EX"><input type="text" id="SEP9_EX" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH10_EX">10</th>
+							<td id="TD10_EX"><input type="text" id="SEP10_EX"
+								maxlength=50 class="input_use17" /></td>
+						</tr>
+					</table>
+				</form>
+				<div style="margin-top: 15px;" id="CHECK_DIV">
+					<a><input type="checkbox" id="add_check" name="add_check" /> <span
+						style="font-size: 15pt"> 정보 추가 </span></a>
+				</div>
+				<form id="resetFormB">
+					<div class="tilte03" id="THEMA_TT">OO형 정보B</div>
+					<table class="apiTable02" summary="기본정보">
+						<caption>기본정보</caption>
+						<colgroup>
+							<col width="141" />
+							<col width="230" />
+							<col width="141" />
+							<col width="230" />
+						</colgroup>
+						<tbody>
+							<tr id="chart_title2">
+								<th>표출정보 차트 명</th>
+								<td colspan="3"><input type="text" class="input_use13"
+									style="width: 538px;" id="RIGHT_CHART" maxlength="33" /></td>
+							</tr>
+							<tr>
+								<th>표출정보 명</th>
+								<td><input type="text" class="input_use08" id="RIGHT_TITLE"
+									maxlength="3" /></td>
+								<th>표출정보 단위</th>
+								<td><input type="text" class="input_use08" id="RIGHT_UNIT"
+									maxlength="5" /></td>
+							</tr>
+							<tr>
+								<th>표출정보 툴팁 명</th>
+								<td colspan="3"><input type="text" class="input_use13"
+									id="RIGHT_TTIP" maxlength="100" style="width: 538px;" /></td>
+
+							</tr>
+							<tr>
+								<th>표출정보 출처</th>
+								<td colspan="3"><input type="text" class="input_use13"
+									id="RIGHT_SOURCE_URL" maxlength="100" style="width: 538px;" /></td>
+							</tr>
+							<!-- 분할맵일경우 -->
+							<tr id="MAP_TTIP_TITLEA4">
+								<th>분할맵 명</th>
+								<td><input type="text" class="input_use08"
+									id="RIGHT_MAP_TITLE" maxlength="3" /></td>
+								<th>분할맵 단위</th>
+								<td><input type="text" class="input_use08"
+									id="RIGHT_MAP_UNIT" maxlength="5" /></td>
+							</tr>
+							<tr id="MAP_TTIP_TITLEA5">
+								<th>분할맵 툴팁 명</th>
+								<td colspan="3"><input type="text" class="input_use13"
+									id="RIGHT_MAP_TTIP_TITLE" maxlength="100" style="width: 538px;" /></td>
+							</tr>
+							<tr id="MAP_TTIP_TITLEA6">
+								<th>분할맵 출처</th>
+								<td colspan="3"><input type="text" class="input_use13"
+									id="RIGHT_MAP_INFO" maxlength="100" style="width: 538px;" /></td>
+							</tr>
+
+						</tbody>
+					</table>
+					<div id="div_sido_right">
+						<a><input type="checkbox" id="add_check_sido_right"
+							name="add_check_sido_right" checked="true"
+							style='margin-top: 15px;' /> 시 / 도</a> <input type="hidden"
+							id="data_sido_right" />
+					</div>
+					<table class="apiTable02" id="sido_table_right">
+						<tr id="EXMPL_TR">
+							<th>단계</th>
+							<td colspan="9"><select class="input_use08"
+								id="EXMPL_SIDO_RIGHT">
+									<option value="5">5단계</option>
+									<option value="6">6단계</option>
+									<option value="7" selected>7단계</option>
+									<option value="8">8단계</option>
+									<option value="9">9단계</option>
+									<option value="10">10단계</option>
+							</select></td>
+						</tr>
+						<tr id="TRA_SIDO_RIGHT">
+							<th id="TH1_SIDO_RIGHT">1</th>
+							<td><input type="text" id="SEP1_SIDO_RIGHT" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH2_SIDO_RIGHT">2</th>
+							<td><input type="text" id="SEP2_SIDO_RIGHT" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH3_SIDO_RIGHT">3</th>
+							<td><input type="text" id="SEP3_SIDO_RIGHT" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH4_SIDO_RIGHT">4</th>
+							<td><input type="text" id="SEP4_SIDO_RIGHT" maxlength=50
+								class="input_use17" /></td>
+							<th>5</th>
+							<td id="TD5_SIDO_RIGHT"><input type="text"
+								id="SEP5_SIDO_RIGHT" maxlength=50 class="input_use17" /></td>
+						</tr>
+						<tr id="TRB_SIDO">
+
+							<th id="TH6_SIDO_RIGHT">6</th>
+							<td id="TD6_SIDO_RIGHT"><input type="text"
+								id="SEP6_SIDO_RIGHT" maxlength=50 class="input_use17" /></td>
+							<th id="TH7_SIDO_RIGHT">7</th>
+							<td id="TD7_SIDO_RIGHT"><input type="text"
+								id="SEP7_SIDO_RIGHT" maxlength=50 class="input_use17" /></td>
+							<th id="TH8_SIDO_RIGHT">8</th>
+							<td id="TD8_SIDO_RIGHT"><input type="text"
+								id="SEP8_SIDO_RIGHT" maxlength=50 class="input_use17" /></td>
+							<th id="TH9_SIDO_RIGHT">9</th>
+							<td id="TD9_SIDO_RIGHT"><input type="text"
+								id="SEP9_SIDO_RIGHT" maxlength=50 class="input_use17" /></td>
+							<th id="TH10_SIDO_RIGHT">10</th>
+							<td id="TD10_SIDO_RIGHT"><input type="text"
+								id="SEP10_SIDO_RIGHT" maxlength=50 class="input_use17" /></td>
+						</tr>
+					</table>
+					<div id="div_sigugun_right">
+						<a><input type="checkbox" id="add_check_sigugun_right"
+							name="add_check_sigugun_right" style='margin-top: 15px;' /> 시 /
+							구 / 군</a> <input type="hidden" id="data_gugun_right" />
+					</div>
+					<table class="apiTable02" id="sigugun_table_right">
+						<tr id="EXMPL_TR">
+							<th>단계</th>
+							<td colspan="9"><select class="input_use08"
+								id="EXMPL_SIGUGUN_RIGHT">
+									<option value="5">5단계</option>
+									<option value="6">6단계</option>
+									<option value="7" selected>7단계</option>
+									<option value="8">8단계</option>
+									<option value="9">9단계</option>
+									<option value="10">10단계</option>
+							</select></td>
+						</tr>
+						<tr id="TRA_SIGUGUN">
+							<th id="TH1_SIGUGUN_RIGHT">1</th>
+							<td><input type="text" id="SEP1_SIGUGUN_RIGHT" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH2_SIGUGUN_RIGHT">2</th>
+							<td><input type="text" id="SEP2_SIGUGUN_RIGHT" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH3_SIGUGUN_RIGHT">3</th>
+							<td><input type="text" id="SEP3_SIGUGUN_RIGHT" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH4_SIGUGUN_RIGHT">4</th>
+							<td><input type="text" id="SEP4_SIGUGUN_RIGHT" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH5_SIGUGUN_RIGHT">5</th>
+							<td id="TD5"><input type="text" id="SEP5_SIGUGUN_RIGHT"
+								maxlength=50 class="input_use17" /></td>
+						</tr>
+						<tr id="TRB">
+
+							<th id="TH6_SIGUGUN_RIGHT">6</th>
+							<td id="TD6_SIGUGUN_RIGHT"><input type="text"
+								id="SEP6_SIGUGUN_RIGHT" maxlength=50 class="input_use17" /></td>
+							<th id="TH7_SIGUGUN_RIGHT">7</th>
+							<td id="TD7_SIGUGUN_RIGHT"><input type="text"
+								id="SEP7_SIGUGUN_RIGHT" maxlength=50 class="input_use17" /></td>
+							<th id="TH8_SIGUGUN_RIGHT">8</th>
+							<td id="TD8_SIGUGUN_RIGHT"><input type="text"
+								id="SEP8_SIGUGUN_RIGHT" maxlength=50 class="input_use17" /></td>
+							<th id="TH9_SIGUGUN_RIGHT">9</th>
+							<td id="TD9_SIGUGUN_RIGHT"><input type="text"
+								id="SEP9_SIGUGUN_RIGHT" maxlength=50 class="input_use17" /></td>
+							<th id="TH10_SIGUGUN_RIGHT">10</th>
+							<td id="TD10_SIGUGUN_RIGHT"><input type="text"
+								id="SEP10_SIGUGUN_RIGHT" maxlength=50 class="input_use17" /></td>
+						</tr>
+					</table>
+					<div id="div_dong_right">
+						<a><input type="checkbox" id="add_check_dong_right"
+							name="add_check_dong_right" style='margin-top: 15px;' /> 읍 / 면 /
+							동</a> <input type="hidden" id="data_dong_right" />
+					</div>
+					<table class="apiTable02" id="dong_table_right">
+						<tr id="EXMPL_TR">
+							<th>단계</th>
+							<td colspan="9"><select class="input_use08"
+								id="EXMPL_DONG_RIGHT">
+									<option value="5">5단계</option>
+									<option value="6">6단계</option>
+									<option value="7" selected>7단계</option>
+									<option value="8">8단계</option>
+									<option value="9">9단계</option>
+									<option value="10">10단계</option>
+							</select></td>
+						</tr>
+						<tr id="TRA">
+							<th id="TH1_DONG_RIGHT">1</th>
+							<td><input type="text" id="SEP1_DONG_RIGHT" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH2_DONG_RIGHT">2</th>
+							<td><input type="text" id="SEP2_DONG_RIGHT" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH3_DONG_RIGHT">3</th>
+							<td><input type="text" id="SEP3_DONG_RIGHT" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH4_DONG_RIGHT">4</th>
+							<td><input type="text" id="SEP4_DONG_RIGHT" maxlength=50
+								class="input_use17" /></td>
+							<th>5</th>
+							<td id="TD5_RIGHT"><input type="text" id="SEP5_DONG_RIGHT"
+								maxlength=50 class="input_use17" /></td>
+						</tr>
+						<tr id="TRB">
+
+							<th id="TH6_DONG_RIGHT">6</th>
+							<td id="TD6_DONG_RIGHT"><input type="text"
+								id="SEP6_DONG_RIGHT" maxlength=50 class="input_use17" /></td>
+							<th id="TH7_DONG_RIGHT">7</th>
+							<td id="TD7_DONG_RIGHT"><input type="text"
+								id="SEP7_DONG_RIGHT" maxlength=50 class="input_use17" /></td>
+							<th id="TH8_DONG_RIGHT">8</th>
+							<td id="TD8_DONG_RIGHT"><input type="text"
+								id="SEP8_DONG_RIGHT" maxlength=50 class="input_use17" /></td>
+							<th id="TH9_DONG_RIGHT">9</th>
+							<td id="TD9_DONG_RIGHT"><input type="text"
+								id="SEP9_DONG_RIGHT" maxlength=50 class="input_use17" /></td>
+							<th id="TH10_DONG_RIGHT">10</th>
+							<td id="TD10_DONG_RIGHT"><input type="text"
+								id="SEP10_DONG_RIGHT" maxlength=50 class="input_use17" /></td>
+						</tr>
+					</table>
+					<div id="div_ex_right">
+						<a><input type="checkbox" id="add_check_ex_right"
+							name="add_check_ex_right" style='margin-top: 15px;' /> 집계구</a> <input
+							type="hidden" id="data_ex_right" />
+					</div>
+					<table class="apiTable02" id="ex_table_right">
+						<tr id="EXMPL_TR">
+							<th>단계</th>
+							<td colspan="9"><select class="input_use08"
+								id="EXMPL_EX_RIGHT">
+									<option value="5">5단계</option>
+									<option value="6">6단계</option>
+									<option value="7" selected>7단계</option>
+									<option value="8">8단계</option>
+									<option value="9">9단계</option>
+									<option value="10">10단계</option>
+							</select></td>
+						</tr>
+						<tr id="TRA">
+							<th id="TH1_EX_RIGHT">1</th>
+							<td><input type="text" id="SEP1_EX_RIGHT" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH2_EX_RIGHT">2</th>
+							<td><input type="text" id="SEP2_EX_RIGHT" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH3_EX_RIGHT">3</th>
+							<td><input type="text" id="SEP3_EX_RIGHT" maxlength=50
+								class="input_use17" /></td>
+							<th id="TH4_EX_RIGHT">4</th>
+							<td><input type="text" id="SEP4_EX_RIGHT" maxlength=50
+								class="input_use17" /></td>
+							<th>5</th>
+							<td id="TD5"><input type="text" id="SEP5_EX_RIGHT"
+								maxlength=50 class="input_use17" /></td>
+						</tr>
+						<tr id="TRB">
+
+							<th id="TH6_EX_RIGHT">6</th>
+							<td id="TD6_EX_RIGHT"><input type="text" id="SEP6_EX_RIGHT"
+								maxlength=50 class="input_use17" /></td>
+							<th id="TH7_EX_RIGHT">7</th>
+							<td id="TD7_EX_RIGHT"><input type="text" id="SEP7_EX_RIGHT"
+								maxlength=50 class="input_use17" /></td>
+							<th id="TH8_EX_RIGHT">8</th>
+							<td id="TD8_EX_RIGHT"><input type="text" id="SEP8_EX_RIGHT"
+								maxlength=50 class="input_use17" /></td>
+							<th id="TH9_EX_RIGHT">9</th>
+							<td id="TD9_EX_RIGHT"><input type="text" id="SEP9_EX_RIGHT"
+								maxlength=50 class="input_use17" /></td>
+							<th id="TH10_EX_RIGHT">10</th>
+							<td id="TD10_EX_RIGHT"><input type="text"
+								id="SEP10_EX_RIGHT" maxlength=50 class="input_use17" /></td>
+						</tr>
+					</table>
+				</form>
+			</div>
+		</div>
+	</div>
+	<div class="maskbg"></div>
+	<div class="maskcontent"></div>
+	<!-- cls:footer start -->
+	<div class="footerWrapper"></div>
+	
+	<div class="popupWrapper">
+		<div class="aplPopupWrapper">
+			<div class="aplPopupTitle">
+				<div class="myTitleFont" id="popTitle">사용자 정의</div>
+				<div class="myXbtn">
+					<a style="cursor: pointer"><img
+						src="./../include/img/btn/btn_popupX.png" alt="종료" /></a>
+				</div>
+			</div>
+			<form id="popupForm">
+				<table class="popupTable" summary="연관어 상세정보popup">
+					<caption>사용자 정의popup</caption>
+
+					<tbody>
+						<tr>
+
+							<th class="right">단계</th>
+							<td colspan="3"><select class="input_use08" id="EXMPL">
+									<option value="5">5단계</option>
+									<option value="6">6단계</option>
+									<option value="7" selected>7단계</option>
+									<option value="8">8단계</option>
+									<option value="9">9단계</option>
+									<option value="10">10단계</option>
+							</select></td>
+						</tr>
+
+						<tr id="TRA">
+							<th id="TH1">정보1</th>
+							<td><input type="text" id="SEP1" maxlength=50
+								class="input_use08" /></td>
+							<th id="TH2">정보2</th>
+							<td><input type="text" id="SEP2" maxlength=50
+								class="input_use08" /></td>
+						</tr>
+						<tr id="TRB">
+							<th id="TH3">정보3</th>
+							<td><input type="text" id="SEP3" maxlength=50
+								class="input_use08" /></td>
+							<th id="TH4">정보4</th>
+							<td><input type="text" id="SEP4" maxlength=50
+								class="input_use08" /></td>
+						</tr>
+						<tr id="TRC">
+							<th>정보5</th>
+							<td id="TD5"><input type="text" id="SEP5" maxlength=50
+								class="input_use08" /></td>
+							<th id="TH6">정보6</th>
+							<td id="TD6"><input type="text" id="SEP6" maxlength=50
+								class="input_use08" /></td>
+						</tr>
+						<tr id="TRD">
+							<th id="TH7">정보7</th>
+							<td id="TD7"><input type="text" id="SEP7" maxlength=50
+								class="input_use08" /></td>
+							<th id="TH8">정보8</th>
+							<td id="TD8"><input type="text" id="SEP8" maxlength=50
+								class="input_use08" /></td>
+						</tr>
+						<tr id="TRE">
+							<th id="TH9">정보9</th>
+							<td id="TD9"><input type="text" id="SEP9" maxlength=50
+								class="input_use08" /></td>
+							<th id="TH10">정보10</th>
+							<td id="TD10"><input type="text" id="SEP10" maxlength=50
+								class="input_use08" /></td>
+						</tr>
+					</tbody>
+				</table>
+			</form>
+			<input type="hidden" id="stat_thema_map_id"/>
+			<input type="hidden" id="theme"/>
+			<input type="hidden" id="mapType"/>
+			
+			<div class="btnbox">
+				<a id="addButtonDisabledPop"><img
+					src="./../../img/btn_regist02disabled.png" alt="등록" /></a> <a
+					id="modifyButtonDisabled"><img
+					src="./../../img/btn_modify_disabled.png" alt="수정" /></a> <a
+					id="addButtonPop" style="cursor: pointer"><img
+					src="./../include/img/btn/btn_regist02.png" alt="등록" /></a> <a
+					id="modifyButton" style="cursor: pointer"><img
+					src="./../include/img/btn/btn_modify.png" alt="수정" /></a> <a
+					class="cancel" style="cursor: pointer" id="addButtonCan"><img
+					src="./../include/img/btn/btn_cancel.png" alt="취소" /></a>
+			</div>
+		</div>
+	</div>
+	<div class="Popup_Info" style="display:none;" id="interactive_laypopup">
+		<div class="PopupCont">
+			<div style="font-size:20px;margin:19px 10px -34px 29px;">통계주제도 미리보기</div>
+			<button type="button" style="z-index:100;background-image:url('./../include/img/common/popup_close_x.png');cursor: pointer;" class="Popup_close1" onclick="javascript:closeWin();">창닫기</button>
+			<div id="slides">
+				<iframe onload="loading();" id='my_frame'></iframe>
+			</div>
+			<div class="CloseZone">
+				<div class="popmm">
+					<button type="button" class="Popup_close2" style="padding:0;cursor: pointer;" onclick="javascript:closeWin();">취소</button>
+					<button type="button" class="Popup_close2" style="margin-right:8px;padding:1px;cursor: pointer;" onclick="javascript:openWin();">등록</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- <div class="popBox guganSettingLayer" id="guganLayout"
+		style="width: 560px;">
+
+		<div class="tabs" id="guganSetting" style="width: 560px;">
+			<a class="btnStyle01 ac on">사용자 정의</a>
+		</div>
+		<div id="slider">
+			<table class="goganList JColResizer" id="range" width="560px" cellspacing="0" cellpadding="0">
+				<tr>
+					<td style="width: 10%; background: rgb(204, 204, 204);"></td>
+					<td style="width: 10%; background: rgb(198, 188, 193);"></td>
+					<td style="width: 10%; background: rgb(193, 173, 183);"></td>
+					<td style="width: 10%; background: rgb(187, 157, 173);"></td>
+					<td style="width: 10%; background: rgb(182, 142, 163);"></td>
+					<td style="width: 10%; background: rgb(176, 127, 153);"></td>
+					<td style="width: 10%; background: rgb(171, 111, 142);"></td>
+					<td style="width: 10%; background: rgb(165, 96, 132);"></td>
+					<td style="width: 10%; background: rgb(160, 80, 122);"></td>
+					<td style="width: 10%; background: rgb(154, 65, 112);"></td>
+				</tr>
+			</table>
+		</div>
+
+		<p id="text">10%</p>
+		<div class="btnBox">
+		<a class="btnStyle01" id="guganResult">적용</a>
+		</div>
+	</div> -->
+</body>
+</html>

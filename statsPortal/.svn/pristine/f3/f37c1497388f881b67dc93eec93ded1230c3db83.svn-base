@@ -1,0 +1,169 @@
+package kostat.sop.ServiceAPI.sbr.service.Impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import egovframework.rte.fdl.cmmn.EgovAbstractServiceImpl;
+import kostat.sop.ServiceAPI.sbr.mapper.SbrStatsMapper;
+import kostat.sop.ServiceAPI.sbr.service.SbrStatsService;
+import kostat.sop.ServiceAPI.sbr.vo.SbrVo;
+
+@Service("sbrStatsService")
+public class SbrStatsServiceImpl  extends EgovAbstractServiceImpl implements SbrStatsService {
+	
+	@Resource( name = "SbrStatsMapper" )
+	private SbrStatsMapper sbrStatsMapper;
+
+	@Override
+	public List<Map<String, Object>> selectAllCensusThemeInfo() throws Exception {
+		List<Map<String, Object>> bigList = selectCensusBigThemeInfo();
+		
+		for(int i = 0 ; i < bigList.size() ; i++) {
+			//System.out.println(bigList.get(i));
+			Map<String, Object> param = bigList.get(i);
+			List<Map<String, Object>> smallList = selectCensusSmallThemeInfo((String)param.get("b_theme_cd"));
+			bigList.get(i).put("s_theme_list", smallList);
+		}
+		
+		return bigList;
+	}
+	
+	
+	public List<Map<String, Object>> selectCensusBigThemeInfo() {
+		return sbrStatsMapper.selectCensusBigThemeInfo();
+	}
+	
+	public List<Map<String, Object>> selectCensusSmallThemeInfo(String b_theme_cd) {
+		return sbrStatsMapper.selectCensusSmallThemeInfo(b_theme_cd);
+	}
+
+
+	@Override
+	public String getDdata() throws Exception {
+		return sbrStatsMapper.selectTestData();
+	}
+
+	@Override
+	public List<Map<String, Object>> getCodeList(SbrVo sbrVo) throws Exception {
+		return sbrStatsMapper.selectCodeList(sbrVo);
+	}
+	
+	@Override
+	public List<String> getCompanyCountByAll() throws Exception {
+		return sbrStatsMapper.selectCompanyCountByAll();
+	}
+
+
+	@Override
+	public Map<String, Object> getActiveCompanyCount(SbrVo sbrVo) throws Exception {
+		
+		if( sbrVo.getBiz_cd() == null || sbrVo.getBiz_cd().equals(""))sbrVo.setBiz_cd("999"); 
+		if( sbrVo.getCnd_cd() == null || sbrVo.getCnd_cd().equals(""))sbrVo.setCnd_cd("999");
+		
+		return sbrStatsMapper.selectActiveCompanyCount(sbrVo);
+	}
+
+	// 종합분석 - 업종분석 - 계폐업현황
+	@Override
+	public List<Map<String, String>> getOpenCloseCompanyCount() throws Exception {
+		// TODO Auto-generated method stub
+		return sbrStatsMapper.selectOpenCloseCompanyCount();
+	}
+
+
+	@Override
+	public List getBizCodeList() throws Exception {
+		return sbrStatsMapper.selectBizCodeList();
+	}
+
+
+	@Override
+	public Map<String, Object> getAreaInfo(SbrVo sbrVo) throws Exception {
+		sbrVo = getBordCd(sbrVo);
+		return sbrStatsMapper.selectAreaInfo(sbrVo);
+	}
+	
+	@Override
+	public List getSbrRankListInfo(SbrVo sbrVo) throws Exception {
+		sbrVo = getBordCd(sbrVo);
+		return sbrStatsMapper.selectRanklistInfo(sbrVo);
+	}
+	
+	
+	private SbrVo getBordCd(SbrVo sbrVo) {
+		String bordCd = sbrVo.getAdm_cd();
+		if(bordCd.length() >= 2) sbrVo.setSido_cd(bordCd.substring(0,2));
+		if(bordCd.length()>2) sbrVo.setSigungu_cd(bordCd.substring(2,5));
+		if(bordCd.length()>5) sbrVo.setDong_cd(bordCd.substring(5,7));
+		return sbrVo;
+	}
+
+
+	@Override
+	public List getSbrMapList(SbrVo sbrVo) throws Exception {
+		// TODO Auto-generated method stub
+		return sbrStatsMapper.selectSbrMapList(sbrVo);
+	}
+
+
+	@Override
+	public List<?> getSbrCompanyInfoList(SbrVo sbrVo) throws Exception {
+
+		if( sbrVo.getBiz_cd() == null || sbrVo.getBiz_cd().equals(""))sbrVo.setBiz_cd("999"); 
+		if( sbrVo.getCnd_cd() == null || sbrVo.getCnd_cd().equals(""))sbrVo.setCnd_cd("999");
+		
+		return sbrStatsMapper.selectSbrCompanyInfoList(sbrVo);
+	}
+
+
+	@Override
+	public List<Map<String, String>> getGrowthChart(SbrVo sbrVo) throws Exception {
+		
+		//if( sbrVo.getBiz_cd() == null || sbrVo.getBiz_cd().equals(""))sbrVo.setBiz_cd("999");
+		//테스트용 나중에 999로 변경해야함 
+		if( sbrVo.getBiz_cd() == null || sbrVo.getBiz_cd().equals(""))sbrVo.setBiz_cd("1");
+		
+		
+		if( sbrVo.getCnd_cd() == null || sbrVo.getCnd_cd().equals(""))sbrVo.setCnd_cd("999");
+		
+		
+		return sbrStatsMapper.selectSbrGrowthList(sbrVo);
+	}
+
+
+	@Override
+	public Map<String, String> getAvgData(SbrVo sbrVo) throws Exception {
+		// TODO Auto-generated method stub
+		
+		if( sbrVo.getBiz_cd() == null || sbrVo.getBiz_cd().equals(""))sbrVo.setBiz_cd("999");
+		if( sbrVo.getCnd_cd() == null || sbrVo.getCnd_cd().equals(""))sbrVo.setCnd_cd("999");
+				
+		return sbrStatsMapper.selectSbrAvgData(sbrVo);
+	}
+
+
+	@Override
+	public Map<String, String> getCompanyAnalysis(SbrVo sbrVo) throws Exception {
+		// TODO Auto-generated method stub
+		
+		if( sbrVo.getBiz_cd() == null || sbrVo.getBiz_cd().equals(""))sbrVo.setBiz_cd("999");
+		if( sbrVo.getCnd_cd() == null || sbrVo.getCnd_cd().equals(""))sbrVo.setCnd_cd("999");
+		
+		return sbrStatsMapper.selectCompanyAnalysis(sbrVo);
+	}
+
+
+	@Override
+	public List<Map<String, String>> getCompanyMain(SbrVo sbrVo) throws Exception {
+		return sbrStatsMapper.selectCompanyMainList(sbrVo);
+	}
+
+
+	
+	
+}

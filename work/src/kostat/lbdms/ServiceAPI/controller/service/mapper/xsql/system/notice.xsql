@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="notice">
+	
+	<!-- 공지사항 정보 가져오기 -->
+	<sql id="orderSql">
+		<choose>
+			<when test="sort == '' || sort == null">
+				ORDER BY post_no DESC
+			</when>
+			<otherwise>
+				ORDER BY ${sort} ${order}
+			</otherwise>
+		</choose>
+	</sql>
+	
+	<select id="getNoticeList" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				  post_no
+				, post_no AS id
+				, ROW_NUMBER() OVER (<include refid="orderSql" />) AS row
+				, title
+				, user_id
+				, (
+					SELECT user_nm 
+					FROM MEMBER 
+					WHERE user_id = A.user_id) AS user_nm
+				, TO_CHAR(reg_ts,'YYYY-MM-DD') AS reg_ts
+				, view_cnt
+				, (
+					SELECT COUNT(*) 
+					FROM ATTACHMENTS
+					WHERE post_no = A.post_no) AS file_cnt
+				, COUNT(*) OVER() AS total
+		FROM notice A
+		<where>
+			1=1
+			<if test="type != null">
+				<if test="type == 'title'">
+					AND A.title LIKE '%'||#{searchText}||'%'
+				</if>
+				<if test="type == 'content'">
+					AND A.content LIKE '%'||#{searchText}||'%'
+				</if>
+				<if test="type == 'total'">
+					AND ((A.title LIKE '%'|| #{searchText}||'%') OR (A.content LIKE '%'||#{searchText}||'%'))
+				</if>
+			</if>
+		</where>
+		<include refid="orderSql" />
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+	
+	<!-- 공지사항 상세정보 조회 -->
+    <select id="getNoticeDetailInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				  A.post_no
+			 	, A.title 
+			 	, (SELECT user_nm FROM member WHERE user_id = A.user_id) AS user_nm
+			 	, TO_CHAR(A.reg_ts,'YYYY-MM-DD') AS reg_ts
+				, A.content
+				, A.view_cnt
+		FROM notice A
+		WHERE A.post_no = #{post_no}
+    </select>
+	
+	<!-- 공지사항 첨부파일 조회 -->
+    <select id="getFileList" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				  B.attach
+			 	, B.file_nm
+			 	, B.path
+			 	, B.download_cnt
+			 	, B.ext
+			 	, case when B.file_size > cast(1099511627776 as bigint) then round(B.file_size / 1024 / 1024 / 1024 / 1024::numeric, 1) || ' TB'
+					   when B.file_size > cast(1073741824 as bigint) then round(B.file_size / 1024 / 1024 / 1024::numeric, 1) || ' GB'
+					   when B.file_size > cast(1048576 as bigint) then round(B.file_size / 1024 / 1024::numeric, 1) || ' MB'
+					   when B.file_size > cast(1024 as bigint) then round(B.file_size / 1024::numeric, 1) || ' KB'
+					   else B.file_size || ' B'
+			      end file_size
+		FROM notice A JOIN attachments B
+		ON A.post_no = B.post_no
+		WHERE A.post_no = #{post_no}
+    </select>
+    
+    <!-- 공지사항 게시물 조회수 증가 -->
+    <update id="updateViewCnt" parameterType="hashmap">
+    	UPDATE notice A
+    	SET view_cnt = (COALESCE(A.view_cnt,0)+1)
+    	WHERE post_no = #{post_no}
+    </update>
+</mapper>

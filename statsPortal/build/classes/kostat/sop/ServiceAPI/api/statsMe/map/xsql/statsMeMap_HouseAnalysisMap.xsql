@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="statsMeMap_HouseAnalysisMap">
+<!-- My통계로 데이터 수집 살고싶은 우리동네 -->	
+	<!-- Select 카탈로그 데이터마트 살고싶은 우리동네 : 지표 코드조회 -->
+	<select id="selectSrvDtCtlgDtwrh_HouseAnalysisMap_IndexCd" parameterType="hashmap" resultType="hashmap">
+		SELECT A.STAT_DATA_ID
+			 , A.STAT_DATA_NM
+			 , A.M_CLASS_NM
+			 , B.*
+		  FROM SRV_DT_CTLG_DATA_LIST A WITH(NOLOCK)
+		 INNER JOIN SRV_DT_MLSFC_IX B WITH(NOLOCK) ON REPLACE(B.M_CLASS_IDX_NM, ' ', '') = REPLACE(REPLACE(A.STAT_DATA_NM, ' ', ''), '1인당주거연면적', '주거면적')
+		 WHERE 1=1
+		   AND A.MENU_NM = '살고싶은 우리동네'
+		   AND A.SRV_NM = '주거현황보기'
+		   AND A.STAT_DATA_ID = #{stat_data_id}
+		 ORDER BY A.STAT_DATA_ID
+	</select>
+	
+	<!-- Insert 카탈로그 데이터마트 살고싶은 우리동네 : 시도 -->
+	<insert id="insertSrvDtCtlgDtwrh_HouseAnalysisMap_Sido" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+		  	 , SIDO_CD
+		  	 , SGG_CD
+		  	 , EMDONG_CD
+		  	 , X_COOR
+		  	 , Y_COOR
+		  	 , POI_SE_NM
+		  	 , POI_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , 'color' AS MAP_TY	/* 지도유형 */ 
+			 , 'sido' AS AREA_BNDRY_SE	/* 지역경계구분 */
+			 , NULL AS BASE_YEAR	/* 기준년도 */
+			 , SRV_DT_SIDO_IX_ORDER.SIDO_CD AS ADM_CD	/* 지역코드 */
+			 , NULL AS ADM_NM	/* 지역명 */
+			 , SRV_DT_SIDO_IX_ORDER.SIDO_CD AS SIDO_CD	/* 시도코드 */
+			 , NULL AS SGG_CD	/* 시군구코드 */
+			 , NULL AS EMDONG_CD	/* 읍면동코드 */
+			 , NULL AS X_COOR	/* X 좌표 */
+			 , NULL AS Y_COOR	/* Y 좌표 */
+			 , NULL AS POI_SE_NM	/* 점(POI) 구분 */
+			 , NULL AS POI_NM	/* 점(POI) 명 */
+			 , UNIT AS UNIT	/* 단위 */
+			 , CASE WHEN UNIT = '%' THEN '비율'
+			   		WHEN UNIT = '개' THEN '수'
+			   		WHEN UNIT = '등급' THEN '등급'
+				    WHEN UNIT = '명' THEN '인구'
+				    WHEN UNIT = '원' THEN '금액'
+				    WHEN UNIT = '제곱미터' THEN '면적'
+			   		 END AS UNIT_NM		/* 단위명 */
+			 , #{stat_data_nm} AS TOOLTIP_CN	/* 툴팁내용 */
+			 , ROUND(VALUE, 2) AS STATS_DTA_CO	/* 통계자료건수 */
+		  FROM SRV_DT_SIDO_IX_ORDER WITH(NOLOCK)
+		 INNER JOIN SRV_DT_MLSFC_IX WITH(NOLOCK) ON SRV_DT_MLSFC_IX.B_CLASS_IDX_ID = SRV_DT_SIDO_IX_ORDER.B_CLASS_IDX_ID
+		   AND SRV_DT_MLSFC_IX.M_CLASS_IDX_ID = SRV_DT_SIDO_IX_ORDER.M_CLASS_IDX_ID
+		 WHERE SRV_DT_SIDO_IX_ORDER.B_CLASS_IDX_ID = #{b_class_idx_id}
+		   AND SRV_DT_SIDO_IX_ORDER.M_CLASS_IDX_ID = #{m_class_idx_id}
+		 ORDER BY SRV_DT_SIDO_IX_ORDER.SIDO_CD ASC
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 살고싶은 우리동네 : 시군구 -->
+	<insert id="insertSrvDtCtlgDtwrh_HouseAnalysisMap_Sgg" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+		  	 , SIDO_CD
+		  	 , SGG_CD
+		  	 , EMDONG_CD
+		  	 , X_COOR
+		  	 , Y_COOR
+		  	 , POI_SE_NM
+		  	 , POI_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , 'color' AS MAP_TY	/* 지도유형 */ 
+			 , 'sgg' AS AREA_BNDRY_SE	/* 지역경계구분 */
+			 , NULL AS BASE_YEAR	/* 기준년도 */
+			 , SRV_DT_SGG_IX_ORDER.SIDO_CD || SRV_DT_SGG_IX_ORDER.SGG_CD AS ADM_CD	/* 지역코드 */
+			 , NULL AS ADM_NM	/* 지역명 */
+			 , SRV_DT_SGG_IX_ORDER.SIDO_CD AS SIDO_CD	/* 시도코드 */
+			 , SRV_DT_SGG_IX_ORDER.SGG_CD AS SGG_CD	/* 시군구코드 */
+			 , NULL AS EMDONG_CD	/* 읍면동코드 */
+			 , NULL AS X_COOR	/* X 좌표 */
+			 , NULL AS Y_COOR	/* Y 좌표 */
+			 , NULL AS POI_SE_NM	/* 점(POI) 구분 */
+			 , NULL AS POI_NM	/* 점(POI) 명 */
+			 , UNIT AS UNIT	/* 단위 */
+			 , CASE WHEN UNIT = '%' THEN '비율'
+			   		WHEN UNIT = '개' THEN '수'
+			   		WHEN UNIT = '등급' THEN '등급'
+				    WHEN UNIT = '명' THEN '인구'
+				    WHEN UNIT = '원' THEN '금액'
+				    WHEN UNIT = '제곱미터' THEN '면적'
+			   		 END AS UNIT_NM		/* 단위명 */
+			 , #{stat_data_nm} AS TOOLTIP_CN	/* 툴팁내용 */
+			 , ROUND(VALUE, 2) AS STATS_DTA_CO	/* 통계자료건수 */
+		  FROM SRV_DT_SGG_IX_ORDER WITH(NOLOCK)
+		 INNER JOIN SRV_DT_MLSFC_IX WITH(NOLOCK) ON SRV_DT_MLSFC_IX.B_CLASS_IDX_ID = SRV_DT_SGG_IX_ORDER.B_CLASS_IDX_ID
+		   AND SRV_DT_MLSFC_IX.M_CLASS_IDX_ID = SRV_DT_SGG_IX_ORDER.M_CLASS_IDX_ID
+		 WHERE SRV_DT_SGG_IX_ORDER.B_CLASS_IDX_ID = #{b_class_idx_id}
+		   AND SRV_DT_SGG_IX_ORDER.M_CLASS_IDX_ID = #{m_class_idx_id}
+		ORDER BY SRV_DT_SGG_IX_ORDER.SIDO_CD ASC,SRV_DT_SGG_IX_ORDER.SGG_CD ASC
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 살고싶은 우리동네 : 읍면동 -->
+	<insert id="insertSrvDtCtlgDtwrh_HouseAnalysisMap_Emdong" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+		  	 , SIDO_CD
+		  	 , SGG_CD
+		  	 , EMDONG_CD
+		  	 , X_COOR
+		  	 , Y_COOR
+		  	 , POI_SE_NM
+		  	 , POI_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , 'color' AS MAP_TY	/* 지도유형 */ 
+			 , 'emdong' AS AREA_BNDRY_SE	/* 지역경계구분 */
+			 , NULL AS BASE_YEAR	/* 기준년도 */
+			 , SRV_DT_EMDONG_IX_ORDER.SIDO_CD || SRV_DT_EMDONG_IX_ORDER.SGG_CD || SRV_DT_EMDONG_IX_ORDER.EMDONG_CD AS ADM_CD	/* 지역코드 */
+			 , NULL AS ADM_NM	/* 지역명 */
+			 , SRV_DT_EMDONG_IX_ORDER.SIDO_CD AS SIDO_CD	/* 시도코드 */
+			 , SRV_DT_EMDONG_IX_ORDER.SGG_CD AS SGG_CD	/* 시군구코드 */
+			 , SRV_DT_EMDONG_IX_ORDER.EMDONG_CD AS EMDONG_CD	/* 읍면동코드 */
+			 , NULL AS X_COOR	/* X 좌표 */
+			 , NULL AS Y_COOR	/* Y 좌표 */
+			 , NULL AS POI_SE_NM	/* 점(POI) 구분 */
+			 , NULL AS POI_NM	/* 점(POI) 명 */
+			 , UNIT AS UNIT	/* 단위 */
+			 , CASE WHEN UNIT = '%' THEN '비율'
+			   		WHEN UNIT = '개' THEN '수'
+			   		WHEN UNIT = '등급' THEN '등급'
+				    WHEN UNIT = '명' THEN '인구'
+				    WHEN UNIT = '원' THEN '금액'
+				    WHEN UNIT = '제곱미터' THEN '면적'
+			   		 END AS UNIT_NM		/* 단위명 */
+			 , #{stat_data_nm} AS TOOLTIP_CN	/* 툴팁내용 */
+			 , ROUND(VALUE, 2) AS STATS_DTA_CO	/* 통계자료건수 */
+		  FROM SRV_DT_EMDONG_IX_ORDER WITH(NOLOCK) 
+		 INNER JOIN SRV_DT_MLSFC_IX WITH(NOLOCK) ON SRV_DT_MLSFC_IX.B_CLASS_IDX_ID = SRV_DT_EMDONG_IX_ORDER.B_CLASS_IDX_ID
+		   AND SRV_DT_MLSFC_IX.M_CLASS_IDX_ID = SRV_DT_EMDONG_IX_ORDER.M_CLASS_IDX_ID
+		 WHERE SRV_DT_EMDONG_IX_ORDER.B_CLASS_IDX_ID = #{b_class_idx_id}
+		   AND SRV_DT_EMDONG_IX_ORDER.M_CLASS_IDX_ID = #{m_class_idx_id}
+		 ORDER BY SRV_DT_EMDONG_IX_ORDER.SIDO_CD ASC,SRV_DT_EMDONG_IX_ORDER.SGG_CD ASC,SRV_DT_EMDONG_IX_ORDER.EMDONG_CD ASC
+	</insert>
+</mapper>

@@ -1,0 +1,60 @@
+
+body{min-width: 1400px;}
+
+/* .sect01{position:relative; height:366px; border-radius: 0 0 30px 30px; background: url(/sgis_edu/resource/images/high/img_mainBg02.png)no-repeat 95% 50px ,url(/sgis_edu/resource/images/high/img_mainBg01.png)no-repeat -3vw 100% ,#202c35; } */
+.sect01{position:relative; height:366px; border-radius: 0 0 30px 30px; background:#202c35;}
+.sect01::before{content:""; position: absolute; top:-250px; left:-150px; width:830px; height:630px; background:url(/sgis_edu/resource/images/high/img_mainBg01.png)no-repeat; animation: mainBg01 5s infinite alternate ease-out;}
+.sect01::after{content:""; position: absolute; top:50px; right:0; width:519px; height:558px; background:url(/sgis_edu/resource/images/high/img_mainBg02.png)no-repeat; animation: mainBg02 5s infinite alternate ease-out;}
+.sect01>div{display: flex; justify-content: center; align-items: center; flex-direction: column; height:100%;}
+.sect01 .searchForm{position:relative; width:600px;}
+.sect01 .searchForm .hashTag{position: absolute; top: -9px; left:0;}
+.sect01 .searchForm .hashTag::before{font-size: 5.2rem; font-weight: 700;}
+.sect01 .search{width:100%; border-bottom: 2px solid #fff; height:70px; padding:0 50px 0 40px; font-size: 4.5rem; color:#fff;}
+.sect01 .search::placeholder{color:#fff;}
+.sect01 .search:focus::placeholder{color:rgba(256,256,256,0.6);}
+.sect01 .btnSearch{top:9px; width:40px; height:40px; background: url(/sgis_edu/resource/images/high/icon_search.png)no-repeat 50%/100%;}
+.sect01 .searchForm ul{display:none; position: absolute; top:70px; left:0; z-index: 10; overflow: hidden; width:100%; height:250px; overflow-y:auto; background: #202c35; border-radius: 0 0 30px 30px; box-shadow: 0 22px 18px -4px rgb(0 0 0 / 12%);
+border: 1px solid rgba(256,256,256,0.3);}
+.sect01 .searchForm ul.on{display: block;}
+.sect01 .searchForm li{color:#fff; padding:10px 40px; font-size: 1.8rem; cursor: pointer;}
+.sect01 .searchForm li:hover{background-color: rgba(51, 215, 130, 0.15);}
+.sect01 .searchForm li span{color:#1fdb84; font-size: 1.8rem;}
+
+.sect01 .hashTagWrap{margin-top: 30px;}
+.sect01 .hashTagWrap li a{border-color: rgba(256,256,256,0.6); color:rgba(256,256,256,0.9);}
+.sect01 .hashTagWrap li:hover a{border-color: #fff; color:#fff;}
+.sect01 .hashTagWrap .hashTag::before{font-family: 'esamanru', sans-serif;}
+
+.sect02>div{display: flex; justify-content: space-between;}
+.sect02 .slideNum{display: flex;}
+.sect02 .slideNum{font-size: 4.5rem; margin-top: 25px;}
+.sect02 .slideWrap{position: relative;}
+.sect02 .slideWrap .slideBox{display: flex;}
+.sect02 .slideWrap .slideBox .slideObj{padding: 40px; border:1px solid #c2c2c2; border-radius: 20px; width:300px; max-width:300px; margin: 0 15px;}
+.sect02 .slideWrap em{display:-webkit-box; overflow: hidden; height: 2.4em; line-height: 1.2em; word-wrap: break-word; -webkit-line-clamp: 2; -webkit-box-orient:vertical; text-overflow: ellipsis;margin-bottom: 40px; font-size: 2.5rem; }
+.sect02 .slideWrap ol li{counter-increment: number; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+.sect02 .slideWrap ol li~li{margin-top: 15px;}
+.sect02 .slideWrap ol li::before{content:counter(number); color:rgba(24,24,24,0.5); margin-right: 20px;}
+.sect02 .slideWrap ol li a{position:relative; color:rgba(24,24,24,0.7); font-size: 1.8rem; font-family: 'notoSansKR', sans-serif;}
+.sect02 .slideWrap ol li:hover a{color: rgba(24,24,24,0.9);}
+.sect02 .slideWrap ol li a::before{content:""; position: absolute; bottom:0px; left:0; z-index: -1; width:0; height:8px; transition-duration: .2s; background: #1fdb84; opacity: .4;}
+.sect02 .slideWrap ol li:hover a::before{width:100%;}
+.slideWrap .btnPage02 {display: block;}
+
+.sect04,.sect05{margin-top: 100px !important;}
+.sect04 article,.sect05 article{position: relative;}
+.sect03 .btnN01, .sect04 .btnN01{position: absolute; top:0; right:0;}
+
+a.more{position:absolute; top:0; right:0; font-size: 0; width:35px; height:35px; background: url(/sgis_edu/resource/images/btnMore.png)no-repeat 50%/35px; opacity: .35; transition-duration: .2s;}
+a.more:hover{opacity: 1;}
+
+
+@keyframes mainBg01 {
+    0% { top:-250px; left:-150px; }
+    100% { top:-200px; left: -100px; }
+}
+
+@keyframes mainBg02 {
+    0% { top:50px; right:0; }
+    100% { top:100px; right:0; }
+}

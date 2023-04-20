@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="shareBoard">
+
+	<sql id="orderSql">
+		<choose>
+			<when test="sort == '' || sort == null">
+				ORDER BY reg_ts DESC
+			</when>
+			<otherwise>
+				ORDER BY ${sort} ${order}
+			</otherwise>
+		</choose>
+	</sql>
+	
+	<!-- 공유게시판 등록 -->
+	<select id="insertShareDataInfo" parameterType="hashmap" resultType="hashmap">
+		INSERT INTO SHARE_BOARD
+		(
+				resource_id
+			,	user_id
+			,	inst_seq
+			, 	content
+			,	attach
+			,	hits
+			,	reply_cnt
+			,	recmd_cnt
+			,	reg_ts
+		) VALUES (
+				#{resource_id}
+			,	#{user_id}
+			,	#{inst_seq}
+			,   #{content}
+			,	#{attach}
+			,	'0'
+			,	'0'
+			,	'0'
+			,	NOW()
+		)
+		RETURNING share_board_no
+	</select>
+		
+	<!-- 공유게시판 등록 -->
+	<delete id="deleteShareDataInfo" parameterType="hashmap">
+		DELETE FROM SHARE_BOARD
+		WHERE resource_id = #{resource_id}
+	</delete>
+	
+	<!-- 공유게시판 목록 -->
+	<select id="getShareBoardList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+						d.*
+					,	(
+							SELECT COUNT(*)
+							FROM SHARE_BOARD_REPLY
+							WHERE share_board_no = d.share_board_no
+						)as reply_cnt
+					,	(
+							SELECT
+										f.analysis_type
+							FROM EXECUTE e, ANALYSIS_PARAM f
+							WHERE	e.execute_id = f.execute_id
+							and d.data_nm = e.data_nm
+						)as analysis_type
+		FROM (
+			SELECT
+							COUNT(*) OVER() AS total
+						,	a.share_board_no
+						,	a.resource_id
+						,	a.user_id
+						,	a.content
+						,	b.description
+						,	b.data_nm
+						,	b.category4
+						,	b.action_type
+						,   case when b.data_size > cast(1099511627776 as bigint) then round(b.data_size / 1024 / 1024 / 1024 / 1024::numeric, 1) || ' TB'
+						  	   when b.data_size > cast(1073741824 as bigint) then round(b.data_size / 1024 / 1024 / 1024::numeric, 1) || ' GB'
+						       when b.data_size > cast(1048576 as bigint) then round(b.data_size / 1024 / 1024::numeric, 1) || ' MB'
+						       when b.data_size > cast(1024 as bigint) then round(b.data_size / 1024::numeric, 1) || ' KB'
+						       else b.data_size || ' B'
+						    end data_size
+						,	a.attach
+						,	a.hits
+						,	a.recmd_cnt
+						,	COALESCE(TO_CHAR(a.reg_ts,'YYYY-MM-DD HH24:MI:SS'), '') as data_create_time
+						
+			FROM SHARE_BOARD a, RESOURCE b,
+			(
+				SELECT 
+							inst_seq
+							
+				FROM	MEMBER
+				WHERE 	user_id =  #{user_id}
+			)c
+			WHERE 
+						a.inst_seq = c.inst_seq
+				AND a.resource_id = b.resource_id
+				AND b.inst_share_yn = 'Y'
+			
+			<if test="searchWord != null and searchWord != ''">
+				AND b.description LIKE '%' || #{searchWord} || '%'
+			</if>
+			
+			<if test="standard != null and standard != '' and standard != 'all' ">
+				<choose>
+					<when test="standard == 'geoCoding'">
+						AND (b.action_type = 'MAPPING' or b.action_type = 'COORD')  
+					</when>
+					<when test="standard == 'analysis'">
+						AND (b.category4 = 'ANALYSIS_2016' or b.category4 = 'SOP2016')  
+					</when>
+					<when test="standard == 'userData'">
+						AND b.category4 = 'STORAGE'  
+					</when>
+					<otherwise>
+						AND (b.category4 != 'ANALYSIS_2016' and b.category4 != 'SOP2016' and 
+						         b.action_type != 'MAPPING' and b.action_type != 'COORD' and 
+						         b.action_type != 'CREATE_GIS' and b.action_type != 'CREATE_POI')  
+					</otherwise>
+				</choose>
+			</if>
+		)d
+		
+		<include refid="orderSql"/> 
+
+		OFFSET #{startIdx} LIMIT #{resultCnt}	
+			
+	</select>
+	
+	
+	<!-- 공유게시판 상세정보 -->
+	<select id="getShareBoardDetailInfo" parameterType="hashmap" resultType="hashmap">
+		<choose>
+			<when test="type == 'analysis'">
+				SELECT
+								a.share_board_no
+							,	a.resource_id
+							,	a.user_id
+							,	a.content
+							,	a.attach
+							,	(select file_nm from ATTACHMENTS where post_no = a.share_board_no and attach = a.attach and path='share') as file_nm
+							,	'share' as path
+							,	a.hits
+							,	a.recmd_cnt
+							,	COALESCE(TO_CHAR(a.reg_ts,'YYYY-MM-DD HH24:MI:SS'), '') as data_create_time
+							,	c.description
+							, 	c.category4
+							,	c.action_type
+							,   c.data_nm
+							,	(
+									SELECT COUNT(*) 
+									FROM  SHARE_BOARD_REPLY
+									WHERE  share_board_no = #{no}
+								) as reply_cnt
+							
+				FROM SHARE_BOARD a, RESOURCE c
+				WHERE 1=1
+					AND a.resource_id = c.resource_id
+					AND a.share_board_no = #{no}
+			</when>
+			<otherwise>
+				SELECT
+								a.share_board_no
+							,	a.resource_id
+							,	a.user_id
+							,	a.content
+							,	a.hits
+							,	a.recmd_cnt
+							,	COALESCE(TO_CHAR(a.reg_ts,'YYYY-MM-DD HH24:MI:SS'), '') as data_create_time
+							,	c.description
+							, 	c.category4
+							,	c.action_type
+							,   c.data_nm
+							,	(
+									SELECT COUNT(*) 
+									FROM  SHARE_BOARD_REPLY
+									WHERE  share_board_no = #{no}
+								) as reply_cnt
+							
+				FROM SHARE_BOARD a, RESOURCE c
+				WHERE 1=1
+					AND a.resource_id = c.resource_id
+					AND a.share_board_no = #{no}
+			</otherwise>
+		</choose>
+		
+	</select>
+	
+	<!-- 공유게시판  댓글입력 -->
+	<insert id="insertShareBoardReplyInfo" parameterType="hashmap">
+		INSERT INTO SHARE_BOARD_REPLY
+		(
+				share_board_no
+			<if test="target_reply_no != null">
+			,	target_reply_no
+			</if>
+			,	user_id
+			,	content
+			, 	reg_ts
+			, 	mod_ts
+		) VALUES (
+				#{share_board_no}
+			<if test="target_reply_no != null">
+			,	#{target_reply_no}
+			</if>
+			,	#{user_id}
+			,	#{content}
+			,	NOW()
+			,	NOW()
+		)
+	</insert>
+	
+	<!-- 공유데이터 댓글 정보 조회 -->
+	<select id="getShareBoardReplyList" parameterType="hashmap" resultType="hashmap">
+		SELECT  		
+						COUNT(*) OVER() as total
+					,	reply_no
+					,	share_board_no
+					,	target_reply_no
+					,	user_id
+					,	content
+					,	COALESCE(TO_CHAR(reg_ts,'YYYY-MM-DD HH24:MI:SS'), '') as reg_ts
+		FROM SHARE_BOARD_REPLY
+		where share_board_no = #{share_board_no}
+		
+		<include refid="orderSql"/> 
+		
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+		
+	</select>
+	
+	<!-- 공유데이터 댓글 정보 삭제 -->
+	<delete id="deleteShareBoardReplyInfo" parameterType="hashmap">
+		DELETE FROM SHARE_BOARD_REPLY
+		WHERE
+		<choose>
+			<when test="type == 'all'">
+				share_board_no = #{share_board_no}
+			</when>
+			<otherwise>
+				reply_no = #{reply_no} and share_board_no = #{share_board_no}
+			</otherwise>
+		</choose>
+	</delete>
+	
+	<!-- 공유데이터 정보 삭제 -->
+	<delete id="deleteShareBoardInfo" parameterType="hashmap">
+		DELETE FROM SHARE_BOARD
+		WHERE resource_id = #{resource_id}
+	</delete>
+	
+	<!-- 리소스 테이블 공유데이터 정보 삭제 -->
+	<update id="updateResourceShareInfo" parameterType="hashmap">
+		UPDATE	 RESOURCE
+		SET	
+				INST_SHARE_YN = 'N'
+				
+		WHERE RESOURCE_ID = #{resource_id}		
+	</update>
+	
+	<!-- 공유데이터 조회 수 업데이트 -->
+	<update id="updateViewCnt" parameterType="hashmap">
+		UPDATE	 SHARE_BOARD
+		SET	
+				hits = (COALESCE(hits,0)+1)
+				
+		WHERE share_board_no = #{no}
+	</update>
+	
+	<!-- 공유데이터 댓글 수 업데이트 -->
+	<update id="updateReplyCnt" parameterType="hashmap">
+		UPDATE	 SHARE_BOARD
+		SET	
+				reply_cnt = (COALESCE(reply_cnt,0)+1)
+				
+		WHERE share_board_no = #{no}
+	</update>	
+	
+	<!-- 공유데이터 추천수 수 업데이트 -->
+	<update id="updateRecmdCnt" parameterType="hashmap">
+		UPDATE	 SHARE_BOARD
+		SET	
+				recmd_cnt = (COALESCE(recmd_cnt,0)+1)
+				
+		WHERE share_board_no = #{no}
+	</update>
+	
+	<!-- 공유데이터 정보 업데이트 -->
+	<update id="updateShareBoardInfo" parameterType="hashmap">
+		UPDATE	 SHARE_BOARD
+		SET	
+				content = #{content}
+				
+		WHERE share_board_no = #{no}
+	</update>	
+</mapper>

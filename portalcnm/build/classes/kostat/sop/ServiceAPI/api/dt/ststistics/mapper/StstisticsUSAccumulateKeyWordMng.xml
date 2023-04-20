@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ststisticsAccumulate"> 
+
+	<select id="getStstisticsUSAccumulateKeyWordMng"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		/** getStstisticsUSAccumulateKeyWordMng start ... **/
+		<include refid="ststisticsCmmn.pageHeader" />
+		<include refid="body"/>
+		<include refid="where" />
+		ORDER BY SIDO_CD DESC
+		<include refid="ststisticsCmmn.pageFotter" />
+	</select>
+	
+	<select id="getStstisticsUSAccumulateKeyWordMngTotal"  parameterType="java.util.HashMap" resultType="int">
+		/** getStstisticsUSAccumulateKeyWordMngTotal start ... **/
+		SELECT COUNT(<include refid="pk" />) FROM <include refid="table" />
+		<include refid="where" />
+	</select>
+	
+	<sql id="body">
+		SELECT 
+			ROW_NUMBER() OVER(ORDER BY SIDO_CD DESC) AS RNUM
+			,SIDO_CD
+			,(SELECT SIDO_NM FROM SRV_PG_SIDOBORD INTB WHERE INTB.SIDO_CD = TB001.SIDO_CD AND ROWNUM <![CDATA[<]]> 2) AS SIDO_NM
+			,SGG_CD
+			,(SELECT SGG_NM FROM SRV_PG_SGGBORD INTB WHERE INTB.SIDO_CD = TB001.SIDO_CD AND  INTB.SGG_CD = TB001.SGG_CD AND ROWNUM <![CDATA[<]]> 2) AS SGG_NM
+			,EMDONG_CD
+			,(SELECT EMDONG_NM FROM SRV_PG_ADMBORD INTB WHERE INTB.SIDO_CD = TB001.SIDO_CD AND  INTB.SGG_CD = TB001.SGG_CD AND INTB.EMDONG_CD = TB001.EMDONG_CD AND ROWNUM <![CDATA[<]]> 2) AS EMDONG_NM
+			,ACC_KWRD
+			,ACC_CNT
+		FROM 
+			<include refid="table" /> TB001
+	</sql>
+	
+	<sql id="where">
+		<where>
+			1 = 1
+			<if test='sidoCd != "" and sidoCd != null'>		
+				AND	SIDO_CD = #{sidoCd}
+			</if>
+			<if test='sggCd != "" and sggCd != null'>		
+				AND	SGG_CD = #{sggCd}
+			</if>
+			<if test='emdongCd != "" and emdongCd != null'>		
+				AND	EMDONG_CD = #{emdongCd}
+			</if>
+			<if test='kwrd != "" and kwrd != null'>		
+				AND	INSTR(ACC_KWRD , #{kwrd} ) <![CDATA[>]]> 0
+			</if>
+		</where>
+	</sql>
+	
+	<sql id="table">
+		SRV_DT_CTLG_ACC_KWRD_LIST
+	</sql>
+	
+	<sql id="pk">
+		SIDO_CD
+	</sql>
+	
+	
+	
+</mapper>

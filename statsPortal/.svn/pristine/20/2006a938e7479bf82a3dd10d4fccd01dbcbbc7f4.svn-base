@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <script src="/publish_2018/include/plugin/jquery-1.11.3.min.js" type="text/javascript"></script>
+    <script src="/publish_2018/include/plugin/slick/slick.js" type="text/javascript"></script>
+    <script src="/publish_2018/include/js/ui.js" type="text/javascript"></script>
+    <link rel="stylesheet" type="text/css" href="/publish_2018/include/css/common.css">
+    <link rel="stylesheet" type="text/css" href="/publish_2018/include/plugin/slick/slick.css">
+    <link rel="stylesheet" type="text/css" href="/publish_2018/include/plugin/slick/slick-theme.css">
+    <!--알림마당 컨텐츠 추가-->
+    <link rel="stylesheet" type="text/css" href="/publish_2018/include/css/contents.css">
+    <script src="/publish_2018/include/plugin/slick/common.js" type="text/javascript"></script>
+    <script src="/publish_2018/include/js/jquery-ui.min.js" type="text/javascript"></script>
+	<!--게시판 css 추가-->
+	<link rel="stylesheet" type="text/css" href="/publish_2018/include/css/board.css">	
+    <title>통계지리정보서비스</title>
+</head>
+<body>
+	<!-- 스킵네비게이션 -->
+	<!--//스킵네비게이션 -->
+	<!--wrap-->
+	<div id="wrap">
+		<!--header-->
+		<!--//header-->
+		<hr class="hidden" />
+		<!--contents-->
+		<div id="container" class="sub">
+			<!--lnb 시작-->
+			<aside class="aside">
+				<h2 class="title">
+					<span>알림마당</span>
+				</h2>
+				<ul>
+					<li><a href="#" class="on">SGIS 소개</a>
+						<ul>
+							<li><a href="#">SGIS소개 및 연혁</a></li>
+							<li><a href="#">SGIS 주요 서비스 안내</a></li>
+						</ul></li>
+					<li><a href="#">설명과 공지</a>
+						<ul>
+							<li><a href="#">공지사항</a></li>
+							<li><a href="#">주요 용어 설명</a></li>
+							<li><a href="#">SGIS 서비스 자료제공시점 현황</a></li>
+						</ul></li>
+					</li>
+					<li><a href="#">질문과 개선요청</a>
+						<ul>
+							<li><a href="#">FAQ</a></li>
+							<li><a href="#">Q&A</a></li>
+							<li><a href="#">통계주제도 신규요청</a></li>
+						</ul></li>
+					<li><a href="#">자료제공서비스</a>
+						<ul>
+							<li><a href="#">자료제공서비스란?</a></li>
+							<li><a href="#">자료제공목록</a></li>
+							<li><a href="#">자료신청</a></li>
+							<li><a href="#">과거집계구 자료신청</a></li>
+							<li><a href="#">신청내역</a></li>
+							<li><a href="#">자료다운로드</a></li>
+						</ul></li>
+					<!--<li class="nochild"><a href="#">none</a> -->
+				</ul>
+			</aside>
+			<!--//lnb 끝--> 
+            <div id="content">
+                <div id="title-area">
+                    <ul class="location">
+              			<li>알림마당</li>
+                        <li>자료신청</li>
+                        <li><em>자료선택 및 신청완료</em></li>
+                    </ul>
+                    <h1 class="sub-title">자료선택 및 신청완료</h1>
+                </div>
+                 <div class="step-box">
+                    <ul>
+                        <li>
+                            <p class="num">01</p>
+                            <p class="text">기본정보 입력 및 약관동의</p>
+                        </li>
+                        <li class="on">
+                            <p class="num">02</p>
+                            <p class="text">자료선택  및 신청완료</p>
+                        </li>
+                    </ul>
+                </div>
+                <div id="contents" class="view">
+                    <!--view-->
+                       <form id="censusFm_id" name="censusFm" method="post"  action="shortcut_05_03_apply.jsp" onsubmit="return applyClicked();">
+                        <h2>기본정보</h2>
+                        <div class="table-type">
+                        <span class="required"><em title="필수 항목">*</em> 는 필수 입력 항목입니다.</span>
+                        <table class="table-style type02" summary="자료선택(필수)">
+                            <caption></caption>
+                            <colgroup>
+                                <col width="160px">
+                                <col width="*">
+                            </colgroup>
+                            <tbody>
+                                <tr>
+                                    <th scope="row"><label for="sgis_census_id1">자료구분</label></th>
+                                    <td>
+                                        <ul>
+                                            <li>
+                                             <span class="radio-area"><input type="radio" class="radio" name="" id="id1"><label for="id1">통계자료</label></span>
+                                               <span class="radio-area"> <input type="radio" class="radio" name="" id="id2"><label for="id2">통계지역경계</label></span>
+                                             <span class="radio-area"><input type="radio" class="radio" name="" id="id3"><label for="id3">세종시 특별센서스</label></span>
+                                            </li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><label for="sgis_census_id1" style="">자료대상(집계구별)</label></th>
+                                    <td>
+                                        <ul>
+                                            <li>
+                                                <span class="radio-area"><input type="radio" class="radio" name="" id="rd_d1"><label for="rd_d1">인구 </label></span>
+                                                <span class="radio-area"><input type="radio" class="radio" name="" id="rd_d2"><label for="rd_d2">가구</label></span>
+                                                <span class="radio-area"><input type="radio" class="radio" name="" id="rd_d3"><label for="rd_d3">주택</label></span>
+                                                <span class="radio-area"><input type="radio" class="radio" name="" id="rd_d4"><label for="rd_d4">사업체</label></span>
+                                            </li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><label for="sgis_census_id1">년도</label></th>
+                                    <td>
+                                        <div class="select-wrap">
+                                            <select name="" id="" class="" style="width:200px;" title="년도">
+                                                <option>    </option>
+                                            </select>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><label for="sgis_census_id1">세부자료명</label></th>
+                                    <td>
+                                        <ul class="all-check">
+                                                <li>
+                                                    <span class="radio-area"><input type="radio" class="radio" name="" id="all-check"><label for="all-check">전체 </label></span>
+                                                 </li>
+                                         </ul>
+                                        <ul class="chek-right">
+                                            <li>
+                                                <span class="check-area"><input type="checkbox" class="check" name="chk_d" id="chk_d1"><label for="chk_d1">성연령별인구</label></span>
+                                                <span class="check-area"><input type="checkbox" class="check" name="" id="chk_d2"><label for="chk_d2">인구총괄(총인구)</label></span>
+                                                <span class="check-area"><input type="checkbox" class="check" name="" id="chk_d3"><label for="chk_d3">인구총괄(평균나이)</label></span>
+                                            </li>
+                                            <li>
+                                                <span class="check-area"><input type="checkbox" class="check" name="" id="chk_d5"><label for="chk_d5">인구총괄(노령화지수)</label></span>
+                                                <span class="check-area"><input type="checkbox" class="check" name="" id="chk_d6"><label for="chk_d6">인구총괄(노년부양비)</label></span>
+                                                <span class="check-area"><input type="checkbox" class="check" name="" id="chk_d7"><label for="chk_d7">인구총괄(유년부양비)</label></span>
+                                            </li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><label for="sgis_census_id1">자료구분</label></th>
+                                    <td>
+                                        <div class="select-wrap">
+                                            <select name="" id="" class="" style="width:200px;" title="시도 선택">
+                                                <option value="">시도 선택</option>
+                                            </select>
+                                        </div>
+                                        <div class="select-wrap">
+                                            <select name="" id="" class="" style="width:200px;" title="시군구 선택">
+                                                <option value="">시군구 선택</option>
+                                            </select>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="btn-area mt20">
+                            <button type="button" class="default-color"  onclick="fromToAdd(); return false;"><span>추가</span></button>
+                        </div>
+                        </div>
+                        <p class="count">총 <strong>100</strong>건</p>
+                        <div class="table-type">
+                        <table class="table-style type01" id="sgis_census_table" >
+                        <caption></caption>
+                            <colgroup>
+                                <col width="55px">
+                                <col width="120px">
+                                <col width="*">
+                                <col width="75px">
+                                <col width="235px">
+                                <col width="70px">
+                                <col width="75px">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    	<th class="first" >
+                                        <span class="board-all-check check-area"><input type="checkbox" id="sgis_all" class="check" name="sgis_all" onclick="allCheck()"><label for="sgis_all">전체선택</label></span>
+                                        </th>
+                                        <th><label for="sgis_census_id1">자료구분</label></th>
+                                        <th><label for="sgis_census_data_id1">대상자료명</label></th>
+                                        <th><label for="sgis_census_year1">년도</label></th>
+                                        <th><label for="sgis_census_detail_data_id1">세부자료명</label></th>
+                                        <th><label for="sgis_census_sido1">시도</label></th>
+                                        <th><label for="sgis_census_sigungu1">시군구</label></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                  <tr>
+                                    <td><span class="board-choice-check check-area"><input type="checkbox" id="choi1" class="check" name="" onclick=""><label for="choi1">선택</label></span></td>
+                                    <td>통계자료</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="board-choice-check check-area"><input type="checkbox" id="choi2" class="check" name="" onclick=""><label for="choi2">선택</label></span></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+	                        <div class="btn-borad left">
+	                            <button type="button" class="btn-allchoice" onclick="toggleCheck(); return false;"><span>전체선택</span></button>
+	                            <button type="button" class="btn-del" onclick="delTable(); return false;"><span>선택삭제</span></button>
+	                        </div>
+	                        <div class="btn-area">
+	                            <button type="button" class="line-gray" name="bcak" onclick="fnBack();"><span>이전</span></button>
+	                            <button type="button" class="default-color btn-left-mg" name="" onclick=""><span>신청완료</span></button>
+	                        </div>
+                        </div>
+                        <h2>자료구분별 상세정보</h2>
+                        <div class="table-type">
+                        <table class="table-style type01 td-data">
+                            <colgroup>
+                                <col width="110px">
+                                <col width="175px">
+                                <col width="235px">
+                                <col width="*">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>자료구분</th>
+                                    <th>대상자료명</th>
+                                    <th>년도</th>
+                                    <th>세부자료명</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td rowspan="4">통계자료</td>
+                                    <td>집계구별 통계(인구)</td>
+                                    <td>2016, 2015, 2010, 2005, 2000</td>
+                                    <td class="txtL">전체, 성연령별 인구, 인구총괄(총인구), 인구총괄(평균나이), 인구총괄(인구밀도), 인구총괄(노령화지수), 인구총괄(노년부양비), 인구총괄(유년부양비)</td>
+                                </tr>
+                                <tr>
+                                    <td>집계구별 통계(가구)</td>
+                                    <td>2016, 2015, 2010, 2005, 2000</td>
+                                    <td class="txtL">전체, 서대구성별가구, 가구총괄</td>
+                                </tr>
+                                <tr>
+                                    <td>집계구별 통계(주택)</td>
+                                    <td>2016, 2015, 2010, 2005, 2000</td>
+                                    <td class="txtL">전체, 노후년수별주택, 주택유형별주택, 연건평별주택, 주택총괄_총주택(거처)수</td>
+                                </tr>
+                                <tr>
+                                    <td>집계구별 통계(사업체)</td>
+                                    <td>2016, 2015, 2014, 2013, 2012, 2011, 2010, 2009, 2008, 2007, 2006, 2005, 2004, 2003., 2002, 2001, 2000</td>
+                                    <td class="txtL">전체, 산업분류별(8차_대분류)_종사자수, 산업분류별(8차_대분류)_사업체수,  산업분류별(8차_대분류)_총괄사업체수</td>
+                                </tr>
+                                <tr>
+                                    <td rowspan="7">통계지역경계</td>
+                                    <td>센서스용 행정구역경계(전체)</td>
+                                    <td rowspan="4">2016, 2015, 2014, 2013, 2012, 2011, 2010, 2009, 2008, 2007, 2006, 2005, 2004, 2003., 2002, 2001, 2000, 1995, 1990</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td>센서스용 행정구역경계(시도)</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td>센서스용 행정구역경계(시군구)</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td>센서스용 행정구역경계(읍면동)</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td>도시화지역</td>
+                                    <td>2016</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td>도시권경계</td>
+                                    <td>2005</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td>집계구경계</td>
+                                    <td>2016</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td rowspan="3">세종시 특별센서스</td>
+                                    <td>집계구별 통계(인구)</td>
+                                    <td rowspan="3">2013</td>
+                                    <td class="txtL">전체, 교육정보별인구, 성연령별 인구, 성_혼인상태별 인구, 인구총괄(총인구), 인구총괄(평균나이), 인구총괄(인구밀도), 인구총괄(노령화지수), 인구총괄(노년부양비), 인구총괄(유년부양비)</td>
+                                </tr>
+                                <tr>
+                                    <td>집계구별 통계(가구)</td>
+                                    <td class="txtL">전체, 세대구성별가구, 가구총괄</td>
+                                </tr>
+                                <tr>
+                                    <td>집계구별 통계(주택)</td>
+                                    <td class="txtL">전체, 주택유형별주택, 연건평별주택, 주택총괄_총주택(거처)수</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        </div>
+                    </form>
+                    </div>
+   					<!--//view-->
+					</div>
+				</div>
+			</div>
+		<!--//contents-->
+		<hr class="hidden" />
+		<!--footer-->
+		<div id="footer"></div>
+		<!--//footer-->
+	</div>
+	<!--//wrap-->
+</body>
+</html>

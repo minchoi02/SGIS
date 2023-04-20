@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ststistics"> 
+
+	<select id="getStstisticsUSTrendKwrdList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		<!--  <include refid="ststisticsCmmn.pageHeader" />-->
+			SELECT
+				ROW_NUMBER() OVER(ORDER BY ACC_CNT DESC) AS RNUM 
+				,TREND_SRCHWRD AS TREND_KWRD_NM
+				,TO_CHAR(ACC_CNT,'9,999,999') AS TREND_KWRD_CNT
+				,PBLICTE_DT
+				,SEQ
+			FROM SRV_DT_CTLG_TREND_SRCHWRD_LIST
+			WHERE COLCT_SOURCE_DIV = '01'
+				AND ROWNUM <![CDATA[<=]]> 100
+			<if test='startDate != "" and startDate != null and endDate != "" and endDate != null'>
+				AND PBLICTE_DT BETWEEN REPLACE(#{startDate},'-','') AND REPLACE(#{endDate},'-','')
+			</if>
+			ORDER BY RNUM
+	</select>
+	<!--  
+	<select id="getStstisticsUSServiceList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT DISTINCT
+			STAT_DATA_ID
+			,(SELECT STAT_DATA_NM FROM SRV_DT_CTLG_DATA_LIST T2 WHERE T2.STAT_DATA_ID 	= T1.STAT_DATA_ID ) AS STAT_DATA_NM
+		FROM SRV_DT_CTLG_MAIN_KWRD_DATA T1
+		<if test='word != null and word !=""'>
+		WHERE T1.CTLG_MAIN_KWRD_SERIAL IN (SELECT CTLG_MAIN_KWRD_SERIAL FROM SRV_DT_CTLG_MAIN_KWRD_LIST WHERE CTLG_MAIN_KWRD LIKE '%'|| #{word} || '%')
+		</if>
+	</select>
+	-->
+	<select id="getStstisticsUSMainKwrdList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT
+			DISTINCT MAIN_KWRD as CTLG_MAIN_KWRD 
+		FROM
+			SRV_DT_CTLG_DATA_LIST
+		WHERE
+			/*MAIN_KWRD is not null and MAIN_KWRD != ''*/	
+			LENGTH(MAIN_KWRD) > 0
+		<if test='word != "" and word != null'>		 
+			and MAIN_KWRD LIKE '%'|| #{word} || '%'
+		</if>
+		ORDER BY MAIN_KWRD
+				
+<!-- 	    SELECT  -->
+<!-- 			CTLG_MAIN_KWRD_SERIAL -->
+<!-- 			,CTLG_MAIN_KWRD -->
+<!-- 		FROM SRV_DT_CTLG_MAIN_KWRD_LIST -->
+<!-- 		<if test='word != "" and word != null'> -->
+<!-- 		WHERE CTLG_MAIN_KWRD LIKE '%'|| #{word} || '%' -->
+<!-- 		</if> -->
+	</select>
+	
+	<select id="checkKwrd"  parameterType="java.util.HashMap" resultType="int">
+		SELECT 	COUNT(*) 
+		FROM 	SRV_DT_CTLG_MAIN_KWRD_LIST
+		WHERE 	CTLG_MAIN_KWRD = #{ctlgMainKwrd}
+	</select>
+	
+	<select id="selectCtlgRelWordList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT
+			SEQ
+			, MAX(TREND_SRCHWRD) as TREND_SRCHWRD
+			, MAIN_KWRD	 as CTLG_MAIN_KWRD 
+			, MAX(SIMILDEGER) as SIMILDEGER
+		FROM
+		(
+			SELECT
+				TREND.SEQ
+				, TREND.TREND_SRCHWRD
+				, REL.SYN
+				, REL.MAIN_KWRD
+				, REL.SIMILDEGER		
+			FROM
+				SRV_DT_CTLG_RELWORD_LIST REL
+				LEFT OUTER JOIN SRV_DT_CTLG_TREND_SRCHWRD_LIST TREND ON TREND.SEQ = REL.TREND_SRCHWRD_SEQ 
+			WHERE
+				REL.TREND_SRCHWRD_SEQ in 
+				<foreach item="items" collection="trendSrchwrdSeqs" open="(" close=")" separator=",">
+				    #{items}
+				</foreach>
+				<if test='simildeger != "" and simildeger != null'>	
+					and REL.SIMILDEGER >= #{simildeger}
+				</if>
+				
+		)
+		GROUP BY SEQ, MAIN_KWRD  
+		ORDER BY SIMILDEGER DESC
+	
+<!-- 			SELECT  -->
+<!-- 				T1.SEQ -->
+<!-- 				, T1.TREND_SRCHWRD -->
+<!-- 				, T3.CTLG_MAIN_KWRD_SERIAL -->
+<!-- 				, T3.CTLG_MAIN_KWRD -->
+<!-- 				, T2.SIMILDEGER -->
+<!-- 			FROM SRV_DT_CTLG_TREND_SRCHWRD_LIST T1 -->
+<!-- 			LEFT OUTER JOIN SRV_DT_CTLG_RELWORD_LIST T2 -->
+<!-- 			ON T1.SEQ = T2.TREND_SRCHWRD_SEQ -->
+<!-- 			LEFT OUTER JOIN SRV_DT_CTLG_MAIN_KWRD_LIST T3 -->
+<!-- 			ON T3.CTLG_MAIN_KWRD_SERIAL = T2.CTLG_MAIN_KWRD_SERIAL -->
+<!-- 			WHERE T1.SEQ IN -->
+<!-- 			 <foreach item="items" collection="trendSrchwrdSeqs" open="(" close=")" separator=","> -->
+<!-- 			     #{items} -->
+<!-- 			 </foreach> -->
+<!-- 			ORDER BY SIMILDEGER DESC -->
+	</select>
+	
+	<select id="selectCtlgstatDataIdList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+			SELECT DISTINCT
+				T1.STAT_DATA_ID
+			FROM SRV_DT_CTLG_MAIN_KWRD_DATA T1
+			LEFT OUTER JOIN SRV_DT_CTLG_RELWORD_LIST T2
+			ON T1.CTLG_MAIN_KWRD_SERIAL = T2.CTLG_MAIN_KWRD_SERIAL
+			WHERE T2.CTLG_MAIN_KWRD_SERIAL IN 
+			<foreach item="items" collection="ctlgMainKwrdSerials" open="(" close=")" separator=",">
+			    #{items}
+			</foreach>
+
+	</select>
+	
+	<insert id="insertTrendMapping" parameterType="java.util.HashMap">
+    	INSERT INTO SRV_DT_CTLG_TRENDMAPPING
+        	(
+        		TRENDMAPP_SEQ
+        		, STAT_DATA_ID
+        		, TREND_SRCHWRD_SEQ
+        		, REG_TS
+        		, USE_YN
+        	)
+    	VALUES
+        	(
+        		(select nvl(max(TRENDMAPP_SEQ), 0) + 1 from SRV_DT_CTLG_TRENDMAPPING with (nolock))
+        		, #{statDataId}
+        		, #{trendSrchwrdSeq}
+        		, SYSDATE
+        		, 'Y'
+        	)
+	</insert>
+
+	<insert id="insertKeywordMapping" parameterType="java.util.HashMap">
+		INSERT INTO SRV_DT_CTLG_TRENDMAPPING
+       	(
+       		TRENDMAPP_SEQ
+       		, STAT_DATA_ID
+       		, TREND_SRCHWRD_SEQ
+       		, REG_TS
+       		, USE_YN
+       	)
+       	SELECT
+       		(select nvl(max(TRENDMAPP_SEQ), 0) + 1 from SRV_DT_CTLG_TRENDMAPPING with (nolock))
+       		, STAT_DATA_ID
+       		, #{trendSrchwrdSeq}
+       		, SYSDATE
+       		, 'Y'
+       	FROM
+       		SRV_DT_CTLG_DATA_LIST
+		WHERE 
+			MAIN_KWRD IN 
+			<foreach item="items" collection="ctlgMainKwrdSerials" open="(" close=")" separator=",">
+			    #{items}
+			</foreach>       	
+	</insert>	
+</mapper>

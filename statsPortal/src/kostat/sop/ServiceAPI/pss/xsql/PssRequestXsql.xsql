@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="pssRequest">
+
+	<select id="selectCategoryCode" parameterType="hashmap" resultType="hashmap">	
+			select 
+                lclas_cl,
+                lclas_nm,
+                sclas_cl,
+                sclas_nm
+            from sgis_census_category_code
+            where use_at = 'Y'
+			and	lclas_cl = #{code}
+			
+	</select>
+	
+	<select id="selectCemsusCode" parameterType="hashmap" resultType="hashmap">	
+		select sgis_census_id, sgis_census_code_name 	
+        from sgis_census_code		
+        where sgis_census_id in ('1', '2', '4','7','8')		
+ 		order by sgis_census_id
+	</select>
+	
+	<select id="selectCemsusData" parameterType="hashmap" resultType="hashmap">	
+		select  sgis_census_data_id 	
+				, sgis_census_name 		
+				, sgis_census_location 	
+		from sgis_census_data 		
+		where sgis_census_id = #{code}  	
+		    and sgis_census_public_yn in ('Y','S')	
+		order by sgis_census_data_id
+	</select>
+
+
+	<select id="selectCemsusYear" parameterType="hashmap" resultType="hashmap">	
+		select sgis_census_year                                             	
+		from (                                                              	
+			select sgis_census_year, count(*) from  sgis_census_sigungu_data	
+			where sgis_census_id= '${sgis_census_id}'                               
+			and sgis_census_data_id= '${sgis_census_data_id}'                       
+			and census_output_area_year= '${census_output_area_year}'               
+			group by sgis_census_year                                       	
+		)                                                                   	
+		order by sgis_census_year desc
+	</select>	
+	
+	
+	
+	<select id="selectCemsusDetail" parameterType="hashmap" resultType="hashmap">	
+			select sgis_census_detail_data_id, sgis_census_detail_data_nm
+			from sgis_census_detail_data_code		                     
+			where 1=1 
+			<if  test = "sgisCensusDataId == 0">
+				and sgis_census_detail_data_id like 'in%'	
+			</if>
+			<if  test = "sgisCensusDataId == 1">
+				and sgis_census_detail_data_id like 'ga%'	
+			</if>
+			<if  test = "sgisCensusDataId == 2">
+				and sgis_census_detail_data_id like 'ho%'	
+			</if>
+			<if  test = "sgisCensusDataId == 3">
+				and sgis_census_detail_data_id like 'cp%'	
+			</if>
+				and sgis_census_detail_data_start_baseyear <![CDATA[<=]]>  '${sgisCensusYear}'
+				and sgis_census_detail_data_end_baseyear <![CDATA[>=]]>  '${sgisCensusYear}'
+				
+			<if  test = "census_output_area_year == '2016'">
+				and sgis_census_detail_data_id not in ('cp_10','cp_11','cp_12')
+			</if>
+			
+			<if  test = "'2018_4' != census_output_area_year and '2019_4' != census_output_area_year and '2020_4' != census_output_area_year">
+				<if  test = "census_output_area_year lt 2019">
+					and sgis_census_detail_data_id not in ('ho_06')
+				</if>
+				
+				<if  test = "census_output_area_year >= 2019">
+					 <if  test = "sgisCensusYear == 2013"> 
+						and sgis_census_detail_data_id not in ('ho_01', 'ho_02', 'ho_06')
+					 </if>
+					 <if  test = "sgisCensusYear != 2013"> 
+						and sgis_census_detail_data_id not in ('ho_01', 'ho_02')
+					 </if>
+				</if>
+			</if>
+			<if  test = " '2018_4' == census_output_area_year or '2019_4' == census_output_area_year or '2020_4' == census_output_area_year">
+				<if  test = "sgisCensusYear == '2013'"> 
+						and sgis_census_detail_data_id not in ('ho_01', 'ho_02', 'ho_06')
+				</if>
+				<if  test = "sgisCensusYear != '2013'"> 
+						and sgis_census_detail_data_id not in ('ho_01', 'ho_02')
+				</if>
+			</if>
+	
+			
+	</select>	
+	
+	<select id="selectCemsusSido" parameterType="hashmap" resultType="hashmap">	
+		  select 0 as rr, '00' as sgis_census_sido, '전국'  as sido_nm
+			  from   dual
+			union all
+				select rownum as rr, sgis_census_sido, sido_nm
+				from (
+					select sgis_census_sido, sido_nm
+					from (
+						select sgis_census_sido, sido_nm, count(*) 
+						from  sgis_census_sigungu_data
+						where sgis_census_id = '${sgis_census_id}'
+							and sgis_census_data_id = '${sgis_census_data_id}'
+							and sgis_census_year = '${base_year}'
+							and census_output_area_year = '${census_output_area_year}'
+							and sgis_census_sido <![CDATA[<>]]>  '00'
+						group by sgis_census_sido, sido_nm
+					)
+				order by sido_nm
+				)
+	</select>
+	
+	
+		<select id="selectCemsusSigungu" parameterType="hashmap" resultType="hashmap">
+		select 0 as rr, '00000' as sgis_census_sigungu, '전체'  as sigungu_nm
+			  from   dual
+			union all
+			select rownum as rr, sgis_census_sigungu, sigungu_nm
+			from (
+				select sgis_census_sigungu, sigungu_nm
+				from (
+			    	select sgis_census_sigungu, sigungu_nm, count(*) from  sgis_census_sigungu_data
+			    	where sgis_census_id 	= '${sgis_census_id}'
+			    	and sgis_census_data_id = '${sgis_census_data_id}'
+			    	and sgis_census_year 	= '${base_year}'
+					and census_output_area_year = '${census_output_area_year}'
+			    	and sgis_census_sido 	= '${sido_cd}'
+					and sgis_census_sigungu <![CDATA[<>]]> '00000'
+			    	group by sgis_census_sigungu, sigungu_nm
+				)
+				order by sigungu_nm
+			  )
+	</select>
+	
+	
+	<select id="selectCodeList" parameterType="hashmap" resultType="hashmap">	
+		select sgis_census_code_id, sgis_census_code_nm, sgis_census_code_group 
+		from sgis_census_req_year_code_list
+		where sgis_census_code_group = '${code}'
+		order by sgis_census_code_nm desc
+	</select>	
+	
+	<select id="selectAreaCodeList" parameterType="hashmap" resultType="hashmap">	
+		select sgis_census_code_id, sgis_census_code_nm, sgis_census_code_group 
+		from sgis_census_req_year_code_list
+		where sgis_census_code_group = '${code}'
+		order by sgis_census_code_id asc
+	</select>	
+	
+	
+  
+</mapper>

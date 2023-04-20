@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="workRoad">
+	
+	<!-- 공통코드 조회 - 2018.09.13	ywKim	신규 -->
+	<select id="selectCommonCode" parameterType="hashmap" resultType="hashmap">	
+
+		SELECT 
+			S_CLASS_CD AS CD 
+			, S_CLASS_CD_NM AS NM
+			, CD_EXP AS EXP
+		  FROM CMM_CD_COMCD
+		 WHERE 1=1
+		   <if test='b_class_cd != null and b_class_cd != "" '>					/* 분류 코드 */
+		   AND B_CLASS_CD = #{b_class_cd}
+		   </if>
+		   <if test='s_class_cd != null and s_class_cd != "" '>					/* 분류 코드 */
+		   AND S_CLASS_CD = #{s_class_cd}
+		   </if>		   
+		   <if test='s_class_cd_len != null and s_class_cd_len != "" '>
+		   AND LEN(S_CLASS_CD) = #{s_class_cd_len}								/* 코드 길이 */
+		   </if>
+		   
+		 ORDER BY S_CLASS_CD_ORDER
+
+	</select>
+
+	<!-- 2자리 코드정의 조회 - 2018.10.04	ywKim	신규 -->
+	<select id="selectCommonCodeTwo" parameterType="hashmap" resultType="hashmap">	
+
+		SELECT 
+			CD_NM AS NM
+			, CD_VALUE_2 AS VAL
+			, CD_CONTENT AS CONTENT
+			, ADD_EXP AS EXP
+		  FROM CMM_CD_TWO
+		 WHERE 1=1
+		   AND CD_NM = #{cd_nm}
+		 ORDER BY CD_VALUE_2
+
+	</select>
+	
+	<!-- 1자리 코드정의 조회 - 2018.10.04	ywKim	신규 -->
+	<select id="selectCommonCodeOne" parameterType="hashmap" resultType="hashmap">	
+
+		SELECT 
+			CD_NM AS NM
+			, CD_VALUE_2 AS VAL
+			, CD_CONTENT AS CONTENT
+			, ADD_EXP AS EXP
+		  FROM CMM_CD_ONE
+		 WHERE 1=1
+		   AND CD_NM = #{cd_nm}
+		 ORDER BY CD_VALUE_1
+
+	</select>
+
+	<!-- 공통코드 조회 - 2018.11.15	ywKim	신규 -->
+	<select id="selectJobStatsDataInfo" parameterType="hashmap" resultType="hashmap">	
+
+		SELECT LINK_ID
+				, STAT_NM
+				, STAT_DEFINITION
+				, STAT_EXP
+				, COLCT_SOURCE
+				, UPDT_CYCLE
+				, RECENT_UPDT_DE
+				, STAT_PATH
+				, REFRN_URL
+				, CREATE_DT
+		  FROM SRV_DT_JOB_STAT_DATA_INFO
+		 WHERE LINK_ID = #{link_id}
+
+	</select>
+
+	<!-- 날짜 범위 정보 조회 : day, week, month, quarter, half 에 따른 날짜 범위를 구한다. 
+			- 2018.12.07	ywKim	신규 
+	-->
+	<select id="getDateRangeInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			T.FROM_YYYYMMDD,
+			T.TO_YYYYMMDD,
+			SUBSTR(T.FROM_YYYYMMDD, 1, 4) || T.FROM_VALUE AS FROM_VALUE,
+			SUBSTR(T.TO_YYYYMMDD, 1, 4) || T.TO_VALUE AS TO_VALUE
+		  FROM
+		  (
+		/*
+			※ sample
+				today : 20181207
+				term : 9
+		*/
+		<choose>
+			<when test='search_type == "W"'>
+				/*
+					W: 40 ~ 49
+					범위: -9주 = -9 * 7일 (20181001 ~ 20181207)
+					※ kairos 주 기준은 월~일 / 그러므로 date + 1 후에 주로 변환필요
+				*/
+				SELECT 
+					<!-- TO_CHAR(TRUNC(TO_DATE(#{today}, 'YYYYMMDD') -7 * ${term}, 'DAY') + 1, 'YYYYMMDD') AS FROM_YYYYMMDD,
+					'${today}' AS TO_YYYYMMDD,
+					TO_CHAR(TO_DATE(#{today}, 'YYYYMMDD') -7 * ${term} + 1, 'WW') AS FROM_VALUE,
+					TO_CHAR(TO_DATE(#{today},'YYYYMMDD') + 1,'WW') AS TO_VALUE -->
+					<!-- 2019-06-18 [김남민] 조회 쿼리 수정 START -->
+					'${today2}'  AS FROM_YYYYMMDD,
+					'${today}' AS TO_YYYYMMDD,
+					TO_CHAR(TO_DATE('${today2}','YYYYMMDD'),'WW') AS FROM_VALUE,
+					TO_CHAR(TO_DATE('${today}','YYYYMMDD'),'WW') AS TO_VALUE
+					<!-- 2019-06-18 [김남민] 조회 쿼리 수정 END -->
+				 FROM DUAL
+			</when>
+			<when test='search_type == "M"'>
+				/*
+					M: 03 ~ 12
+						201803 ~ 201812(old)
+					범위: -9개월 (20180301 ~ 20181207)
+				*/
+				SELECT 
+					TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTRING(#{today}, 1, 6), 'YYYYMM'), -1 * ${term}), 'YYYYMMDD') AS FROM_YYYYMMDD, 
+					'${today}' AS TO_YYYYMMDD,
+					TO_CHAR(ADD_MONTHS(TO_DATE(SUBSTRING(#{today}, 1, 6), 'YYYYMM'), -1 * ${term}), 'MM') AS FROM_VALUE, 
+					TO_CHAR(TO_DATE(SUBSTRING(#{today}, 1, 6), 'YYYYMM'), 'MM') AS TO_VALUE
+				 FROM DUAL
+			</when>
+			<when test='search_type == "Q"'>
+				/*
+					Q: 03 ~ 04 (2016 03 ~ 2018 04)
+					범위: -9Q (20160701 ~ 20181207)
+					※ y = (x - 1) * 3 + 1
+					  y : 분기 첫월
+					  x : 분기
+				*/
+				SELECT 
+					TO_CHAR(ADD_MONTHS(TO_DATE(#{today}, 'YYYYMMDD'), -1 * ${term} * 3), 'YYYY') ||								/* 9분기전 년도 */
+					LPAD((TO_CHAR(ADD_MONTHS(TO_DATE(#{today}, 'YYYYMMDD'), -1 * ${term} * 3), 'q') - 1) * 3 + 1, 2, '0') ||	/* 9분기전 분기 첫월 */
+					'01' AS FROM_YYYYMMDD,
+					'${today}' AS TO_YYYYMMDD,
+					LPAD(TO_CHAR(ADD_MONTHS(TO_DATE(#{today}, 'YYYYMMDD'), -1 * ${term} * 3), 'q'), 2, '0') AS FROM_VALUE, 
+					LPAD(TO_CHAR(TO_DATE(SUBSTRING(#{today}, 1, 6), 'YYYYMM'), 'q'), 2, '0') AS TO_VALUE 
+				 FROM DUAL
+			</when>
+			<when test='search_type == "H"'>
+				/*
+					H: 01 ~ 02 (2014 01 ~ 2018 02)
+					범위: -9H (20140101 ~ 20181207)
+				*/
+				SELECT 
+					TO_CHAR(ADD_MONTHS(TO_DATE(#{today}, 'YYYYMMDD'), -1 * ${term} * 6), 'YYYY') ||									/* 9반기전 년도 */
+					LPAD(FLOOR(TO_CHAR(ADD_MONTHS(TO_DATE(#{today}, 'YYYYMMDD'), -1 * ${term} * 6), 'q') / 3) * 6 + 1, 2, '0') ||	/* 9반기전 반기 첫월 */
+					'01' AS FROM_YYYYMMDD,
+					'${today}' AS TO_YYYYMMDD,
+					LPAD(CEIL(TO_CHAR(ADD_MONTHS(TO_DATE(#{today}, 'YYYYMMDD'), -1 * ${term} * 6), 'q') / 2), 2, '0') AS FROM_VALUE, 
+					LPAD(CEIL(TO_CHAR(TO_DATE(SUBSTRING(#{today}, 1, 6), 'YYYYMM'), 'q') / 2), 2, '0') AS TO_VALUE
+				 FROM DUAL
+			</when>				
+		    <otherwise>
+				/*
+					D: 11/28 ~ 12/07
+					범위: -9일 ~ today (20181128 ~ 20181207)
+				*/
+				SELECT 
+					TO_CHAR(TO_DATE(#{today}, 'YYYYMMDD') -1 * ${term}, 'YYYYMMDD') AS FROM_YYYYMMDD, 
+					'${today}' AS TO_YYYYMMDD,
+					TO_CHAR(TO_DATE(#{today}, 'YYYYMMDD') -1 * ${term}, 'MMDD') AS FROM_VALUE, 
+					SUBSTRING(#{today}, 5, 2) || SUBSTRING(#{today}, 7, 2) AS TO_VALUE 
+				FROM DUAL
+		    </otherwise>
+		</choose>
+		  ) T
+	</select>
+
+	<!-- 특정일(D,W,M,Q,H)에 해당하는 날짜 범위 조회 => from yyyymmdd ~ to yyyymmdd 
+			- 2018.12.13	ywKim	신규 
+	-->
+	<select id="getDateRange" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+		<choose>
+			<when test='search_type == "W"'>	/* today'sample is 201849 */
+			<!-- 2019-06-19 [김남민] search_type 1주 1달 인 경우 날짜 변경. START -->
+			<!-- TO_CHAR(TRUNC(TO_DATE(SUBSTR(#{today}, 0, 4) || '0101', 'YYYYMMDD') + 7 * (SUBSTR(#{today}, 5, 2) - 1), 'DAY') + 1, 'YYYYMMDD') AS FROM_YYYYMMDD,
+			TO_CHAR(TRUNC(TO_DATE(SUBSTR(#{today}, 0, 4) || '0101', 'YYYYMMDD') + 7 * (SUBSTR(#{today}, 5, 2) - 1), 'DAY') + 7, 'YYYYMMDD') AS TO_YYYYMMDD -->
+			'${today2}'  AS FROM_YYYYMMDD,
+			'${today}' AS TO_YYYYMMDD
+			<!-- 2019-06-19 [김남민] search_type 1주 1달 인 경우 날짜 변경. END -->
+			</when>
+			<when test='search_type == "M"'>	/* today'sample is 201812 */
+			<!-- 2019-06-19 [김남민] search_type 1주 1달 인 경우 날짜 변경. START -->
+			<!-- '${today}' || '01' AS FROM_YYYYMMDD,
+			TO_CHAR(ADD_MONTHS(TO_DATE(#{today} || '01', 'YYYYMMDD'), 1) - 1, 'YYYYMMDD') AS TO_YYYYMMDD -->
+			'${today2}' AS FROM_YYYYMMDD,
+			'${today}' AS TO_YYYYMMDD
+			<!-- 2019-06-19 [김남민] search_type 1주 1달 인 경우 날짜 변경. END -->
+			</when>
+			<when test='search_type == "Q"'>	/* today'sample is 201804 */
+			CASE
+				WHEN SUBSTR(#{today}, 5, 2) = '04' THEN SUBSTR(#{today}, 1, 4) || '1001'
+				WHEN SUBSTR(#{today}, 5, 2) = '03' THEN SUBSTR(#{today}, 1, 4) || '0701'
+				WHEN SUBSTR(#{today}, 5, 2) = '02' THEN SUBSTR(#{today}, 1, 4) || '0401'
+				WHEN SUBSTR(#{today}, 5, 2) = '01' THEN SUBSTR(#{today}, 1, 4) || '0101'
+			END AS FROM_YYYYMMDD,
+			CASE
+				WHEN SUBSTR(#{today}, 5, 2) = '04' THEN SUBSTR(#{today}, 1, 4) || '1231'
+				WHEN SUBSTR(#{today}, 5, 2) = '03' THEN SUBSTR(#{today}, 1, 4) || '0930'
+				WHEN SUBSTR(#{today}, 5, 2) = '02' THEN SUBSTR(#{today}, 1, 4) || '0630'
+				WHEN SUBSTR(#{today}, 5, 2) = '01' THEN SUBSTR(#{today}, 1, 4) || '0331'
+			END AS TO_YYYYMMDD
+			</when>
+			<when test='search_type == "H"'>	/* today'sample is 201802 */
+			CASE
+				WHEN SUBSTR(#{today}, 5, 2) = '02' THEN SUBSTR(#{today}, 1, 4) || '0701'
+				WHEN SUBSTR(#{today}, 5, 2) = '01' THEN SUBSTR(#{today}, 1, 4) || '0101'
+			END AS FROM_YYYYMMDD,
+			CASE
+				WHEN SUBSTR(#{today}, 5, 2) = '02' THEN SUBSTR(#{today}, 1, 4) || '1231'
+				WHEN SUBSTR(#{today}, 5, 2) = '01' THEN SUBSTR(#{today}, 1, 4) || '0630'
+			END AS TO_YYYYMMDD
+			</when>
+			<otherwise>							/* today'sample is 20181208 */
+			<!-- 2019-05-14[한광희] 일자리 정보 누락 처리(값이 Null일 경우 전일 데이터 사용):정보를 가지고 있는 날짜를 담은 변수에따른 분기 추가 시작 -->
+			<if test="data_today == null">
+			'${today}' AS FROM_YYYYMMDD,
+			'${today}' AS TO_YYYYMMDD
+			</if>
+			<if test="data_today != null">
+			'${data_today}' AS FROM_YYYYMMDD,
+			'${data_today}' AS TO_YYYYMMDD
+			</if>
+			<!-- 2019-05-14[한광희] 일자리 정보 누락 처리(값이 Null일 경우 전일 데이터 사용):정보를 가지고 있는 날짜를 담은 변수에따른 분기 추가 종료 -->
+			</otherwise>
+		</choose>
+		 FROM DUAL
+		;	
+	</select>
+	
+	<select id="selectMainJobStatusInfo" parameterType="hashmap" resultType="hashmap">
+		/*selectMainJobStatusInfo 일자리 현황 데이터 조회 - 전국,최신데이터 기준으로 조회*/
+		SELECT LINK_ID
+		     , ITM_NM AS TITLE
+			 , PRD_DE AS REFERENCE_DATE
+			 , DT AS VALUE
+			 , UNIT_NM AS VALUE_UNIT
+			 , ITM_ID
+		  FROM SRV_DT_KOSIS_DATA
+		 WHERE 1=1
+		   AND LINK_ID = 'I4001'
+		   AND ITM_ID = 'T20' AND C1 = '00' 
+		   AND PRD_DE = (SELECT MAX(PRD_DE) AS PRD_DE FROM SRV_DT_KOSIS_DATA WHERE LINK_ID = 'I4001')
+		 UNION ALL
+		SELECT LINK_ID
+		     , ITM_NM AS TITLE
+			 , PRD_DE AS REFERENCE_DATE
+			 , DT AS VALUE
+			 , UNIT_NM AS VALUE_UNIT
+			 , ITM_ID
+		  FROM SRV_DT_KOSIS_DATA
+		 WHERE 1=1
+		   AND LINK_ID = 'I4002'
+		   AND ITM_ID = 'T10' AND C1 = '0' 
+		   AND PRD_DE = (SELECT MAX(PRD_DE) AS PRD_DE FROM SRV_DT_KOSIS_DATA WHERE LINK_ID = 'I4002')
+		 UNION ALL
+		SELECT LINK_ID
+		     , ITM_NM AS TITLE
+			 , PRD_DE AS REFERENCE_DATE
+			 , DT AS VALUE
+			 , UNIT_NM AS VALUE_UNIT
+			 , ITM_ID
+		  FROM SRV_DT_KOSIS_DATA
+		 WHERE 1=1
+		   AND LINK_ID = 'I4002'
+		   AND ITM_ID = 'T20' AND C1 = '0' 
+		   AND PRD_DE = (SELECT MAX(PRD_DE) AS PRD_DE FROM SRV_DT_KOSIS_DATA WHERE LINK_ID = 'I4002')
+		 UNION ALL
+		SELECT LINK_ID
+		     , ITM_NM AS TITLE
+			 , PRD_DE AS REFERENCE_DATE
+			 , DT AS VALUE
+			 , UNIT_NM AS VALUE_UNIT
+			 , ITM_ID
+		  FROM SRV_DT_KOSIS_DATA
+		 WHERE 1=1
+		   AND LINK_ID = 'I3117'
+		   AND ITM_ID = 'T50' AND C1 = '00' AND C2 = '00' 
+		   AND PRD_DE = (SELECT MAX(PRD_DE) AS PRD_DE FROM SRV_DT_KOSIS_DATA WHERE LINK_ID = 'I3117')
+		 UNION ALL
+		SELECT LINK_ID
+		     , ITM_NM AS TITLE
+			 , PRD_DE AS REFERENCE_DATE
+			 , DT AS VALUE
+			 , UNIT_NM AS VALUE_UNIT
+			 , ITM_ID
+		  FROM SRV_DT_KOSIS_DATA
+		 WHERE 1=1
+		   AND LINK_ID = 'I3104'
+		   AND ITM_ID = 'T30' AND C1 = '00' AND C2 = '0' 
+		   AND PRD_DE = (SELECT MAX(PRD_DE) AS PRD_DE FROM SRV_DT_KOSIS_DATA WHERE LINK_ID = 'I3104')
+		 UNION ALL
+		SELECT LINK_ID
+		     , ITM_NM AS TITLE
+			 , PRD_DE AS REFERENCE_DATE
+			 , DT AS VALUE
+			 , UNIT_NM AS VALUE_UNIT
+			 , ITM_ID
+		  FROM SRV_DT_KOSIS_DATA
+		 WHERE 1=1
+		   AND LINK_ID = 'I3112'
+		   AND ITM_ID = 'T40' AND C1 = '00' AND C2 = '0' 
+		   AND PRD_DE = (SELECT MAX(PRD_DE) AS PRD_DE FROM SRV_DT_KOSIS_DATA WHERE LINK_ID = 'I3112')
+	</select>
+</mapper>

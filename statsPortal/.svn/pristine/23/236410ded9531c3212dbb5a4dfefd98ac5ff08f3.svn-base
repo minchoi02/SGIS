@@ -1,0 +1,973 @@
+var bFromData = null; 
+var bFromData2 = null;
+var test =1;
+var checkCd = "00";
+var mapfirst = 0;
+ 
+
+$(document).ready(function(){
+	
+	bFromData = $('#searchFrom').serialize();
+	bFromData2= $('#togetherSearchFrom').serialize();
+	$(".selected").click(function(){
+		
+		if(!$(this).siblings('.optionContainer').hasClass('active')){
+			$(".selected").siblings('.optionContainer').removeClass('active');
+			$(".selected").removeClass('active');	
+		}
+			
+		$(this).siblings('.optionContainer').toggleClass('active');
+		$(this).toggleClass('active');
+		
+	});
+	
+	$(".rankWrapper").hide();
+	
+	
+	$('.searchRadioOption').click(function(){
+		
+		var radio  = $(this).find('input[type=radio]');
+		var label  = $(this).find('label').text();
+		var data = radio.val();
+		var name = radio.attr('name');
+		
+		var searchInput = $('#searchFrom').find("input[name='"+name+"']");
+		var parentDiv =  $(this).parent('.optionContainer').parent('.selectBox');
+		
+		if(data == searchInput.val()){
+			$(parentDiv).find('.active').toggleClass('active');	
+			return; 
+		}
+		
+		searchInput.val(data);
+		$(parentDiv).find('.active').toggleClass('active');
+		$(parentDiv).find('.selected').find('.text').html(label);
+		
+		if(!checkFormData()){
+			setDetailSetting();
+			$sbrActiveMap.ui.mapList[0].getMapPolygon();
+		}
+		//$map
+		//getReversGeoCode();
+		
+		
+		if(data ==2 && name == "category"){
+			$(".sliderContainer").show();
+		}else if(data ==1 && name == "category"){
+			$(".sliderContainer").hide();
+		}
+	});
+	
+	
+	$('.searchRadioOption2').click(function(){
+		
+		var radio  = $(this).find('input[type=radio]');
+		var label  = $(this).find('label').text();
+		var data = radio.val();
+		var name = radio.attr('name');
+		
+		var searchInput = $('#togetherSearchFrom').find("input[name='"+name+"']");
+		var parentDiv =  $(this).parent('.optionContainer').parent('.selectBox');
+		
+		if(data == searchInput.val()){
+			$(parentDiv).find('.active').toggleClass('active');	
+			return;
+		}
+		
+		 /*if(data == "house"){
+			 
+			 $sbrActiveMap.ui.mapList[0].moveMapCenter($sbrActiveMap.ui.mapList[0].center,7);
+			 $sbrActiveMap.ui.mapList[1].moveMapCenter($sbrActiveMap.ui.mapList[0].center,7);
+		 }
+		 else if(data == "home"){
+			 $sbrActiveMap.ui.mapList[0].moveMapCenter($sbrActiveMap.ui.mapList[0].center,7);
+			 $sbrActiveMap.ui.mapList[1].moveMapCenter($sbrActiveMap.ui.mapList[0].center,7);
+			 
+		 }*/
+		
+		
+		
+		searchInput.val(data);
+		$(parentDiv).find('.active').toggleClass('active');
+	
+		$(parentDiv).find('.selected').find('.text').html(label);
+		setDetailSetting();
+		
+		if(!checkFormData2()){
+			$sbrActiveMap.ui.mapList[1].getMapPolygon();
+		}
+		//$map
+		//getReversGeoCode();
+	});
+	
+	
+	$('#areaSearchBtn').click(function(){
+		if($(this).hasClass("active")){
+			$(this).removeClass('active');
+			$('#divAreaPopup').hide();	
+		}else{
+			$(this).toggleClass('active');
+			$('#divAreaPopup').show();
+		}
+	});
+	
+	$('#companySearChBtn').click(function(){
+		$('#divAreaPopup').hide();
+		
+		if($(this).hasClass("active")){
+			$(this).removeClass('active');
+			$('#companyPopup').hide();	
+		}else{
+			$(this).toggleClass('active');
+			$('#companyPopup').show();
+		}
+	});
+	
+	
+	$('.bizCodeTitle').click(function(){
+		$(this).find('i').toggleClass('active');
+		$(this).siblings('ul').toggle();
+	});
+	
+	$('.bizCodeOpen').click(function(){
+		var obj = $(this).parent('ul').siblings('.optionAcc');
+		obj.find('.bizCodeTitle').find('i').removeClass('active');
+		obj.find('ul').show();
+	});
+	
+	$('.bizCodeClose').click(function(){
+		var obj = $(this).parent('ul').siblings('.optionAcc');
+		obj.find('.bizCodeTitle').find('i').removeClass('active');
+		obj.find('.bizCodeTitle').find('i').toggleClass('active');
+		obj.find('ul').hide();
+	});
+	
+	$('.bizCodeSelect').click(function(){
+		var data1 = $(this).find('.valueBiz1').val();
+		var data2 = $(this).find('.valueBiz2').val();
+		var name = $(this).find('.nameBiz').val();
+		
+		$('.bizCodeSelect').find('i').removeClass('active');
+		$(this).find('i').toggleClass('active');
+		$('.bizMenuTitle').find('.text').html(name);
+		//$('#searchFrom').find('input[name=biz_cd]').val(data);
+		$('#searchFrom').find('input[name=kisc_cd_1]').val(data1);
+		$('#searchFrom').find('input[name=kisc_cd_2]').val(data2);
+		
+		$(".selected").siblings('.optionContainer').removeClass('active');
+		$(".selected").removeClass('active');	
+		
+		
+		if(!checkFormData()){
+			$sbrActiveMap.ui.mapList[0].getMapPolygon();
+		}
+		
+	});
+	
+	//setRank("00");
+	//설정초기화
+	setDetailSetting();
+	//랭킹 보이는거 초기화
+	rankExpandSet();
+	
+	$sbrActiveMap.ui.mapList[0].getMapPolygon();
+	
+	$("body").on("click",".colorck li>a",function(){
+		$sbrActiveMap.ui.mapList[0].getMapPolygon();
+	});
+	
+	
+	 // 세대 옵션 최대 3개 
+    $('input[name="homeGroup"]').on('click', (e) => {
+        let count = $("input:checked[name='homeGroup']").length
+        if(count > 3) {
+            alert('세대 선택은 최대 3개까지 할 수 있습니다.')
+            $(e.target).prop('checked',false);
+        }
+    })
+
+    // 함께보기 주제 선택 변경 UI셀렉트 박스 
+    $('input[name=halfGubun]').on('click', e => {
+        selectBoxChange(e.target);
+    })
+	
+    
+    $('body').click(function(e){
+       var parentOffset = $(this).parent().offset();
+    	
+	   var relX = e.pageX - parentOffset.left;
+	   var relY = e.pageY - parentOffset.top;
+	   
+	   if(isNaN(relX)) return ;
+	   if(isNaN(relY)) return ;
+	   
+	   if($sbrActiveMap.ui.isPopupFlag == true){
+			   $('.popup.rankResult').css("left",relX+"px");
+			   $('.popup.rankResult').css("top",relY+"px");
+			   $sbrActiveMap.ui.isPopupFlag = false;
+		   
+	   }
+    
+	   
+	   
+    });
+    
+    
+  //설정 탭 
+    $('ul.tab.options li').click((item) => {
+        $(item.target).parent('.tab').children('li').removeClass("on")
+        $(item.target).addClass('on')
+    })
+    
+    
+    var iWidth = $(window).width();
+	var iHeight = $(window).height();
+    
+    
+    if (iHeight >=1080||iWidth >=1920) { //1920*1080
+			$('#div_target').css({
+				position : 'absolute',
+				top : '52.5%',
+				left : '49.5%',
+				width : '20px',
+				height : '20px',
+				margin : $('#div_target').height()/2*-1+"0 0"+$('#div_target').width()/2*-1,
+				"z-index" : '4'
+			});
+			//보고서 출력시 중심점 마커 표시x
+			$("#div_target").attr('data-html2canvas-ignore', 'true');
+		
+	}else{ //1920*1080 아래
+			$('#div_target').css({
+				position : 'absolute',
+				top : '53.5%',
+				left : '49%',
+				width : '20px',
+				height : '20px',
+				margin : $('#div_target').height()/2*-1+"0 0"+$('#div_target').width()/2*-1,
+				"z-index" : '4'
+			});
+			//보고서 출력시 중심점 마커 표시x
+			$("#div_target").attr('data-html2canvas-ignore', 'true');
+	}
+    
+    
+    
+    const sliderTs = new rSlider({
+        target: '#slider',
+        values: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+        range: true,
+        tooltip: true,
+        scale: true,
+        labels: false,
+        set: [0, 100],
+        onChange:(value)=> {
+        	findRank(value);    
+        }
+    });
+    $(".sliderContainer").hide();
+});
+
+function findRank(){
+	$sbrActiveMap.ui.mapList[0].getMapPolygon();
+}
+
+function testBtn(){
+	//vMap.moveMap(1000,1000);
+	
+	$sbrActiveMap.ui.mapList[0].moveMap(1000,1000);
+}
+
+function checkFormData(){
+	var formData = $('#searchFrom').serialize();
+	
+	sMap.map.selectMapType = $('#searchArea').val();
+	sMap.map.mapCategory = $('#searchCategory').val();
+	
+	
+	if(bFromData == formData){
+		return true;
+	}else{
+		bFromData = formData;
+		return false;
+	}
+}
+
+function checkFormData2(){
+	var formData = $('#togetherSearchFrom').serialize();
+	
+	console.log(formData);
+	console.log(bFromData2);
+	
+	if(bFromData2 == formData){
+		return true;
+	}else{
+		bFromData2 = formData;
+		return false;
+	}
+}
+
+
+function naviPopupSelect(obj){
+	console.log(obj);
+}
+
+function rankViewMode() {
+  $(".navRank").toggleClass('mini')
+  //$(".naviWrapper").toggleClass('mini');
+  $(".rankWrapper").toggle();
+  resetSidoWrapper();
+}
+
+
+function rankExpand() {
+	
+	if (!$(".rankWrapper").hasClass('expand')) {
+        $(".rankWrapper, .naviWrapper").addClass('expand')
+
+        // 가 데이터 삽입
+        //var html = "";
+        
+        $('.rankList.table li').show();
+        $(".rankBtn .btnLine p").text("축소보기");
+
+    } else {
+        $(".rankWrapper, .naviWrapper").removeClass('expand')
+        $(".rankBtn .btnLine p").text("펼쳐보기");
+
+        $('.rankList.table li').each(function (index, item) {
+        	if(index> 10 )  $(item).hide();
+        });
+    }
+	 
+}
+
+function rankExpandSet(){
+	$('.rankList.table li').each(function (index, item) {
+    	if(index> 10 )  $(item).hide();
+    });
+}
+
+
+function resetSidoWrapper(){
+	$(".rankWrapper, .naviWrapper").removeClass('expand1')
+    $(".rankBtn .btnLine p").text("펼쳐보기");
+
+    $('.rankList.table li').each(function(index, item){
+      if($(item).hasClass('add')) $(item).remove();
+    });
+}
+
+
+function getCodeList(code){
+	
+	jQuery.ajax({
+		type:"POST",
+		url: "/view/sbrStats/codeList",
+		data: {codeId: code},
+		dataType:"json",
+		async: true,
+		success:function(data){
+			
+			return data;
+		},
+		error:function(data) {
+			
+			return "faill";
+		}
+	});
+	
+}
+
+//설정 토글
+function toggleSetting(){
+    $(".leftContent").not('.settingBox').hide();
+    $(".filter li.setting button").toggleClass('active');
+    $(".settingBox").toggle();
+}
+
+
+//지역랭킹 아이템 클릭
+function showRankDetail(data,x,y){
+    // 지역랭킹 오버 일때 나오는 팝업 화면
+	closeLeftAll();
+	$sbrActiveMap.ui.mapList[0].moveMap(x,y);
+	setXY(x,y);
+	
+	$('.popup.rankResult').show();
+	// $(".leftContent.rankResult").show();
+	
+	$('#searchAdmCd').val(data);
+	sMap.map.selectAdmCd = data;
+    getAreaInfo(data);
+    
+    $('.popup.rankResult').css("left","50%");
+	$('.popup.rankResult').css("top","50%");
+	   
+	//console.log($sbrActiveMap.ui.mapList[0]);
+	
+	
+	// mxpd 2022.11.13 : "leftContent rankResult popup" set data
+	setLeftSideData(data);
+    //openLeftData();
+	//leftChart();
+	getLeftCartData(data);
+}
+
+// mxpd 2022.11.13 : 지역랭킹 클릭 시 왼쪽 팝업 메뉴 open & fill data
+function setLeftSideData(code) {
+	var formData = $('#searchFrom').serialize();
+	console.log("formdata : " + formData);
+	$(".leftContent.rankResult").show();
+	
+	// 1. 선택된 도시, 연도, 업종 binding
+	var rankData = sMap.map.rankData;
+	console.log("RANK_DATA");
+	console.log(rankData);
+	console.log("${bizList}");
+	
+	rankData.forEach(function(item,index){
+		console.log(item.bord_cd + " | " +code);		
+		if(item.bord_cd == code){
+			console.log(item);
+			jsonData = item;
+		
+			$('#regionName').html(item.addr);
+			$('#year').html(item.base_year);
+			$('#bizName').html('전체업종'); // item.뭐를가져와야 업종코드지?
+		}
+	});
+
+	// 0. leftSideMenu 에 필요한 Data를 가져온다.
+	$.ajax({
+		method: "GET",
+		async: true,
+		url: "/view/sbrStats/sbrRegionSignalDataList",
+		data: formData,
+		dataType: "json",
+		success: function(res) {
+			console.log(res);
+			// 2. 연도, 지역, 업종(...) 의 지역 시그널
+
+			// a. 100대 대기업 위치
+			if(res.ltrs_sls_rank100_co > 0) {
+				$('#topBizSize').html('매출 100대 대기업');
+				$('#topBizCount').html(res.ltrs_sls_rank100_co);
+			} else if(res.ltrs_sls_rank500_co > 0) {
+				$('#topBizSize').html('매출 500대 대기업');
+				$('#topBizCount').html(res.ltrs_sls_rank500_co);
+			} else if(res.ltrs_sls_rank1000_co > 0) {
+				$('#topBizSize').html('매출 1000대 대기업');
+				$('#topBizCount').html(res.ltrs_sls_rank1000_co);
+			} else {
+				// 중견, 중소, 소상공인 중 기업매출 합계가 가장 높은 기업규모, 비중
+				var array = [res.mident_sls_amt, res.smlpz_sls_amt, res.smltrdids_sls_amt]
+				var maxAmt = array.reduce( (previous, current) => {
+					return previous > current ? previous : current;
+				});
+				console.log(maxAmt);
+				$('#topBizSize').html('중견,중소,소상공인');
+				$('#topBizCount').html('xxx');
+			}
+			// b. 업종 전년대비 증가율
+			// c. 개폐업 비율
+			let trendPrefix = '개업과 폐업 기업이 없는 정체 상태';
+			let trendRatio = 0.0;
+			if(res.ent_opbiz_co > res.ent_clsbiz_co) {
+				trendPrefix = '개업이 폐업보다';
+				trendRatio = res.ent_tot / res.ent_clsbiz_co; 
+			} else if(res.ent_opbiz_co < res.ent_clsbiz_co) {
+				trendPrefix = '폐업이 개업보다';
+				trendRatio = res.ent_tot / res.ent_clsbiz_co;
+			} else if(res.ent_opbiz_co == res.ent_clsbiz_co) {
+				if(res.ent_opbiz_co > 0) {
+					trendPrefix = '개업과 페업 기업수가 비슷한 정체 상태'
+				} else {
+					// open, close = 0
+				}
+			} else if(res.ent_opbiz_co > 0 && res.ent_clsbiz_co == 0) {
+				trendPrefix = '폐업이 없는 개업률'
+				trendRatio = res.ent_tot / res.ent_clsbiz_co; 
+			} else if(res.ent_opbiz_co == 0  && res.ent_clsbiz_co > 0) {
+				trendPrefix = '개업이 없는 폐업률'
+				trendRatio = res.ent_tot / res.ent_clsbiz_co;
+			} else {
+
+			}
+
+			let trendRatiotext = String(trendRatio.toFixed(1)) + '%';
+			$('#openCloseTrend').html(trendPrefix);
+			$('#openCloseRatio').html(trendRatiotext);
+			
+			// d. 청장년인구 증가율
+			// e. 토지 공시지가 평균
+			// f. 선택업종 구인 list			
+
+			// {lnd_avg_rl_dlpc=32165808, ent_tot=1784184, lnd_avg_olnlp=80906969, base_year=2020
+			//, ltrs_sls_rank500_co=0, ent_clsbiz_co=117666, mident_sls_amt=40886776314
+			//, smltrdids_sls_amt=178560, smlpz_sls_amt=13296105, ltrs_sls_amt=579637306089
+			//, grid_1k_ppltn_co=922, ltrs_sls_rank100_co=9, lnd_deal_co=268, bord_type=11
+			//, psn_1_family_co=7594, bd_30yy_mt_rt=14.8, ltrs_sls_rank1000_co=0, ent_opbiz_co=147334
+			//, ymage_co=4319, lnd_area=6663, ppltn_tot=4625318, bord_cd=31}
+		}
+	});
+	
+}
+
+
+
+function optionDetail(obj){
+	
+	
+	var tab = $(obj).parents("li").parents('ul').siblings('.tab');
+	var subData = "";
+	var subOjb = "";
+	if(tab.length >0 ){
+		subOjb = tab.find('.on').find('input');
+		subData = subOjb.val();
+	}
+	
+	
+	resetDitelOption($(obj).attr("class"),$(obj).attr("type"));
+	
+	if(subOjb != ""){
+		tab.children('li').removeClass("on")
+		subOjb.parents("li").addClass("on");
+		
+		subData = subData+"_";
+	}
+	
+	var selectData = [];
+	
+	if($(obj).attr("type") =="checkbox"){
+		var name = $(obj).attr("name");
+		$('input[name="'+name+'"]:checked').each(function(){
+			selectData.push(subData+$(this).val());
+		});
+	}else{
+		var mainData = $(obj).val();
+		selectData.push(subData+mainData);
+	}
+    	
+	$('#searchOptionList').val(selectData);
+	
+	
+	if(!checkFormData()){
+		
+		
+		
+		
+		$sbrActiveMap.ui.mapList[0].getMapPolygon();
+	}
+}
+
+
+function resetDitelOption(className,type){
+	
+	var index = 9;
+	var flag = true;
+	if(type == "checkbox") flag = false;
+	
+	for(var i=1; i<=9 ;i++){
+		var name = 'optionInput'+i;
+		if(name != className )$('.'+name).prop("checked",false);
+	}
+	
+	var tab = $('ul.tab.options li').parent('.tab');
+	
+		tab.children('li').removeClass("on");
+		tab.each(function(){
+			$(this).children('li').eq(0).addClass("on");
+		})
+}
+
+function selectAllfalse(){
+	
+	var index = 9;
+	
+	for(var i=1; i<=9 ;i++){
+		var name = 'optionInput'+i;
+		$('.'+name).prop("checked",false);
+	}
+	
+	var tab = $('ul.tab.options li').parent('.tab');
+	
+	tab.children('li').removeClass("on");
+	tab.each(function(){
+		$(this).children('li').eq(0).addClass("on");
+	})
+	
+}
+
+function openLeftData(){
+	
+	var formData = $('#searchFrom').serialize();
+	
+/*	
+	$.ajax({
+		method: "POST",
+		async: true,
+		url: "/view/sbrStats/sbrLeftDataList",
+		data: formData,
+		dataType: "json",
+		success: function(res) {
+
+			
+		}
+	});*/
+	
+}
+
+
+
+//지역랭킹 결과조회 지역시그널 클릭 이벤트
+function openSignal(obj){
+    const target =$(obj).data('content');
+
+    $('.rankResult .signal li').removeClass('active')
+    $(obj).addClass('active');
+
+    $(".leftSub").hide();
+    $(".leftSub").each((i, item) => {
+        if($(item).data('content') == target) $(item).show();
+    })
+}
+
+
+//종합분석 탭
+function layerBoxTab(obj){
+    var tabName = $(obj).data('tab');
+    $(".layerLg .menuWrap .tab li").removeClass('active');
+    $(obj).addClass('active');
+    $('#allResult .container > .content').each((i, item) => {
+        $(item).hide();
+        if(tabName == $(item).data('content')) $(item).show();
+    })
+    
+    //alert($(obj).data("tab"));
+    
+    if($(obj).data("tab") == "company"){
+    	setMapChart();
+    }
+    
+}
+
+
+//종합분석 > 공간분석 > 맵 레이어
+function openDifferAreaMap(){
+    $(".differArea .mapArea").show();
+    setAreaMpa();
+}
+function closeDifferAreaMap(){
+    $(".differArea .mapArea").hide();
+}
+ 
+
+
+//좌측 컨텐츠 닫기
+function closeLeft(leftContent){
+    // 설정 버튼 초기화
+    $(".filter li.setting button").removeClass('active');
+    $(leftContent).closest('.leftContent, .leftSub').hide();
+
+}
+
+//팝업 닫기
+function closePopup(popup){
+    $(popup).closest('.popup').hide();
+}
+
+function closeResult(){
+    $(".layerOverlay").hide();
+    $("#allResult").hide();
+}
+
+//종합분석 팝업 열기
+function showAllResult(){
+    $(".layerOverlay").show();
+    $("#allResult").show();
+    
+    setChart();
+
+}
+
+//좌측 컨텐츠 전체 닫기(초기화)
+function closeLeftAll(){
+    $(".leftContent").hide();
+    $('.closeBtn').click();
+}
+
+
+function setNaviPopupArea(obj){
+
+}
+
+
+
+
+
+
+function getCash(str){
+	if(str == null || str == 0) return 0;
+	else if(!isNaN(str))return str.toLocaleString(navigator.language);
+	else          return 0;
+}
+
+
+function setCompayMap(){
+	
+	$('.mainTopMenu').show();
+	$('.subTopMenu').hide();
+	$('.mainTopMenuDiv').css("width","calc(100% - 40px)");
+	$('.subTopMenuDiv').hide();
+	
+	
+	$('#mapRgn_box').css("width","100%");
+	$('#togetherMapDiv').hide();
+	//$sbrActiveMap.ui.createMap("mapRgn_2", 1);
+	
+	$('.dataWithView').hide();
+	$('#mapRgn_box2').hide();
+	
+	$sbrActiveMap.ui.mapList[0].update();
+	$sbrActiveMap.ui.isTogether = false;
+	//$sbrActiveMap.ui.mapList[1].remove();
+	
+	//$sbrActiveMapApi.event.mapUnSyncEvent();
+}
+
+function setTogetherMap(){
+	
+	
+	$('.searchCategory').val("1");
+	
+	
+	
+	var center = $sbrActiveMap.ui.mapList[0].center;
+	
+	if($sbrActiveMap.ui.mapList[0].zoom < 4){
+		$sbrActiveMap.ui.mapList[0].moveMapCenter($sbrActiveMap.ui.mapList[0].center,4);
+	}
+	
+	
+	$('#mapRgn_box2').show();
+	
+	$('.mainTopMenu').hide();
+	$('.subTopMenu').show();
+	$('.mainTopMenuDiv').css("width","calc(50% - 40px)");
+	$('.subTopMenuDiv').show();
+	
+	
+	$('#mapRgn_box').css("width","50%");
+	$('#togetherMapDiv').show();
+	
+	if($sbrActiveMap.ui.mapList[1] == null ){
+		$sbrActiveMap.ui.createMap("mapRgn_2", 1);
+	}
+	
+	$('.dataWithView').show();
+	
+	 $(".navRank").removeClass('mini')
+	 $(".rankWrapper").hide();
+	 
+	//$('.sop-control-container').hide();
+	
+	//좌표 재설정
+	$sbrActiveMap.ui.mapList[0].update();
+	
+	//moveMap
+	$sbrActiveMap.ui.mapList[1].moveMapCenter($sbrActiveMap.ui.mapList[0].center,$sbrActiveMap.ui.mapList[0].zoom);
+	
+	
+	
+	//$sbrActiveMapApi.event.mapSyncEvent();
+	
+	
+}
+
+
+
+function showDataWithViewPopup(){
+    $(".layerOverlay").show();
+    $("#dataWithViewPopup").show();
+    
+    setTimeout(function() {
+    	//setTogetherChart();
+    	getToChartData();
+	}, 50);
+    
+}
+function hideDataWithViewPopup(){
+	$(".layerOverlay").hide();
+    $("#dataWithViewPopup").hide();
+}
+
+
+
+
+
+selectBoxChange = (obj) => {
+
+    const group =  {
+            "people":['year','sex','age'],
+            "home":['year','homeGroup'],
+            "house":['year','type','bulidYear','allAreaSize'],
+            "other":['farmType','year','sexType2','age']
+        }
+
+        let filterName = $(obj).data('filter')
+        $("#rightSelectArea > li").not('.halfGubun').hide();
+
+        group[filterName].forEach((item) => {
+            $("#rightSelectArea > li").each((i, target) => {
+                if(target.classList.contains(item))  $(target).show()
+            })
+        })
+
+}
+
+let checkFalg = false;
+
+// 연령 선택 옵션 토글
+toggleCustomOption = (param, type, obj) => {
+
+    switch (type) {
+        case "age" :
+            if(param == 'hide') { // 선택하지 않음
+                $('.selectBox.age .tab').removeClass('active');
+                $('.selectBox.age ul.tabContent li').not('.btnWrap').hide()
+                
+            } else if (param == 'show') { // 연령선택
+                $('.selectBox.age ul.tab').addClass('active');
+                $('.selectBox.age ul.tabContent li:first-child').show();
+            
+                makeAgeSlider('ageSlider','ageSliderContent')
+            }
+            break;
+        case "allAreaSize" :
+            if(param == 'hide'){
+                $(obj).closest('.selectBox').find('.tabContent li:first-child').hide();
+            }
+             else if (param == 'show'){
+                $(obj).closest('.selectBox').find('.tabContent li:first-child').show();
+                makeAgeSlider('allAreaSizeSlider','allAreaSizeSliderContent')
+             }
+            break;
+        default: 
+            if(param == 'hide')          $(obj).closest('.selectBox').find('.tabContent li:first-child').hide();
+             else if (param == 'show')    $(obj).closest('.selectBox').find('.tabContent li:first-child').show();
+            break;
+    }
+    
+    
+    if(param == 'hide'){
+    	//$('#togetherSearchFrom').find("input[name=age_from]").val("");
+    	//$('#togetherSearchFrom').find("input[name=age_to]").val("");
+    	checkFalg = false;
+    }
+}
+
+
+
+// 연령 선택 탭 
+selectAgeTab = (obj, param = "slider") => {
+    let tabName = param
+    $(".selectBox .tab li").removeClass('active')
+    $(obj).addClass('active');
+    
+    if(param == 'slider' ) makeAgeSlider('sliderSelect','sliderContent');
+
+    $(obj).closest('.tab').siblings('.tabContent').children('li').each((i, item) => {
+        $(item).hide();
+        if($(item).data('content') == tabName) $(item).show();
+        if($(item).hasClass('btnWrap')) $(item).show();
+        checkFalg
+    })
+}
+
+// 슬라이더 생성
+makeAgeSlider = (id,parent="") => {
+    // 돔 있는지 확인
+    if($("#"+id).length < 1) { // 슬라이더 객체 생성
+
+        let sliderInput = document.createElement('input');
+        sliderInput.setAttribute('id',id)
+        sliderInput.setAttribute('type','text');
+        $("."+parent).append(sliderInput);
+
+        new rSlider({
+            target: '#'+ id,
+            values: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+            range: true,
+            tooltip: true,
+            scale: true,
+            labels: false,
+            set: [10, 90],
+            onChange:(value)=> {
+            	
+                // value [10,90]
+                // method: sliderTs.getValue() 벨류값 가져오기 ex) [10,90]
+                // todo
+            	//var age = value.split(",");
+            	console.log(value);
+            	var age = value.split(",");
+            	console.log(age);
+            	$('#minAge').val(age[0]);
+            	$('#maxAge').val(age[1]);
+            	checkFalg = true;
+            	
+            }
+        });
+        
+    } 
+}
+
+function closeCustomSelectBox(obj){
+	
+	if(obj ==2){	
+		if(checkFalg){
+			$('#togetherSearchFrom').find("input[name=age_from]").val($('#minAge').val());
+			$('#togetherSearchFrom').find("input[name=age_to]").val($('#maxAge').val());	
+		}else{
+			$('#togetherSearchFrom').find("input[name=age_from]").val("");
+			$('#togetherSearchFrom').find("input[name=age_to]").val("");
+		}
+		if(!checkFormData2()){
+			$sbrActiveMap.ui.mapList[1].getMapPolygon();
+		}
+	}
+	//$('#ageDiv').removeClass('active');
+	$('.optionContainerDiv').removeClass('active');
+}
+
+
+
+//지역분석 기업규모별 매출액
+rankStatusTab = (obj) => {
+    $(obj).parent('.tab').children('div').removeClass('active');
+    $(obj).addClass('active')
+    const tabName = $(obj).data('tab');
+    $(obj).closest('ul').children('.tabContent').each((index, item) => {
+        $(item).hide();
+        if(tabName == $(item).data('content')) $(item).show();
+    })
+    
+    if(tabName == "company")leftCompanyChart(1);
+    else if(tabName == "cost")leftCompanyChart(2);
+    else if(tabName == "people")leftCompanyChart(3);
+    else if(tabName == "ceo")leftCartDataCompanyPeople(1);
+    else if(tabName == "worker")leftCartDataCompanyPeople(2);
+    
+    
+}
+
+
+
+
+function setaaa(){
+	//sliderContainer
+}
+
+
+
+

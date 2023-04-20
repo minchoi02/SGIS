@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="search">
+
+
+	<!--<select id="relsearchword" parameterType="hashmap" resultType="hashmap"> -->
+	<select id="relsearchword" parameterType="hashmap" resultType="String">
+		select rel_search_word
+		  from srv_dt_relsearchword
+		 where search_word = #{searchword}
+		 limit 1
+	</select>
+	
+	<select id="relationsoptotal" parameterType="hashmap" resultType="String">
+		 
+		 <!-- 20190903 leekh lv 1일때 like 검색 추가 -->
+		 <![CDATA[
+		select
+			sum(totalcount) as totalcount
+		from
+		(
+			select count(seq) as totalcount
+					  from srv_dt_relsearch_sop_new
+					 where syn = #{searchword}
+			union
+			select count(seq) as totalcount
+					  from srv_dt_relsearch_sop_new
+					 where syn <> #{searchword} and syn like '%' || #{searchword} || '%'
+					 and lv = 1 
+		)
+		 ]]>
+		 
+	</select>
+	
+	<select id="relationsop" parameterType="hashmap" resultType="hashmap">
+			 <![CDATA[
+			 
+		select * from
+		(
+		SELECT 
+			seq AS STAT_ID
+			 , TITLE AS NM
+			 , URL
+			 , DATA_BASE_YEAR 
+		FROM SRV_DT_RELSEARCH_SOP_new
+		WHERE SYN = #{searchword}
+		union
+		SELECT 
+			seq AS STAT_ID
+			 , TITLE AS NM
+			 , URL
+			 , DATA_BASE_YEAR 
+		FROM SRV_DT_RELSEARCH_SOP_new
+		WHERE SYN <> #{searchword} and SYN like '%' || #{searchword} || '%'
+			and lv = '1'
+		)
+		ORDER BY DATA_BASE_YEAR DESC 
+		 ]]>
+		<if test = 'pagenum != null'>
+	   	 LIMIT #{startnum}, #{endnum}
+		</if>
+
+		
+		
+	</select>
+	
+	<select id="relationmenutotal" parameterType="hashmap" resultType="String">
+		select count(*) as totalcount
+		  from srv_dt_relsearch_menu
+		 where syn = #{searchword}
+	</select>
+	
+	<select id="relationmenu" parameterType="hashmap" resultType="hashmap">
+		SELECT TITLE
+		     , URL
+		  FROM SRV_DT_RELSEARCH_MENU
+		 WHERE SYN = #{searchword}
+		 ORDER BY TITLE
+		<if test = 'pagenum != null'>
+	   	 LIMIT #{startnum}, #{endnum}
+		</if>
+	</select>
+	
+	<select id="relationkosistotal" parameterType="hashmap" resultType="String">
+		select count(stat_id) as totalcount
+		  from  srv_dt_relsearch_kosis
+		 where search_syn like '%'||#{searchword}||'%'
+		 <if test = 'gis_se != "0"'>
+		 	and gis_se = #{gis_se}
+		 </if>
+	</select>
+	
+	<!-- kosis 정보 조회 -->
+	<select id="relationkosis" parameterType="hashmap" resultType="hashmap">
+		SELECT STAT_ID
+		     , STAT_TITLE
+		     , STAT_URL
+		     , STAT_EXP
+		     , MENU_LEVEL_CD1
+		     , MENU_LEVEL_CD2
+		     , MENU_LEVEL_CD3
+		     , MENU_LEVEL_CD4
+		     , MENU_LEVEL_CD5
+		     , MENU_LEVEL_CD6
+		     , MENU_LEVEL_NM1
+		     , MENU_LEVEL_NM2
+		     , MENU_LEVEL_NM3
+		     , MENU_LEVEL_NM4
+		     , MENU_LEVEL_NM5
+		     , APPLY_LEVEL
+		     , SOURCE_DIV
+		     , KOSIS_TB_ID
+		     , API_ID
+		     , GIS_SE
+		  FROM SRV_DT_RELSEARCH_KOSIS
+		 WHERE SEARCH_SYN LIKE '%'||#{searchword}||'%'
+		 <if test = 'gis_se != "0"'>
+		 	AND GIS_SE = #{gis_se}
+		 </if>
+		 <if test = 'pagenum != null'>
+		 	LIMIT #{startnum}, #{endnum}
+		 </if>
+	</select>
+	
+	<!-- [START] 2015.11.02 Kosis 테이블 변경에 따른 수정. -->
+	<select id="relationkosistotalNew" parameterType="hashmap" resultType="String">
+		SELECT
+				COUNT(*) AS TOTALCOUNT
+		  FROM
+		  		SRV_DT_ADM_REGION_STAT
+		 WHERE
+		 		KOSIS_MENU_NM LIKE '%' || #{searchword} || '%'
+		 		AND SRV_YN = 'Y'
+		 		AND LOWER_MENU_EXST_YN = '0'
+		 <if test = 'gis_se != "0"'>
+		 	AND GIS_SE = #{gis_se}
+		 </if>
+	</select>
+	
+	<!-- kosis 정보 조회 -->
+	<select id="relationkosisNew" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				KOSIS_MENU_ID
+		        , KOSIS_MENU_NM
+		        , MENU_PATH
+		        , KOSIS_INST_CD
+		        , KOSIS_INST_NM
+		        , ADMINISTZONE_ITEM_CD
+		        , FIELD_ID
+		        , GIS_SE
+		        , ATDRC_YN
+		FROM
+				SRV_DT_ADM_REGION_STAT
+		WHERE
+				SRV_YN = 'Y'
+				AND LOWER_MENU_EXST_YN = '0'
+				AND KOSIS_MENU_NM LIKE '%' || #{searchword} || '%'
+			<if test = 'gis_se != "0"'>
+				AND GIS_SE = #{gis_se}
+			</if>
+			<if test = 'pagenum != null'>
+				LIMIT #{startnum}, #{endnum}
+			</if>
+	</select>
+	<!-- [END] 2015.11.02 Kosis 테이블 변경에 따른 수정. -->
+	
+	<!-- 토큰 정보 입력 -->
+	<insert id="insertsearchword" parameterType="hashmap">
+		<!-- mng_s 20170818 leekh-->
+		INSERT INTO SRV_DT_RELSEARCHHIST(SEQ, API_ID, SEARCH_WORD, SEARCH_AREA, CNT, SEARCH_TS)
+			 VALUES(
+			 		(SELECT MAX(SEQ)+1 FROM SRV_DT_RELSEARCHHIST with (nolock))
+			 	   , #{api_id}
+			 	   , #{searchword}
+			 	   , #{addr_syn}
+			 	   , #{search_data_cnt}
+			 	   , TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'))
+		<!-- mng_e 20170818 leekh-->
+	</insert>
+	
+	<select id="test" parameterType="hashmap" resultType="hashmap">
+		SELECT NM
+		     , THEME_CD
+		     , THEME_NM
+		     , CATEGORY
+		     , CATEGORY_NM
+		     , DATA_TYPE
+		     , ADM_CD
+		     , ROAD_CD
+		     , ADM_ADDR
+		     , NADDR
+		     , BASE_YEAR
+		     , ED_NO
+		     , CORP_NO
+		     , SUFID
+		     , ROUTE_CD
+		     , ROUTE_NM
+		     , X
+		     , Y
+		  FROM  srv_pt_relsearch_poi
+		 WHERE 1=1
+		   and syn like '%'||#{searchword}||'%'
+	</select>
+	
+	
+	
+</mapper>

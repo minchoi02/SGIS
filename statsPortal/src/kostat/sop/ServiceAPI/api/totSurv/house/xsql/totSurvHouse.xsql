@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="totSurvHouse">
+
+	<!-- 인구총조사 총주택 조회 - 2020.09.21	juKwak	신규 -->
+	<select id="getTotHouse" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_CD
+			, SURV_ID
+			, REGION_NM
+			, DT
+			, ITM_CD
+			, ITM_NM
+			, UNIT_NM
+			, RANK
+			, TO_CHAR(IRDSRATE, 'FM9990.00') AS IRDSRATE
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		 	<if test='region_cd == "99" or region_cd == "00"'>
+		 		AND region_cd = '00'
+		 	</if>
+		 	<if test='region_cd != "99" and region_cd != "00"'>
+		 		AND region_cd = #{region_cd}
+		 	</if>
+		 	<if test='year != null and year != ""'>					/* 지표년도 */
+		 		AND SURV_YEAR = #{year}
+		 	</if>
+		 	AND ITM_CD = 'T310' /* 가구-계(명) */
+		 	AND SURV_ID = 'PH0001' /* PH0001 : 인구, 가구 및 주택 - 읍면동(2015), 시군구(2016~) */
+	</select>
+	
+	<!-- 인구총조사 총가구 조회 - 2020.10.19	juKwak	신규 -->
+	<select id="getTotHouseRatio" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_CD
+			, SURV_ID
+			, REGION_NM
+			, a.DT - (select DT FROM SRV_DT_ST_CHART_DET_ITM_RANK
+										WHERE SURV_ID = 'PH0001'
+										AND SURV_YEAR = a.SURV_YEAR-1
+										AND ITM_CD = 'T310'
+										AND REGION_CD = a.REGION_CD ) as DT
+			, ITM_CD
+			, ITM_NM
+			, UNIT_NM
+			, RANK
+			, TO_CHAR(IRDSRATE, 'FM9990.00') AS IRDSRATE
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK a
+		 WHERE 1=1
+		 	<if test='region_cd == "99" or region_cd == "00"'>
+		 		AND region_cd = '00'
+		 	</if>
+		 	<if test='region_cd != "99" and region_cd != "00"'>
+		 		AND region_cd = #{region_cd}
+		 	</if>
+		 	<if test='year != null and year != "" '>					/* 지표년도 */
+		 		AND SURV_YEAR = #{year}
+		 	</if>
+		 	AND ITM_CD = 'T310' /* 주택-계(호) */
+		 	AND SURV_ID = 'PH0001' /* PH0001 : 인구, 가구 및 주택 - 읍면동(2015), 시군구(2016~) */
+	</select>
+	
+	<!-- 빈집 주택의 종류 2020.09.22 esPark 신규 -->
+	<select id="getEmptyHouse" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				DT
+				, REGION_CD
+				, REGION_NM
+				, C1_NM
+				, ITM_NM
+				, RANK
+				, C1
+				, ITM_CD
+				, SURV_ID
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+	   WHERE 1=1
+			<if test="year != null and year != ''">
+				AND SURV_YEAR = #{year}
+			</if>
+			<if test="region_cd != null and region_cd != ''">
+				AND REGION_CD = #{region_cd}
+			</if>
+			AND SURV_ID = 'PH0290'
+			AND ITM_CD = 'T000'
+			AND C1 &lt;&gt; '00'
+	</select>
+
+	<!-- 종류별 주택(호) - 2020.09.22	esPark	신규 -->
+	<select id="getKindHouse" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				DT
+			    , ITM_NM
+			 	, C1_NM
+			 	, REGION_NM
+			 	, REGION_CD
+			 	, ITM_CD
+			 	, C1
+			 	, C2
+			 	, SURV_ID <!-- 20210226 박은식 차트 랜더이후 추가적인 이벤트 사용을위해 추가 -->
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		   WHERE 1=1
+		   	<if test="year != null and year !=''">
+		   		AND SURV_YEAR = #{year}
+		   	</if>
+		   	<if test="region_cd != null and region_cd != ''">
+		   		AND REGION_CD = #{region_cd}
+		   	</if>
+		   	<!-- 20210303 박은식 거처의 종류로 변경  START -->
+		   	AND SURV_ID = 'PH0286'
+		   	AND ITM_CD = 'T100'
+		   	AND C1 &lt;&gt; '00'
+		   	<!-- 20210303 박은식 거처의 종류로 변경 END -->
+	</select>
+
+	<!-- 주택별 방의 수 - 2020.09.22	esPark	신규 -->
+	<select id="getHouseInRoomCount" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				DT
+				, REGION_CD
+				, ITM_CD
+				, ITM_NM
+				, C1_NM
+				, SURV_YEAR
+				, SURV_ID <!-- 20210226 박은식 차트 랜더이후 추가적인 이벤트 사용을위해 추가 -->
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		   WHERE 1=1
+		   	<if test="year != null and year != ''">
+		   		AND SURV_YEAR = #{year}
+		   	</if>
+		   	<if test="region_cd != null and region_cd != ''">
+		   		AND REGION_CD = #{region_cd}
+		   	</if>
+		   	<!-- 20210226 박은식 조회 정보 변경 START -->
+		   	AND SURV_ID = 'PH0285'
+		   	AND  ITM_CD IN ('T10','T20','T30','T30','T40','T50','T60')
+		   	<!-- 20210226 박은식 조회 정보 변경 END -->
+	</select>
+
+	<!-- 주택종류별 빈집 - 2020.09.22	esPark	신규 -->
+	<select id="getTimeEmptyHouse" parameterType="hashmap" resultType="hashmap">
+		SELECT DT
+			 , ITM_NM
+			 , C1_NM
+			 , ITM_CD
+			 , REGION_NM
+			 , REGION_CD
+			 , C1
+			 , SURV_YEAR
+			 , SURV_ID 
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+		<if test="year != null and year != ''">
+			AND SURV_YEAR = #{year}
+		</if>
+		<if test="region_cd != null and region_cd != ''">
+			AND REGION_CD = #{region_cd}
+		</if>
+		AND SURV_ID = 'PH0290'
+		AND ITM_CD &lt;&gt; 'T000'
+		ORDER BY ITM_NM, C1
+	</select>
+
+	<!-- 타일맵을 위한 주택조사 지역별 조회 - 2020.08.09	juKwak	신규 -->
+	<select id="getAreaHouse"  parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_CD
+			, REGION_NM
+			, TO_NUMBER(DT) AS DT
+			<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+			, '00' as PARENT
+			</if>
+			<if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+			, #{region_cd} as PARENT
+			</if>
+			<!-- 비자치구 -->
+			<if test="region_cd != null and region_cd != '99' and region_cd != '00' and regionLength == '5'">
+			, #{region_cd} as PARENT
+			</if>
+			, ITM_CD
+			, ITM_NM
+			, C1
+			, C1_NM
+			, UNIT_NM
+			, RANK
+			, TO_CHAR(IRDSRATE, 'FM9990.00') AS IRDSRATE
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+		<if test='level=="sido"'>
+			AND length(region_cd) = length(#{region_cd})
+		</if>
+		<if test='level == "sgg"'>
+			<if test='regionLength == "2"'>
+				AND	REGION_CD LIKE #{region_cd}||'%'
+				AND REGION_CD NOT IN (SELECT REGION_CD FROM SRV_DT_TOT_SURV_NON_ATDRC WHERE DEL_YN = 'N' AND BASE_YEAR = #{year} AND UPPER_REGION_CD IS NOT NULL)
+			</if>
+			<!-- 비자치구 -->
+			<if test='regionLength == "5"'>
+				AND	REGION_CD LIKE lpad(#{region_cd},4) || '%'
+				AND	REGION_CD != #{region_cd}
+			</if>
+			AND length(REGION_CD) = 5
+		</if>
+		<if test='year != null and year != "" '>					/* 지표년도 */
+		   AND SURV_YEAR = #{year}
+		</if>
+		<if test='surv_id == "PH0001"'>
+			AND SURV_ID = 'PH0001' /* PH0001 : 인구, 가구 및 주택 - 읍면동(2015), 시군구(2016~) */
+			<if test='itm_cd == null or itm_cd == ""'>
+				AND ITM_CD = 'T310' /* 총인구일 경우 T100 만 조회 */
+			</if>
+			<if test='itm_cd != null and itm_cd != ""'>
+				AND ITM_CD = #{itm_cd}
+			</if>
+		</if>
+		<if test='surv_id != null and surv_id != "" and surv_id != "PH0001"'>
+			AND SURV_ID = #{surv_id}
+			<if test='itm_cd != null and itm_cd != ""'>
+				AND ITM_CD = #{itm_cd}
+			</if>
+			<if test='surv_id == "PH0002"'>
+				AND C1 = '000'
+			</if>
+		</if>
+		AND REGION_CD != '00' /* 전국 제외 */
+
+		UNION ALL
+		SELECT
+			<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+			'00' as REGION_CD
+			</if>
+			<if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+			#{region_cd} as REGION_CD
+			</if>
+			<!-- 비자치구 -->
+			<if test="region_cd != null and region_cd != '99' and region_cd != '00' and regionLength == '5'">
+			, #{region_cd} as PARENT
+			</if>
+			, '' as REGION_NM
+			, '' as DT
+			, '' as PARENT
+			, '' as ITM_CD
+			, '' as ITM_NM
+			, '' as C1
+			, '' as C1_NM
+			, '' as UNIT_NM
+			, '' as RANK
+			, '' as IRDSRATE
+		FROM DUAL
+		ORDER BY DT DESC
+	</select>
+	
+	<!-- 주택 랭크정보 조회 - 2020.10.19	esPark	신규 -->
+	<select id="getTotHouseRank" parameterType="hashmap" resultType="hashmap">
+		SELECT *
+			FROM (
+				SELECT
+						*
+						, ROWNUM AS RANK
+					FROM (
+						SELECT
+								a.REGION_CD
+								, a.REGION_NM
+								<if test="type != null and type != '' and type != 'houseRatio'"><!-- 가구증감이 아닐때 -->
+								, a.DT
+								</if>
+								<if test="type != null and type != '' and type == 'houseRatio'"><!-- 가구증감인 경우 -->
+								, a.DT - (select DT FROM SRV_DT_ST_CHART_DET_ITM_RANK
+										WHERE SURV_ID = 'PH0001'
+										AND SURV_YEAR = a.SURV_YEAR-1
+										AND ITM_CD = 'T310'
+										AND REGION_CD = a.REGION_CD ) as DT
+								</if>
+								, a.SURV_ID
+								, a.C1
+								, a.ITM_CD
+								, TO_CHAR(IRDSRATE, 'FM9990.00') AS IRDSRATE <!-- range 주택증감 값 표시 정보  -->
+							FROM SRV_DT_ST_CHART_DET_ITM_RANK a
+						    WHERE 1=1
+							<if test="year != null and year != ''">
+								AND a.SURV_YEAR = #{year}
+							</if>
+							<if test="type != null and type != '' and type == 'house'"><!-- 총주택 / 주택 증감 -->
+								AND a.SURV_ID = 'PH0001'
+								AND a.ITM_CD = 'T310'
+							</if>
+							<if test="type != null and type != '' and type == 'houseRatio'"><!-- 총주택 / 주택 증감 -->
+								AND a.SURV_ID = 'PH0001'
+								AND a.ITM_CD = 'T310'
+							</if>
+							<if test="type != null and type != '' and type == 'empty'"><!-- 빈집의 수 -->
+								AND a.SURV_ID = 'PH0290'
+								AND a.ITM_CD = 'T000'
+								AND a.C1 = '00'
+							</if>
+							<if test="level != null and level != '' and level == 'sido'"><!-- 광역시도 -->
+								AND LENGTH(a.REGION_CD) = 2
+								AND a.REGION_CD &lt;&gt; '00'
+							</if>
+							<if test="level != null and level != '' and level == 'sgg'"><!-- 시군구 -->
+								AND LENGTH(a.REGION_CD) = 5
+								AND a.REGION_CD NOT IN (SELECT REGION_CD FROM SRV_DT_TOT_SURV_NON_ATDRC WHERE DEL_YN = 'N' AND BASE_YEAR = #{year} AND UPPER_REGION_CD IS NOT NULL)
+							</if>
+							<if test='level != null and level != "" and level == "atdrc"'>
+								AND a.REGION_CD IN (SELECT REGION_CD FROM SRV_DT_TOT_SURV_NON_ATDRC WHERE BASE_YEAR = #{year}
+								<!--<if test="up_regionCd != null and up_regionCd != ''">
+									AND UPPER_REGION_CD = #{up_regionCd}
+								</if>-->
+								 AND REGION_CD NOT LIKE '%0'
+								 AND DEL_YN = 'N')
+							</if>
+							ORDER BY a.RANK
+						)
+					)
+					WHERE 1=1
+					<if test="rank != null and rank != ''">
+						AND RANK = #{rank}
+					</if>
+					<if test="regionCd != null and regionCd != ''">
+						AND REGION_CD = #{regionCd}
+					</if>
+	</select>
+
+	<!-- 전국 슬라이드 표출정보 - 2020.10.20	esPark	신규 -->
+	<select id="getTotHouseinitRank" parameterType="hashmap" resultType="hashmap">
+		
+		
+		SELECT
+			SURV_ID
+			, SURV_YEAR
+			, DT
+			, REGION_CD
+			, REGION_NM
+			, ITM_CD
+			, ITM_NM
+			, C1
+			, C1_NM
+			, RANK
+			, TO_CHAR(IRDSRATE, 'FM9990.00') AS IRDSRATE
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+		AND REGION_CD = '00'
+			<if test='year != null and year !=""'>
+				AND SURV_YEAR = #{year}
+			</if>
+			AND	SURV_ID = 'PH0001' 
+			AND ITM_CD = 'T310' 
+			
+			UNION ALL
+			
+		SELECT
+			SURV_ID
+			, SURV_YEAR
+			, DT
+			, REGION_CD
+			, REGION_NM
+			, ITM_CD
+			, ITM_NM
+			, C1
+			, C1_NM
+			, RANK
+			, TO_CHAR(IRDSRATE, 'FM9990.00') AS IRDSRATE
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+		AND REGION_CD = '00'
+				<if test='year != null and year !=""'>
+					AND SURV_YEAR = #{year}
+				</if>
+				AND SURV_ID = 'PH0290' 
+				AND ITM_CD = 'T000' 
+				AND C1 = '00'
+	</select>
+</mapper>

@@ -1,0 +1,108 @@
+
+/* 가르치는지도 & 배우는지도*/
+.write{background: #f8fbff;}
+.mapWrap{position: relative; max-width:1360px; width:100%; overflow: hidden; background: #fff; border:1px solid #c2c2c2; border-radius: 20px;}
+.mapWrap::before{content:""; display: block; padding-top:47%; }
+.map{position: absolute; top:50px; left:0; bottom:0; right:0;}
+.map2{position: absolute; top:1px; left:0; bottom:0; right:0;}
+.map img{max-width: 100%; height: auto;}
+.cmntBtn{position: absolute; right:25px; bottom: 25px; width:70px; height:70px; border-radius: 50%; background: #152D5E; font-size: 0; box-shadow: 0 22px 22px -4px rgb(0 0 0 / 15%);}
+.cmntBtn::before{content:""; display: block; width:100%; height:100%; background: url(/sgis_edu/resource/images/icon_cmnt.png)no-repeat 50%;}
+.cmntBtn span{position: absolute; top:-2px; right:-5px; padding: 5px 8px 0 8px; min-width: 23px; height: 23px; border-radius: 23px; background: #ff3e4e; color:#fff; font-size: 1.4rem; text-align: center;}
+
+/* 목록 */
+.list .private::before{content:""; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.07); border-radius: 30px;}
+.list .private::after{content:"비공개"; position: absolute; top:-10px; left:-10px; color:#fff; padding:3px 12px; background: #9eb2da; border-radius: 30px;}
+/* 상세 */
+.view .lnb, .write .lnb{padding-top:50px;}
+.view.private .lnbTi::before{content:"비공개"; display:block; width:85px; height: 35px; margin-bottom:15px; line-height: 35px; text-align: center; color:#fff; font-size: 1.6rem; background: rgba(158,178,218,0.5); border-radius: 30px;}
+.mapWrap .map .stk03 p{padding:10px 15px;}
+/* 댓글 */
+.cmntWrap{position: absolute; bottom:30px; right:70px; border-radius:20px; width:0; height: 0; overflow:hidden; background: #fff; box-shadow: 0 22px 22px -4px rgb(0 0 0 / 15%);}
+.cmntWrap.on{width:360px; height:600px;}
+.cmntWrap::before{content:"댓글보기"; display: block; width: 100%; font-size: 1.8rem; color: #fff; padding: 17px 20px 12px 20px; background: #152D5E;}
+.cmnt{padding: 20px 30px 0 20px; height:calc(100% - 206px); overflow-y: auto; background: #edf4fa; }
+.cmnt.null{display: flex; justify-content: center; align-items: center; flex-direction: column;}
+.cmnt.null::before{content:""; display: block; width:69px; height:69px; background: url(/sgis_edu/resource/images/icon_cmntNull.png)no-repeat 50%;}
+.cmnt.null::after{content:"등록된 댓글이 없습니다."; color: rgba(37, 15, 15, 0.3); margin-top: 15px;}
+.cmnt li{position: relative; color:rgba(24,24,24,0.7); max-width: 400px;}
+.cmnt li~li{margin-top: 25px;}
+.cmnt li:last-of-type{margin-bottom: 25px;}
+.cmnt .info{display: flex;}
+.cmnt .info::before{content:""; display: inline-block; margin-right: 5px; width:30px; height:30px; vertical-align: middle; border-radius: 30px; background: url(/sgis_edu/resource/images/icon_user.png)no-repeat 50%,rgb(20,180,192,0.2);}
+.cmnt time{margin-left: auto; margin-right: 15px; font-size: 1.4rem; color:rgba(24,24,24,0.4);}
+.cmnt p{background: #fff;padding:10px; margin:5px 0 0 35px; border-radius: 10px 10px 10px 0;}
+.cmnt .btnDel{position: absolute; top:0; right:-10px;}
+.cmnt .writer .info::before{background-color: #ffe2b9}
+.cmnt .writer p{border-radius: 10px 10px 0 10px; background: #fffbda}
+.cmntWrite form{position: relative;}
+.cmntWrite .infoForm{background: #f2f2f2; padding:7px 10px;}
+.cmntWrite .infoForm input{max-width: 200px; width:50%;}
+.cmntWrite .infoForm input~input{margin-left: 5px;}
+.cmntWrite .writeForm{border-radius: 0 0 20px 20px; overflow: hidden; background: #fff;}
+.cmntWrite textarea{width:80%; border:none; border-radius: 0; min-width: 60px;}
+.cmntWrite button{position: absolute; right:8px; top:50%; margin-top: -25px; width:50px; height:50px; color:rgba(24,24,24,0.7); opacity: 0.5; border-radius: 10px; background: #DCDCDC;
+transition-duration: .2s;}
+.cmntWrite button:hover{opacity: 1;}
+.cmntWrap .btnClose{font-size:0; position: absolute; top:15px; right:15px; width:30px; height:30px; background: url(/sgis_edu/resource/images/icon_close_w.png)no-repeat 50%;}
+
+
+/* 생성 */
+/* 교안 만들기 */
+/* .write article{overflow-x: hidden; overflow-y:auto} */
+.write .flexWrap{flex-direction: column;}
+.write article~article{margin-top: 50px;}
+.write .btnAtchWrap{display: none; position: absolute; top:50%; left: 50%; transform: translate(-50%,-50%); justify-content: center; align-items: center; height: 100%;}
+.write .btnAtchWrap.on{display: flex;}
+.write .btnAtchWrap .btn{background: rgba(0,0,0,0.05); flex:initial; width:200px; height:200px; border-radius: 10px; padding: 0 50px; color: rgba(24,24,24,0.7);}
+.write .btnAtchWrap .btn~.btn{margin-left: 30px;}
+.write .btnAtchWrap .btn:hover{background: rgba(97, 119, 143, 0.15);}
+.write .btnAtchWrap .btn::before{content:""; display:block; width:109px; height:70px; margin: 0 auto 10px auto; background: no-repeat 50%;}
+.write .btnAtchWrap .fromSgis::before{background-image: url(/sgis_edu/resource/images/icon_atch01.png);}
+.write .btnAtchWrap .fromPc::before{background-image: url(/sgis_edu/resource/images/icon_atch02.png);}
+.sub:not(.list) .btnRight{margin-top: 30px;}
+/* 지도 편집 */
+.editWrap{display:none; position: absolute; top:0; left:0; z-index: 1; align-items: center; padding: 0 35px; width:100%; height:50px; background: #fff; border-bottom: 1px solid #c2c2c2;}
+.editWrap.on{display: flex;}
+.editWrap button{font-size: 0; width:25px; height:23px; background: no-repeat 50%; opacity: .5; transition-duration: .2s;}
+.editWrap button~button{margin-left: 35px;}
+.editWrap button:hover{opacity: 1;}
+.editWrap .refresh{background-image: url(/sgis_edu/resource/images/icon_refresh.png); margin-right: auto;}
+.editWrap .stk01{background-image: url(/sgis_edu/resource/images/icon_stk01.png);}
+.editWrap .stk02{background-image: url(/sgis_edu/resource/images/icon_stk02.png);}
+.editWrap .stk03{background-image: url(/sgis_edu/resource/images/icon_stk03.png);}
+.editWrap span{font-size: 1.4rem; color:rgba(24,24,24,0.4); margin-left: 20px; vertical-align: middle;}
+.editWrap2{display:none; position: absolute; top:0; left:0; z-index: 1; align-items: center; padding: 0 35px; width:100%; height:0px; background: #fff; }
+.write .mapWrap .map{display: none;}
+.write .mapWrap .map.on{display: block;}
+.mapWrap .map .stk{position: absolute;}
+.mapWrap .map .stk01{width:28px; height:34px;background: url(/sgis_edu/resource/images/img_stk01.png)no-repeat 50%;}
+.mapWrap .map .stk02{width:184px; height:153px; background: url(/sgis_edu/resource/images/img_stk02.png)no-repeat 50%;}
+.mapWrap .map .stk03{width:215px; height:230px; padding:15px 15px 30px 15px; background: url(/sgis_edu/resource/images/img_stk03.png)no-repeat 0 0;}
+.mapWrap .map .stk03 textarea{background: none; border:none; width:100%; height:100%;}
+.mapWrap .map .btnDel{width:19px; height:19px; position: absolute; background-color: #fff; border: 2px solid #000; background-size: 8px;}
+.mapWrap .map .stk01 .btnDel{top:-6px; right:-12px;}
+.mapWrap .map .stk02 .btnDel{top:2px; right:4px;}
+.mapWrap .map .stk03 .btnDel{top:-5px; right:-8px;}
+
+/* 팝업 */
+/* 교안 이미지 등록 */
+.imgAtch section{width:750px;}
+.imgAtch .tbl{max-height: 161px;}
+.imgAtch .tbl tbody tr{cursor: pointer;}
+.imgAtch .tbl .imgWrap{width:40px; height:28px; margin: 0 auto; background: #ffe3e3; overflow: hidden;}
+.imgAtch .tbl .imgWrap img{max-width:100%; height:auto;}
+/* 미리보기 */
+.preview>section{min-width: 1673px; height:794px; padding: 0; border-radius: 40px;}
+.preview .btnClose{top:20px; right:20px;}
+/* 댓글 삭제 */
+.pswd input~input{margin-left: 10px;}
+
+
+/* 해상도 ~ 1673px */ 
+@media all and (max-width:1673px){
+
+  .preview>section{min-width: auto;}
+  .preview .cmntWrap{display: none;}
+
+  }

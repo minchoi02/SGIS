@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.sgis.m2019.workroad.service.mapper.kairos.TodayStatusMapper">
+	
+	<!-- 오늘의 전체 일자리현황 팝업 조회 -->
+	<select id="todayAllJobStatusPopupSelect" parameterType="HashMap" resultType="HashMap">
+		<!-- with 구문 사용시 #{}태그 안먹힘 ${}로 사용해야함 -->
+		with w_srv_dt_job_board_sm_max as (
+			select max(reg_dt) as reg_dt from srv_dt_job_board_sm
+		),
+		w_srv_dt_job_board_sm2_max as (
+			select max(reg_dt) as reg_dt from srv_dt_job_board_sm
+			where reg_dt <![CDATA[<]]> (select reg_dt from w_srv_dt_job_board_sm_max)
+		),
+		<!-- 오늘의 구인현황 합계 -->
+		w_srv_dt_job_board_sm_sum as (
+			select
+				sum(a.all_jo_cnt) as all_jo_cnt
+				,sum(a.all_corp_cnt) as all_corp_cnt
+				,sum(a.all_rcrit_psn_cnt) as all_rcrit_psn_cnt
+				,sum(a.new_jo_cnt) as new_jo_cnt
+				,sum(a.new_corp_cnt) as new_corp_cnt
+				,sum(a.new_rcrit_psn_cnt) as new_rcrit_psn_cnt
+				,sum(a.clos_jo_cnt) as clos_jo_cnt
+				,sum(a.clos_corp_cnt) as clos_corp_cnt
+				,sum(a.clos_rcrit_psn_cnt) as clos_rcrit_psn_cnt
+			from
+				srv_dt_job_board_sm a
+				inner join w_srv_dt_job_board_sm_max b on b.reg_dt = a.reg_dt
+			where 1=1
+				<!-- 시도 -->
+				<if test='sido_cd != null and sido_cd != "" and sido_cd != "99" and sido_cd != "all" '>
+					and a.sido_cd = '${sido_cd}'
+				</if>
+				<!-- 시군구 -->
+				<if test='sgg_cd != null and sgg_cd != "" and sgg_cd != "999" and sgg_cd != "all" '>
+					and a.sgg_cd = '${sgg_cd}'
+				</if>
+		),
+		<!-- 어제의 구인현황 합계 -->
+		w_srv_dt_job_board_sm2_sum as (
+			select
+				sum(a.all_jo_cnt) as all_jo_cnt
+				,sum(a.all_corp_cnt) as all_corp_cnt
+				,sum(a.all_rcrit_psn_cnt) as all_rcrit_psn_cnt
+				,sum(a.new_jo_cnt) as new_jo_cnt
+				,sum(a.new_corp_cnt) as new_corp_cnt
+				,sum(a.new_rcrit_psn_cnt) as new_rcrit_psn_cnt
+				,sum(a.clos_jo_cnt) as clos_jo_cnt
+				,sum(a.clos_corp_cnt) as clos_corp_cnt
+				,sum(a.clos_rcrit_psn_cnt) as clos_rcrit_psn_cnt
+			from
+				srv_dt_job_board_sm a
+				inner join w_srv_dt_job_board_sm2_max b on b.reg_dt = a.reg_dt
+			where 1=1
+				<!-- 시도 -->
+				<if test='sido_cd != null and sido_cd != "" and sido_cd != "99" and sido_cd != "all" '>
+					and a.sido_cd = '${sido_cd}'
+				</if>
+				<!-- 시군구 -->
+				<if test='sgg_cd != null and sgg_cd != "" and sgg_cd != "999" and sgg_cd != "all" '>
+					and a.sgg_cd = '${sgg_cd}'
+				</if>
+		)
+		select
+			<!-- 기준일자 -->
+			nvl(d.reg_dt,'') as reg_dt
+			<!-- 구인현황 -->
+			,nvl(b.all_jo_cnt,0) as all_jo_cnt
+			,nvl(b.all_corp_cnt,0) as all_corp_cnt
+			,nvl(b.all_rcrit_psn_cnt,0) as all_rcrit_psn_cnt
+			,nvl(b.new_jo_cnt,0) as new_jo_cnt
+			,nvl(b.new_corp_cnt,0) as new_corp_cnt
+			,nvl(b.new_rcrit_psn_cnt,0) as new_rcrit_psn_cnt
+			,nvl(b.clos_jo_cnt,0) as clos_jo_cnt
+			,nvl(b.clos_corp_cnt,0) as clos_corp_cnt
+			,nvl(b.clos_rcrit_psn_cnt,0) as clos_rcrit_psn_cnt
+			<!-- 구인현황 (이전일 대비) -->
+			,nvl(b.all_jo_cnt,0)-nvl(c.all_jo_cnt,0) as all_jo_cnt_c
+			,nvl(b.all_corp_cnt,0)-nvl(c.all_corp_cnt,0) as all_corp_cnt_c
+			,nvl(b.all_rcrit_psn_cnt,0)-nvl(c.all_rcrit_psn_cnt,0) as all_rcrit_psn_cnt_c
+			,nvl(b.new_jo_cnt,0)-nvl(c.new_jo_cnt,0) as new_jo_cnt_c
+			,nvl(b.new_corp_cnt,0)-nvl(c.new_corp_cnt,0) as new_corp_cnt_c
+			,nvl(b.new_rcrit_psn_cnt,0)-nvl(c.new_rcrit_psn_cnt,0) as new_rcrit_psn_cnt_c
+			,nvl(b.clos_jo_cnt,0)-nvl(c.clos_jo_cnt,0) as clos_jo_cnt_c
+			,nvl(b.clos_corp_cnt,0)-nvl(c.clos_corp_cnt,0) as clos_corp_cnt_c
+			,nvl(b.clos_rcrit_psn_cnt,0)-nvl(c.clos_rcrit_psn_cnt,0) as clos_rcrit_psn_cnt_c
+		from
+			(select 1 from dual) a
+			left outer join w_srv_dt_job_board_sm_sum b on 1=1
+			left outer join w_srv_dt_job_board_sm2_sum c on 1=1
+			left outer join w_srv_dt_job_board_sm_max d on 1=1
+	</select>
+	
+	<!-- 2020.09.16[한광희] 메인화면 조회 속도 향상 수정 START -->
+	<select id="mainTodayAllJobStatusSelect" parameterType="HashMap" resultType="HashMap">
+		with w_srv_dt_job_board_sm_max as (
+			select max(reg_dt) as reg_dt from srv_dt_job_board_sm
+		),
+		<!-- 오늘의 구인현황 합계 -->
+		w_srv_dt_job_board_sm_sum as (
+			select
+				sum(a.all_corp_cnt) as all_corp_cnt
+				,sum(a.all_rcrit_psn_cnt) as all_rcrit_psn_cnt
+			from
+				srv_dt_job_board_sm a
+				inner join w_srv_dt_job_board_sm_max b on b.reg_dt = a.reg_dt
+			where 1=1
+				<!-- 시도 -->
+				<if test='sido_cd != null and sido_cd != "" and sido_cd != "99" and sido_cd != "all" '>
+					and a.sido_cd = '${sido_cd}'
+				</if>
+				<!-- 시군구 -->
+				<if test='sgg_cd != null and sgg_cd != "" and sgg_cd != "999" and sgg_cd != "all" '>
+					and a.sgg_cd = '${sgg_cd}'
+				</if>
+		)
+		select
+			<!-- 기준일자 -->
+			nvl(d.reg_dt,'') as reg_dt
+			<!-- 구인현황 -->
+			,nvl(b.all_corp_cnt,0) as all_corp_cnt
+			,nvl(b.all_rcrit_psn_cnt,0) as all_rcrit_psn_cnt
+		from (select 1 from dual) a 
+		left outer join w_srv_dt_job_board_sm_sum b on 1=1 
+		left outer join w_srv_dt_job_board_sm_max d on 1=1 
+	</select>
+	<!-- 2020.09.16[한광희] 메인화면 조회 속도 향상 수정 END -->
+	
+	<!-- 오늘의 구인현황 최신등록일 조회 -->
+	<select id="selectTodayStatusLastDate" parameterType="hashmap" resultType="String">
+		SELECT MAX(REG_DT) AS LATEST_DATE	
+		  FROM SRV_DT_JOB_BOARD_SM
+	</select>
+	
+	<!-- 오늘의 구인현황 기준년도 조회 -->
+	<select id="selectTodayStatusBaseYear" parameterType="hashmap" resultType="String">
+		SELECT MAX(BASE_YEAR)
+		  FROM SRV_PG_ADMBORD
+	</select>
+	
+	<!-- 오늘의 구인현황 조회 -->
+	<select id="selectTodayStatus" parameterType="HashMap" resultType="HashMap">
+		SELECT
+			   '${today}' AS REG_DT
+		<choose>	
+			<when test="sgg_cd != null and sgg_cd != '999'">
+			 , SIDO_CD||SGG_CD||EMDONG_CD AS ADM_CD
+			 , (SELECT MAX(EMDONG_NM)
+			  	  FROM SRV_PG_ADMBORD
+			  	 WHERE BASE_YEAR = '${base_year}'
+			  	   AND SIDO_CD||SGG_CD||EMDONG_CD = A.SIDO_CD||A.SGG_CD||A.EMDONG_CD
+			   ) AS ADM_NM
+			</when>	
+			<when test="sido_cd != null and sido_cd != '99'">
+			 , SIDO_CD||SGG_CD AS ADM_CD
+			 , (SELECT MAX(SGG_NM)
+			  	  FROM SRV_PG_ADMBORD
+			  	 WHERE BASE_YEAR = '${base_year}'
+			  	   AND SIDO_CD||SGG_CD = A.SIDO_CD||A.SGG_CD
+			   ) AS ADM_NM
+			</when>			
+	   		<otherwise>
+	   		 , SIDO_CD AS ADM_CD
+			 , (SELECT MAX(SIDO_NM)
+			  	  FROM SRV_PG_ADMBORD
+			  	 WHERE BASE_YEAR = '${base_year}'
+			  	   AND SIDO_CD = A.SIDO_CD
+			   ) AS ADM_NM 
+	   		</otherwise>
+		</choose>		 
+			 , SUM(ALL_CORP_CNT) AS RIGHT_DATA_VAL
+			 , SUM(ALL_RCRIT_PSN_CNT) AS RIGHT_DATA_VAL2
+		  FROM SRV_DT_JOB_BOARD_SM A
+		 WHERE 1=1
+		   AND REG_DT BETWEEN #{today} AND #{today}
+		<if test="sido_cd != null and sido_cd != '99'">
+		   AND SIDO_CD = '${sido_cd}'
+		</if>
+		<if test="sgg_cd != null and sgg_cd != '999'">
+		   AND SGG_CD = '${sgg_cd}'
+		</if>
+		<choose>	
+			<when test="sgg_cd != null and sgg_cd != '999'">
+		 GROUP BY SIDO_CD, SGG_CD, EMDONG_CD
+			</when>			
+			<when test="sido_cd != null and sido_cd != '99'">
+		 GROUP BY SIDO_CD, SGG_CD
+			</when>			
+		    <otherwise>
+		 GROUP BY SIDO_CD 
+		    </otherwise>
+		</choose>
+	</select>
+	
+	<!-- 오늘의 구인현황 상세내역 조회 -->
+	<select id="selectTodayStatusDetail" parameterType="HashMap" resultType="HashMap">
+		SELECT REG_DT
+			 , ALL_JO_CNT
+			 , ALL_CORP_CNT
+			 , ALL_RCRIT_PSN_CNT
+			 , NEW_JO_CNT
+			 , NEW_CORP_CNT
+			 , NEW_RCRIT_PSN_CNT
+			 , CLOS_JO_CNT
+			 , CLOS_CORP_CNT
+			 , CLOS_RCRIT_PSN_CNT
+			 , ALL_JO_CNT - ALL_JO_CNT_Y AS ALL_JO_CNT_C
+			 , ALL_CORP_CNT - ALL_CORP_CNT_Y AS ALL_CORP_CNT_C
+			 , ALL_RCRIT_PSN_CNT - ALL_RCRIT_PSN_CNT_Y AS ALL_RCRIT_PSN_CNT_C
+			 , NEW_JO_CNT - NEW_JO_CNT_Y AS NEW_JO_CNT_C
+			 , NEW_CORP_CNT - NEW_CORP_CNT_Y AS NEW_CORP_CNT_C
+			 , NEW_RCRIT_PSN_CNT - NEW_RCRIT_PSN_CNT_Y AS NEW_RCRIT_PSN_CNT_C
+			 , CLOS_JO_CNT - CLOS_JO_CNT_Y AS CLOS_JO_CNT_C
+			 , CLOS_CORP_CNT - CLOS_CORP_CNT_Y AS CLOS_CORP_CNT_C
+			 , CLOS_RCRIT_PSN_CNT - CLOS_RCRIT_PSN_CNT_Y AS CLOS_RCRIT_PSN_CNT_C
+		  FROM (SELECT A.REG_DT
+					 , NVL(SUM(A.ALL_JO_CNT), 0) AS ALL_JO_CNT
+					 , NVL(SUM(A.ALL_CORP_CNT), 0) AS ALL_CORP_CNT
+					 , NVL(SUM(A.ALL_RCRIT_PSN_CNT), 0) AS ALL_RCRIT_PSN_CNT
+					 , NVL(SUM(A.NEW_JO_CNT), 0) AS NEW_JO_CNT
+					 , NVL(SUM(A.NEW_CORP_CNT), 0) AS NEW_CORP_CNT
+					 , NVL(SUM(A.NEW_RCRIT_PSN_CNT), 0) AS NEW_RCRIT_PSN_CNT
+					 , NVL(SUM(A.CLOS_JO_CNT), 0) AS CLOS_JO_CNT
+					 , NVL(SUM(A.CLOS_CORP_CNT), 0) AS CLOS_CORP_CNT
+					 , NVL(SUM(A.CLOS_RCRIT_PSN_CNT), 0) AS CLOS_RCRIT_PSN_CNT
+					 , NVL(MAX(B.ALL_JO_CNT_Y), 0) AS ALL_JO_CNT_Y
+					 , NVL(MAX(B.ALL_CORP_CNT_Y), 0) AS ALL_CORP_CNT_Y
+					 , NVL(MAX(B.ALL_RCRIT_PSN_CNT_Y), 0) AS ALL_RCRIT_PSN_CNT_Y
+					 , NVL(MAX(B.NEW_JO_CNT_Y), 0) AS NEW_JO_CNT_Y
+					 , NVL(MAX(B.NEW_CORP_CNT_Y), 0) AS NEW_CORP_CNT_Y
+					 , NVL(MAX(B.NEW_RCRIT_PSN_CNT_Y), 0) AS NEW_RCRIT_PSN_CNT_Y
+					 , NVL(MAX(B.CLOS_JO_CNT_Y), 0) AS CLOS_JO_CNT_Y
+					 , NVL(MAX(B.CLOS_CORP_CNT_Y), 0) AS CLOS_CORP_CNT_Y
+					 , NVL(MAX(B.CLOS_RCRIT_PSN_CNT_Y), 0) AS CLOS_RCRIT_PSN_CNT_Y
+	 			  FROM SRV_DT_JOB_BOARD_SM A
+			 LEFT JOIN (SELECT '${today}' AS REG_DT
+							 , NVL(SUM(ALL_JO_CNT), 0) AS ALL_JO_CNT_Y
+							 , NVL(SUM(ALL_CORP_CNT), 0) AS ALL_CORP_CNT_Y
+							 , NVL(SUM(ALL_RCRIT_PSN_CNT), 0) AS ALL_RCRIT_PSN_CNT_Y
+							 , NVL(SUM(NEW_JO_CNT), 0) AS NEW_JO_CNT_Y
+							 , NVL(SUM(NEW_CORP_CNT), 0) AS NEW_CORP_CNT_Y
+							 , NVL(SUM(NEW_RCRIT_PSN_CNT), 0) AS NEW_RCRIT_PSN_CNT_Y
+							 , NVL(SUM(CLOS_JO_CNT), 0) AS CLOS_JO_CNT_Y
+							 , NVL(SUM(CLOS_CORP_CNT), 0) AS CLOS_CORP_CNT_Y
+							 , NVL(SUM(CLOS_RCRIT_PSN_CNT), 0) AS CLOS_RCRIT_PSN_CNT_Y			 
+	 					  FROM SRV_DT_JOB_BOARD_SM			
+	 					 WHERE 1=1
+	 					 <if test="today != null">
+	 					   AND REG_DT = (SELECT MAX(REG_DT) 
+							 			   FROM SRV_DT_JOB_BOARD_SM 
+										  WHERE REG_DT <![CDATA[<]]> '${today}') 
+						 </if>
+						 <if test="sido_cd != null and sido_cd != '99'">
+						   AND SIDO_CD = '${sido_cd}'
+						 </if>
+						 <if test="sgg_cd != null and sgg_cd != '999'">
+						   AND SGG_CD = '${sgg_cd}'
+						 </if>
+					  GROUP BY REG_DT ) B 
+			 		ON A.REG_DT = B.REG_DT
+				 WHERE 1=1
+				 <if test="today != null">
+				   AND A.REG_DT = '${today}'
+				 </if>
+				 <if test="sido_cd != null and sido_cd != '99'">
+				   AND A.SIDO_CD = '${sido_cd}'
+				 </if>
+				 <if test="sgg_cd != null and sgg_cd != '999'">
+				   AND A.SGG_CD = '${sgg_cd}'
+				 </if>
+		  	  GROUP BY A.REG_DT
+			   ) Z
+	</select>
+	
+	<!-- 오늘의 구인현황 기간범위 조회 -->
+	<select id="selectDateRangeInfo" parameterType="HashMap" resultType="HashMap">
+		SELECT T.FROM_YYYYMMDD
+			 , T.TO_YYYYMMDD
+			 , SUBSTR(T.FROM_YYYYMMDD, 1, 4) || T.FROM_VALUE AS FROM_VALUE
+			 , SUBSTR(T.TO_YYYYMMDD, 1, 4) || T.TO_VALUE AS TO_VALUE
+		  FROM (SELECT TO_CHAR(TO_DATE('${today}', 'YYYYMMDD') -1 * 9, 'YYYYMMDD') AS FROM_YYYYMMDD
+		  			 , '${today}' AS TO_YYYYMMDD
+		  			 , TO_CHAR(TO_DATE('${today}', 'YYYYMMDD') -1 * 9, 'MMDD') AS FROM_VALUE
+		  			 , SUBSTRING('${today}', 5, 2) || SUBSTRING('${today}', 7, 2) AS TO_VALUE
+		  		  FROM DUAL
+		  	    ) T
+	</select>
+	
+	<!-- 오늘의 구인현황 기간별 상세내역 조회 -->
+	<select id="selectDateStatus" parameterType="HashMap" resultType="HashMap">
+		SELECT REG_DT
+			 , '전체구인업체수' AS CLASS_NM
+		 	 , '0' AS RANK
+			 , SUM(ALL_CORP_CNT) AS SUM_CNT
+			 , '97' AS CORP_PER
+			 , SUM(ALL_CORP_CNT) AS CORP_IRDSRATE
+		  FROM (SELECT REG_DT
+					 , ALL_CORP_CNT
+			  	  FROM SRV_DT_JOB_BOARD_SM
+			 	 WHERE 1=1
+			   	   AND REG_DT BETWEEN '${from_yyyymmdd}' AND '${to_yyyymmdd}' 
+				 <if test="sido_cd != null and sido_cd != '99'">
+			   	   AND SIDO_CD = '${sido_cd}'
+			 	 </if>
+			 	 <if test="sgg_cd != null and sgg_cd != '999'">
+			   	   AND SGG_CD = '${sgg_cd}'
+			 	 </if>			
+				)
+	  GROUP BY REG_DT
+		 UNION ALL
+		SELECT REG_DT
+		  	 , '전체구인자수' AS CLASS_NM
+			 , '1' AS RANK
+			 , SUM(ALL_RCRIT_PSN_CNT) AS SUM_CNT
+			 , '76' AS CORP_PER
+			 , SUM(ALL_RCRIT_PSN_CNT) AS CORP_IRDSRATE
+		  FROM (SELECT REG_DT							
+					 , ALL_RCRIT_PSN_CNT
+				  FROM SRV_DT_JOB_BOARD_SM
+				 WHERE 1=1
+			  	   AND REG_DT BETWEEN '${from_yyyymmdd}' AND '${to_yyyymmdd}' 
+				 <if test="sido_cd != null and sido_cd != '99'">
+			   	   AND SIDO_CD = '${sido_cd}'
+			 	 </if>
+			 	 <if test="sgg_cd != null and sgg_cd != '999'">
+			   	   AND SGG_CD = '${sgg_cd}'
+			 	 </if>
+				)
+	  GROUP BY REG_DT
+		 UNION ALL
+		SELECT REG_DT
+			 , '신규구인업체수' AS CLASS_NM
+			 , '2' AS RANK
+			 , SUM(NEW_CORP_CNT)  AS SUM_CNT
+			 , '56' AS CORP_PER
+			 , SUM(NEW_CORP_CNT) AS CORP_IRDSRATE
+		  FROM (SELECT REG_DT
+					 , NEW_CORP_CNT
+				  FROM SRV_DT_JOB_BOARD_SM
+				 WHERE 1=1
+			  	   AND REG_DT BETWEEN '${from_yyyymmdd}' AND '${to_yyyymmdd}' 
+				 <if test="sido_cd != null and sido_cd != '99'">
+			   	   AND SIDO_CD = '${sido_cd}'
+			 	 </if>
+			 	 <if test="sgg_cd != null and sgg_cd != '999'">
+			   	   AND SGG_CD = '${sgg_cd}'
+			 	 </if>
+				)
+	  GROUP BY REG_DT
+		 UNION ALL
+		SELECT REG_DT
+			 , '신규구인자수' AS CLASS_NM
+			 , '3' AS RANK
+			 , SUM(NEW_RCRIT_PSN_CNT) AS SUM_CNT
+		 	 , '79' AS CORP_PER
+		 	 , SUM(NEW_RCRIT_PSN_CNT) AS CORP_IRDSRATE
+		  FROM (SELECT REG_DT
+					 , NEW_RCRIT_PSN_CNT
+				  FROM SRV_DT_JOB_BOARD_SM
+				 WHERE 1=1
+				   AND REG_DT BETWEEN '${from_yyyymmdd}' AND '${to_yyyymmdd}' 
+				 <if test="sido_cd != null and sido_cd != '99'">
+			   	   AND SIDO_CD = '${sido_cd}'
+			 	 </if>
+			 	 <if test="sgg_cd != null and sgg_cd != '999'">
+			   	   AND SGG_CD = '${sgg_cd}'
+			 	 </if>
+				)
+	  GROUP BY REG_DT
+	  ORDER BY REG_DT, RANK
+	</select>
+	
+</mapper>

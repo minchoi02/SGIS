@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="statscommunity">
+	<select id="statsCommunityList" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				CMMNTY_MAP_ID AS CMMNTY_ID
+				, CMMNTY_MAP_NM AS CMMNTY_NM
+				, INTRCN AS INTRO
+				, image.PATH_NM || image.SAVE_FILE_NM AS MAIN_PHOTO
+				, TO_CHAR(TO_DATE(PRID_ESTBS_START_DATE),'YYYY.MM.DD') AS CMMNTY_OPEN_DATE
+				, CMMNTY_PARTCPTN_GRANT_YN AS CMMNTY_PARTCPTN_GRANT_YN
+  		FROM
+  				SRV_DT_CMMNTY_MAP map
+		INNER JOIN SRV_DT_CMMNTY_MAP_ATCH_IMAGE image
+		ON map.CMMNTY_MAP_ATCH_FILE_ID = image.CMMNTY_MAP_ATCH_FILE_ID
+		WHERE
+		 		TEMP_SAVE_YN = 'N'
+		 		AND LOCK_YN = 'N'
+		 		AND PRID_ESTBS_START_DATE <![CDATA[<=]]> TO_CHAR(SYSDATE,'YYYYMMDD')
+ 				AND TO_CHAR(SYSDATE,'YYYYMMDD') <![CDATA[<=]]> PRID_ESTBS_END_DATE
+ 				<if test = "name != null">
+ 					AND CMMNTY_MAP_NM like '%' || #{name} || '%'
+ 				</if>
+ 		ORDER BY REG_DATE DESC,CMMNTY_MAP_ID DESC
+ 				LIMIT #{startnum}, #{count}
+			
+	</select>
+	
+	<select id="statsCommunityListTotalCount" resultType="hashmap">
+		SELECT 
+				COUNT(*) total_cnt                    
+  		FROM
+  				SRV_DT_CMMNTY_MAP map
+		INNER JOIN SRV_DT_CMMNTY_MAP_ATCH_IMAGE image
+		ON map.CMMNTY_MAP_ATCH_FILE_ID = image.CMMNTY_MAP_ATCH_FILE_ID
+		WHERE
+		 		TEMP_SAVE_YN = 'N'
+		 		AND LOCK_YN = 'N'
+		 		AND PRID_ESTBS_START_DATE <![CDATA[<=]]> TO_CHAR(SYSDATE,'YYYYMMDD')
+ 				AND TO_CHAR(SYSDATE,'YYYYMMDD') <![CDATA[<=]]> PRID_ESTBS_END_DATE
+ 				<if test = "name != null">
+ 					AND CMMNTY_MAP_NM like '%' || #{name} || '%'
+ 				</if>
+	</select>
+	
+	<sql id="addOfOrganization">
+		INNER JOIN SRV_DT_CMMNTY_MAP ON 
+			SRV_DT_CMMNTY_POI.CMMNTY_MAP_ID = SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID 
+			AND SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID=#{cmmnty_map_id}
+			AND SRV_DT_CMMNTY_MAP.TEMP_SAVE_YN = 'N'
+			AND SRV_DT_CMMNTY_MAP.LOCK_YN = 'N'
+		INNER JOIN SRV_PT_CMMNTY_USR_DATA_PT ON
+			SRV_DT_CMMNTY_POI.CMMNTY_USR_DATA_PT_ID = SRV_PT_CMMNTY_USR_DATA_PT.CMMNTY_USR_DATA_PT_ID
+		INNER JOIN SRV_PG_TOTREGBORD ON
+			SRV_PG_TOTREGBORD.BASE_YEAR = (SELECT MAX(BASE_YEAR) FROM SRV_PG_ADMBORD)
+			AND ST_WITHIN (ST_POINTFROMTEXT ('POINT(' || ST_X(SRV_PT_CMMNTY_USR_DATA_PT.GEOM) ||' '|| ST_Y(SRV_PT_CMMNTY_USR_DATA_PT.GEOM) || ')', 0 ), SRV_PG_TOTREGBORD.BORD) = 1
+		INNER JOIN SRV_DT_CMMNTY_CUSTOM_SYMBOL on
+			SRV_DT_CMMNTY_CUSTOM_SYMBOL.CUSTOM_SYMBOL_GROUP_ID = SRV_DT_CMMNTY_MAP.CUSTOM_SYMBOL_GROUP_ID
+			AND 
+			CASE 
+				WHEN SRV_DT_CMMNTY_MAP.REG_SYMBOL IS NULL then SRV_DT_CMMNTY_CUSTOM_SYMBOL.CUSTOM_SYMBOL_ID 
+				ELSE SRV_DT_CMMNTY_CUSTOM_SYMBOL.ORDER 
+			END = SRV_DT_CMMNTY_POI.SYMBOL
+	</sql>
+	<select id="selectCommunityPoiCountOfOrganization" resultType="hashmap">
+		SELECT
+			COUNT(*) total_cnt
+		FROM SRV_DT_CMMNTY_POI
+		<include refid="addOfOrganization"/>
+	</select>
+	<select id="selectCommunityPoiListOfOrganization" resultType="java.util.HashMap">
+		SELECT
+			SRV_DT_CMMNTY_POI.CMMNTY_POI_ID,
+			SRV_DT_CMMNTY_POI.USR_ID,
+			SRV_DT_CMMNTY_CUSTOM_SYMBOL.CUSTOM_SYMBOL_ID AS ICON_ID,
+			SRV_DT_CMMNTY_CUSTOM_SYMBOL.LABEL_NM AS ICON_NAME,
+			CASE 
+				WHEN SRV_DT_CMMNTY_MAP.REG_SYMBOL IS NULL THEN 
+					(
+						SELECT 
+							REPLACE(SRV_DT_CMMNTY_CUSTOM_SYMBOL_ATCH_IMAGE.PATH_NM,'\','/')||SRV_DT_CMMNTY_CUSTOM_SYMBOL_ATCH_IMAGE.SAVE_FILE_NM 
+						FROM SRV_DT_CMMNTY_CUSTOM_SYMBOL_ATCH_IMAGE WHERE SRV_DT_CMMNTY_CUSTOM_SYMBOL_ATCH_IMAGE.CUSTOM_SYMBOL_ID = SRV_DT_CMMNTY_CUSTOM_SYMBOL.CUSTOM_SYMBOL_ID
+					) 
+				ELSE '/img/community/iconset_'||SRV_DT_CMMNTY_MAP.REG_SYMBOL||SRV_DT_CMMNTY_POI.SYMBOL||'.png'
+			END AS ICON_PATH,
+			SRV_PG_TOTREGBORD.TOT_REG_CD,
+			ST_X(SRV_PT_CMMNTY_USR_DATA_PT.GEOM) AS X_COOR,
+			ST_Y(SRV_PT_CMMNTY_USR_DATA_PT.GEOM) AS Y_COOR
+			<if test="x_coor!=null and x_coor!='' and y_coor!=null and y_coor!=''">
+				,ST_DISTANCE( SRV_PT_CMMNTY_USR_DATA_PT.GEOM, ST_POINTFROMTEXT('POINT('||#{x_coor}||' '||#{y_coor}||')',0)) AS DISTANCE
+				,CASE 
+					WHEN ST_DISTANCE( SRV_PT_CMMNTY_USR_DATA_PT.GEOM, ST_POINTFROMTEXT('POINT('||#{x_coor}||' '||#{y_coor}||')',0)) = 0 THEN 0
+					ELSE ATAN((#{x_coor}-ST_X(SRV_PT_CMMNTY_USR_DATA_PT.GEOM))/(#{y_coor}-ST_Y(SRV_PT_CMMNTY_USR_DATA_PT.GEOM)))/3.14*180
+				END AS ANGLE
+			</if>
+		FROM SRV_DT_CMMNTY_POI
+		<include refid="addOfOrganization"/>
+		LIMIT #{startnum}, #{count}
+	</select>
+</mapper>

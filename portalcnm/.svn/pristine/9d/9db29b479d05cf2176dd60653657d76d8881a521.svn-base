@@ -1,0 +1,22 @@
+insert into api_log_write_daily
+(regdate, api_page_cnt, api_visit_cnt, open_api_cnt)
+select
+regdate, sum(pagecnt), sum(visit_cnt), sum(api_cnt)
+from
+(
+	select substr(regdate,0,8) as regdate, sum(count) as pagecnt, count(0) as visit_cnt, 0 as api_cnt
+	from api_log_write_hour_group with (nolock)
+	where regdate like '201905%'
+	group by substr(regdate,0,8)
+	union
+	select substr(call_dt,0,8), nvl(sum(call_cnt),0) as call_cnt , nvl(sum(visit_cnt),0), 0
+	from srv_log_daily 
+	where ((f_class_1_cd in ('D0', 'I0')) or (f_class_1_cd = 'A0'	and f_class_2_cd = '04') or (f_class_1_cd = 'A0'	and f_class_2_cd = '15')or (f_class_1_cd = 'A0'	
+		and f_class_2_cd = '05'	and f_class_3_cd = '09'	and f_class_4_cd = '00')) and call_dt like '201905%' and call_dt > '201904'
+	group by substr(call_dt,0,8)
+	union
+	select substr(call_hourly,0,8), 0, 0, sum(hourly_call_cnt) from root.srv_dt_apihourlystat where call_hourly like  '201905%'
+	group by substr(call_hourly,0,8)
+)
+group by regdate
+

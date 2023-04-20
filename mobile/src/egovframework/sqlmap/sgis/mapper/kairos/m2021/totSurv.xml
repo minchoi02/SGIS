@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.sgis.m2021.totSurv.service.mapper.kairos.TotSurvMapper">
+	<select id="selectSggListJsonList" parameterType="hashmap" resultType="hashmap">
+		select
+			a.sgg_cd,
+			a.sgg_nm
+		from
+			srv_pg_atdrcbord a with(nolock)
+			<choose>
+				<when test='base_year != null and base_year != ""'>
+					inner join (select #{base_year} as base_year from dual) b on b.base_year = a.base_year
+				</when>
+				<otherwise>
+					inner join (select max(base_year) as base_year from srv_pg_atdrcbord with(nolock)) b on b.base_year = a.base_year
+				</otherwise>
+			</choose>
+		<where>
+			a.sido_cd = #{sido_cd}
+		</where>
+	</select>
+</mapper>

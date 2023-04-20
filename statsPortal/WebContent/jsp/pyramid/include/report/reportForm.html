@@ -1,0 +1,319 @@
+<!-- 
+* 검색창에 입력한 단어와 연관되는 데이터를 보여주는 HTML입니다.
+* 
+* history : 네이버시스템(주), 1.0, 2014/08/29  초기 작성
+* author : 김성현
+* version : 1.0
+* see : 
+*
+//-->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>보고서</title>
+	
+	<link href="/css/jquery-ui-1.10.4.custom.css" rel="stylesheet" type="text/css" />
+	<link rel="stylesheet"  href="/js/plugins/jquery-easyui-1.4/sop.css" />
+	<link href="/css/reportForm.css" rel="stylesheet" type="text/css" />
+	<link rel="stylesheet" type="text/css" href="/css/common.css">
+	<link href="/css/wheelcolorpicker.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript" src="/js/plugins/jquery-1.11.1.min.js"></script>
+	<script type="text/javascript" src="/js/plugins/highcharts/highcharts.js"></script>
+	<script type="text/javascript" src="/js/plugins/highcharts/modules/exporting.js"></script>
+	
+	<script type="text/javascript" src="/js/plugins/jsPDF/jspdf.min.js"></script>
+	<script type="text/javascript" src="/js/plugins/jquery-easyui-1.4/sop-src.js"></script>
+	<script type="text/javascript" src="/js/plugins/jquery.sha256.js"></script>
+	<script type="text/javascript" src="/js/plugins/durian-v2.0.js"></script>
+	<script type="text/javascript" src="/js/common/sop.portal.absAPI.js"></script>
+	<script type="text/javascript" src="/js/common/common.js"></script>	    
+	<script type="text/javascript" src="/jsp/pyramid/include/report/reportForm.js"></script>
+	<script type="text/javascript" src="/jsp/pyramid/include/report/reportFormEvent.js"></script>
+	<style type="text/css" media="print">@page{size:auto;margin:10mm;}body{margin:0;}</style>
+	
+	<style type="text/css">
+		#AlertMessage {
+			width : 400px;
+			overflow : hidden;
+			border : 3px solid #656972;
+			barder-radius : 5px;
+			padding : 20px 20px 20px 70px;
+			font-size : 20px;
+			color : #333333;
+			box-shadow : 1px 1px 3px #cccccc;
+			word-break : break-all;
+			position : absolute;
+			top : 45%;
+			left : 20%;
+		}
+		.pyramid2 {display:none;}
+		.pntChart>div{margin-top:50px;margin-bottom:20px;text-align:center;}
+		.w250{ width:250px !important;}
+		.w387{ width:387px !important;}
+		.w250>.pntChart{height:230px !important;}
+		.w387>.pntChart{height:280px !important;}
+		
+		.pyramid3.w250{height:300px !important;}
+		.pyramid3.w387{height:350px !important;}
+		
+		html, body {min-width:100%}
+		div.printArea {margin: 0px 16.5px}
+		
+		#reportTableDiv1 td {text-align:center !important;}
+	</style>
+	
+	<script>
+            var beforePrint = function() {
+                console.log("1");
+            };
+            var afterPrint = function() {
+                console.log("2");
+            };
+
+            if (window.matchMedia) {
+                var mediaQueryList = window.matchMedia('print');
+                mediaQueryList.addListener(function(mql) {
+                    if (mql.matches) {
+                        beforePrint();
+                    } else {
+                        afterPrint();
+                    }
+                });
+            }
+
+            window.onbeforeprint = beforePrint;
+            window.onafterprint = afterPrint;
+        </script>
+	
+</head>
+<body>
+	<div id="mask" style="background:#ffffff;z-index:10000;width:100%;height:100%;">
+		<div id="AlertMessage">보고서 생성중입니다. 잠시만 기다려주세요.</div>
+	</div>
+	<div id="wrap">
+		<div class="printArea">
+		 	<div class="pntPage"> 
+		 		<h1 class="pntHeader"><img src="/img/common/logoPlus.png" alt="SGIS 오픈플랫폼"></h1>	 
+		 		
+		 		<div class="pntBtn">
+		 			<a href="javascript:$reportFormEvent.UI.reportPdfDown();" id="pdfdown">PDF</a>
+		 			<a href="javascript:$reportFormEvent.UI.reportPrint();">인쇄</a>
+		 			<a href="javascript:$reportFormEvent.UI.reportClose();">닫기</a>
+		 		</div>	
+		 		
+		 		<p class="pntURI">통계지리정보서비스 (https://sgis.kostat.go.kr)</p>
+		 		<h2 class="pntTitle"><textarea cols="60" rows="1" id="reportTitle"></textarea></h2> 
+		 		<div class="pntNewCenter" style="margin-top:10px;">
+		 			<h3 style="height:40px;line-height:40px;">보고서명</h3>
+		 			<div style="width:677px;height:40px;float:left;">
+	 					<textarea cols="60" rows="1" id="reportTitle"></textarea>
+		 			</div>
+		 		</div>
+			 	<div class="pntNewCenter">
+			 		<h3>기준년도</h3>
+			 		<div id="searchYear" class="pntNewRight"></div>
+		 		</div>
+			 	<div class="pntNewCenter">
+			 		<h3 id="searchItemTitle"></h3>
+			 		<div id="searchItem" class="pntNewRight" style="width:265px;"></div>
+			 		<h3 style="border-left:1px solid #ccc;">작성일자</h3>
+			 		<div id="date" class="pntNewRight" style="width:265px;"></div>
+		 		</div>
+			 	<div class="pntNewCenter">
+			 		<h3>출처</h3>
+			 		<div id="origin" class="pntNewRight"></div>
+		 		</div>
+			 	
+			 	<div id="pyramid3Chart1_show" class="pntShowBtn pyramid1">
+		 			<a href="javascript:$reportForm.ui.onOffDiv('pyramid3Chart1');"><img src='/img/im/btn_plus.png' alt='보이기' /></a>
+		 		</div>
+		 		<div id="pyramid3Chart1" class="pntCenter pyramid3 w250" style="display:none; float:left !important;">
+				 	<div class="w250" style="display: inline-block;">
+					 	<div class="pntNewCenterTitle w250" style="position:relative;">
+					 		<h3 class="w250">그래프</h3>
+					 		<div class="pntCloseBtn">
+					 			<a href="javascript:$reportForm.ui.onOffDiv('pyramid3Chart1');">
+					 				<img src='/img/um/btn_closel01.png' alt='숨기기' />
+					 			</a>
+					 		</div>
+					 		<div class="pntChart"><div id="pyramid3ChartDiv1"></div></div>
+					 	</div>
+			 		</div>
+			 	</div>
+			 	
+			 	<div id="pyramid3Chart2_show" class="pntShowBtn pyramid1">
+		 			<a href="javascript:$reportForm.ui.onOffDiv('pyramid3Chart2');"><img src='/img/im/btn_plus.png' alt='보이기' /></a>
+		 		</div>
+			 	<div id="pyramid3Chart2" class="pntCenter pyramid3 w250" style="display:none; float:left !important;">
+				 	<div class="w250" style="display: inline-block;">
+					 	<div class="pntNewCenterTitle w250" style="position:relative;">
+					 		<h3 class="w250">그래프</h3>
+					 		<div class="pntCloseBtn">
+					 			<a href="javascript:$reportForm.ui.onOffDiv('pyramid3Chart2');">
+					 				<img src='/img/um/btn_closel01.png' alt='숨기기' />
+					 			</a>
+					 		</div>
+					 		<div class="pntChart"><div id="pyramid3ChartDiv2"></div></div>
+					 	</div>
+			 		</div>
+			 	</div>
+			 	
+			 	<div id="pyramid3Chart3_show" class="pntShowBtn pyramid1">
+		 			<a href="javascript:$reportForm.ui.onOffDiv('pyramid3Chart3');"><img src='/img/im/btn_plus.png' alt='보이기' /></a>
+		 		</div>
+			 	<div id="pyramid3Chart3" class="pntCenter pyramid3 w250" style="display:none; float:left !important;">
+				 	<div class="w250" style="display: inline-block;">
+					 	<div class="pntNewCenterTitle w250" style="position:relative;">
+					 		<h3 class="w250">그래프</h3>
+					 		<div class="pntCloseBtn">
+					 			<a href="javascript:$reportForm.ui.onOffDiv('pyramid3Chart3');">
+					 				<img src='/img/um/btn_closel01.png' alt='숨기기' />
+					 			</a>
+					 		</div>
+					 		<div class="pntChart"><div id="pyramid3ChartDiv3"></div></div>
+					 	</div>
+			 		</div>
+			 	</div>
+			 	
+		 		<div id="graphDiv1_show" class="pntShowBtn pyramid1">
+		 			<a href="javascript:$reportForm.ui.onOffDiv('graphDiv1');"><img src='/img/im/btn_plus.png' alt='보이기' /></a>
+		 		</div>
+		 		<div id="graphDiv1" class="pntCenter pyramid1">
+				 	<div class="pntNewCenterTitle" style="position:relative;">
+				 		<h3>그래프</h3>
+				 		<div class="pntCloseBtn">
+				 			<a href="javascript:$reportForm.ui.onOffDiv('graphDiv1');">
+				 				<img src='/img/um/btn_closel01.png' alt='숨기기' />
+				 			</a>
+				 		</div>
+				 		<div class="pntChart"><div id="reportChartDiv1"></div></div>
+				 	</div>
+		 		</div>
+		 		
+		 		<div id="graphDiv2_show" class="pntShowBtn">
+		 			<a href="javascript:$reportForm.ui.onOffDiv('graphDiv2');"><img src='/img/im/btn_plus.png' alt='보이기' /></a>
+		 		</div>
+		 		<div id="graphDiv2" class="pntCenter pyramid2" >
+				 	<div class="pntNewCenterTitle" style="position:relative;">
+				 		<h3>그래프</h3>
+				 		<div class="pntCloseBtn">
+				 			<a href="javascript:$reportForm.ui.onOffDiv('graphDiv2');">
+				 				<img src='/img/um/btn_closel01.png' alt='숨기기' />
+				 			</a>
+				 		</div>
+				 		<div class="pntChart"><div id="reportChartDiv2"></div></div>
+				 	</div>
+		 		</div>
+		 		
+		 		<div id="graphDiv3_show" class="pntShowBtn">
+		 			<a href="javascript:$reportForm.ui.onOffDiv('graphDiv3');"><img src='/img/im/btn_plus.png' alt='보이기' /></a>
+		 		</div>
+		 		<div id="graphDiv3" class="pntCenter pyramid2">
+				 	<div class="pntNewCenterTitle" style="position:relative;">
+				 		<h3>그래프</h3>
+				 		<div class="pntCloseBtn">
+				 			<a href="javascript:$reportForm.ui.onOffDiv('graphDiv3');">
+				 				<img src='/img/um/btn_closel01.png' alt='숨기기' />
+				 			</a>
+				 		</div>
+				 		<div class="pntChart"><div id="reportChartDiv3"></div></div>
+				 	</div>
+		 		</div>
+		 		
+		 		<div id="mainTableDiv1_show" class="pntShowBtn">
+		 			<a href="javascript:$reportForm.ui.onOffDiv('mainTableDiv1');"><img src='/img/im/btn_plus.png' alt='보이기' /></a>
+		 		</div>
+		 		<div id="mainTableDiv1" class="pntCenter">
+		 			<div class="pntDataBox fc" style="position:relative;">
+		 			<div class="pntCloseBtn" style="top:2px;">
+		 				<a href="javascript:$reportForm.ui.onOffDiv('mainTableDiv1');">
+		 					<img src='/img/um/btn_closel01.png' alt='숨기기' />
+		 				</a></div>
+		 				<div id="reportTableDiv1">
+		 					<table class="pntTable" summary="연령, 남자인구수(명), 여자인구수(명)">
+			 					<caption>전국 인구 추계 피라미드</caption>
+			 					<colgroup>
+			 						<col width="150" />
+									<col width="150" />
+									<col width="150" />
+								</colgroup>
+		 						<thead>
+		 						</thead>
+		 						<tbody>
+		 						</tbody>
+		 					</table>
+		 				</div>
+		 				<div id="reportTableDiv2">
+		 					<table class="pntTable" summary="연령, 남자인구수(명), 여자인구수(명)">
+			 					<caption>시도 인구 추계 피라미드</caption>
+			 					<colgroup>
+			 						<col width="100" />
+									<col width="100" />
+									<col width="100" />
+									<col width="100" />
+									<col width="100" />
+									<col width="100" />
+									<col width="100" />
+								</colgroup>
+		 						<thead>
+		 						</thead>
+		 						<tbody>
+		 						</tbody>
+		 					</table>
+		 				</div>
+		 				<div id="reportTableDiv3">
+		 					<table class="pntTable" summary="연령, 남자인구수(명), 여자인구수(명)">
+			 					<caption>연도별 인구 추계 피라미드</caption>
+			 					<colgroup>
+			 						<col width="100" />
+									<col width="100" />
+									<col width="100" />
+									<col width="100" />
+									<col width="100" />
+								</colgroup>
+		 						<thead>
+		 						</thead>
+		 						<tbody>
+		 						</tbody>
+		 					</table>
+		 				</div>
+				 	</div>
+				</div>
+				
+		 		<div class="pntPage">
+			 		<div id="memoDiv_show" class="pntShowBtn"><a href="javascript:$reportForm.ui.onOffDiv('memoDiv');"><img src='/img/im/btn_plus.png' alt='보이기' /></a></div>
+			 		<div id="memoDiv" class='pntNewCenter' style='margin-bottom:10px;position:relative;'>
+			 			<h3 style='height:140px;line-height:140px;'>메모노트</h3>
+			 			<!-- 2017.03.09 보고서 수정  -->
+			 			<div style="width:677px;height:140px;float:left;"><textarea id="memo" style="height:130px; width:645px;line-height:1.5em;border:0;margin:5px;font-size:12px;"></textarea></div>
+			 			<div class="pntCloseBtn"><a href="javascript:$reportForm.ui.onOffDiv('memoDiv');"><img src='/img/um/btn_closel01.png' alt='숨기기' /></a></div>
+			 		</div>
+			 	</div>
+			 	
+			</div>
+		 			
+		 	<dl class="pntDl">
+		 		<dt>※ 자료 이용시 유의사항</dt>
+		 		<dd>
+		 			<p>SGIS 오픈플랫폼에서 제공하는 센서스 통계는 일부 특별조사구와 외국인, 개인운수업 등의 자료를 제외하고 최신경계를 반영하기 때문에 KOSIS 등 공표된 통계와 차이가 있습니다.
+		 			</p>
+		 			<ol>
+		 			 	<li><p>제외된 자료</p> 
+			 			 	<p>- 인구/가구/주택 센서스 : 해외주재공간, 교도소 및 소년원, 군부대</p>
+			 			 	<p>- 사업체 센서스 : 개인 운수업(사업장이 일정치 않음)</p>
+		 			 	</li>
+		 			 	<li>
+		 			 		<p>최신 경계 반영에 따른 차이</p>
+		 			 		<p>- SGIS는 최신 행정구역 경계에 맞추어 서비스 함에 따라 KOSIS 자료와 다를 수 있습니다.</p>
+		 			 	</li>
+		 			 </ol>
+		 		</dd>
+		 	</dl>
+	 	</div>
+	 </div>
+	<div id="hiddenReport"></div>
+</body>
+</html>

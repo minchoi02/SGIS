@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="personal">
+	<select id="findCodeInSmallArea" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				TOTBORD.SIDO_CD
+				, ADMBORD.SIDO_NM
+				, TOTBORD.SGG_CD
+				, ADMBORD.SGG_NM
+				, TOTBORD.EMDONG_CD
+				, ADMBORD.EMDONG_NM
+				, TOTBORD.TOT_REG_CD
+	 	FROM
+	 			SRV_PG_TOTREGBORD TOTBORD
+		INNER JOIN (
+				SELECT
+						SIDO_NM
+						, SGG_NM
+						, EMDONG_NM
+						, SIDO_CD
+						, SGG_CD
+						, EMDONG_CD
+						, BASE_YEAR
+				FROM
+						SRV_PG_ADMBORD
+				WHERE 
+						BASE_YEAR = (
+							SELECT
+									TOP 1 BASE_YEAR
+							FROM 
+									SRV_PG_ADMBORD
+							GROUP BY BASE_YEAR 
+							ORDER BY BASE_YEAR DESC
+						)
+		) ADMBORD
+				ON
+					TOTBORD.SIDO_CD = ADMBORD.SIDO_CD 
+					AND TOTBORD.SGG_CD = ADMBORD.SGG_CD
+					AND TOTBORD.EMDONG_CD = ADMBORD.EMDONG_CD
+					AND TOTBORD.BASE_YEAR = ADMBORD.BASE_YEAR
+		WHERE 
+				st_within (st_pointfromtext ('point(' || #{x_coor} ||' '|| #{y_coor} || ')', 0 ), TOTBORD.BORD) = 1
+	</select>
+</mapper>		  

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:context="http://www.springframework.org/schema/context"
+xmlns:mvc="http://www.springframework.org/schema/mvc"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+	
+	<context:component-scan base-package="kostat.sop.OpenAPI3" use-default-filters="false">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Service" />
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Repository" />
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Component" />
+	</context:component-scan>
+	
+	<bean id="leaveaTrace" class="egovframework.rte.fdl.cmmn.trace.LeaveaTrace">
+		<property name="traceHandlerServices">
+			<list>
+				<ref bean="traceHandlerService" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="traceHandlerService" class="egovframework.rte.fdl.cmmn.trace.manager.DefaultTraceHandleManager">
+		<property name="reqExpMatcher">
+			<ref bean="antPathMater" />
+		</property>
+		<property name="patterns">
+			<list>
+				<value>*</value>
+			</list>
+		</property>
+		<property name="handlers">
+			<list>
+				<ref bean="defaultTraceHandler" />
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="antPathMater" class="org.springframework.util.AntPathMatcher" />
+	<bean id="defaultTraceHandler" class="egovframework.rte.fdl.cmmn.trace.handler.DefaultTraceHandler" />
+
+<!--
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/OpenAPI3/**" /> 
+			<bean class="kostat.sop.OpenAPI3.common.intercepter.KoreaDataPortalHandlerInterceptorAdapter"/>
+		</mvc:interceptor>
+	</mvc:interceptors>
+-->
+	<!--공통으로 사용하는 Instance 등록-->
+	<!-- Spring Handler Mapping -->
+	<bean id="handlerMapping" class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping">
+		<property name="alwaysUseFullPath" value="true"/>
+	</bean>
+	
+	
+	<!-- Spring View Resolver -->
+	<bean class="org.springframework.web.servlet.view.XmlViewResolver">
+		<property name="order" value="1"/>
+		<property name="location" value="/conf/durian-views.xml"/>
+	</bean>
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="order" value="2"/>
+		<property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+		<property name="prefix" value=">/WEB-INF/"/>
+		<property name="suffix" value=".jsp"/>
+	</bean>
+	
+	
+<!--     <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">   -->
+<!--         <property name="maxWaitMillis" value="1000" /> -->
+<!-- 		<property name="maxTotal" value="50" /> -->
+<!-- 		<property name="minIdle" value="10" /> -->
+<!-- 		<property name="maxIdle" value="80" /> -->
+<!-- 		<property name="timeBetweenEvictionRunsMillis" value="60000" /> -->
+<!-- 		<property name="softMinEvictableIdleTimeMillis" value="10000" /> -->
+<!-- 		<property name="minEvictableIdleTimeMillis" value="10000" /> -->
+<!--    </bean>  -->
+    
+	
+<!-- 	<bean id="jedisConnectinFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"> -->
+<!--      	<property name="hostName" value="211.41.186.190" /> -->
+<!--      	<property name="port" value="6379" /> -->
+<!--      	<property name="usePool" value="true" /> -->
+<!--      	<property name="password" value="sop" /> -->
+<!--      	<property name="poolConfig" ref="jedisPoolConfig" /> -->
+<!--  	</bean> -->
+ 	
+<!--  	<bean id="stringRedisSerializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"></bean> -->
+ 	
+<!--  	<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate" lazy-init="false"> -->
+<!--  		<property name="connectionFactory" ref="jedisConnectinFactory" /> -->
+<!--     	<property name="keySerializer" ref="stringRedisSerializer" /> -->
+<!--     	<property name="hashKeySerializer" ref="stringRedisSerializer" /> -->
+<!--     	<property name="valueSerializer" ref="stringRedisSerializer" /> -->
+<!--     	<property name="hashValueSerializer" ref="stringRedisSerializer" /> -->
+<!--  	</bean> -->
+
+</beans>

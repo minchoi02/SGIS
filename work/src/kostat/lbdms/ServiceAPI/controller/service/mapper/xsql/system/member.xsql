@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="member">
+	
+	<!-- 그룹 멤버 정보 가져오기 -->
+	<sql id="orderSql">
+		<choose>
+			<when test="sort == '' || sort == null">
+				ORDER BY user_no DESC
+			</when>
+			<otherwise>
+				ORDER BY ${sort} ${order}
+			</otherwise>
+		</choose>
+	</sql>
+	
+	<select id="getGroupMemberList" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				  Q.*
+    		 	, ROW_NUMBER() OVER (<include refid="orderSql"/>) AS row
+    		 	, COUNT(Q.*) OVER() AS total
+    	  FROM (
+				SELECT user_no 
+					 , user_id
+					 , user_nm
+					 , institute
+					 , dept
+					 , job_pos
+					 , user_div
+					 , grant_yn
+					 , use_yn
+					 , inst_seq
+					 , email
+					 , tel_no
+					 , tel_no2
+				  FROM MEMBER A
+				  where inst_seq = #{inst_seq} 
+    	  		) Q
+			  <where>
+			  	1=1
+			  	<!-- AND Q.job_pos = #{job_pos} -->
+			  </where>
+			<include refid="orderSql"/>
+			OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+	
+	
+	<!-- 사용자정보 가져오기-->
+	<select id="getMemberInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT
+					user_no
+				,	user_id
+				,	user_nm
+				,	user_pw
+				,	institute
+				,	dept
+				,	job_pos
+				,	email
+				,	tel_no
+				,	tel_no2
+				,   user_div
+				,	login_ip
+				,	login_ts
+				,	login_fail_cnt
+				,	grant_yn
+				,	use_yn
+				,	use_start_date
+				,	use_end_date
+				,	multi_connect_lmtt_yn
+				,   restrict_ip
+				,	delete_yn
+				,	ubis_yn
+				,	reg_ts
+				,	mod_ts
+				, 	grant_ts
+				,	inst_seq
+				,	use_sz
+				, (
+				SELECT
+						  SUM(data_size) as used_sz
+					FROM  RESOURCE
+					WHERE inst_share_yn = 'N'
+					AND user_id = #{user_id}
+				) as used_sz
+				
+		FROM	MEMBER
+		WHERE 	1=1
+		<choose>
+			<when test='key != null'>
+			AND user_key = #{key}
+			</when>
+			<otherwise>
+			AND	user_id=#{user_id}
+			</otherwise>
+		</choose>
+		
+	</select>
+	
+	<!-- 사용자 대시보드 정보 가져오기-->
+	<select id="getMemberDashBoardInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				,	user_id
+				,	usr_data_yn
+				,	lc_data_yn
+				,	analysis_data_yn
+				,	share_data_yn
+				,	fav_yn
+				,	save_spacial_yn
+				,	reg_ts
+		FROM	USER_DASHBOARD
+		WHERE 	user_id=#{user_id}
+	</select>
+	
+	<!-- 사용자 정보 수정 -->
+	<update id="updateMemberInfo" parameterType="hashmap">
+		UPDATE MEMBER 
+		SET
+				institute	= #{institute}
+			,	dept		= #{dept}
+			,	email		= #{email}
+			,	tel_no		= #{tel_no}
+			,	tel_no2		= #{tel_no2}
+			,	inst_seq	= #{inst_seq}
+		WHERE	user_id = #{user_id}
+	</update>
+	
+	<!-- 사용자 패스워드 수정 -->
+	<update id="updateMemberPw" parameterType="hashmap">
+		UPDATE MEMBER 
+		SET
+				user_pw	= #{pw}
+		WHERE	user_id = #{user_id}
+	</update>
+	
+	
+	<!-- 사용자 정보 삭제 탈퇴 -->
+	<delete id="deleteMemberInfo" parameterType="hashmap">
+		DELETE FROM MEMBER 
+		WHERE	user_id = #{user_id}
+	</delete>
+	
+	<!-- 비밀번호 수정 -->
+	<update id="updateMemberPwd" parameterType="hashmap">
+		UPDATE MEMBER 
+		SET
+				user_pw = #{user_pw}
+		WHERE	user_id = #{user_id}
+	</update>
+	
+	<!--  사용자 키 업데이트 -->
+	<update id="updateUserKey" parameterType="hashmap">
+		UPDATE MEMBER 
+		SET
+				user_key = #{user_key}
+		WHERE	user_id = #{user_id}
+	</update>
+	
+</mapper>

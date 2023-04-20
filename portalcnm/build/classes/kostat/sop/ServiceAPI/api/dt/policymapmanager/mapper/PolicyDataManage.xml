@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="PolicyDataManage"> 
+	<select id="getpolicyMapList" resultType="Map">
+		<!-- select * from(
+        select *,ROWNUM R from(
+            SELECT C.idx_id, C.CATEGORY_NM
+            ,C.POLICY_IDX_NM
+            ,C.IDX_TYPE as IDXTYPE
+            ,(CASE C.SOURCE_INST_CD WHEN '1' THEN '통계청' WHEN '2' THEN '지자체' END) as SOURCE_INST_CD
+            ,(CASE C.IDX_TYPE WHEN '1' THEN '지역별 수요변화' WHEN '2' THEN '연산형' WHEN '3' THEN '분석형' END) as IDX_TYPE
+            ,C.SRV_YN  FROM (
+            SELECT * FROM SRV_DT_POLICYMAP_CATEGORY A, SRV_DT_POLICYMAP_LIST B WHERE A.CATEGORY_ID=B.CATEGORY_ID
+            <if test="SEARCH_WORD != null">
+			    and POLICY_IDX_NM like  #{SEARCH_WORD} 
+			</if>
+			<if test="SEARCH_TYPE_CATEGORY != null and  SEARCH_TYPE_CATEGORY != 'ALL' ">
+				and CATEGORY_NM = #{SEARCH_TYPE_CATEGORY}
+			</if>
+			<if test="SEARCH_TYPE_IDX != null and  SEARCH_TYPE_IDX != 'ALL' ">
+				and IDX_TYPE = #{SEARCH_TYPE_IDX}
+			</if>
+            ) C                    
+        )
+        where ROWNUM <![CDATA[<=]]> #{END_INDEX} )
+        where R <![CDATA[>=]]> #{START_INDEX} -->
+        
+        SELECT * FROM(
+	        SELECT *,ROWNUM R FROM(
+				SELECT        
+				      CAST(C.DISP_RANK AS INT) AS DISP_RANK
+				      ,C.idx_id
+				      ,C.CATEGORY_NM 
+				      ,C.POLICY_IDX_NM  
+				      ,(CASE C.SOURCE_INST_CD WHEN '1' THEN '통계청' WHEN '2' THEN '지자체' END) AS SOURCE_INST_CD        
+				      ,(CASE C.IDX_TYPE WHEN '1' THEN '수요변화형' WHEN '2' THEN '통계연산형' WHEN '3' THEN '시설분석형' END) AS IDX_TYPE
+				      ,C.SRV_YN
+				      ,C.POLICY_IDX_CONTENT as EXP 
+				FROM(
+						SELECT * FROM SRV_DT_POLICYMAP_LIST A, (SELECT CATEGORY_ID, CATEGORY_NM, EXP, DISP_RANK AS DR FROM SRV_DT_POLICYMAP_CATEGORY) B
+			WHERE A.CATEGORY_ID=B.CATEGORY_ID
+			<if test="SEARCH_WORD != null">
+			    and POLICY_IDX_NM like  #{SEARCH_WORD} 
+			</if>
+			<if test="SEARCH_TYPE_CATEGORY != null and  SEARCH_TYPE_CATEGORY != 'ALL' ">
+				and CATEGORY_NM = #{SEARCH_TYPE_CATEGORY}
+			</if>
+			<if test="SEARCH_TYPE_IDX != null and  SEARCH_TYPE_IDX != 'ALL' ">
+				and IDX_TYPE = #{SEARCH_TYPE_IDX}
+			</if>
+			) C ORDER BY DISP_RANK ASC
+		)
+        WHERE ROWNUM <![CDATA[<=]]> #{END_INDEX} )
+        WHERE R <![CDATA[>=]]> #{START_INDEX}	
+	</select>
+	<select id="getpolicyMapListCount" resultType="int">
+		select count(*) from(
+            SELECT C.idx_id, C.CATEGORY_NM
+            ,C.POLICY_IDX_NM
+            ,C.IDX_TYPE as IDXTYPE
+            ,(CASE C.SOURCE_INST_CD WHEN '1' THEN '통계청' WHEN '2' THEN '지자체' END) as SOURCE_INST_CD
+            ,(CASE C.IDX_TYPE WHEN '1' THEN '수요변화형' WHEN '2' THEN '통계연산형' WHEN '3' THEN '시설분석형' END) as IDX_TYPE
+            ,C.SRV_YN  FROM (
+            SELECT * FROM SRV_DT_POLICYMAP_CATEGORY A, SRV_DT_POLICYMAP_LIST B WHERE A.CATEGORY_ID=B.CATEGORY_ID
+            <if test="SEARCH_WORD != null">
+			    and POLICY_IDX_NM like  #{SEARCH_WORD} 
+			</if>
+			<if test="SEARCH_TYPE_CATEGORY != null and  SEARCH_TYPE_CATEGORY != 'ALL' ">
+				and CATEGORY_NM = #{SEARCH_TYPE_CATEGORY}
+			</if>
+			<if test="SEARCH_TYPE_IDX != null and  SEARCH_TYPE_IDX != 'ALL' ">
+				and IDX_TYPE = #{SEARCH_TYPE_IDX}
+			</if>
+            ) C                    
+        )
+	</select>
+	<update id="updatePolicyData" parameterType="Map" >
+		UPDATE SRV_DT_POLICYMAP_LIST 
+		SET SRV_YN = #{SRV_YN}
+		    ,CATEGORY_ID = #{CATEGORY_TYPE}
+		    ,POLICY_IDX_NM = #{IDX_NM}
+		    ,DISP_RANK= #{DISP_RANK}
+	        <if test="EXP != null">
+	         ,POLICY_IDX_CONTENT = #{EXP}
+	        </if>
+		WHERE IDX_ID = #{IDX_ID}
+	</update>
+	<update id="updatePolicyRelList" parameterType="Map" >
+		UPDATE SRV_DT_POLICYMAP_REL_LIST 
+		SET CATEGORY_ID = #{CATEGORY_TYPE}        
+		WHERE IDX_ID = #{IDX_ID}
+	</update>
+	<update id="updatePolicyCmmnty" parameterType="Map" >
+		UPDATE SRV_DT_POLICYMAP_CMMNTY 
+		SET CATEGORY_ID = #{CATEGORY_TYPE}        
+		WHERE IDX_ID = #{IDX_ID}
+	</update>
+	<update id="updatePolicyApiParm" parameterType="Map" >
+		UPDATE SRV_DT_POLICYMAP_APIPARAM 
+		SET CATEGORY_ID = #{CATEGORY_TYPE}        
+		WHERE IDX_ID = #{IDX_ID}
+	</update>
+	<delete id="deletePOlicyData" >
+		delete from SRV_DT_POLICYMAP_LIST where IDX_ID in
+		<foreach collection="array" index="index" item="item" open="(" separator="," close=")">   
+        		#{item}   
+   		</foreach> 
+	</delete>
+	<delete id="deletePOlicyRelList" >
+		delete from SRV_DT_POLICYMAP_REL_LIST where IDX_ID in
+		<foreach collection="array" index="index" item="item" open="(" separator="," close=")">   
+        		#{item}   
+   		</foreach> 
+	</delete>
+	<delete id="deletePOlicyCmmnty" >
+		delete from SRV_DT_POLICYMAP_CMMNTY where IDX_ID in
+		<foreach collection="array" index="index" item="item" open="(" separator="," close=")">   
+        		#{item}   
+   		</foreach> 
+	</delete>
+	<delete id="deletePOlicyApiParm" >
+		delete from SRV_DT_POLICYMAP_APIPARAM where IDX_ID in
+		<foreach collection="array" index="index" item="item" open="(" separator="," close=")">   
+        		#{item}   
+   		</foreach> 
+	</delete>
+</mapper>

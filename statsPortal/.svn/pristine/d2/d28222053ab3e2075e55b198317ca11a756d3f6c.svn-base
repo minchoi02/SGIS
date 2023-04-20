@@ -1,0 +1,248 @@
+//  우리동네 상황판 js 
+
+
+
+// 우리동네 상황판 슬라이더 기능구현
+async function startSliderItemSync(sliderData, parentId) {
+    let chartIds = await makeSliderHtml1(sliderData, parentId);  // 슬라이더 아이템 html 생성
+    await makeSliderChart1(chartIds, sliderData) // 슬라이더 아이템 차트 생성 
+    await makeSlider1Temp(); // 슬라이더 렌더
+    let items = await getSliderItems1() // 슬라이더 내 아이템 플레이리스트
+
+    sliderTimerCount = 0; // 렌더 타이머 카운터 초기화
+    sliderTimerStart1(items)
+}
+
+// 우리동네 상황판 슬라이더 html 생성
+const makeSliderHtml1 = (dataSet, parentId) => {
+    return new Promise((resolve, reject) => {
+        // console.log("makeSliderHtml start ==========")
+
+        if (!dataSet) {
+            console.log("데이터 없음")
+            return false;
+        }
+
+        let chartIdAr = [];   // 차트 아이디 어레이
+        $("#" + parentId).empty();
+
+        dataSet.forEach((item, index) => {
+            let html = "";
+            html += '<li class="slider_item" onclick="sliderItemEvent1(this)">'; // 우리동네 상황판 상단 헤더 변경 이벤트
+            html += '<div class="item_heading">';
+            html += '<h5>' + item.title + '</h5>';
+            html += '<img src="/images/lvs/icon/icon-tooltip.png" alt="">';
+            html += '<span>' + item.unit + '</span>';
+            html += '</div>';
+            html += '<div class="item_content">';
+            html += '<ul>';
+            html += '<li>';
+            html += '<div class="this_year">';
+            html += '<h6>' + item.lastYearName + '</h6>';
+            html += '<p>' + numberFormat(item.lastYearData) + '</p>';
+            html += '</div>';
+            html += '<div class="last_year">';
+            html += '<h6>' + item.nowYearName + '</h6>';
+            html += '<p>' + numberFormat(item.nowYearData) + '</p>';
+            html += '</div>';
+            html += '</li>';
+            html += '<li>';
+            html += '<div class="chart">';
+            if (item.type == "donut") html += '<div id="' + item.id + '_' + index + '" style="height:70px">';
+            else html += '<div id="' + item.id + '_' + index + '" style="height:100px">';
+            html += '</div>';
+            if (item.type == "donut") {
+                html += '<div>';
+                html += '<span class="cr01">' + item.graphDataName1 + '</span>';
+                html += '<strong>' + numberFormat(item.graphData1) + '</strong>';
+                html += '</div> ';
+                html += '<div>';
+                html += '<span class="cr02">' + item.graphDataName2 + '</span>';
+                html += '<strong>' + numberFormat(item.graphData2) + '</strong>';
+                html += '</div>';
+            }
+            html += '</li>';
+            html += '</ul>';
+            html += '</div>';
+            html += '</li>';
+
+            $("#" + parentId).append(html)
+            chartIdAr.push(item.id + '_' + index)
+        })
+
+        resolve(chartIdAr);
+    })
+}
+
+// 우리동네 현황판 슬라이더 
+const makeSlider1Temp = () => {
+    return new Promise((resolve, reject) => {
+        // console.log("makeSlider1 start ==========")
+        let target = $('.slick_slider')
+        let sts = target.hasClass('slick-initialized') // true 렌더 상태
+        let options = {
+            dots: true,
+            // speed: 300,
+            prevArrow: ".arrows > .prev_arrow",
+            nextArrow: ".arrows > .next_arrow",
+            // autoplay: true,
+            // autoplaySpeed: 5000
+        }
+        if (!sts) target.slick(options)
+
+        resolve();
+    })
+
+}
+
+// 우리동네 상황판 슬라이더 아이템 가져오기
+const getSliderItems1 = () => {
+    return new Promise((resolve) => {
+        // console.log("getSliderItems start ==========")
+        
+        resolve($(".slick_slider > div > div > div.slick-current > div > div").children('.slider_item').get())
+    })
+}
+
+// 우리동네 현황판 차트 그리기.
+const makeSliderChart1 = (ids, data) => {
+    // console.log("makeSliderChart start ==========")
+    return new Promise((resolve) => {
+        data.forEach((item, index) => {
+            if (item.type == 'donut') layerDonut(ids[index], item)
+            else if (item.type == 'column') layerColumn(ids[index], item)
+            else if (item.type == 'map') layerMap(ids[index], item)
+            else if (item.type == 'pie') layerPie(ids[index], item)
+            else if (item.type == 'line') layerLine(ids[index], item)
+            else console.log("nothing")
+        })
+        resolve();
+    })
+}
+
+// 우리동네 상황판 슬라이더 change 감지
+$('.slick_slider').on('afterChange', function (event, slick, currentSlide, nextSlide) {
+    // console.log("slider on chage start ==========")
+    let targetId = 'sliderContent' + currentSlide
+    // let dataName = "sliderData"+currentSlide
+    startSliderItemSync(sliderData[currentSlide], targetId)
+
+});
+
+// 우리동네 상황판 슬라이더 무버 
+const sliderTimer1 = (items="") => {
+    // console.log("mover start ==========")
+    let itemLength = items.length // 우리동네 상황판 슬라이더 아이템 갯수
+    if(!sliderTimerSts) return; // 슬라이더 정지, 퍼즈 상태 확인
+
+    sliderTimerCount++;
+    $(items).removeClass('active')
+    $(items).eq(sliderTimerCount-1).addClass('active')
+
+    if(sliderTimerCount <= itemLength) {
+        changeHeaderData1(items[sliderTimerCount-1]);     // todo 상단 부분 아이템 차트 렌더 변경
+        setTimeout(sliderTimer1, 5000, items); 
+    } else {
+    	// 다음 슬라이드 이동
+        $(".slick_slider").slick('slickNext'); // slick afterChagne -> 렌더 다시 사직 후 interval 다시 시작
+    }
+}
+
+// 우리동네 상황판 슬라이더 스타트
+const sliderTimerStart1 = (items="") => {
+    sliderTimerSts = true;
+    if(!items)  {
+        getSliderItems1().then((itemList) => {
+            sliderTimer1(itemList);        
+        })
+    } else {
+        sliderTimer1(items);
+    }
+}  
+
+// 우리동네 상황판 슬라이더 멈춤
+const sliderTimerPause1 = () => {
+    sliderTimerSts = false;
+}
+
+// 우리동네 상황판 슬라이더 아이템 클릭
+const sliderItemEvent1 = (obj) => {
+    sliderTimerPause1();
+    getSliderItems1().then((result) => {
+        result.forEach((t) => {
+            $(t).removeClass('active');
+        })
+    }).then(() => {
+        $(obj).addClass('active')
+    })
+    changeHeaderData1(obj);
+
+}
+
+// 우리동네 상황판 상단 데이터, 차트 변경 
+const changeHeaderData1 = (obj) => {
+    // console.log("changeHeaderData start ==========")
+    let type = "";
+    let title = $(obj).children('.item_heading').children('h5').text();
+    let unit = $(obj).children('.item_heading').children('span').text();
+    let lastYear = $(obj).children('.item_content').find('div.this_year').children('h6').text()
+    let thisYear = $(obj).children('.item_content').find('div.last_year').children('h6').text()
+    let lastYearData = $(obj).children('.item_content').find('div.this_year').children('p').text()
+    let thisYearData = $(obj).children('.item_content').find('div.last_year').children('p').text()
+    let gubun1Name = $(obj).children('.item_content').find('div.chart').find('.cr01').text();
+    let gubun2Name = $(obj).children('.item_content').find('div.chart').find('.cr02').text();
+    let gubun1Data = $(obj).children('.item_content').find('div.chart').find('.cr01').siblings('strong').text();
+    let gubun2Data = $(obj).children('.item_content').find('div.chart').find('.cr02').siblings('strong').text();
+
+    // 정보 텍스트 변경
+    let target = $(".extend_data_01").find('.main_sec01').children('dl')
+    target.children('.thisYear').children('h5').html(title + ' <span>'+thisYear+'</span>')
+    target.children('.thisYear').children('h4').text(thisYearData)
+    target.children('.thisYear').children('p').text(unit)
+    if(gubun1Name == "" || gubun1Name == null || gubun1Name == undefined) { // type 으로 정의 필요.
+        target.children('.thisYear').children('div').hide();
+    } else {
+        target.children('.thisYear').children('div').children('span:nth-child(1)').text(gubun1Name)
+        target.children('.thisYear').children('div').children('span:nth-child(2)').text(gubun1Data)
+        target.children('.thisYear').children('div').children('span:nth-child(3)').text(gubun2Name)
+        target.children('.thisYear').children('div').children('span:nth-child(4)').text(gubun2Data)
+        target.children('.thisYear').children('div').show();
+    }
+
+    target.children('.lastYear').children('span:first-child').text(lastYear)
+    target.children('.lastYear').children('span:last-child').text(lastYearData)
+
+    
+    // 우리동네 상황판 상단 콤비 차트 더미데이터    
+    let dummyData = {
+        category : ["2001","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"],
+        columnName : "random",
+        columnData : [],
+        lineName : "random2",
+        lineData : []
+    }
+
+    for(i=0; i < dummyData.category.length; i++){
+        dummyData.columnData.push(makeRandomData(500,1000))
+        dummyData.lineData.push(makeRandomData(500,1000))
+    }
+
+    // chart reDraw
+    tabContent2_chart.xAxis[0].setCategories(dummyData.category); // 카테고리 변경
+
+    tabContent2_chart.series[0].setData(dummyData.columnData) // 컬럼 데이터 변경
+    tabContent2_chart.series[0].name = dummyData.columnName // 컬럼 이름 변경
+
+    tabContent2_chart.series[1].setData(dummyData.lineData) 
+    tabContent2_chart.series[1].name = dummyData.lineName
+    
+}
+
+// 우리동네 상황판 헤더 재생버튼 
+const sliderControl1 = (obj) => {
+    let sliderSts = $(obj).attr('data-status'); // 슬라이더 재생, 멈춤 상태
+    if (sliderSts == "play") sliderTimerStart1();
+    else if (sliderSts == "pause") sliderTimerPause1();
+}
+
+

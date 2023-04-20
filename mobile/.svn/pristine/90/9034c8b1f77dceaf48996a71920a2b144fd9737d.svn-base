@@ -1,0 +1,146 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@include file="/WEB-INF/jsp/includes/taglib.jsp" %>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<title>간편동네찾기</title>
+<meta name="title" content="살고싶은 우리동네">
+<!-- 하단 리스트 위 아래 Swipe 이벤트 -->
+
+<link rel="stylesheet" href="${ctx }/resources/m2020/css/subpage.css" />
+<link rel="stylesheet" href="${ctx }/resources/m2020/css/style.css" />
+<!-- 하단 리스트 Swiper -->
+<link rel="stylesheet" href="${ctx }/resources/m2020/plugins/swiper.css" />
+<!-- 좌우 스크롤 -->
+<script src="${ctx }/resources/m2020/plugins/jquery.touchSwipe.min.js" type="text/javascript"></script>
+<script src="${ctx }/resources/m2020/js/jquery.touchFlow.js" type="text/javascript"></script>
+<!-- 페이지 전역변수 -->
+<script type="text/javascript">
+	var bClassInfoList = ${heumTag:convertJson(mlsfcLists)};
+	var idealTypeInfoList = ${heumTag:convertJson(idealTypeLists)};
+</script>
+<!-- 기본 js -->
+<script src="${ctx }/resources/m2020/js/house/houseSearchMap.js"></script>
+
+</head>
+<body>
+	<!-- 메뉴 버튼 Swiper START -->
+	<div class="swiper-container Tabarea mlr16">
+		<div class="swiper-wrapper Tab-wrapper">
+			<div class="swiper-slide Tabbtn">
+				<a href="${ctx }/m2020/map/house/recomendHouseMap.sgis">추천지역찾기</a>
+			</div>
+			<div class="swiper-slide Tabbtn on5">
+				<a href="${ctx }/m2020/map/house/houseSearchMap.sgis">간편동네찾기</a>
+			</div>
+			<div class="swiper-slide Tabbtn">
+				<a href="${ctx }/m2020/map/house/houseStatusMap.sgis">주거현황보기</a>
+			</div>
+			<div class="swiper-slide Tabbtn" style="min-width: 120px;">
+				<a href="${ctx }/m2020/map/biz/bizMap.sgis">우리동네 생활업종</a>
+			</div>
+		</div>
+	</div>
+
+	<!-- Initialize Swiper -->
+	<script>
+		var swiper = new Swiper('.swiper-container', {
+			slidesPerView : 2.6,	// 2020.09.15[한광희] 메뉴 swipe 수정	
+			spaceBetween : 10,
+			pagination : {
+				el : '.swiper-pagination',
+				clickable : true,
+			},
+		});
+		srvLogWrite('O0', '09', '03', '01', '', '');
+	</script>
+	<!-- 메뉴 버튼 Swiper END -->
+	
+	<div class="contentBox" id="houseSearchMapArea">
+		<div class="MapArea">
+			<!-- 지도 영역 START -->
+			<div class="Map" style="overflow: hidden; position: fixed; top: 40px; width: 100%;">
+				<div id="map"></div>
+			</div>
+			<!-- 지도 영역 END -->
+			
+			<!-- 생활환경 정보 START -->
+			<div id="lifeEnvironmentToggle" class="btn_infoView infoOff" style="z-index: 990"></div>
+			<!-- 생활환경 정보 END --> 
+			
+			<div class="resultWrap">
+				<!-- 내 위치 버튼 START -->
+	 			<div class="currenPositionWrap">
+					<div class="currenPosition" style="bottom: 0;">
+						<span id="myMapAreaText"></span>
+						<button id="myMapLocation" class="btn_goPostion" type="button">현재위치로</button>
+					</div>
+					<div class="databtnWrap">
+						<!-- 통계수치on/off -->
+						<!-- <a href="javascript:$statsMeMap.ui.showNumberClick();" id="showNumberBtn" class="databtn01"></a> -->
+					</div>
+				</div>
+				
+				<!-- 추천지역 리스트 START -->
+				<div class="Btnarea" id="houseListBtn"> 
+					<button type="button" class="swiperBtn" name="button" title="결과 목록 토글 버튼"/> <!-- 2020.09.11 [신예리] 웹접근성 문제로 인한 text 추가 --> 
+				</div>
+				<div class="result_list" id="result_list" style="bottom: 0 !important;">
+					<div class="pb10 bb">
+						<h2 class="tit">추천지역리스트</h2>
+					</div>
+					<div class="gridWrap" id=house_list_div style="height: 220px;">
+						 <!-- <ul>
+							 <li class="gridrow bb" style="padding: 10px 0;">
+								  <span class="indexnumber on">1</span>
+								  <p class="indextext on">부산광역시 남구 대연3동</p>
+							 </li>
+							 <li class="gridrow bb" style="padding: 10px 0;">
+								  <span class="indexnumber">2</span>
+								  <p class="indextext">전라남도 광양시 중마동</p>
+							 </li>
+							 <li class="gridrow bb" style="padding: 10px 0;">
+								  <span class="indexnumber">3</span>
+								  <p class="indextext">제주특별자치도 제주시 노형동</p>
+							 </li>
+							 <li class="gridrow bb" style="padding: 10px 0;">
+								  <span class="indexnumber">4</span>
+								  <p class="indextext">제주특별자치도 제주시 연동</p>
+							 </li>
+							 <li class="gridrow" style="padding: 10px 0;">
+								  <span class="indexnumber">5</span>
+								  <p class="indextext">울산광역시 울주군 범동</p>
+							 </li>
+						 </ul> -->
+						 <%-- <div class="moreBtnarea">
+						 	<span>6~10위</span><span>더보기</span><img src="${ctx }/resources/m2020/images/common/select_arrow.png">
+						 </div> --%>
+					</div> 
+				</div>
+				<!-- 추천지역 리스트 END -->
+			</div>
+		</div>
+	</div>
+	
+	<!-- 간편동네 찾기 정보 설정 영역 START -->
+	<div class="houseWrap" style="background-color: #fff; position: fixed; top: 40px; width: 100%; height: 100%; padding:0; z-index: 990;" id="search-item-box">
+		<div id="ideal-type-step" style="margin-top: 40px; padding: 16px; background-color: #fff;">
+			<ul id="idealtype-navigator" class="tabs">
+				<li class="tab-link tabs-step01" data-tab="1">
+	            	<p>관심사/부가정보입력</p>
+	            </li> 
+				<li class="tab-link tabs-step02" data-tab="2">
+					<p>관심항목선택</p>
+				</li>
+				<li class="tab-link tabs-step03" data-tab="3">
+					<p>우선순위 설정</p>
+				</li> 
+	        </ul>
+	        <%@include file="/WEB-INF/jsp/m2020/map/house/idealType/step1.jsp" %>
+			<%@include file="/WEB-INF/jsp/m2020/map/house/idealType/step2.jsp" %>
+			<%@include file="/WEB-INF/jsp/m2020/map/house/idealType/step3.jsp" %>		
+		</div>
+	</div>
+	<!-- 간편동네 찾기 정보 설정 영역 END -->
+</body>
+</html> 

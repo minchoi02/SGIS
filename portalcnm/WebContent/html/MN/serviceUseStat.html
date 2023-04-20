@@ -1,0 +1,520 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd" >
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>SGIS 관리자사이트(CNM)</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<link rel="stylesheet" href="./../include/css/login.css" />
+<link rel="stylesheet" href="./../include/css/default.css" />
+<script type="text/javascript" src="./../include/js/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="./../include/js/default.js"></script>
+<script type="text/javascript" src="../../js/common/includeHead.js"></script>
+<script src="../../js/common/common.js"></script>
+<link rel="stylesheet" href="../../css/jquery-ui-1.10.4.custom.css" />
+<script type="text/javascript" src="../../js/plugins/jquery-ui-1.10.3.custom.js"></script>
+<script type="text/javascript" src="../../js/plugins/jquery-ui-timepicker-addon.js"></script>
+<script type="text/javascript" src="../../js/MN/serviceUseStat.js"></script>
+<!-- 
+<script type="text/javascript" src="../../js/MN/jquery.battatech.excelexport.js"></script>
+ -->
+</head>
+<body onload="init();">
+	<script type="text/javascript" src="../../js/plugins/highcharts/highcharts.js"></script>
+	<script type="text/javascript" src="../../js/plugins/highcharts/export-csv.js"></script>
+	<!-- Js file of hightCharts need to import in body tags -->
+	<div class="wrapper">
+		<!-- cls:header start -->
+		<div class="header">
+			<div class="defaultbox">
+				<div class="logo">
+					<a href="#"><img src="./../include/img/pic/pic_logo.png"
+						alt="logo" /></a>
+				</div>
+				<div class="navi"></div>
+			</div>
+			<div class="menuWrapper">
+				<div class="menuCnm">
+					<ul>
+						<li><a class="on">서비스 현황</a></li>
+						<li><a>사용자 현황</a></li>
+						<li><a>서비스 관리</a></li>
+						<li><a>정보 관리</a></li>
+						<li><a>게시판 관리</a></li>
+						<li><a>회원 관리</a></li>
+					</ul>
+				</div>
+			</div>
+			<div class="subMenuWrapper">
+				<div class="subMenu"></div>
+			</div>
+		</div>
+		<!-- cls:header end -->
+		<div class="contents">
+			<!-- cls:left start -->
+			<div class="lefitMenuWrapper">
+				<script type="text/javascript">
+						makeLeftMenu("1", "3", "1");	//탑메뉴순서, 선택된 왼쪽 빅메뉴, 선택된 왼쪽 small메뉴
+					</script>
+			</div>
+			<!-- cls:left end -->
+			<div class="acticle">
+				<div class="location">
+					<p>
+						<a><img src="./../include/img/ico/ico_home.png" alt="home" /></a>
+						<span><img src="./../include/img/ico/ico_navi.png" alt="다음" /></span>
+						<span>서비스 현황</span> <span><img
+							src="./../include/img/ico/ico_navi.png" alt="다음" /></span> <span>페이지
+							방문통계</span> <span><img src="./../include/img/ico/ico_navi.png"
+							alt="다음" /></span> <span class="fontS"> 서비스별이용현황</span>
+					</p>
+				</div>
+				<p class="title01" style="clear: left;">서비스별이용현황</p>
+
+
+				<div>
+					<div class="searchWrapper">
+						<select class="input_use07" id="yearSel" name="yearSel">
+							<option value="2015">2015</option>
+							<option value="2016" selected="selected">2016</option>
+							<option value="2017">2017</option>
+						</select> 년 <select class="input_use07" id="monthSel" name="monthSel">
+							<option value="01">01</option>
+							<option value="02">02</option>
+							<option value="03">03</option>
+							<option value="04" selected="selected">04</option>
+							<option value="05">05</option>
+							<option value="06">06</option>
+							<option value="07">07</option>
+							<option value="08">08</option>
+							<option value="09">09</option>
+							<option value="10">10</option>
+							<option value="11">11</option>
+							<option value="12">12</option>
+						</select> 월
+						<div class="searchBtn">
+							<a href="#" id="searchBtn"><img
+								src="./../include/img/btn/btn_search.png" alt="검색" /></a>
+
+						</div>
+					</div>
+					<br />
+
+
+					<!--  2016.08.23 통계처리방법 수정
+				<table class="apiTable03" id="serviceTable">
+				<caption>서비스별 이요현황 입니다.</caption>
+					<tbody id="serviceTableBody">
+						<tr>
+							<th>서비스명</th>
+							<th>페이지뷰</th>
+							<th>방문자수</th>
+							<th>페이지뷰 누계</th>
+							<th>방문자수 누계</th>
+						</tr>
+					</tbody>
+				</table>
+				<a style="cursor: pointer; float: right;" id="excelBtn"><img style="margin-top:5px;"
+							src="	./../include/img/btn/btn_save.png" alt="엑셀저장" /></a>
+				 -->
+
+
+					<table class="apiTable03" id="serviceTable2">
+						<caption>서비스별 이용현황 입니다.</caption>
+						<tbody id="serviceTable2Body">
+							<tr>
+								<th rowspan="2">서비스 구분</th>
+								<th rowspan="2">구분상세</th>
+								<th colspan="2">서비스별통계</th>
+							</tr>
+							<tr>
+								<th style="border-left: 1px solid #cacaca;">페이지뷰</th>
+								<th>방문자수</th>
+								</tr>
+							<tr>
+								<td rowspan="6">메인페이지</td>
+								<td>메인페이지</td>
+								<td><span id="servicegbc1"></span></td>
+								<td><span id="servicegbd1"></span></td>
+							</tr>
+							<tr>
+								<td style="border-left: 1px solid #cacaca;">활용서비스 메인</td>
+								<td><span id="servicegbc2"></span></td>
+								<td><span id="servicegbd2"></span></td>
+							</tr>
+							<tr>
+								<td style="border-left: 1px solid #cacaca;">분석지도 메인</td>
+								<td><span id="servicegbc3"></span></td>
+								<td><span id="servicegbd3"></span></td>
+							</tr>
+							<tr>
+								<td style="border-left: 1px solid #cacaca;">Header 클릭 로그</td>
+								<td><span id="servicegbc4"></span></td>
+								<td><span id="servicegbd4"></span></td>
+							</tr>
+							<tr>
+								<td style="border-left: 1px solid #cacaca;">메인페이지 클릭 로그</td>
+								<td><span id="servicegbc5"></span></td>
+								<td><span id="servicegbd5"></span></td>
+							</tr>
+							<tr>
+								<td style="border-left: 1px solid #cacaca;">기타</td>
+								<td><span id="servicegbc99"></span></td>
+								<td><span id="servicegbd99"></span></td>
+							</tr>
+							<tr>
+								<td>대화형통계지도</td>
+								<td>대화형통계지도</td>
+								<td><span id="servicegbc6"></span></td>
+								<td><span id="servicegbd6"></span></td>
+							</tr>
+							<tr>
+								<td>통계주제도</td>
+								<td>통계주제도</td>
+								<td><span id="servicegbc7"></span></td>
+								<td><span id="servicegbd7"></span></td>
+							</tr>
+							<tr>
+								<td>살고싶은우리동네</td>
+								<td>살고싶은우리동네</td>
+								<td><span id="servicegbc8"></span></td>
+								<td><span id="servicegbd8"></span></td>
+							</tr>
+							<tr>
+							
+								<!-- mng_s 20200804 이진호 -->
+								<!-- 우리동네생활업종에서 생활업종 통계지도로 변경 -->
+								<!-- <td>우리동네생활업종</td> -->
+								<!-- <td>우리동네생활업종</td> -->
+								<td>생활업종통계지도</td>
+								<td>생활업종통계지도</td>
+								<td><span id="servicegbc9"></span></td>
+								<td><span id="servicegbd9"></span></td>
+								<!-- mng_e 20200804 이진호 -->
+								
+							</tr>
+							<tr>
+								<td>통계소통지도</td>
+								<td>통계소통지도</td>
+								<td><span id="servicegbc10"></span></td>
+								<td><span id="servicegbd10"></span></td>
+							</tr>
+							<tr>
+								<td>인구피라미드</td>
+								<td>인구피라미드</td>
+								<td><span id="servicegbc11"></span></td>
+								<td><span id="servicegbd11"></span></td>
+							</tr>
+							<tr>
+								<td>지방의변화보기</td>
+								<td>지방의변화보기</td>
+								<td><span id="servicegbc12"></span></td>
+								<td><span id="servicegbd12"></span></td>
+							</tr>
+							<tr>
+								<td>월간통계</td>
+								<td>월간통계</td>
+								<td><span id="servicegbc13"></span></td>
+								<td><span id="servicegbd13"></span></td>
+							</tr>
+							<tr>
+								<td>통계지도체험</td>
+								<td>통계지도체험</td>
+								<td><span id="servicegbc14"></span></td>
+								<td><span id="servicegbd14"></span></td>
+							</tr>
+							<tr>
+								<td>고령화현황보기</td>
+								<td>고령화현황보기</td>
+								<td><span id="servicegbc15"></span></td>
+								<td><span id="servicegbd15"></span></td>
+							</tr>
+							<tr>
+								<td>성씨분포</td>
+								<td>성씨분포</td>
+								<td><span id="servicegbc16"></span></td>
+								<td><span id="servicegbd16"></span></td>
+							</tr>
+							<tr>
+								<td>우수활용사례</td>
+								<td>우수활용사례</td>
+								<td><span id="servicegbc17"></span></td>
+								<td><span id="servicegbd17"></span></td>
+							</tr>
+							<tr>
+								<td>개발자지원센터</td>
+								<td>개발자지원센터</td>
+								<td><span id="servicegbc18"></span></td>
+								<td><span id="servicegbd18"></span></td>
+							</tr>
+							<tr>
+								<td>도움말</td>
+								<td>도움말</td>
+								<td><span id="servicegbc19"></span></td>
+								<td><span id="servicegbd19"></span></td>
+							</tr>
+							<tr>
+								<td>모바일</td>
+								<td>모바일</td>
+								<td><span id="servicegbc20"></span></td>
+								<td><span id="servicegbd20"></span></td>
+							</tr>
+							<tr>
+								<td rowspan="4">알림마당</td>
+								<td>알림마당 메인</td>
+								<td><span id="servicegbc21"></span></td>
+								<td><span id="servicegbd21"></span></td>
+							</tr>
+							<tr>
+								<td style="border-left: 1px solid #cacaca;">SGIS+ 소개</td>
+								<td><span id="servicegbc22"></span></td>
+								<td><span id="servicegbd22"></span></td>
+							</tr>
+							<tr>
+								<td style="border-left: 1px solid #cacaca;">설명과 공지</td>
+								<td><span id="servicegbc23"></span></td>
+								<td><span id="servicegbd23"></span></td>
+							</tr>
+							
+							<!-- mng_s 20220311 이진호 -->
+							<!-- 자료신청이 알림마당에서 분리되어 수정 -->
+							<!-- <tr> -->
+								<!-- <td style="border-left: 1px solid #cacaca;">자료신청</td> -->
+								<!-- <td><span id="servicegbc24"></span></td> -->
+								<!-- <td><span id="servicegbd24"></span></td> -->
+							<!-- </tr> -->
+							<!-- mng_e 20220311 이진호 -->
+							
+							<tr>
+								<td style="border-left: 1px solid #cacaca;">질문과 개선요청</td>
+								<td><span id="servicegbc25"></span></td>
+								<td><span id="servicegbd25"></span></td>
+							</tr>
+							
+							<!-- mng_s 20220311 이진호 -->
+							<!-- 자료신청 분리 추가 -->
+							<tr>
+								<td>자료신청</td>
+								<td>자료신청</td>
+								<td><span id="servicegbc24"></span></td>
+								<td><span id="servicegbd24"></span></td>
+							</tr>
+							<!-- mng_e 20220311 이진호 -->
+							
+							<tr>
+								<td>검색</td>
+								<td>검색</td>
+								<td><span id="servicegbc26"></span></td>
+								<td><span id="servicegbd26"></span></td>
+							</tr>
+							<tr>
+								<td>마이페이지</td>
+								<td>마이페이지</td>
+								<td><span id="servicegbc27"></span></td>
+								<td><span id="servicegbd27"></span></td>
+							</tr>
+							<tr>
+								<td>로그인</td>
+								<td>ID/PW찾기, 개인정보처리방침, <br /> Email처리방침 포함
+								</td>
+								<td><span id="servicegbc28"></span></td>
+								<td><span id="servicegbd28"></span></td>
+							</tr>
+							<tr>
+								<td>정책통계지도</td>
+								<td>정책통계지도</td>
+								<td><span id="servicegbc29"></span></td>
+								<td><span id="servicegbd29"></span></td>
+							</tr>
+							<tr>
+								<td>기술업종통계지도</td>
+								<td>기술업종통계지도</td>
+								<td><span id="servicegbc30"></span></td>
+								<td><span id="servicegbd30"></span></td>
+							</tr>
+							<tr>
+								<td>통계갤러리</td>
+								<td>통계갤러리</td>
+								<td><span id="servicegbc31">0</span></td>
+								<td><span id="servicegbd31">0</span></td>
+							</tr>
+							<tr>
+								<td>이벤트</td>
+								<td>이벤트</td>
+								<td><span id="servicegbc32">0</span></td>
+								<td><span id="servicegbd32">0</span></td>
+							</tr>
+							<tr>
+								<td>SGIS에듀</td>
+								<td>SGIS에듀</td>
+								<td><span id="servicegbc33">0</span></td>
+								<td><span id="servicegbd33">0</span></td>
+							</tr>
+							<tr>
+								<td>홍보동영상</td>
+								<td>홍보동영상</td>
+								<td><span id="servicegbc34">0</span></td>
+								<td><span id="servicegbd34">0</span></td>
+							</tr>
+							<tr>
+								<td>SGIS+ 공개강의실</td>
+								<td>SGIS+ 공개강의실</td>
+								<td><span id="servicegbc35">0</span></td>
+								<td><span id="servicegbd35">0</span></td>
+							</tr>
+							<tr>
+								<td>일자리맵</td>
+								<td>일자리맵</td>
+								<td><span id="servicegbc36">0</span></td>
+								<td><span id="servicegbd36">0</span></td>
+							</tr>
+							
+							<!-- mng_s 20200226 이진호 / My통계로 추가 -->
+							<tr>
+								<td>My통계로</td>
+								<td>My통계로</td>
+								<td><span id="servicegbc37">0</span></td>
+								<td><span id="servicegbd37">0</span></td>
+							</tr>
+							<!-- mng_e 20200226 이진호 -->
+							
+							<!-- mng_s 20201102 이진호 / 총조사시각화 추가-->
+							<tr>
+								<td>총조사 시각화</td>
+								<td>총조사 시각화</td>
+								<td><span id="servicegbc38">0</span></td>
+								<td><span id="servicegbd38">0</span></td>
+							</tr>
+							<!-- mng_e 20200226 이진호 -->
+							
+							<!-- mng_s 20210319 이진호 / 생활권역 통계지도 추가-->
+							<tr>
+								<td>생활권역 통계지도</td>
+								<td>생활권역 통계지도</td>
+								<td><span id="servicegbc39">0</span></td>
+								<td><span id="servicegbd39">0</span></td>
+							</tr>
+							<!-- mng_e 20200226 이진호 -->
+							
+							<!-- mng_s 20220217 이진호 / 행정통계 시각화지도 추가-->
+							<tr>
+								<td>도시화 분석 지도</td>
+								<td>도시화 분석 지도</td>
+								<td><span id="servicegbc40">0</span></td>
+								<td><span id="servicegbd40">0</span></td>
+							</tr>
+							<!-- mng_e 20200226 이진호 -->
+							
+							<!-- mng_s 20220217 이진호 / 행정통계 시각화지도 추가-->
+							<tr>
+								<td>행정통계 시각화지도</td>
+								<td>행정통계 시각화지도</td>
+								<td><span id="servicegbc41">0</span></td>
+								<td><span id="servicegbd41">0</span></td>
+							</tr>
+							<!-- mng_e 20200226 이진호 -->
+						
+							
+							<tr>
+								<th>합계
+									</th>
+									<th></th>
+										<th><span id="servicegbc100"></span></th>
+										<th><span id="servicegbd100"></span></th>
+							</tr>
+						</tbody>
+					</table>
+					<div style="float: right;">
+						<a style="cursor: pointer;" id="reportBtn">
+							<img style="margin-top: 5px;" src="	./../include/img/btn/btn_report_view.png" alt="보고서 보기" />
+						</a>
+						<a style="cursor: pointer;" id="excelBtn2">
+							<img style="margin-top: 5px;" src="	./../include/img/btn/btn_save.png" alt="엑셀저장" />
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- popup -->
+		<!-- 보고서 보기 -->
+		<div class="popupWrapper" id="reportPrint">
+			<div class="aplPopupWrapper">
+				<div class="aplPopupTitle">
+					<div class="myTitleFont" id="popTitle">보고서 보기</div>
+					<div class="myXbtn">
+						<a style="cursor: pointer"><img src="./../include/img/btn/btn_popupX.png" alt="종료" /></a>
+					</div>
+				</div>
+				<form id="popupForm">
+					<div id="btnReport" style="padding: 10px 35px 0px 35px; border-bottom: 2px solid #cacaca;">
+						<img src="./../include/img/pic/pic_logo.png" alt="logo" />
+						<div style="float: right; padding-top: 10px;">
+							<a id="PrintBtn" style="padding-left: 100px; cursor:pointer;">
+								<img src="./../include/img/btn/btn_print.png" alt="인쇄" />
+							</a>
+							<a id="cancel" style="cursor:pointer;">
+								<img src="./../include/img/btn/btn_close.gif" alt="닫기" />
+							</a><br/><br/>
+							<strong>통계지리정보서비스 (http://sgis.kostat.go.kr)</strong>
+						</div>
+					</div>
+					
+					<table class="popupTable" style="margin-top:5px;">
+						<caption>보고서 보기popup</caption>
+						<colgroup>
+							<col width="12%" />
+							<col width="38%" />
+							<col width="12%" />
+							<col width="38%" />
+						</colgroup>
+						<tbody>
+							<tr>
+								<th>제목</th>
+								<td id="title"></td>
+								<th>작성일자</th>
+								<td id="date"></td>
+							</tr>
+							<tr>
+								<td colspan="2" style="border-left: 1px solid #cacaca;">
+								  <table id="chart" style="height:562px; width:320px; padding-left:0; "></table>
+								</td>
+								<td colspan="2" id="grid">
+									<table class="apiTableD1" id="serviceTable3 " style="height:100%; width:100%;">
+										<colgroup>
+											<col width="3%" />
+											<col width="45%" />
+											<col width="26%" />
+											<col width="26%" />
+										</colgroup>
+										<tbody id="serviceTable3Body"></tbody>
+									</table>
+
+								</td>
+							</tr>
+							<tr>
+								<th colspan="4" style= "border:1px solid #cacaca; text-align: center;">메모</th>
+							</tr>
+							<tr>
+								<td style="border-left: 1px solid #cacaca;" colspan="4">
+									<textarea rows="3" cols="110" id="memoText"></textarea>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</form>
+			</div>
+		</div>
+		<!-- dim처리 문구 출력 -->
+			<div class="wrap-loading display-none">
+    			<div style="background-color: rgb(255, 255, 255); border: 3px solid rgb(0, 0, 0); position: absolute; height: 10px; line-height: 50px; padding-bottom: 40px; width: 400px; top: 50%; left: 50%; z-index: 11000; cursor: wait; margin: -5px 0px 0px -200px; text-align: center;">기다리십시요...</div>
+			</div>
+		<!-- cls:footer start -->
+		<div class="footerWrapper"></div>
+
+		<form id="excelDownForm" method="post" action="/s-portalcnm/jsp/excel/serviceUseStat.jsp">
+			<input type="hidden" id="htmlStr0" name="htmlStr0" /> 
+			<input type="hidden" id="exfilename" name="exfilename" value="service.xls" />
+		</form>
+	</div>	
+</body>
+</html>

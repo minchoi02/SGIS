@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="UserMapper">
+
+	<select id="schemaHasOwn" parameterType="hashmap" resultType="java.lang.Integer">
+		select count(*) from information_schema.schemata where schema_name=#{user_id};
+	</select>
+
+	<update id="createSequence">
+		${sequenceSql}
+	</update>
+	<select id="selectColumns" parameterType="hashmap" resultType="hashmap">
+		select column_name,data_type,column_default from information_schema.columns
+		where table_name = #{data_nm} and table_schema = #{SCHEMA} 
+		<if test="spacialColumn !=null">
+			and column_name = #{spacialColumn}
+		</if>
+		order by ordinal_position
+	</select>
+	
+	<!-- 회원 데이터 초기화 -->
+    <update id="initData" parameterType="hashMap">
+		DROP SCHEMA IF EXISTS ${user_id} CASCADE;
+		CREATE SCHEMA ${user_id} AUTHORIZATION postgres;
+		GRANT ALL ON SCHEMA ${user_id} TO postgres;
+		GRANT ALL ON SCHEMA ${user_id} TO ${user_id};
+    </update>
+	
+	<update id="createSchema" parameterType="hashmap">
+		CREATE SCHEMA ${user_id}
+		AUTHORIZATION postgres;
+		CREATE ROLE ${user_id} WITH CREATEDB CREATEROLE;
+		grant all on schema ${user_id} to ${user_id};
+	</update>
+	<update id="createTable" parameterType="hashmap">
+		${createSql}
+	</update>
+
+	<update id="tableOwnChange" parameterType="hashmap">
+		<!-- ${ownerChagneSql} -->
+		ALTER TABLE ${ new_target }
+		OWNER TO ${ login_id }
+	</update>
+	
+	<update id="grantUserRoll">
+		grant all on schema ${user_id} to ${user_id}
+	</update>
+
+	<update id="addRidColumn" parameterType="hashmap">
+		${alterAddQuery}
+	</update>
+
+	<insert id="insertRow" parameterType="hashmap">
+		${insertQuery}
+	</insert>
+
+	<select id="getMyDataInfo" parameterType="String" resultType="hashmap">
+		${value}
+	</select>
+
+	<select id="getResourceInfo" parameterType="hashmap" resultType="hashmap">
+		select * from ${tableName}
+	</select>
+	<select id="selectResourceGeom" parameterType="hashmap" resultType="hashmap">
+		
+		<!-- select * , ST_ASTEXT(ST_TRANSFORM(geom,4674)) as geomText  from ${SCHEMA}.${TABLE_NAME} -->
+		select * , ST_ASTEXT(geom) as geomtext  from ${SCHEMA}.${TABLE_NAME}
+		where 1=1
+		 
+		<if test="status == true">
+			<!-- where x is not  null and y is not null  -->
+			<!-- where mapping_status > 0 -->
+			<!-- where mapping_addr is not null -->
+		AND	geom is not null
+		</if>
+		
+		<if test="status == false">
+			<!-- where x is null and y is null --> 
+			<!-- where <![CDATA[ mapping_status < 1 ]]> -->
+			<!-- where mapping_addr is  null -->
+		AND geom is null
+		</if>
+		
+		
+		<if test="SORT_COLUMN != null and SORT_COLUMN != ''">
+			ORDER BY ${SORT_COLUMN}
+			<if test="SORT_TYPE == null and SORT_TYPE == ''">
+				ASC
+			</if>
+			<if test="SORT_TYPE == 'ASC'">
+				ASC
+			</if>
+			<if test="SORT_TYPE == 'DESC'">
+				DESC
+			</if>
+		</if>
+
+		<if test="LIMIT != 0">
+			LIMIT CAST(#{LIMIT} as INTEGER)
+		</if>
+		<if test="OFFSET != 0">
+			OFFSET CAST(#{OFFSET} as INTEGER)
+		</if>
+	</select>
+	<select id="selectResourceInfo" parameterType="hashmap" resultType="hashmap">
+
+		select *  from ${SCHEMA}.${TABLE_NAME}
+		
+		<if test="status == true">
+			<!-- where x is not  null and y is not null -->
+			<!-- where mapping_status > 0 -->
+			<!-- where mapping_addr is not null -->
+			<!-- where tot_oa_cd is not null -->
+			<!-- where x > 0  -->
+			<!-- <if test ="standardColumn != null">
+				where ${standardColumn} > 0
+			</if>
+			<if test="standardColumn == null">
+				where 1 != 1
+			</if> -->
+			<!-- where x is not null -->
+			where x is not  null and x > 0
+		</if>
+		
+		<if test="status == false">
+			<!-- where x is null and y is null -->
+			<!-- where <![CDATA[ mapping_status < 1 ]]> -->
+			<!-- where mapping_addr is null -->
+			<!-- where tot_oa_cd is null -->
+			<!-- where x = 0  -->
+			<!-- <if test ="standardColumn != null">
+				where ${standardColumn} = 0 or ${standardColumn} is null
+			</if>
+			<if test="standardColumn == null">
+				where 1 = 1
+			</if> -->
+			 <!-- where x is null -->
+			 where x is null or x = 0
+		</if>
+		
+		
+		<if test="SORT_COLUMN != null and SORT_COLUMN != ''">
+			ORDER BY ${SORT_COLUMN} 
+			<if test="SORT_TYPE == null and SORT_TYPE == ''">
+				ASC
+			</if>
+			<if test="SORT_TYPE == 'ASC'">
+				ASC
+			</if>
+			<if test="SORT_TYPE == 'DESC'">
+				DESC
+			</if>
+		</if>
+
+		<if test="LIMIT != 0">
+			LIMIT CAST(#{LIMIT} as INTEGER)
+		</if>
+		<if test="OFFSET != 0">
+			OFFSET CAST(#{OFFSET} as INTEGER)
+		</if>
+		
+	</select>
+	
+	<!-- 조건 목록 조회  -->
+	<select id="selectConditionList" parameterType="hashMap" resultType="hashMap">
+		SELECT *
+			 , COUNT(*) OVER() AS total
+		  FROM ${schema}.${data_nm} A
+		<if test="where!=null and where!=''">
+		 WHERE ${where}
+		</if>
+		<if test="limit > 0">
+		OFFSET #{offset} LIMIT #{limit}
+		</if>
+	</select>
+
+	<update id="modifyTable" parameterType="String">
+		${value}
+	</update>
+
+	<update id="geoCodingUpdate" parameterType="hashmap">
+		update ${tableName}
+		set x = CAST(#{x} AS DOUBLE PRECISION) ,
+		y = CAST(#{y} AS DOUBLE PRECISION) ,
+		mapping_status = CAST(#{mapping_staus} AS INTEGER),
+		api_name = #{api_name},
+		addr = #{addr},
+		tot_oa_cd = #{tot_oa_cd},
+		tot_x = CAST(#{tot_x} AS DOUBLE PRECISION),
+		tot_y = CAST(#{tot_y} AS DOUBLE PRECISION)
+
+		where rid = CAST(#{rid} AS INTEGER)
+	</update>
+
+	<!-- Mapping 주소 지오코딩 성공 결과여부 -->
+	<select id="getGeoCodingSuccessResultCount" parameterType="hashmap" resultType="hashmap">
+		select a.sCount as sCount , b.fCount as fCount
+
+		from (select count(*) as sCount from ${resourceTableWithSchema}
+		<if test="actionType == 'MAPPING'">
+			<!-- where mapping_status > 0 -->
+			where x is not  null and x > 0
+		</if>
+		<if test="actionType == 'COORD'">
+			<!-- where x is not  null and y is not null -->
+			<!-- where x > 0 -->
+			where x is not  null and x > 0
+		</if>
+		)
+		as a NATURAL join
+		(select count(*) as fCount from ${resourceTableWithSchema}
+		<if test="actionType == 'MAPPING'">
+			<!-- where <![CDATA[ mapping_status < 1 ]]> -->
+			where x is null or x = 0
+		</if>
+		<if test="actionType == 'COORD'">
+			<!-- where x is null and y is null -->
+			<!-- where x = 0 -->
+			where x is null or x = 0
+		</if>
+		) as b
+	</select>
+
+	<update id="updateRecordColumnData" parameterType="hashmap">
+		update ${schema}.${data_nm} 
+		SET ${key} = 
+		<if test="paramType == 'integer'">
+			${fixValue}
+		</if>
+		<if test="paramType == 'string'">
+			#{fixValue}
+		</if>
+		
+		where rid = CAST(#{rid} AS INTEGER)
+	</update>
+	
+	
+	<!-- 조건문에 의한 컬럼 데이터 일괄 수정 -->
+	<update id="columnDataModify" parameterType="hashmap">
+		UPDATE ${schema}.${data_nm}
+		   SET ${modify_column_name} = 
+		   <if test="paramType == 'integer'">
+		   		${modify_text}
+		   </if>
+		   <if test="paramType == 'string'">
+				#{modify_text}
+		   </if>
+		  
+		<if test="where!=null and where!=''">
+		 WHERE ${where}
+		</if>
+	</update>
+	
+	<select id="selectRecord" parameterType="hashmap" resultType="hashmap">
+		select * from ${schema}.${data_nm} where rid = CAST(#{rid} AS INTEGER) 
+	</select>
+	
+	<delete id="deleteRow" parameterType="hashmap">
+		delete from ${schema}.${table_name} where ${standardColumn} = CAST(#{rid} AS INTEGER)
+	</delete>
+	
+	<select id="selectRowCount" parameterType="hashmap" resultType="integer">
+		select count(*) from ${schema}.${table_name}
+	</select>
+	
+	 <!-- getColumns -->
+    <select id="getColumns" parameterType="hashMap" resultType="hashmap">
+		select column_name from  information_schema.columns 
+		where table_catalog='sop2016' and table_schema = #{schema} and table_name = #{table_name} 
+		and data_type in ('integer', 'bigint', 'double precision', 'real', 'smallint', 'numeric')
+		and column_name not in ('x', 'y', 'rid','tot_x', 'tot_y', 'bas_x', 'bas_y', 'mapping_status')
+    </select>
+	
+	<!-- 컬럼 삭제 -->
+	<update id="dropColumn" parameterType="hashmap">
+	 	ALTER TABLE ${schema}.${table_name} DROP COLUMN ${ drop_column_name }
+	</update>
+	
+	<!-- 컬럼 추가 -->
+	<update id="addColumn" parameterType="hashmap">
+		ALTER TABLE  ${schema}.${table_name} ADD COLUMN ${ new_column_name } ${ new_data_type } 
+		 
+		<if test="new_data_type == 'VARCHAR' or new_data_type == 'TEXT' or new_data_type == 'CHAR'" >
+			DEFAULT ''
+		</if>
+		 
+		<if test="new_data_type == 'BIGINT' or new_data_type == 'BIGSERIAL' or new_data_type == 'FLOAT' or new_data_type == 'DOUBLE PRECISIONOAT' or new_data_type == 'INTEGER' or new_data_type == 'SMALLINT'">
+			DEFAULT 0
+		</if>
+		 
+		<if test="new_data_type == 'TIMESTAMP'">
+			DEFAULT now()		
+		</if>
+	</update>
+	
+	<!-- table 삭제 -->
+	<update id="dropTable" parameterType="hashmap">
+		drop table ${schema}.${data_nm} 
+	</update>
+
+
+	<!-- 수집 정보 가져오기 -qa_hst_mgt- -->
+	<select id="getCollectCareerList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			hist_seq,
+			ROW_NUMBER() OVER (ORDER BY hist_seq DESC) AS row,
+			year,
+			TO_CHAR(create_dt, 'YYYY-MM-DD') AS create_dt,
+			div,
+			path,
+			COUNT(*) OVER() AS total
+		FROM qa_hst_mgt
+		where 1=1
+		ORDER BY hist_seq DESC
+		OFFSET #{start} LIMIT #{resultCnt}
+	</select>
+	
+	<!-- 수집 정보 가져오기 -legcd_hst_mgt- -->
+	<select id="getCollectCareerList2" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			hist_seq,
+			ROW_NUMBER() OVER (ORDER BY hist_seq DESC) AS row,
+			TO_CHAR(create_dt, 'YYYY-MM-DD') AS create_dt,
+			path,
+			cnt,
+			COUNT(*) OVER() AS total
+		FROM legcd_hst_mgt
+		where 1=1	
+		ORDER BY hist_seq DESC
+		OFFSET #{start} LIMIT #{display}
+	</select>
+	
+	<!-- 수집 정보 가져오기 -addr_dic_hst_mgt- -->
+	<select id="getCollectCareerList3" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			hist_seq,
+			ROW_NUMBER() OVER (ORDER BY hist_seq DESC) AS row,
+			TO_CHAR(create_dt, 'YYYY-MM-DD') AS create_dt,
+			path,
+			cnt,
+			COUNT(*) OVER() AS total
+		FROM addr_dic_hst_mgt
+		where 1=1	
+		ORDER BY hist_seq DESC
+		OFFSET #{start} LIMIT #{display}
+	</select>
+	
+
+	<select id="deleteCollectCareer" parameterType="hashmap">
+		DELETE
+		FROM qa_hst_mgt
+		WHERE hist_seq IN (${hist_seq})
+	</select>
+	
+	<select id="deleteCollectCareer2" parameterType="hashmap">
+		DELETE
+		FROM legcd_hst_mgt
+		WHERE hist_seq IN (${hist_seq})
+	</select>	
+	
+	<select id="deleteCollectCareer3" parameterType="hashmap">
+		DELETE
+		FROM addr_dic_hst_mgt
+		WHERE hist_seq IN (${hist_seq})
+	</select>	
+</mapper>

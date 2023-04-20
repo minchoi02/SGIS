@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="WorkRoadStatsInfoSm">
+
+	<!-- 일자리 통계정보 집계 목록 건수 -->
+	<select id="getSearchWorkRoadStatsInfoSmCount" parameterType="hashmap" resultType="int">
+		SELECT
+			COUNT(*) AS CNT
+		FROM
+			SRV_DT_JOB_OPEN_API_REGIST_INFO A
+		WHERE 1=1
+			<if test='SEARCH_TYPE == "LINK_NM"'>
+				<if test='SEARCH_WORD != null and SEARCH_WORD != ""'>
+					AND A.LINK_NM LIKE '%'||#{SEARCH_WORD}||'%'
+				</if>
+			</if>
+			<if test='SEARCH_TYPE == "COLCT_SOURCE"'>
+				<if test='SEARCH_WORD != null and SEARCH_WORD != ""'>
+					AND A.COLCT_SOURCE LIKE '%'||#{SEARCH_WORD}||'%'
+				</if>
+			</if>
+	</select>
+
+	<!-- 일자리 통계정보 집계 목록 -->
+	<select id="getSearchWorkRoadStatsInfoSm" parameterType="Map" resultType="Map">
+		SELECT * FROM
+		(
+			SELECT
+				ROW_NUMBER() OVER(ORDER BY A.REG_ID) AS ROW_NUM
+				,A.REG_ID
+				,A.LINK_ID
+				,A.LINK_NM
+				,A.COLCT_SOURCE
+				,A.CONECT_URL
+				,A.CONECT_PORT
+				,A.CONECT_CONFM_KEY
+				,A.UPDT_CYCLE
+				,A.USE_YN
+				,A.CREATE_DT
+				<!-- 2020-04-27 [곽제욱] 추가된 컬럼 START -->
+				,A.STAT_PATH
+				,A.DISP_TYPE
+				,A.LINK_YN
+				,A.STAT_NM
+				,A.STAT_INFO
+				,A.ETC_LINK_MTH
+				,A.REFRN_URL
+				,A.MOD_DT
+				<!-- 2020-04-27 [곽제욱] 추가된 컬럼 END -->
+				,A.REG_MANAGER_ID
+			FROM
+				SRV_DT_JOB_OPEN_API_REGIST_INFO A
+			WHERE 1=1
+				<if test='SEARCH_TYPE == "LINK_NM"'>
+					<if test='SEARCH_WORD != null and SEARCH_WORD != ""'>
+						AND A.LINK_NM LIKE '%'||#{SEARCH_WORD}||'%'
+					</if>
+				</if>
+				<if test='SEARCH_TYPE == "COLCT_SOURCE"'>
+					<if test='SEARCH_WORD != null and SEARCH_WORD != ""'>
+						AND A.COLCT_SOURCE LIKE '%'||#{SEARCH_WORD}||'%'
+					</if>
+				</if>
+		)
+		WHERE 1=1
+		<if test='START_INDEX != null and START_INDEX != ""'>
+		  AND ROW_NUM <![CDATA[>=]]> #{START_INDEX}
+		</if>
+		<if test='END_INDEX != null and END_INDEX != ""'>
+		  AND ROW_NUM <![CDATA[<=]]> #{END_INDEX}
+		</if>
+		ORDER BY ROW_NUM
+	</select>
+	
+	<!-- 일자리 통계정보 집계 확인 -->
+	<select id="checkSearchWorkRoadStatsInfoSm" parameterType="Map" resultType="int">
+		SELECT COUNT(*) AS CNT
+		FROM SRV_DT_JOB_OPEN_API_REGIST_INFO A
+		WHERE A.REG_ID = #{REG_ID}
+	</select>
+	
+	<!-- 일자리 통계정보 집계 조회 -->
+	<select id="selectSearchWorkRoadStatsInfoSm" parameterType="Map" resultType="Map">
+		SELECT *
+		FROM SRV_DT_JOB_OPEN_API_REGIST_INFO A
+		WHERE A.REG_ID = #{REG_ID}
+	</select>
+
+	<!-- 일자리 통계정보 집계 등록 -->
+	<insert id="addSearchWorkRoadStatsInfoSm" parameterType="Map">
+		INSERT INTO SRV_DT_JOB_OPEN_API_REGIST_INFO
+		(
+			REG_ID
+			,LINK_ID
+			,LINK_NM
+			,COLCT_SOURCE
+			,CONECT_URL
+			,CONECT_PORT
+			,CONECT_CONFM_KEY
+			,UPDT_CYCLE
+			,USE_YN
+			,CREATE_DT
+			,REG_MANAGER_ID
+			<!-- 2020-04-29 [곽제욱] 추가 컬럼에 대한 insert 컬럼선언부분 수정 START -->
+			,STAT_PATH
+			,DISP_TYPE
+			,LINK_YN
+			,STAT_NM
+			,STAT_INFO
+			,ETC_LINK_MTH
+			,REFRN_URL
+			,MOD_DT
+			<!-- 2020-04-29 [곽제욱] 추가 컬럼에 대한 insert 컬럼선언부분 수정 END -->
+		)
+		VALUES
+		(
+			 #{REG_ID}
+			,#{LINK_ID}
+			,#{LINK_NM}
+			,#{COLCT_SOURCE}
+			,#{CONECT_URL}
+			,#{CONECT_PORT}
+			,#{CONECT_CONFM_KEY}
+			,#{UPDT_CYCLE}
+			,#{USE_YN}
+			,#{CREATE_DT}
+			,#{REG_MANAGER_ID}
+			<!-- 2020-04-29 [곽제욱] 추가 컬럼에 대한 insert 값 선언부분 수정 START -->
+			,#{STAT_PATH}
+			,#{DISP_TYPE}
+			,#{LINK_YN}
+			,#{STAT_NM}
+			,#{STAT_INFO}
+			,#{ETC_LINK_MTH}
+			,#{REFRN_URL}
+			,#{MOD_DT}
+			<!-- 2020-04-29 [곽제욱] 추가 컬럼에 대한 insert 값 선언부분 수정 START -->
+		)
+	</insert>
+
+	<!-- 일자리 통계정보 집계 수정 -->
+	<update id="updateSearchWorkRoadStatsInfoSm" parameterType="Map">
+		UPDATE
+			SRV_DT_JOB_OPEN_API_REGIST_INFO
+		SET
+			REG_ID            = #{REG_ID}          
+			,LINK_ID          = #{LINK_ID}         
+			,LINK_NM          = #{LINK_NM}         
+			,COLCT_SOURCE     = #{COLCT_SOURCE}    
+			,CONECT_URL       = #{CONECT_URL}      
+			,CONECT_PORT      = #{CONECT_PORT}     
+			,CONECT_CONFM_KEY = #{CONECT_CONFM_KEY}
+			,UPDT_CYCLE       = #{UPDT_CYCLE}
+			,USE_YN           = #{USE_YN}          
+			<!-- 2020-04-29 [곽제욱] 수정할 컬럼 추가 START-->
+			,STAT_PATH		  = #{STAT_PATH}
+			,DISP_TYPE		  = #{DISP_TYPE}
+			,LINK_YN		  = #{LINK_YN}
+			,STAT_NM		  = #{STAT_NM}
+			,STAT_INFO		  = #{STAT_INFO}
+			,ETC_LINK_MTH	  = #{ETC_LINK_MTH}
+			,REFRN_URL		  = #{REFRN_URL}
+			,MOD_DT		      = to_char(SYSDATE, 'YYYY-MM-DD')		
+			<!-- 2020-04-29 [곽제욱] 수정할 컬럼 추가 END -->
+		WHERE
+			REG_ID = #{REG_ID_ORIGIN}
+	</update>
+	
+	<!-- 일자리 통계정보 집계 삭제 -->
+	<delete id="delSearchWorkRoadStatsInfoSm">
+		DELETE FROM
+			SRV_DT_JOB_OPEN_API_REGIST_INFO
+		WHERE
+			REG_ID IN
+			<foreach collection="array" index="index" item="item" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+	</delete>
+	
+	<!-- 일자리통계자료 확인 PRD_DE -->
+	<select id="selectSrvDtKosisDataMaxData" parameterType="Map" resultType="Map">
+		SELECT MAX(PRD_DE) AS PRD_DE, MAX(LINK_ID_SEQ) AS LINK_ID_SEQ
+		FROM SRV_DT_KOSIS_DATA
+		WHERE LINK_ID = #{LINK_ID}
+	</select>
+	
+	<!-- 일자리통계자료 등록 -->
+	<insert id="insertSrvDtKosisData" parameterType="Map">
+		INSERT INTO SRV_DT_KOSIS_DATA
+		(
+			LINK_ID_SEQ
+			,ITM_ID
+			,ORG_ID
+			,TBL_ID
+			,DT
+			,LINK_ID
+			,PRD_DE
+			,C1
+			,CREATE_DT
+			,PRD_SE
+			,ITM_NM
+			,ITM_NM_ENG
+			,TBL_NM
+			,UNIT_NM
+			,UNIT_NM_ENG
+			,C1_NM
+			,C1_NM_ENG
+			,C1_OBJ_NM
+			,C1_OBJ_NM_ENG
+			,C2
+			,C2_NM
+			,C2_NM_ENG
+			,C2_OBJ_NM
+			,C2_OBJ_NM_ENG
+			,C3
+			,C3_NM
+			,C3_NM_ENG
+			,C3_OBJ_NM
+			,C3_OBJ_NM_ENG
+		)
+		VALUES
+		(
+			#{LINK_ID_SEQ}
+			,#{ITM_ID}
+			,#{ORG_ID}
+			,#{TBL_ID}
+			,#{DT}
+			,#{LINK_ID}
+			,#{PRD_DE}
+			,#{C1}
+			,#{CREATE_DT}
+			,#{PRD_SE}
+			,#{ITM_NM}
+			,#{ITM_NM_ENG}
+			,#{TBL_NM}
+			,#{UNIT_NM}
+			,#{UNIT_NM_ENG}
+			,#{C1_NM}
+			,#{C1_NM_ENG}
+			,#{C1_OBJ_NM}
+			,#{C1_OBJ_NM_ENG}
+			,#{C2}
+			,#{C2_NM}
+			,#{C2_NM_ENG}
+			,#{C2_OBJ_NM}
+			,#{C2_OBJ_NM_ENG}
+			,#{C3}
+			,#{C3_NM}
+			,#{C3_NM_ENG}
+			,#{C3_OBJ_NM}
+			,#{C3_OBJ_NM_ENG}
+		)
+	</insert>
+	
+	<insert id="insertSrvDtKosisDataTAWA">
+		INSERT INTO SRV_DT_KOSIS_DATA
+		( 
+		   link_id_seq, itm_id, org_id, tbl_id, dt, link_id, prd_de, c1, create_dt, prd_se, itm_nm, itm_nm_eng, tbl_nm
+		 , unit_nm, unit_nm_eng, c1_nm, c1_nm_eng, c1_obj_nm, c1_obj_nm_eng, c2, c2_nm, c2_nm_eng, c2_obj_nm, c2_obj_nm_eng
+		 , c3, c3_nm, c3_nm_eng, c3_obj_nm, c3_obj_nm_eng
+		)
+		SELECT *
+		  FROM ( SELECT ( 'E3301'||LPAD( TO_NUMBER( SUBSTR( MAX_LINK_ID_SEQ, 6 ) )+RNUM, 6, '0') ) AS LINK_ID_SEQ
+			 , 'index6' AS ITM_ID, ORG_ID, TBL_ID, ( TO_NUMBER(NVL(DT,0)) + TO_NUMBER(NVL(BDT,0)) ) AS DT
+			 , 'E3301' AS LINK_ID, PRD_DE, C1, CREATE_DT, PRD_SE, ITM_NM, ITM_NM_ENG, TBL_NM, UNIT_NM, UNIT_NM_ENG
+			 , C1_NM, C1_NM_ENG, C1_OBJ_NM, C1_OBJ_NM_ENG, C2, C2_NM, C2_NM_ENG, C2_OBJ_NM, C2_OBJ_NM_ENG, C3, C3_NM
+			 , C3_NM_ENG, C3_OBJ_NM, C3_OBJ_NM_ENG
+		  FROM (
+				SELECT ROWNUM AS RNUM
+					 , ( SELECT MAX( M.LINK_ID_SEQ) FROM SRV_DT_KOSIS_DATA M WHERE M.LINK_ID = 'E3301' ) AS MAX_LINK_ID_SEQ
+					 , A.*, B.DT AS BDT
+				  FROM (
+						SELECT *
+						  FROM SRV_DT_KOSIS_DATA 
+						 WHERE LINK_ID = 'E3307'
+						   AND ITM_ID = 'index5'
+						) A,
+						(
+						SELECT *
+						  FROM SRV_DT_KOSIS_DATA 
+						 WHERE LINK_ID = 'E3307'
+						   AND ITM_ID = 'index8'
+						) B
+				 WHERE A.LINK_ID = B.LINK_ID
+				   AND A.PRD_DE = B.PRD_DE
+				   AND A.C1 = B.C1
+				) ) A
+				 WHERE NOT EXISTS(
+				SELECT 1
+				  FROM SRV_DT_KOSIS_DATA B
+				 WHERE B.LINK_ID = 'E3301'
+				   AND B.ITM_ID = 'index6'
+				   AND B.C1 = A.C1
+				   AND B.PRD_DE = A.PRD_DE
+			   )
+	</insert>
+	
+</mapper>

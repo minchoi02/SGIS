@@ -1,0 +1,173 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd" >
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>SGIS 관리자사이트(CNM)</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<link rel="stylesheet" href="./../include/css/login.css" />
+<link rel="stylesheet" href="./../include/css/default.css" />
+<script type="text/javascript"
+	src="./../include/js/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="./../include/js/default.js"></script>
+<script type="text/javascript" src="../../js/common/includeHead.js"></script>
+<script src="../../js/common/common.js"></script>
+<link rel="stylesheet" href="../../css/jquery-ui-1.10.4.custom.css" />
+<script type="text/javascript"
+	src="../../js/plugins/jquery-ui-1.10.3.custom.js"></script>
+<script type="text/javascript"
+	src="../../js/plugins/jquery-ui-timepicker-addon.js"></script>
+<script type="text/javascript" src="../../js/MN/totUseStat.js"></script>
+
+</head>
+
+<body  onload="init();">
+	<script type="text/javascript"
+		src="../../js/plugins/highcharts/highcharts.js"></script>
+	<script type="text/javascript"
+		src="../../js/plugins/highcharts/export-csv.js"></script>
+	<!-- Js file of hightCharts need to import in body tags -->
+	<div class="wrapper">
+		<!-- cls:header start -->
+		<div class="header">
+			<div class="defaultbox">
+				<div class="logo">
+					<a href="#"><img src="./../include/img/pic/pic_logo.png"
+						alt="logo" /></a>
+				</div>
+				<div class="navi"></div>
+			</div>
+			<div class="menuWrapper">
+				<div class="menuCnm">
+					<ul>
+						<li><a class="on">서비스 현황</a></li>
+						<li><a>사용자 현황</a></li>
+						<li><a>서비스 관리</a></li>
+						<li><a>정보 관리</a></li>
+						<li><a>게시판 관리</a></li>
+						<li><a>회원 관리</a></li>
+					</ul>
+				</div>
+			</div>
+			<div class="subMenuWrapper">
+				<div class="subMenu"></div>
+			</div>
+		</div>
+		<!-- cls:header end -->
+		<div class="contents">
+			<!-- cls:left start -->
+			<div class="lefitMenuWrapper">
+				<div class="leftTitle">서비스 현황</div>
+				<div class="leftMenu">
+					<ul>
+						<li><a class="on" href="./../MN/totUseStat.html">총괄이용현황</a></li>
+						<li><a href="./../MN/APIStat.html">API 이용통계</a></li>
+						<li><a href="./../MN/serviceUseStat.html">페이지 방문통계</a></li>
+						<!-- 
+						<li><a href="./../MN/SRVStat.html">페이지 방문통계</a></li>
+						 -->
+						<li><a href="./../MN/RELStat.html">검색어 통계</a></li>
+						<li><a href="./../MN/CommunityStat.html">통계소통지도 통계</a></li>
+					</ul>
+				</div>
+			</div>
+			<!-- cls:left end -->
+			<div class="acticle">
+					<div class="location">
+						<p>
+							<a href="#"><img src="./../include/img/ico/ico_home.png" alt="home"/></a>
+							<span><img src="./../include/img/ico/ico_navi.png" alt="다음"/></span>
+							<span >서비스 현황</span>
+							<span><img src="./../include/img/ico/ico_navi.png" alt="다음"/></span>
+							<span class="fontS"> 페이지 방문통계</span>
+						</p>
+					</div>
+						<p class="title01"><span id="nowYear" class="tilte01" style="font-size:24px;"></span>년 <span id="nowMonth" class="tilte01" style="font-size:24px;"></span>월 SGIS 플러스 이용현황</p>
+						
+						<div>
+							<p class="tilte02 fL"></p>
+							<p class="fR mt20"> </span><a class="btn" href="#" id="moreViewBtn"><img src="./../include/img/btn/btn_search_04_s.png" alt="더보기"/></a></p>
+							<p class="fR mt20"> </span> <a class="btn" href="#" id="moreViewBtn2"><img src="./../include/img/btn/btn_search_02_s.png" style="ma" alt="더보기"/></a></p>
+							<div class="clear mt10">
+								<div class="box02">
+									<dl class="mt10">
+										<dt>페이지뷰 : <span id="nowMonthPageView"></span><br />(누적 <span id="totalPageView"></span>)</dt>
+										<dd>-전월대비: <span id="pageViewPreMonthBigyo"></span> <br />(<span id="pageViewBigyoMonthPersent"></span>)</dd>
+										<dd>-전년동월대비: <span id="pageViewOldMonthBigyo"></span> <br />(<span id="pageViewBigyoOldMonthPersent"></span>)</dd>
+									</dl>
+								</div>
+								<div class="box02 ml10">
+									<dl class="mt10">
+										<dt>방문자 수 : <span id="nowMonthVisitView"></span>명 <br />(누적 <span id="totalVisitView"></span>명)</dt>
+										<dd>-전월대비: 	<span id="preMonthVisitViewBigyo"></span><br />(<span id="preMonthVisitViewBigyoPersent"></span>)</dd>
+										<dd>-전년동월대비: <span id="oldMonthVisitViewBigyo"></span><br />(<span id="oldMonthVisitViewBigyoPersent"></span>)</dd>
+									</dl>
+								</div>
+								<div class="box02 ml10">
+									<dl class="mt10">
+									
+										<!-- mng_s 20210111 이진호 -->
+										<!-- 기존 OpenAPI 사용건수 조회 년도 하드코딩을 동적으로 변경되도록 수정 -->
+										<!-- <dt>2020년 Open API 사용건수 : <br /><span id="yearApiCount">건</dt> -->
+										<dt id="year_OpenAPICount"></dt>
+										<!-- mng_e 20210111 이진호-->
+										
+									</dl>
+								</div>
+								<div class="box02 ml10">
+									<dl class="mt10">
+										<dt>성과지표 월간 목표량 <br /> 436,000건 대비 <span id="mokpyoval"></dt>
+									</dl>
+								</div>
+							</div>
+							<table class="apiTable" summary="SGIS 플러스 이용현황">
+								<caption>SGIS 플러스 이용현황</caption>
+								<colgroup>
+									<col width="140"/>
+									<col width="231"/> 
+									<col width="140"/>
+									<col width="232"/> 
+								</colgroup>
+								<tbody>
+									<tr>
+										<th >연간 페이지뷰</th>
+										<td><span id="nowYearPageView"></span> 건</td>
+										<th >월평균 페이지뷰</th>
+										<td><span id="nowYearAvrPageView"></span> 건</td>
+									</tr>
+								</tbody>
+							</table>
+							<table id="toUseStatTableRegion" class="pntTables" summary="poi 정보" style="display: none;">
+		 					<caption>데이터 표1</caption>
+			 					<colgroup>
+			 						<col width="220" />
+			 						<col width="600" />
+								</colgroup>
+			 					<tbody id="tBody">
+			 						<!-- <tr>
+										<th colspan=4>총괄이용현황</th>
+									</tr> -->
+			 	 					<tr>
+			 	 						<th scope="col">일자</th>
+			 	 						<th scope="col">건수</th>		
+			 	 					</tr>
+			 	 					<tr id="toUse">
+			 	 					</tr>
+					 			</tbody>
+				 			</table>
+							<div class="graph" id="pageViewGraphArea" style="width:743px;height:240px"><!-- <img src="./../include/img/pic/pic_graph.png" alt="그래프"/> --></div>
+							<input type="hidden" id="graphobj" value=""></input>
+							<div style="margin-left:660px;margin-top:20px;"><a class="btn" href="#" id="toUseStatReportView"><img src="./../include/img/btn/btn_report_view.png" style="ma" alt="보고서 보기"/></a></<div>
+						</div>
+										
+				</div> <!-- 여기까지 -->
+			<br />
+			<!-- dim처리 문구 출력 -->
+			<div class="wrap-loading display-none">
+    			<div style="background-color: rgb(255, 255, 255); border: 3px solid rgb(0, 0, 0); position: absolute; height: 10px; line-height: 50px; padding-bottom: 40px; width: 400px; top: 50%; left: 50%; z-index: 11000; cursor: wait; margin: -5px 0px 0px -200px; text-align: center;">기다리십시요...</div>
+			</div>
+		</div>
+	</div>
+	<!-- cls:footer start -->
+	<div class="footerWrapper"></div>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="batch">
+		<update id="updateUSESRV">
+			update 
+				SRV_DT_USESRVINFO 
+			set 
+				grant_state = 'FINISH' 
+			where 
+				grant_state = 'ASSENT' and 
+				api_auth_key_type = 'TEST' and  
+				srv_end_dt <![CDATA[<]]> SYSDATE
+		</update>
+	
+	<!-- 2020년 SGIS고도화 3차(My로그) 수정 시작 (ggm) -->	
+	<insert id="insertCtlgTrendSrchWrd" parameterType="hashmap">
+		insert into SRV_DT_CTLG_TREND_SRCHWRD_LIST
+		(
+			SEQ,
+			TREND_SRCHWRD,
+			ACC_CNT,
+			PBLICTE_DT,
+			PBLICTE_TIME,
+			COLCT_SOURCE_DIV,
+			ADD_EXP,
+			COLCT_TS,
+			USE_YN
+		)
+		values(
+			(select nvl(max(seq), 0) + 1 from SRV_DT_CTLG_TREND_SRCHWRD_LIST with (nolock)),
+			#{trendSrchWrd},
+			#{accCnt},	
+			#{pblicteDt},
+			#{pblicteTime},
+			#{colctSourceDiv},
+			#{addExp},
+			sysdate,
+			'Y'
+		)
+	</insert>
+	
+	<insert id="updateCtlgTrendSrchWrd" parameterType="hashmap">
+		<selectKey keyProperty="seq" resultType="int" order="BEFORE">
+  			select nvl((max(seq) * -1), (select nvl(max(seq), 0) + 1 from SRV_DT_CTLG_TREND_SRCHWRD_LIST with (nolock)))
+  			from SRV_DT_CTLG_TREND_SRCHWRD_LIST with (nolock)
+  			where
+  				PBLICTE_DT = #{pblicteDt} AND TREND_SRCHWRD = #{trendSrchWrd} AND COLCT_SOURCE_DIV = #{colctSourceDiv} AND USE_YN = 'Y'
+		</selectKey>
+  			
+		MERGE INTO SRV_DT_CTLG_TREND_SRCHWRD_LIST
+			USING DUAL
+			ON PBLICTE_DT = #{pblicteDt} AND TREND_SRCHWRD = #{trendSrchWrd} AND COLCT_SOURCE_DIV = #{colctSourceDiv} AND USE_YN = 'Y'  
+		WHEN MATCHED THEN
+			UPDATE 
+			SET ACC_CNT = #{accCnt},
+				RANK = #{rank},
+				ADD_EXP = #{addExp},
+				COLCT_TS = sysdate
+		WHEN NOT MATCHED THEN
+			INSERT (SEQ, TREND_SRCHWRD, ACC_CNT, RANK, PBLICTE_DT, PBLICTE_TIME, COLCT_SOURCE_DIV, ADD_EXP, COLCT_TS, USE_YN)
+			VALUES (#{seq},#{trendSrchWrd}, #{accCnt}, #{rank}, #{pblicteDt}, #{pblicteTime}, #{colctSourceDiv}, #{addExp}, sysdate, 'Y')
+	</insert>	
+
+	<insert id="insertCtlgSynWrd" parameterType="hashmap">
+		insert into SRV_DT_CTLG_SYN_LIST
+		(
+			SYN_SEQ
+			, TREND_SRCHWRD_SEQ
+			, SYN
+			, VCBLR_DDUC_DIV
+			, SHLDR_NO
+			, COLCT_TS
+			, USE_YN
+			, WORK_YN
+		)
+		values(
+			(select nvl(max(SYN_SEQ), 0) + 1 from SRV_DT_CTLG_SYN_LIST with (nolock))
+			, #{trendSrchwrdSeq}
+			, #{syn}
+			, #{vcblrDducDiv}
+			, #{shldrNo}
+			, sysdate
+			, 'Y'
+			, 'N'
+		)
+	</insert>
+	
+	<select id="getMainKwrdListForBatch" parameterType="hashmap" resultType="hashmap">
+		select distinct main_kwrd from SRV_DT_CTLG_DATA_LIST
+		where main_kwrd is not null and main_kwrd != ''
+	</select>
+	
+	<select id="getTrendKwrdListForBatch" parameterType="hashmap" resultType="hashmap">
+		select
+			trend_srchwrd_seq, syn, shldr_no 
+		from SRV_DT_CTLG_SYN_LIST
+		where
+			vcblr_dduc_div = '02'
+			and work_yn = 'N'
+		order by colct_ts
+		limit #{numOfExec}
+	</select>
+
+	<insert id="insertCtlgRelWrd" parameterType="hashmap">
+		insert into SRV_DT_CTLG_RELWORD_LIST
+		(
+			RELWORD_SEQ
+			, TREND_SRCHWRD_SEQ
+			, SYN
+			, MAIN_KWRD
+			, SYN_SHLDR_NO
+			, MAIN_KWRD_SHLDR_NO
+			, PATH_DISTANCE
+			, SIMILDEGER
+			, COLCT_TS
+		)
+		values
+		(
+			(select nvl(max(RELWORD_SEQ), 0) + 1 from SRV_DT_CTLG_RELWORD_LIST with (nolock))
+			, #{trendSrchwrdSeq}
+			, #{syn}
+			, #{mainKwrd}
+			, #{synShldrNo}
+			, #{mainKwrdShldrNo}
+			, round(#{pathDistance}, 1)
+			, round(#{simildeger}, 2)
+			, sysdate
+		)
+
+<!-- 		SELECT -->
+<!-- 			#{trendSrchwrdSeq} -->
+<!-- 			, STAT_DATA_ID -->
+<!-- 			, #{pathDistance} -->
+<!-- 			, #{simildeger} -->
+<!-- 			, sysdate -->
+<!-- 		FROM SRV_DT_CTLG_DATA_LIST -->
+<!-- 		WHERE -->
+<!-- 			MAIN_KWRD = #{mainKwrd} -->
+	</insert>
+	
+	<update id="updateCtlgSynWrd" parameterType="hashmap">
+		UPDATE SRV_DT_CTLG_SYN_LIST
+		SET WORK_YN = 'Y'
+		WHERE
+			TREND_SRCHWRD_SEQ = #{trendSrchwrdSeq}
+			AND SYN = #{syn}
+	</update>	
+			
+	<!-- 2020년 SGIS고도화 3차(My로그) 수정 끝 -->
+</mapper>

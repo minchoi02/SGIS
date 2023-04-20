@@ -1,0 +1,1009 @@
+(function(W, D) {
+
+	W.$statsAnlsMap = W.$statsAnlsMap || {};
+
+	// 페이지 로드 이벤트
+	$(document).ready(function() {
+		$statsAnlsMap.event.setUIEvent();
+		$statsAnlsMap.ui.statsAnalsAnnualSalary('3');
+		
+		Highcharts.setOptions({     
+			lang: {
+				thousandsSep: ','
+					}
+		});
+		
+		//네비게이션 추가
+		$(".leftCol .btnNavThematic").click(function(){
+			if(!$(this).hasClass('active')){
+	    		$(this).addClass('active');
+	    		$(".nav-layer").css("display","block");
+	    	}else{
+	    		$(this).removeClass('active');
+	    		$(".nav-layer").css("display","none");
+	    	}
+	    });
+		//2022-11-04 이벤트 추가
+		$(".swiper-wrapper li").click(function(){
+			$(".leftCol .btnNavThematic").removeClass('active');
+	    	$(".nav-layer").css("display","none");
+	    });
+		
+	});
+
+	// 윈도우 크기 변경시 윈도우 맞춤.
+	$(window).resize(function() {
+		setTimeout(function() {
+			$statsAnlsMap.event.setMapSize();
+		}, 100);
+	});
+	// 가로세로 모드 변경시 윈도우 맞춤.
+	$(window).on("orientationchange", function() {
+		setTimeout(function() {
+			$statsAnlsMap.event.setMapSize();
+		}, 100);
+	});
+
+	// 페이지 UI 변수 및 함수 선언
+	$statsAnlsMap.ui = {
+		map : null,
+		mapChartData : [],
+		
+		/** 
+		 * @name : statsAnalsSelectTypeOfIndustryMiddleClassification
+		 * @description : 업종 선택(중분류) 조회
+		 * @date : 2020.06.30
+		 * @author : 한광희
+		 * @history :
+		 */
+		statsAnalsSelectTypeOfIndustryMiddleClassification : function(p_s_class_cd){
+			$.ajax({
+				type: "POST",
+				url : contextPath + "/m2019/workroad/getStatsAnalsTypeOfIndustryMiddleClassification.json",
+				dataType: 'json',
+				async: false,
+				data: {b_class_cd: "JDS02S"},
+			    success: function(res){
+			    	if(res.errCd == 0){
+			    		var resultList = res.result.resultList;
+			    		
+			    		for(var i = 0; i < resultList.length; i++){
+			    			if(p_s_class_cd == resultList[i].cd) {
+			    				$("#statsAnalsSelectTypeOfIndustryMiddleClassification").append("<option value=\"" + resultList[i].cd + "\" selected=\"selected\">" +resultList[i].nm + "</option>");
+			    			}
+			    			else {
+			    				$("#statsAnalsSelectTypeOfIndustryMiddleClassification").append("<option value=\"" + resultList[i].cd + "\">" +resultList[i].nm + "</option>");
+			    			}
+			    		}
+			    	} else {
+						common_alert('failed!');
+					}
+				} ,
+				error:function(err) {
+					common_alert(err.responseText);
+				}
+			});
+			
+			$("#statsSelectDiv2").hide();	// 업종 중분류 숨김
+		},
+		
+		/** 
+		 * @name : statsAnalsAnnualSalary
+		 * @description : 연봉(연령별 평균소득, 연령별 중위소득) 조회
+		 * @date : 2020.06.30
+		 * @author : 한광희
+		 * @history :
+		 */
+		statsAnalsAnnualSalary : function(item) {
+			$("#alertBox").hide();	// 설명팝업 숨김
+			
+			$("#statsSelectDiv").show();	// 업종 대분류 숨김
+			$("#statsSelectDiv2").hide();	// 업종 중분류 표시
+			$("#statsSelectDiv3").hide();	// 종사자 규모 숨김
+			$("#statsSelectDiv4").hide();	// 2020.09.15[한광희] 일자리만족도 select 추가
+			$("#statsAnalsSelectTypeOfIndustry").attr('disabled', false);	// 업종선택 disabled 처리	
+			
+			/** 2020.09.08[한광희] sub 타이틀 class 주석 처리 START */
+			//$("#touchFlow").addClass('statsMenuWrap2');			// sub 타이틀 div class 추가
+			//$("#touchFlow").removeClass('statsMenuWrap');		// sub 타이틀 div class 삭제
+			/** 2020.09.08[한광희] sub 타이틀 class 주석 처리 END */
+			
+			$("#statsGraphWrapDiv1").attr('style', 'position: fixed; top: 245px; z-index:700; height: 100%; width:100%; overflow:hidden;');
+			$("#statsGraphWrapDiv2").attr('style', 'display: none;'); 
+			
+			$('#annualSalary').addClass('on');		// 연봉 버튼 class 추가
+			$('#jobTransition').removeClass('on');	// 일자리추이 버튼 class 삭제
+			$('#E3503').removeClass('on');			// 일자리 만족도 버튼 class 삭제
+			$('#3').addClass("on1");
+			$('#4').removeClass("on1");
+			$('#E3501').removeClass('on');			// 소득현황 버튼 class 삭제
+			
+			$("#statsAnalsChartCategoryTitle1").html("");	// 차트 카테고리 타이틀 초기화
+			$("#statsAnalsChartDataTitle1").html("");	// 차트 데이터 타이틀 초기화
+			$("#statsAnalsChartCategoryTitle2").html("");	// 차트 카테고리 타이틀 초기화
+			$("#statsAnalsChartDataTitle2").html("");	// 차트 데이터 타이틀 초기화
+			
+			/** 2020.09.08[한광희] 연봉 수치 중복 수정 START */
+			$("#statsAnalsChartCategoryTitle2").hide();	// 차트 카테고리 타이틀 숨김
+			$("#statsAnalsChartDataTitle2").hide();	// 차트 데이터 타이틀 숨김
+			$("#statsAnalsChartMain2").hide();
+			/** 2020.09.08[한광희] 연봉 수치 중복 수정 END */
+			
+			if($('#statsAnalsSelectTypeOfIndustry').val() == 0){
+				$('#statsAnalsChartMain1').hide();
+				$('#statsAnalsChartMain2').hide();
+				$("#statsGraopSubTitle1").attr('style', 'display: none;');
+				$('#statsAnalsChartCategoryTitle1').attr('style', 'display: none;');
+				$('#statsAnalsChartDataTitle1').attr('style', 'display: none;');
+				return false;
+			} else {
+				$('#statsAnalsChartMain1').show();
+				$('#statsAnalsChartCategoryTitle1').attr('style', 'display: block; top: 75px; left: calc(100% - 55%);');
+				$('#statsAnalsChartDataTitle1').attr('style', 'display: block; top:90px; left: calc(100% - 58%);');
+			}
+
+			$.ajax({
+				type: "POST",
+				url : contextPath + "/m2019/workroad/selectJobStatData.json",
+				async: false,
+				dataType: "json",
+				data: {type: "JDS"
+				      ,base_year: "2016"
+				      ,mode: "3"
+				      ,series_cd: $('#statsAnalsSelectTypeOfIndustry').val() //업종
+				      ,link_id: "D3503"
+				      ,itm_id: "T001"
+				    },
+				success: function(res) {
+					if(res.errCd == 0){
+						$("#statsGraopSubTitle1").attr('style', 'display: block; left: 20px; text-align:right;');
+						$("#statsGraopSubTitle1").html(res.result.params.base_year + "년 기준  산업대분류별 연령별 소득(일자리행정통계)");
+						
+						/** 2020.09.21[한광희] 최대값 수치 정보 표출 수정 START */
+						var maxResult = -10;
+						var selectIndex = 0;
+						for(var i=0; i<res.result.series[0].data.length; i++){
+							if(maxResult <= res.result.series[0].data[i]){
+								maxResult = res.result.series[0].data[i];
+								selectIndex = i;
+							}
+						}
+						/** 2020.09.21[한광희] 최대값 수치 정보 표출 수정 END */
+						
+						$('#statsAnalsChartMain1').highcharts({
+							chart: {
+								backgroundColor: {
+						            linearGradient: [500, 500, 500, 0],
+						            stops: [
+						            	[0, '#fff'],	// 하단 백그라운드 색
+						            	[1, '#fff']	// 상단 백그라운드 색
+						            ]
+						        },
+						        type: 'column',
+						        width: $(window).width(),
+						        height: $(window).height()-100,
+						        marginBottom : 330
+						    },
+						    title: {
+						    	text: '만원',
+						        align: 'left',
+						        margin: 10,
+						        style: {
+						            fontSize: '11px'
+						        }
+						    },
+						    xAxis: {
+						    	categories: res.result.categoryes
+						    },
+						    yAxis: {
+						        title: {
+						            text: ''
+						        },
+						        labels: {
+						            formatter: function () {
+						            	 return appendCommaToNumber(this.value);
+						            }
+						        }
+
+						    },
+						    legend: {
+						        enabled: false
+						    },
+						    tooltip:{
+						    	enabled:false
+						    },						    
+						    plotOptions: {
+						        series: {
+						            borderWidth: 0,
+						            shadow: false,
+						            /** 2020.09.16[한광희] 차트 수치 표현 START */
+						            dataLabels: {
+						                enabled: true,
+						                allowOverlap:true,
+						                style: {
+						                	color: '#606060',
+						                	textOutline : "0px",
+						                	fontWeight: "normal",
+						                	textShadow: false 
+						                }
+						            },
+						            /** 2020.09.16[한광희] 차트 수치 표현 END */
+						            point: {
+						                events: {
+						                    click: function () {
+						                        $("#statsAnalsChartCategoryTitle1").html("<p>"+this.category+"</p>");	// 연령
+						            			$("#statsAnalsChartDataTitle1").html("<p>"+this.y+"</p><span>만원</span>");	// 금액
+						                    },
+			                                update: function (event) {
+			                                	$("#statsAnalsChartCategoryTitle1").html("<p>"+this.category+"</p>");	// 연령
+			                                	// 첫번째 데이터가 null 일 경우
+			                                	if(this.y == null){
+			                                		$("#statsAnalsChartDataTitle1").html("<p>0</p><span>만원</span>");	// 금액			                                		
+			                                	}else {
+			                                		$("#statsAnalsChartDataTitle1").html("<p>"+this.y+"</p><span>만원</span>");	// 금액
+			                                	}
+			                                }
+						                }
+						            }
+						        }
+						    },
+
+						    series: [{
+						    	name : "",
+						    	colorByPoint: true,
+						        data : res.result.series[0].data
+						        }]
+						});
+
+						// 첫번째 데이터 클릭
+				        var chart = $('#statsAnalsChartMain1').highcharts();
+				        chart.series[0].data[selectIndex].update();	// 2020.09.21[한광희] 최대값 수치 정보 표출 수정
+					} else {
+						common_alert('failed!');
+					}
+				} ,
+				error:function(err) {
+					common_alert(err.responseText);
+				} 
+			});
+			
+			// 연령별 중위소득 현황 조회
+			$.ajax({
+				type: "POST",
+				url : contextPath + "/m2019/workroad/selectJobStatData.json",
+				async: false,
+				dataType: "json",
+				data: {type: "JDS"
+				      ,base_year: "2016"
+				      ,mode: "4"
+				      ,series_cd: $('#statsAnalsSelectTypeOfIndustry').val() //업종
+				      ,link_id: "D3503"
+				      ,itm_id: "T002"
+				    },
+				success: function(res) {
+					if(res.errCd == 0){
+						$("#statsGraopSubTitle1").attr('style', 'display: block; right: 20px; font-size: 13px; text-align:right;');
+						$("#statsGraopSubTitle1").html(res.result.params.base_year + "년 기준  산업대분류별 연령별 소득(일자리행정통계)");
+						
+						/** 2020.09.21[한광희] 최대값 수치 정보 표출 수정 START */
+						var maxResult = -10;
+						var selectIndex = 0;
+						for(var i=0; i<res.result.series[0].data.length; i++){
+							if(maxResult <= res.result.series[0].data[i]){
+								maxResult = res.result.series[0].data[i];
+								selectIndex = i;
+							}
+						}
+						/** 2020.09.21[한광희] 최대값 수치 정보 표출 수정 END */
+						
+						$('#statsAnalsChartMain2').highcharts({
+							chart: {
+								backgroundColor: {
+						            linearGradient: [500, 500, 500, 0],
+						            stops: [
+						            	[0, '#fff'],	// 하단 백그라운드 색
+						            	[1, '#fff']	// 상단 백그라운드 색
+						            ]
+						        },
+						        type: 'column',
+						        width: $(window).width(),
+						        height: $(window).height()-100,
+						        marginBottom : 330
+						    },
+						    title: {
+						    	text: '만원',
+						        align: 'left',
+						        margin: 10,
+						        style: {
+						            fontSize: '11px'
+						        }
+						    },
+						    xAxis: {
+						    	categories: res.result.categoryes
+						    },
+						    yAxis: {
+						        title: {
+						            text: ''
+						        },
+						        labels: {
+						            formatter: function () {
+						            	 return appendCommaToNumber(this.value);
+						            }
+						        }
+
+						    },
+						    legend: {
+						        enabled: false
+						    },
+						    tooltip:{
+						    	enabled:false
+						    },
+						    plotOptions: {
+						    	series: {
+						            borderWidth: 0,
+						            shadow: false,
+						            /** 2020.09.16[한광희] 차트 수치 표현 START */
+						            dataLabels: {
+						                enabled: true,
+						                allowOverlap:true,
+						                style: {
+						                	color: '#606060',
+						                	textOutline : "0px",
+						                	fontWeight: "normal",
+						                	textShadow: false 
+						                }
+						            },
+						            /** 2020.09.16[한광희] 차트 수치 표현 END */
+						            point: {
+						                events: {
+						                    click: function () {
+						                        $("#statsAnalsChartCategoryTitle2").html("<p>"+this.category+"</p>");	// 연령
+						            			$("#statsAnalsChartDataTitle2").html("<p>"+this.y+"</p><span>만원</span>");	// 금액
+						                    },
+			                                update: function (event) {
+			                                	$("#statsAnalsChartCategoryTitle2").html("<p>"+this.category+"</p>");	// 연령
+			                                	// 첫번째 데이터가 null 일 경우
+			                                	if(this.y == null){
+			                                		$("#statsAnalsChartDataTitle2").html("<p>0</p><span>만원</span>");	// 금액			                                		
+			                                	}else {
+			                                		$("#statsAnalsChartDataTitle2").html("<p>"+this.y+"</p><span>만원</span>");	// 금액
+			                                	}
+			                                }
+						                }
+						            }
+						        }
+						    },
+
+						    series: [{
+						    	name : "",
+						    	colorByPoint: true,
+						        data : res.result.series[0].data
+						        }]
+						});
+						
+						// 첫번째 데이터 클릭
+				        var chart = $('#statsAnalsChartMain2').highcharts();
+				        chart.series[0].data[selectIndex].update();	// 2020.09.21[한광희] 최대값 수치 정보 표출 수정
+					} else {
+						common_alert('failed!');
+					}
+				} ,
+				error:function(err) {
+					common_alert(err.responseText);
+				} 
+			});
+		},
+				
+		/** 
+		 * @name : statsAnalsJobTransition
+		 * @description : 일자리 추이 조회
+		 * @date : 2020.06.30
+		 * @author : 한광희
+		 * @history :
+		 */
+		statsAnalsJobTransition : function() {
+			$("#alertBox").hide();	// 설명팝업 숨김
+			
+			if($("#statsAnalsSelectTypeOfIndustryMiddleClassification option").length == 1) {
+				$statsAnlsMap.ui.statsAnalsSelectTypeOfIndustryMiddleClassification(gv_type_of_industry_middle_classification); // 업종 중분류 정보 가져오기				
+			}
+
+			$("#statsSelectDiv").hide();	// 업종 대분류 숨김
+			$("#statsSelectDiv2").show();	// 업종 중분류 표시
+			$("#statsSelectDiv3").hide();	// 종사자 규모 숨김
+			$("#statsSelectDiv4").hide();	// 2020.09.15[한광희] 일자리만족도 select 추가
+			
+			/** 2020.09.08[한광희] sub 타이틀 class 주석 처리 START */
+			//$("#touchFlow").addClass('statsMenuWrap2');			// sub 타이틀 div class 추가
+			//$("#touchFlow").removeClass('statsMenuWrap');		// sub 타이틀 div class 삭제
+			/** 2020.09.08[한광희] sub 타이틀 class 주석 처리 END */
+			
+			$("#statsGraphWrapDiv2").attr('style', 'position: fixed; top: 245px; z-index:700; padding-top: 0px; height: 100%; overflow-y:auto; padding-bottom:100px;');	// 연령별 취업자수, 일자리추이, 일자리만족도 차트 영역 속성
+			
+			$("#statsGraopTitle").html("일자리추이 " + '<img alt="물음표" src="'+contextPath+'/resources/m2019/images/ico_tooltip01.png" onclick="javascript:$statsAnlsMap.ui.tooltipImgClick();">'); // 차트영역 타이틀
+						
+			$("#statsGraopSubTitle").attr('style', 'display: none;');
+			$("#statsGraphWrapDiv1").attr('style', 'display: none;'); 
+						
+			$('#annualSalary').removeClass('on');	// 연봉 버튼 class 삭제
+			$('#jobTransition').addClass('on');		// 일자리추이 버튼 class 추가
+			$('#E3503').removeClass('on');			// 일자리 만족도 버튼 class 삭제
+			$('#E3501').removeClass('on');			// 소득현황 버튼 class 삭제
+			
+			if($('#statsAnalsSelectTypeOfIndustryMiddleClassification').val() == 0){
+				common_alert("일자리 추이 업종을 선택하셔야 정보를 확인하실 수 있습니다.");
+				$('#statsAnalsChartMain3').hide();	// 차트 숨김
+				$('#statsAnalsChartCategoryTitle3').hide();	// 차트카테고리 타이틀 숨김
+				$('#statsAnalsChartDataTitle3').hide();	// 차트데이터 타이틀 숨김
+				return false;
+			} else {
+				$('#statsAnalsChartMain3').show();	// 차트 표시
+				$('#statsAnalsChartCategoryTitle3').show();	// 차트카테고리 타이틀 표시
+				$('#statsAnalsChartDataTitle3').show();	// 차트데이터 타이틀 표시
+			}
+			
+			$("#statsAnalsChartCategoryTitle3").html("");	// 차트 카테고리 타이틀 초기화
+			$("#statsAnalsChartDataTitle3").html("");	// 차트 데이터 타이틀 초기화
+			
+			$.ajax({
+				type: "POST",
+				url : contextPath + "/m2019/workroad/selectJobStatData.json",
+				async: false,
+				dataType: "json",
+				data: {type: "JDS"
+				      ,base_year: "2016"
+				      ,mode: "2"
+				      ,series_cd: $('#statsAnalsSelectTypeOfIndustryMiddleClassification').val() // 업종 중분류
+				      ,link_id: "D3502"
+				    },
+				success: function(res) {
+					if(res.errCd == 0){
+						$("#statsGraopSubTitle").attr('style', 'display: block; text-align:right; padding-top:0px;');
+						$("#statsGraopSubTitle").html(res.result.params.base_year + "년 기준 산업분류별 일자리(일자리 행정통계)" + '<button class="statsAnlsMap_moreInfo" type="button" title="일자리 추이 설명 팝업 열기" onclick="javascript:$statsAnlsMap.ui.tooltipImgClick();"></button>');	// 2020.09.25[한광희] 일자리추이 설명 팝업 추가
+						
+						/** 2020.09.21[한광희] 최대값 수치 정보 표출 수정 START */
+						var maxResult = -10;
+						var selectIndex = 0;
+						for(var i=0; i<res.result.series[0].data.length; i++){
+							if(maxResult <= res.result.series[0].data[i]){
+								maxResult = res.result.series[0].data[i];
+								selectIndex = i;
+							}
+						}
+						/** 2020.09.21[한광희] 최대값 수치 정보 표출 수정 END */
+						
+						$('#statsAnalsChartMain3').highcharts({
+							chart: {
+								backgroundColor: {
+						            linearGradient: [500, 500, 500, 0],
+						            stops: [
+						            	[0, '#fff'],	// 하단 백그라운드 색
+						            	[1, '#fff']	// 상단 백그라운드 색
+						            ]
+						        },
+						        type: 'column',
+						        width: $(window).width(),
+						        height: $(window).height()-100,
+						        marginBottom : 320
+						    },
+						    title: {
+						    	text: '만개',
+						        align: 'left',
+						        margin: 10,
+						        style: {
+						            fontSize: '11px'
+						        }
+						    },
+						    xAxis: {
+						    	categories: res.result.categoryes
+						    },
+						    yAxis: {
+						        title: {
+						            text: ''
+						        },
+						        labels: {
+						            formatter: function () {
+						            	 return appendCommaToNumber(this.value);
+						            }
+						        }
+
+						    },
+						    legend: {
+						        enabled: false
+						    },
+						    tooltip:{
+						    	enabled:false
+						    },
+						    plotOptions: {
+						    	series: {
+						            borderWidth: 0,
+						            shadow: false,
+						            /** 2020.09.16[한광희] 차트 수치 표현 START */
+						            dataLabels: {
+						                enabled: true,
+						                allowOverlap:true,
+						                style: {
+						                	color: '#606060',
+						                	textOutline : "0px",
+						                	fontWeight: "normal",
+						                	textShadow: false 
+						                }
+						            },
+						            /** 2020.09.16[한광희] 차트 수치 표현 END */
+						            point: {
+						                events: {
+						                    click: function () {
+						                        $("#statsAnalsChartCategoryTitle3").html("<p>"+this.category+"</p>");	// 일자리추이 카테고리
+						            			$("#statsAnalsChartDataTitle3").html("<p>"+this.y+"</p><span>만개</span>");	// 일자리추이 값
+						                    },
+			                                update: function (event) {
+			                                	$("#statsAnalsChartCategoryTitle3").html("<p>"+this.category+"</p>");	// 일자리추이 카테고리
+			                                	// 첫번째 데이터가 null 일 경우
+			                                	if(this.y == null){
+			                                		$("#statsAnalsChartDataTitle3").html("<p>0</p><span>만개</span>");	// 일자리추이 값			                                		
+			                                	}else {
+			                                		$("#statsAnalsChartDataTitle3").html("<p>"+this.y+"</p><span>만개</span>");	// 일자리추이 값
+			                                	}
+			                                }
+						                }
+						            }
+						        }
+						    },
+
+						    series: [{
+						    	name : "",
+						    	colorByPoint: true,
+						        data : res.result.series[0].data
+						        }]
+						});
+						
+						// 첫번째 데이터 클릭
+				        var chart = $('#statsAnalsChartMain3').highcharts();
+				        chart.series[0].data[selectIndex].update();	// 2020.09.21[한광희] 최대값 수치 정보 표출 수정
+					} else {
+						common_alert('failed!');
+					}
+				} ,
+				error:function(err) {
+					common_alert(err.responseText);
+				} 
+			});
+		},
+		
+		/** 
+		 * @name : statsAnalsJobSatisfactionDegree
+		 * @description : 일자리 만족도 조회
+		 * @date : 2020.06.30
+		 * @author : 한광희
+		 * @history :
+		 */
+		statsAnalsJobSatisfactionDegree : function(item) {
+			$("#alertBox").hide();	// 설명팝업 숨김
+			
+			$("#statsSelectDiv").hide();	// 2020.09.15[한광희] 업종 대분류 숨김
+			$("#statsSelectDiv2").hide();	// 업종 중분류 표시
+			$("#statsSelectDiv3").hide();	// 종사자 규모 숨김
+			$("#statsSelectDiv4").show();	// 2020.09.15[한광희] 일자리만족도 select 추가
+			
+			$('#statsAnalsChartMain3').show();	// 차트 표시
+			
+			$("#statsAnalsSelectTypeOfIndustry").attr('disabled', true);	// 업종선택 disabled 처리
+			$("#statsAnalsSelectTypeOfIndustry option:eq(0)").prop("selected", true);	// 업종선택 기본값으로 변경
+			$("#statsAnalsSelectTypeOfIndustryMiddleClassification option:eq(0)").prop("selected", true);	// 업종선택 기본값으로 변경
+			
+			/** 2020.09.08[한광희] sub 타이틀 class 주석 처리 START */
+			//$("#touchFlow").addClass('statsMenuWrap2');			// sub 타이틀 div class 추가
+			//$("#touchFlow").removeClass('statsMenuWrap');		// sub 타이틀 div class 삭제
+			/** 2020.09.08[한광희] sub 타이틀 class 주석 처리 END */
+			
+			$("#statsGraphWrapDiv2").attr('style', 'position: fixed; top: 245px; z-index:700; padding-top: 0px;overflow-y:auto; padding-bottom:100px;');
+			$("#statsGraopTitle").html("일자리 만족도"); // 차트영역 타이틀
+			$("#statsGraopSubTitle").attr('style', 'display: block; padding-top:0px;');
+			$("#statsGraopSubTitle").html("(통계청 사회조사) 일자리의 전반적인 만족도 질문에 대하여 '매우 만족' 또는 '만족'으로 응답한 비율");
+			$("#statsGraphWrapDiv1").attr('style', 'display: none;'); 
+						
+			$('#annualSalary').removeClass('on');	// 연봉 버튼 class 삭제
+			$('#jobTransition').removeClass('on');	// 일자리추이 버튼 class 삭제
+			$('#E3503').addClass('on');				// 일자리 만족도 버튼 class 추가
+			$('#E3501').removeClass('on');			// 소득현황 버튼 class 삭제
+			
+			$("#statsAnalsChartCategoryTitle3").html("");	// 차트 카테고리 타이틀 초기화
+			$("#statsAnalsChartDataTitle3").html("");	// 차트 데이터 타이틀 초기화
+			
+			$.ajax({
+				type: "POST",
+				url : contextPath + "/m2019/workroad/getStatsAnalsJobSatisfactionDegree.json",
+				async: false,
+				dataType: "json",
+				data: {item : item},
+				success: function(res) {
+					if(res.errCd == 0){
+						
+						var mainChart = res.result.statsAnalsJobSatisfactionDegree;
+						
+						var ChartData = [];		//차트 데이터
+						var Category = [];		//차트 카테고리
+						
+						for(var i = 0; i < mainChart.length; i++) {
+							ChartData.push(Number(mainChart[i].dt));
+							Category.push(mainChart[i].prd_de);
+						}
+																		
+						$('#statsAnalsChartMain3').highcharts({
+						    chart: {
+						    	backgroundColor: {
+						            linearGradient: [500, 500, 500, 0],
+						            stops: [
+						            	[0, '#fff'],	// 하단 백그라운드 색
+						            	[1, '#fff']	// 상단 백그라운드 색
+						            ]
+						        },
+						        type: 'line',
+						        width: $(window).width(),
+						        height: $(window).height()-100,
+						        marginBottom : 330	// 2019.09.17[한광희] 일자리 통계정보 sub title 추가로 인한 수정.
+						    },
+						    title: {
+						    	text: '%',
+						        align: 'left',
+						        margin: 10,
+						        style: {
+						            fontSize: '11px'
+						        }
+						    },
+						    xAxis: {
+						        categories: Category
+						    },
+						    yAxis: {
+						    	title: {
+						            text: ''
+						        },
+						    	labels: {
+						            formatter: function () {
+						            	return appendCommaToNumber(this.value);
+						            }
+						        },
+						        min: 0,
+						        max: 100
+						    },
+						    tooltip:{
+						    	/** 2020.09.04[한광희] 포인트 클릭 수정 START */
+						    	//enabled:false
+						    	backgroundColor:'rgba(255,255,255,0)',
+						    	borderColor:'rgba(255,255,255,0)',
+						    	shadow:false,
+						    	formatter: function () {}
+						    	/** 2020.09.04[한광희] 포인트 클릭 수정 END */
+						    },
+						    plotOptions: {
+						    	/** 2020.09.04[한광희] 포인트 클릭 수정 START */
+						        /*line: {
+						            dataLabels: {
+						                enabled: true,
+						                allowOverlap:true,
+						                style: {
+						                	color: '#FFFFFF',
+						                	textOutline : "0px",
+						                	fontWeight: "normal",
+						                	textShadow: false 
+						                }
+						            },
+						            enableMouseTracking: false
+						        },*/
+						        /** 2020.09.04[한광희] 포인트 클릭 수정 END */
+						        series: {
+						            borderWidth: 0,
+						            shadow: false,
+						            /** 2020.09.16[한광희] 차트 수치 표현 START */
+						            dataLabels: {
+						                enabled: true,
+						                allowOverlap:true,
+						                style: {
+						                	color: '#606060',
+						                	textOutline : "0px",
+						                	fontWeight: "normal",
+						                	textShadow: false 
+						                }
+						            },
+						            /** 2020.09.16[한광희] 차트 수치 표현 END */
+						            point: {
+						                events: {
+						                    click: function () {
+						                        $("#statsAnalsChartCategoryTitle3").html("<p>"+this.category+"년</p>");	// 일자리만족도 카테고리
+						            			$("#statsAnalsChartDataTitle3").html("<p>"+this.y+"</p><span>%</span>");	// 일자리만족도 값
+						                    },
+			                                update: function (event) {
+			                                	$("#statsAnalsChartCategoryTitle3").html("<p>"+this.category+"년</p>");	// 일자리만족도 카테고리
+			                                	// 첫번째 데이터가 null 일 경우
+			                                	if(this.y == null){
+			                                		$("#statsAnalsChartDataTitle3").html("<p>0</p><span>%</span>");	// 일자리만족도 값		                                		
+			                                	}else {
+			                                		$("#statsAnalsChartDataTitle3").html("<p>"+this.y+"</p><span>%</span>");	// 일자리만족도 값
+			                                	}
+			                                }
+						                }
+						            }
+						        }
+						    },
+						    legend: {
+				                enabled: false
+				            },
+						    series: [{
+						    	name : "",
+						        data : ChartData
+						    }] 
+						});
+						
+						// 첫번째 데이터 클릭
+				        var chart = $('#statsAnalsChartMain3').highcharts();
+				        chart.series[0].data[mainChart.length-1].update();	// 2020.09.15[한광희] 차트 마지막 데이터 클릭
+					} else {
+						common_alert('failed!');
+					}
+				} ,
+				error:function(err) {
+					common_alert(err.responseText);
+				} 
+			});
+		},
+		
+		/** 
+		 * @name : statsAnalsEnfsnIncomeSttus
+		 * @description : 종사자 규모별 소득현황
+		 * @date : 2020.06.30
+		 * @author : 한광희
+		 * @history :
+		 */
+		statsAnalsEnfsnIncomeSttus : function(item) {
+			$("#alertBox").hide();	// 설명팝업 숨김
+
+			$("#statsSelectDiv").hide();	// 업종 대분류 숨김
+			$("#statsSelectDiv2").hide();	// 업종 중분류 숨김
+			$("#statsSelectDiv3").show();	// 종사자 규모 표시
+			$("#statsSelectDiv4").hide();	// 2020.09.15[한광희] 일자리만족도 select 추가
+			
+			/** 2020.09.08[한광희] sub 타이틀 class 주석 처리 START */
+			//$("#touchFlow").addClass('statsMenuWrap2');			// sub 타이틀 div class 추가
+			//$("#touchFlow").removeClass('statsMenuWrap');		// sub 타이틀 div class 삭제
+			/** 2020.09.08[한광희] sub 타이틀 class 주석 처리 END */
+			
+			$("#statsGraphWrapDiv2").attr('style', 'position: fixed; top: 245px; z-index:700; padding-top: 0px; height: 100%;overflow-y:auto; padding-bottom:100px;');	// 연령별 취업자수, 일자리추이, 일자리만족도 차트 영역 속성
+			$("#statsGraopTitle").html("종사자 규모별 소득 현황"); // 차트영역 타이틀
+			
+			$("#statsGraopSubTitle").attr('style', 'display: none;');
+			$("#statsGraphWrapDiv1").attr('style', 'display: none;'); 
+						
+			$('#annualSalary').removeClass('on');	// 연봉 버튼 class 삭제
+			$('#jobTransition').removeClass('on');	// 일자리추이 버튼 class 삭제
+			$('#E3503').removeClass('on');			// 일자리 만족도 버튼 class 삭제
+			$('#E3501').addClass('on');			// 소득현황 버튼 class 추가
+						
+			if($('#statsAnalsSelectEnfsn').val() == 0){
+				common_alert("규모를 선택하셔야 정보를 확인하실 수 있습니다.");
+				$('#statsAnalsChartMain3').hide();	// 차트 숨김
+				$('#statsAnalsChartCategoryTitle3').hide();	// 차트 카테고리 타이틀 숨김
+				$('#statsAnalsChartDataTitle3').hide();	// 차트 데이터 타이틀 숨김
+				return false;
+			} else {
+				$('#statsAnalsChartMain3').show();	// 차트 표시
+				$('#statsAnalsChartCategoryTitle3').show();	// 차트 카테고리 타이틀 표시
+				$('#statsAnalsChartDataTitle3').show();	// 차트 데이터 타이틀 표시
+			}
+			
+			$("#statsAnalsChartCategoryTitle3").html("");	// 차트 카테고리 타이틀 초기화
+			$("#statsAnalsChartDataTitle3").html("");	// 차트 데이터 타이틀 초기화
+			
+			$.ajax({
+				type: "POST",
+				url : contextPath + "/m2019/workroad/selectJobStatData.json",
+				async: false,
+				dataType: "json",
+				data: {type: "JDS"
+				      ,base_year: "2016"
+				      ,mode: "1"
+				      ,series_cd: $('#statsAnalsSelectEnfsn').val() // 업종 중분류
+				      ,link_id: "D3501" 
+				    },
+				success: function(res) {
+					if(res.errCd == 0){
+						$("#statsGraopSubTitle").attr('style', 'display: block; text-align:right; padding-top:0px;');
+						$("#statsGraopSubTitle").html(res.result.params.base_year + "년 기준 종사자규모별 일자리(일자리 행정통계)");
+						
+						/** 2020.09.21[한광희] 최대값 수치 정보 표출 수정 START */
+						var maxResult = -10;
+						var selectIndex = 0;
+						for(var i=0; i<res.result.series[0].data.length; i++){
+							if(maxResult <= res.result.series[0].data[i]){
+								maxResult = res.result.series[0].data[i];
+								selectIndex = i;
+							}
+						}
+						/** 2020.09.21[한광희] 최대값 수치 정보 표출 수정 END */
+						
+						$('#statsAnalsChartMain3').highcharts({
+							chart: {
+								backgroundColor: {
+						            linearGradient: [500, 500, 500, 0],
+						            stops: [
+						            	[0, '#fff'],	// 하단 백그라운드 색
+						            	[1, '#fff']	// 상단 백그라운드 색
+						            ]
+						        },
+						        type: 'column',
+						        width: $(window).width(),
+						        height: $(window).height()-100,
+						        marginBottom : 320
+						        , events:{
+						        	load: function(){
+						        		
+						        	}
+						        }
+						    },
+						    title: {
+						    	text: '%',
+						        align: 'left',
+						        margin: 10,
+						        style: {
+						            fontSize: '11px'
+						        }
+						    },
+						    xAxis: {
+						    	categories: res.result.categoryes
+						    },
+						    yAxis: {
+						        title: {
+						            text: ''
+						        },
+						        labels: {
+						            formatter: function () {
+						            	 return appendCommaToNumber(this.value);
+						            }
+						        }
+
+						    },
+						    legend: {
+						        enabled: false
+						    },
+						    tooltip:{
+						    	enabled:false
+						    },
+						    plotOptions: {
+						    	series: {
+						            borderWidth: 0,
+						            shadow: false,
+						            /** 2020.09.16[한광희] 차트 수치 표현 START */
+						            dataLabels: {
+						                enabled: true,
+						                allowOverlap:true,
+						                style: {
+						                	color: '#606060',
+						                	textOutline : "0px",
+						                	fontWeight: "normal",
+						                	textShadow: false 
+						                }
+						            },
+						            /** 2020.09.16[한광희] 차트 수치 표현 END */
+						            point: {
+						                events: {
+						                    click: function () {
+						                        $("#statsAnalsChartCategoryTitle3").html("<p>"+this.category+"</p>");	// 소득현황 카테고리
+						            			$("#statsAnalsChartDataTitle3").html("<p>"+this.y+"</p><span>%</span>");	// 소득현황 값
+						                    },
+			                                update: function (event) {
+			                                	$("#statsAnalsChartCategoryTitle3").html("<p>"+this.category+"</p>");	// 소득현황 카테고리
+			                                	// 첫번째 데이터가 null 일 경우
+			                                	if(this.y == null){
+			                                		$("#statsAnalsChartDataTitle3").html("<p>0</p><span>%</span>");	// 소득현황 값	                                		
+			                                	}else {
+			                                		$("#statsAnalsChartDataTitle3").html("<p>"+this.y+"</p><span>%</span>");	// 소득현황 값
+			                                	}
+			                                }
+						                }
+						            }
+						        }
+						    },
+
+						    series: [{
+						    	name : "",
+						    	colorByPoint: true,
+						        data : res.result.series[0].data
+						        }]
+						});
+						
+						// 첫번째 데이터 클릭
+				        var chart = $('#statsAnalsChartMain3').highcharts();
+				        chart.series[0].data[selectIndex].update();	// 2020.09.21[한광희] 최대값 수치 정보 표출 수정
+						
+					} else {
+						common_alert('failed!');
+					}
+				} ,
+				error:function(err) {
+					common_alert(err.responseText);
+				} 
+			});
+		},
+		
+		/**
+		 * @name : tooltipImgClick
+		 * @description : 일자리 추이 물음표 클릭 이벤트
+		 * @date : 2020.06.30
+		 * @author : 한광희
+		 * @history :
+		 * @param :
+		 */
+		tooltipImgClick : function() {
+			$("#alertBox").show();
+			$("#common_popup_back").parent().show();	// 2020.09.25[한광희] 일자리추이 설명 팝업 추가
+		}
+	};
+	
+	$statsAnlsMap.util = {
+			/**
+			 * 숫자에 천단위 콤마추가 및 꼬리말 추가
+			 */
+			addComma : function (pNumberString, pTrailer) {
+				if (pNumberString == undefined) {
+					return "";
+				}
+				
+				var parts = pNumberString.toString().split(".");
+				var str = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",") + (parts[1] ? "." + parts[1] : "");
+				
+			    if (typeof pTrailer != 'undefined') {
+			    	str += pTrailer;
+			    }
+			    
+			    return str;
+			}
+	};
+
+	$statsAnlsMap.event = {
+		/**
+		 * @name : setUIEvent
+		 * @description : UI에서 사용하는 이벤트 및 초기설정을 수행한다.
+		 * @date : 2020.06.30
+		 * @author : 한광희
+		 * @history :
+		 */
+		setUIEvent : function() {			
+			// 일자리추이 설명 alert 닫기버튼
+			$(document).on("click", "#statsAnlsMapAlertBoxClose, #statsAnlsMapAlertBoxCloseBtn", function(){		// 2020.09.25[한광희] 일자리추이 설명 팝업 추가
+				$("#alertBox").hide();
+				$("#common_popup_back").parent().hide();		// 2020.09.25[한광희] 일자리추이 설명 팝업 추가
+			});
+			
+			// 연봉 정보 가져오기
+			$(document).on("change", "#statsAnalsSelectTypeOfIndustry", function() {
+				 srvLogWrite('O0', '06', '02', '01', $('#statsAnalsSelectTypeOfIndustry option:selected').text(), '');
+				var item2 = $('.on1').attr('id');
+				$statsAnlsMap.ui.statsAnalsAnnualSalary(item2);
+			});
+			
+			// 업종(중분류)선택에 따른 일자리추이 정보 가져오기
+			$(document).on("change", "#statsAnalsSelectTypeOfIndustryMiddleClassification", function() {
+				srvLogWrite('O0', '06', '03', '01', $('#statsAnalsSelectTypeOfIndustryMiddleClassification option:selected').text(), '');
+				$statsAnlsMap.ui.statsAnalsJobTransition();
+			});
+			
+			// 규모선택에 따른 종사자 규모별 소득현황 정보 가져오기
+			$(document).on("change", "#statsAnalsSelectEnfsn", function() {
+				srvLogWrite('O0', '06', '05', '01', $('#statsAnalsSelectEnfsn option:selected').text(), '');
+				$statsAnlsMap.ui.statsAnalsEnfsnIncomeSttus('E3501');
+			});
+		},
+		/**
+		 * @name : setMapSize
+		 * @description : 지도 사이즈 변경
+		 * @date : 2019.06.25
+		 * @author : 김남민
+		 * @history :
+		 */
+		setMapSize : function() {
+			var lvMapHeight = Number($(window).outerHeight(true)) - Number($(".Wrap>.Header").outerHeight(true));
+			$("#map").height(lvMapHeight);
+		}
+	};
+	
+	
+}(window, document));

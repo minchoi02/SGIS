@@ -1,0 +1,173 @@
+/**
+ * 행정통계시각화 대쉬보드 레프트 메뉴
+ */
+(function(W, D) {
+	W.$administStatsLeft = W.$administStatsLeft || {};
+
+	$administStatsLeft.ui = {
+
+		/**
+		 * @name selectYears
+		 * @description 해당 주제에 맞는 년도 조회
+		 */
+		selectYears : function() {
+			const thema = $administStatsMain.ui.selectedThema;
+			let param = {
+				org_id_list : "101",
+				iem_cl : (function() {
+					let returnStr = "";
+					switch (thema) {
+						case "신혼부부":
+							returnStr = "NEWLY";
+							break;
+						case "주택소유":
+							returnStr = "HOUSE";
+							break;
+						case "중·장년층":
+							returnStr = "MIDDLE";
+							break;
+						case "귀농·귀어·귀촌":
+							returnStr = "RETURN";
+							break;
+						case "일자리":
+							returnStr = "MORE1";
+							break;
+						case "퇴직연금":
+							returnStr = "MORE2";
+							break;
+						case "임금근로 일자리 동향":
+							returnStr = "MORE3";
+							break;
+						
+					}
+					return returnStr;
+				}())
+			};
+
+			/* API 파라미터 setting */
+			$administStatsMain.util.getAPIParam({
+				iem_cl : param.iem_cl,
+				callback : function(res) {
+					$administStatsMain.ui.apiParam = res;
+				}
+			});
+
+			let tbl_id_list = [];
+			for ( let k in $administStatsMain.ui.apiParam) {
+				tbl_id_list.push($administStatsMain.ui.apiParam[k].tbl_id_list);
+			}
+			const set = new Set(tbl_id_list);
+			//tbl_id_list = Array.from(tbl_id_list);
+			tbl_id_list = tbl_id_list.slice();
+			//if(tbl_id_list != "") {
+				$.ajax({
+					method : "POST",
+					async : false, // 반드시 동기처리 해야 함
+					url : contextPath + "/ServiceAPI/administStats/common/getYearList.json",
+					data : {
+						org_id_list : "101",
+						tbl_id_list : tbl_id_list.join(",")
+					},
+					dataType : "json",
+					success : function(res) {
+						if (res.result.resultList.length > 0) {
+							console.group("[" + $administStatsMain.ui.selectedThema + "] 차트 데이터 조회 기간");
+							console.log(res.result.resultList[0]);
+							console.groupEnd();
+							$administStatsLeft.ui.createYears(res.result.resultList[0], thema);
+						}
+					},
+					error : function(e) {
+						alert("failed");
+					}
+				});
+			//}
+		},
+
+		/**
+		 * @name createYears
+		 * @description 해당 주제에 맞는 년도를 생성
+		 * @param data
+		 *            데이터
+		 * @param thema
+		 *            통계 주제
+		 */
+		createYears : function(data, thema) {
+			const stattbBeginYear = data.stattbBeginYear;
+			const stattbEndYear = data.stattbEndYear;
+			console.log(stattbEndYear)
+			let years = [];
+			let yearHtmls = [];
+			let quarter = 1;
+			if (thema == "임금근로 일자리 동향") {
+				/* FIXME 현재 srv_dt_st_list에 분기 컬럼 없어서 분기 API로 분기 불러옴 */
+				$administStatsMain.util.getTotsurvStatData({
+					surv_year_list : "",
+					org_id_list : "101",
+					tbl_id_list : "DT_1FL_7006",
+					list_var_ord_list : "",
+					char_itm_id_list : "T00",
+					prt_type : "",
+					adm_cd : "",
+					ov_l1_list : "1001",
+					ov_l2_list : "10",
+					ov_l3_list : "",
+					ov_l4_list : "",
+					ov_l5_list : "",
+					category : "",
+					odr_col_list : "PRD_DE",
+					odr_type : "DESC"
+				}, function(data) {
+					quarter = data[0].PRD_DE.substring(5, 6) * 1;
+				});
+			}
+			for (let yearIdx = (stattbBeginYear * 1); yearIdx <= stattbEndYear; yearIdx++) {
+				if (thema == "임금근로 일자리 동향") {
+					var stattbEndYear = "2022"
+					for (let quarterIdx = 1; quarterIdx <= 4; quarterIdx++) {
+						if (yearIdx == stattbEndYear) {
+							if (quarterIdx <= quarter) {
+								yearHtmls.push("<option value='" + yearIdx + "0" + quarterIdx + "'>" + "`" + ("" + yearIdx).substring(2, 4) + "년 " + quarterIdx + "/4분기</option>");
+							}
+						} else {
+							yearHtmls.push("<option value='" + yearIdx + "0" + quarterIdx + "'>" + "`" + ("" + yearIdx).substring(2, 4) + "년 " + quarterIdx + "/4분기</option>");
+						}
+						years.push((yearIdx + "0" + quarterIdx) * 1);
+					}
+				} else {
+					yearHtmls.push("<option value='" + yearIdx + "'>" + yearIdx + "년</option>");
+					years.push(yearIdx);
+				}
+			}
+			$(".sb_year").html(yearHtmls.reverse());
+			$administStatsMain.ui.dftYears = years.slice();
+			$administStatsMain.ui.years = years.slice();
+			$administStatsMain.ui.selectedYear = $(".sb_year option:first").val();
+
+			if (!$administStatsMain.util.isEmpty(gv_year)) {
+				if ($.inArray((gv_year * 1), $administStatsMain.ui.dftYears) > -1) {
+					$administStatsMain.ui.selectedYear = gv_year;
+					$(".sb_year").val($administStatsMain.ui.selectedYear);
+				} else {
+					alert("year 가 잘못 입력되었습니다.\n" + $administStatsMain.ui.selectedYear + " 으로 조회됩니다.\n\n입력한 year : " + gv_year + "\n입력 가능한 year : " + $administStatsMain.ui.dftYears);
+					console.group("year 파라미터 오입력");
+					console.log("입력한 year : " + gv_year);
+					console.log("입력 가능한 year ↓");
+					console.log($administStatsMain.ui.dftYears);
+					console.groupEnd();
+				}
+			}
+		}
+	};
+
+	$administStatsLeft.event = {
+		setUIEvent : function() {
+			$administStatsMain.event.set("click", ".thema", function() {
+				$(".thema").removeClass("current");
+				$(this).addClass("current");
+				location.replace("/view/administStats/" + $(this).attr("id").replace("Menu", "Dash"));
+			});
+		}
+	}
+
+}(window, document));

@@ -1,0 +1,174 @@
+
+$(document).ready(function(){
+	var selected = $(".selected");
+	var optionsList = $(".option");
+	
+	selected.click(function (obj){ 
+		  $(obj.target).siblings('.optionContainer').toggleClass('active');
+		  $(obj.target).toggleClass('active');
+	});
+	
+	$(".rankWrapper").hide();
+	
+	
+	//getCodeList("80");
+	
+	$('.searchRadioOption').click(function(){
+		
+		var radio  = $(this).find('input[type=radio]');
+		var label  = $(this).find('label').text();
+		var data = radio.val();
+		var name = radio.attr('name');
+		
+		$('#searchFrom').find("input[name='"+name+"']").val(data);
+		var parentDiv =  $(this).parent('.optionContainer').parent('.selectBox');
+		$(parentDiv).find('.active').toggleClass('active');
+		$(parentDiv).find('.selected').find('.text').html(label);
+		
+	});
+});
+
+function rankViewMode() {
+  $(".navRank").toggleClass('mini')
+  //$(".naviWrapper").toggleClass('mini');
+  $(".rankWrapper").toggle();
+  resetSidoWrapper();
+}
+
+
+function rankExpand() {
+	
+	if (!$(".rankWrapper").hasClass('expand')) {
+        $(".rankWrapper, .naviWrapper").addClass('expand')
+
+        // 가 데이터 삽입
+        var html = "";
+        for (i = 10; i < 60; i++) {
+            html += '<li class="add">';
+            html += '<span><i class="rank">' + i + '</i>강원도</span>';
+            html += '<span>1,323,900개</span>'
+            html += '<span>7% <i class="down"></i></span>'
+            html += '<span>6.0%</span>'
+            html += '</li>'
+        }
+        $(".rankList.table").append(html);
+        $(".rankBtn .btnLine p").text("축소보기");
+
+    } else {
+        $(".rankWrapper, .naviWrapper").removeClass('expand')
+        $(".rankBtn .btnLine p").text("펼쳐보기");
+
+        $('.rankList.table li').each(function (index, item) {
+            if ($(item).hasClass('add')) $(item).remove();
+        })
+
+    }
+	 
+}
+
+
+function resetSidoWrapper(){
+	$(".rankWrapper, .naviWrapper").removeClass('expand1')
+    $(".rankBtn .btnLine p").text("펼쳐보기");
+
+    $('.rankList.table li').each(function(index, item){
+      if($(item).hasClass('add')) $(item).remove();
+    });
+}
+
+
+function getCodeList(code){
+	/*alert("aaaa");*/
+	
+	jQuery.ajax({
+		type:"POST",
+		url: "/view/sbrStats/codeList",
+		data: {codeId: code},
+		dataType:"json",
+		async: true,
+		success:function(data){
+			
+			return data;
+		},
+		error:function(data) {
+			
+			return "faill";
+		}
+	});
+	
+}
+
+//설정 토글
+function toggleSetting(){
+    $(".leftContent").not('.settingBox').hide();
+    $(".filter li.setting button").toggleClass('active');
+    $(".settingBox").toggle();
+}
+
+
+//지역랭킹 아이템 클릭
+function showRankDetail(){
+    // 지역랭킹 오버 일때 나오는 팝업 화면
+	closeLeftAll();
+    $('.popup.rankResult').show();
+    $(".leftContent.rankResult").show();
+}
+
+//지역랭킹 결과조회 지역시그널 클릭 이벤트
+function openSignal(obj){
+    const target =$(obj).data('content');
+
+    $('.rankResult .signal li').removeClass('active')
+    $(obj).addClass('active');
+
+    $(".leftSub").hide();
+    $(".leftSub").each((i, item) => {
+        if($(item).data('content') == target) $(item).show();
+    })
+}
+
+
+//종합분석 탭
+function layerBoxTab(obj){
+    var tabName = $(obj).data('tab');
+    $(".layerLg .menuWrap .tab li").removeClass('active');
+    $(obj).addClass('active');
+    $('#allResult .container > .content').each((i, item) => {
+        $(item).hide();
+        if(tabName == $(item).data('content')) $(item).show();
+    })
+}
+
+
+//좌측 컨텐츠 닫기
+function closeLeft(leftContent){
+    // 설정 버튼 초기화
+    $(".filter li.setting button").removeClass('active');
+    $(leftContent).closest('.leftContent, .leftSub').hide();
+
+}
+
+//팝업 닫기
+function closePopup(popup){
+    $(popup).closest('.popup').hide();
+}
+
+function closeResult(){
+    $(".layerOverlay").hide();
+    $("#allResult").hide();
+}
+
+//종합분석 팝업 열기
+function showAllResult(){
+    $(".layerOverlay").show();
+    $("#allResult").show();
+    
+    setChart();
+    setPieChart();
+    setTriangleChart();
+}
+
+//좌측 컨텐츠 전체 닫기(초기화)
+function closeLeftAll(){
+    $(".leftContent").hide();
+}

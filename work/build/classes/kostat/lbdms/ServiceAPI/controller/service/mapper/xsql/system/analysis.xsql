@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="analysis">
+	
+	<!-- 나의 데이터 목록 조회 -->
+	<sql id="orderSql">
+		<choose>
+			<when test="sort == '' || sort == null">
+				ORDER BY resource_id DESC
+			</when>
+			<otherwise>
+				ORDER BY ${sort} ${order}
+			</otherwise>
+		</choose>
+	</sql>
+	
+	<!-- 사용자데이터 조회-->
+	<select id="getUserDataList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			Q.*
+			, ROW_NUMBER() OVER (<include refid="orderSql"/>) AS row
+			, COUNT(Q.*) OVER() AS total
+		FROM (
+			SELECT
+					  resource_id
+					, user_id
+					, data_storage_type
+					, TO_CHAR(data_create_time,'YYYY-MM-DD') as data_create_time 
+					, TO_CHAR(last_used_time,'YYYY-MM-DD') as last_used_time
+					, category1
+					, category2
+					, category3
+					, category4
+					, description
+					, relation_resource_id
+					, data_nm as data_name
+					, action_type
+					, inst_share_yn
+					, pos_column_desc
+					
+			FROM  RESOURCE
+			WHERE 
+				user_id = #{user_id}
+			<choose>
+				<when test='type == "geoData"'>
+					and (action_type = 'MAPPING' or action_type = 'PROFILE' or action_type = 'COORD' or action_type = 'VERIFY')
+				</when>
+				<when test='type == "analysisData"'>
+					and  (action_type='ADMIN_ANALY_SIDO' or action_type='ADMIN_ANALY_SGG' or action_type='ADMIN_ANALY_DONG' or action_type='ADMIN_ANALY_TOT' or action_type='MYDATA_ANALY')
+				</when>
+				<when test='type == "analysisPoiData"'>
+					and  (action_type='VORONOI_ANALY')
+				</when>
+				<when test='type == "shareData"'> 
+					and inst_share_yn = 'Y'
+				</when>
+				<when test='type == "sharePoiData"'> 
+					and (action_type = 'MAPPING' or action_type = 'PROFILE' or action_type = 'COORD' or action_type = 'VERIFY' or action_type='VORONOI_ANALY')
+					and inst_share_yn = 'Y'
+				</when>
+			</choose>
+			) Q
+		WHERE 1=1
+		<include refid="orderSql"/>
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+	
+	
+	<!-- 활용사례 목록 조회 -->
+	<select id="getAnalysisGuideList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			*
+		FROM case_list
+			WHERE 
+				use_yn = 'y'
+			ORDER BY show_order;
+	</select>
+	
+	
+	 <!-- 사용자 임의영역 경계 저장 -->
+    <select id="insertUserPolyonInfo" parameterType="hashmap" resultType="hashmap">
+		INSERT INTO RESOURCE
+		(
+				user_id
+			,	data_storage_type
+			,	data_create_time
+			,	last_used_time
+			,	description
+			,	data_nm
+			,	action_type
+			, 	data_size
+			,	inst_share_yn
+			,	pos_column_desc
+			,	geometry_type
+		) VALUES (
+				#{user_id}
+			,	'PG'
+			,	NOW()
+			,	NOW()
+			,	#{description}
+			,	#{data_nm}
+			,	#{action_type}
+			,	'0'
+			,	'N'
+			,	#{pos_column_desc}
+			,	#{geometry_type}
+		)
+		RETURNING resource_id
+	</select>
+	
+	<!-- 사용자 경계데이터 조회 -->
+	<select id="getUserPolygonDataList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			Q.*
+			, ROW_NUMBER() OVER (<include refid="orderSql"/>) AS row
+			, COUNT(Q.*) OVER() AS total
+		FROM (
+			SELECT
+					  resource_id
+					, user_id
+					, data_storage_type
+					, TO_CHAR(data_create_time,'YYYY-MM-DD') as data_create_time 
+					, TO_CHAR(last_used_time,'YYYY-MM-DD') as last_used_time
+					, category1
+					, category2
+					, category3
+					, category4
+					, description
+					, relation_resource_id
+					, data_nm as data_name
+					, action_type
+					, inst_share_yn
+					, pos_column_desc
+					
+			FROM  RESOURCE
+			WHERE 
+				(action_type='CREATE_GIS' or
+				 action_type='ADMIN_ANALY_SIDO' or 
+				 action_type='ADMIN_ANALY_SGG' or 
+				 action_type='ADMIN_ANALY_DONG' or 
+				 action_type='ADMIN_ANALY_TOT' or
+				 action_type='GRID_ANALY_SIDO' or 
+				 action_type='GRID_ANALY_SGG' or 
+				 action_type='GRID_ANALY_DONG' or 
+				 action_type='GRID_ANALY_TOT' or 
+				 action_type='HEXAGON_ANALY_SIDO' or 
+				 action_type='HEXAGON_ANALY_SGG' or 
+				 action_type='HEXAGON_ANALY_DONG' or 
+				 action_type='HEXAGON_ANALY_TOT' or 
+				 action_type='RANK_ANALY_SIDO' or 
+				 action_type='RANK_ANALY_SGG' or 
+				 action_type='RANK_ANALY_DONG' or 
+				 action_type='RANK_ANALY_TOT' or 
+				 action_type='MYDATA_ANALY' or 
+				 action_type='VORONOI_ANALY' or
+				 action_type='COMBINE_ANALY_SIDO' or 
+				 action_type='COMBINE_ANALY_SGG' or 
+				 action_type='COMBINE_ANALY_DONG' or 
+				 action_type='COMBINE_ANALY_TOT' or
+				 action_type='BUFFER_ANALY_DONG' or
+				 action_type='BUFFER_ANALY_SGG' or
+				 action_type='BUFFER_ANALY_SIDO' or
+				 action_type='BUFFER_ANALY_TOT' or
+				 ((action_type='SHP' or action_type='GEOM') and geometry_type = 'MULTIPOLYGON')
+				 )
+			<choose>
+				<when test='type == "myPolygonData"'>
+					and user_id = #{user_id}
+				</when>
+				<when test='type == "sharePolygonData"'>
+					and inst_share_yn = 'Y'
+				</when>
+			</choose>
+			) Q
+		WHERE 1=1
+		<include refid="orderSql"/>
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+	
+	<!-- 분석결과정보 조회 -->
+	<select id="getAnalysisInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT
+					  resource_id
+					, user_id
+					, data_storage_type
+					, TO_CHAR(data_create_time,'YYYY-MM-DD') as data_create_time 
+					, TO_CHAR(last_used_time,'YYYY-MM-DD') as last_used_time
+					, category1
+					, category2
+					, category3
+					, category4
+					, description
+					, relation_resource_id
+					, data_nm as data_name
+					, action_type
+					, COALESCE(inst_share_yn, 'N') as inst_share_yn
+					, COALESCE(fav_yn, 'N') as fav_yn
+					, pos_column_desc
+		FROM	RESOURCE
+		WHERE resource_id=#{resource_id}
+	</select>
+	
+	<!-- 분석결과 파라미터정보 저장 -->
+	<insert id="insertAnalysisParamInfo" parameterType="hashmap">
+		INSERT INTO ANALYSIS_PARAM
+		(	
+				execute_id
+			,   user_id
+			,	analysis_type
+			,	bord_type
+			,	param
+		) VALUES (
+				#{execute_id}
+			,	#{user_id}
+			,	#{analysis_type}
+			,	#{bord_type}
+			,	#{param}
+		)
+	</insert>
+	
+	<!-- 분석결과 파라미터정보 조회-->
+	<select id="getAnalysisParamInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT
+					  execute_id
+					, user_id
+					, analysis_type
+					, bord_type
+					, param
+		FROM	ANALYSIS_PARAM
+		WHERE 	execute_id=#{execute_id}
+	</select>
+	
+	<!-- 분석리소스 조회 -->
+	<select id="getAnalysisExecuteInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT
+					  execute_id
+					, action_id
+					, user_id
+					, state
+					, data_nm
+					, start_time
+					, end_time
+					, input_resource_id
+					, output_resource_id
+		FROM	EXECUTE
+		WHERE 	execute_id=#{execute_id}
+			and	user_id=#{user_id}
+	</select>
+	
+	<!-- 분석리소스 조회 -->
+	<select id="getAnalysisExecuteInfoFromId" parameterType="hashmap" resultType="hashmap">
+		SELECT
+					  execute_id
+					, action_id
+					, user_id
+					, state
+					, data_nm
+					, TO_CHAR(start_time, 'YYYY-MM-DD HH24:MI:SS') as start_time
+					, TO_CHAR(end_time, 'YYYY-MM-DD HH24:MI:SS') as end_time
+					, input_resource_id
+					, output_resource_id
+		FROM	EXECUTE
+		WHERE 	data_nm=#{data_nm}
+		AND 	user_id=#{user_id}
+		<!-- mng_s 2019. 06. 17 j.h.Seok -->
+		AND		state = 'END'
+		<!-- mng_e 2019. 06. 17 j.h.Seok -->
+	</select>
+	
+	<!-- 실패 또는 분석중인 분석정보목록-->
+	<select id='getFailAnalysisDataList' parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				  execute_id as resource_id
+				, user_id
+				, state
+				, TO_CHAR(start_time,'YYYY-MM-DD') as data_create_time 
+				, TO_CHAR(end_time,'YYYY-MM-DD') as last_used_time
+				, '0 K' as data_size
+				, desc_nm as description
+				, data_nm as data_name
+				, category1
+				, category2
+				, category3
+				, category4
+				, action_type
+				, data_storage_type
+				, 0 as download_apply
+				, 'N' as inst_share_yn
+		FROM execute 
+		WHERE user_id = #{user_id}
+		AND category4 = 'ANALYSIS_2016'
+		AND (state='FAIL' or state='RUNNING')
+	</select>
+
+	<!-- 사용자데이터의 사이즈 업데이트-->	
+	<update id='updateUserDataSize' parameterType="hashmap" >
+		UPDATE 
+						RESOURCE
+		SET
+						data_size = #{size}
+		WHERE
+						data_nm = #{data_nm}
+				and	user_id = #{user_id}		
+	</update>
+</mapper>

@@ -1,0 +1,1542 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="UseCurrentState">
+	<select id="getTotStatView" parameterType="Map" resultType="Map">
+	<!-- 총괄page Data -->
+			select 
+                nowyearpageview         --현재년도 페이지 뷰
+            ,   beforeyearpageview          --전년도 페이지 뷰
+            ,   nowmonthpageview            --현재월 페이지 뷰
+            ,   premonthpageview            --전월 페이지뷰
+            ,   oldmonthpageview            --전년동월 페이지뷰
+            ,   nowyearpageview - beforeyearpageview as pageviewbigyo       --전년대비 페이지수
+            ,   case when beforeyearpageview != 0 then
+                round(100*nowyearpageview/beforeyearpageview, 2)|| '%'
+                else '전년도데이터없음' end as pageviewbigyopersent               --전년대비 페이지수 증감률 %
+            ,   nowmonthpageview - premonthpageview as pageviewpremonthbigyo        --전월대비 페이지수
+            ,   case when premonthpageview != 0 then round(100* nowmonthpageview/premonthpageview, 2) || '%'
+                when premonthpageview = 0   then '전월페이지뷰 0' end as pageviewbigyomonthpersent            --전월대비 페이지수 증감률
+            ,   nowmonthpageview - oldmonthpageview as pageviewoldmonthbigyo        --전년동월대비 페이지수
+            ,   case when oldmonthpageview != 0 then round(100* nowmonthpageview/oldmonthpageview, 2) || '%'
+                when oldmonthpageview = 0   then '전년페이지뷰 0' end as pageviewbigyooldmonthpersent         --전년동월대비 페이지수 증감률
+            ,   nowyearvisitview            --현재년도 방문자수
+            ,   beforeyearvisitview     --전년도 방문자수
+            ,   nowmonthvisitview       --현재월 방문자수
+            ,   nowyearvisitview - beforeyearvisitview as visitviewbigyo            --전년대비 방문자수
+            ,   case when beforeyearvisitview != 0 then round(100*nowmonthvisitview/beforeyearvisitview, 2) || '%' 
+                else '전년도데이터없음' end as visitviewbigyopersent    --전년대비 방문자수 증감률
+            ,   premonthvisitview           --전월 방문자 수
+            ,   nowmonthvisitview - premonthvisitview as premonthvisitviewbigyo         --전월대비 방문자수
+            ,   
+            case when beforeyearvisitview != 0 then round(100*nowmonthvisitview/beforeyearvisitview, 2) || '%' 
+                else '전월데이터없음' end as premonthvisitviewbigyopersent --전월대비 방문자수 증감률
+            ,   oldmonthvisitview       --전년동월 방문자 수,
+            ,   nowmonthvisitview - oldmonthvisitview as oldmonthvisitviewbigyo         --전년동월대비 방문자수
+            ,   case when oldmonthvisitview != 0 then round(100*nowmonthvisitview/oldmonthvisitview, 2) || '%' 
+                else '전년동월데이터없음' end as oldmonthvisitviewbigyopersent   --전년동월대비 방문자수 증감률
+            ,   apiyearcount yearapicount
+            ,   to_char(add_months(sysdate, -1),'yyyymm') as nowyearmonth
+            ,   totalvisitview
+            ,   totalpageview
+            ,   nowyearpageview / to_int(to_char(sysdate, 'mm'))-1+round(to_int(to_date(to_char(sysdate, 'yyyymmdd')) - to_date(to_char(sysdate, 'yyyy')||'0501')) / to_int(to_char(last_day(sysdate), 'dd')), 2) + round(to_int(to_date(to_char(sysdate, 'yyyymmdd')) - to_date(to_char(sysdate, 'yyyy')||'0501')) / to_int(to_char(last_day(sysdate), 'dd')), 2) as monavrpageview
+            from (
+                select
+                    (select nvl(sum(count),0) + (select nvl(sum(call_cnt),0) as call_cnt from srv_log_daily where ((f_class_1_cd in ('D0', 'I0')) or (f_class_1_cd = 'A0'	and f_class_2_cd = '04') or (f_class_1_cd = 'A0'	and f_class_2_cd = '15')or (f_class_1_cd = 'A0'	and f_class_2_cd = '05'	and f_class_3_cd = '09'	and f_class_4_cd = '00')) and call_dt like ${beforeYear} ||'%' and call_dt > '201904')  from api_log_write_hour_group where  regdate like ${beforeYear} ||'%') as beforeyearpageview,
+                    (select nvl(sum(count),0) + (select nvl(sum(call_cnt),0) as call_cnt from srv_log_daily where ((f_class_1_cd in ('D0', 'I0')) or (f_class_1_cd = 'A0'	and f_class_2_cd = '04') or (f_class_1_cd = 'A0'	and f_class_2_cd = '15')or (f_class_1_cd = 'A0'	and f_class_2_cd = '05'	and f_class_3_cd = '09'	and f_class_4_cd = '00')) and call_dt like ${year} ||'%' and call_dt > '201904') from api_log_write_hour_group where  regdate like ${year} ||'%') as nowyearpageview,
+                    (select nvl(sum(count),0) + (select nvl(sum(call_cnt),0) as call_cnt from srv_log_daily where ((f_class_1_cd in ('D0', 'I0')) or (f_class_1_cd = 'A0'	and f_class_2_cd = '04') or (f_class_1_cd = 'A0'	and f_class_2_cd = '15')or (f_class_1_cd = 'A0'	and f_class_2_cd = '05'	and f_class_3_cd = '09'	and f_class_4_cd = '00')) and call_dt like ${yearMonth} ||'%' and call_dt > '201904') from api_log_write_hour_group where  regdate like ${yearMonth} ||'%') as nowmonthpageview,
+                    (select nvl(sum(count),0) + (select nvl(sum(call_cnt),0) as call_cnt from srv_log_daily where ((f_class_1_cd in ('D0', 'I0')) or (f_class_1_cd = 'A0'	and f_class_2_cd = '04') or (f_class_1_cd = 'A0'	and f_class_2_cd = '15')or (f_class_1_cd = 'A0'	and f_class_2_cd = '05'	and f_class_3_cd = '09'	and f_class_4_cd = '00')) and call_dt like ${beforeMonth} ||'%' and call_dt > '201904') from api_log_write_hour_group where  regdate like ${beforeMonth}||'%') as premonthpageview,
+                    (select nvl(sum(count),0) + (select nvl(sum(call_cnt),0) as call_cnt from srv_log_daily where ((f_class_1_cd in ('D0', 'I0')) or (f_class_1_cd = 'A0'	and f_class_2_cd = '04') or (f_class_1_cd = 'A0'	and f_class_2_cd = '15')or (f_class_1_cd = 'A0'	and f_class_2_cd = '05'	and f_class_3_cd = '09'	and f_class_4_cd = '00')) and call_dt like ${beforeYearMonth} ||'%' and call_dt > '201904') from api_log_write_hour_group where  regdate like ${beforeYearMonth} ||'%') as oldmonthpageview,
+                    (select count(0) + (select nvl(sum(visit_cnt),0) as call_cnt from srv_log_daily where ((f_class_1_cd in ('D0', 'I0')) or (f_class_1_cd = 'A0'	and f_class_2_cd = '04') or (f_class_1_cd = 'A0'	and f_class_2_cd = '15')or (f_class_1_cd = 'A0'	and f_class_2_cd = '05'	and f_class_3_cd = '09'	and f_class_4_cd = '00')) and call_dt like  ${beforeYear} ||'%' and call_dt > '201904') from api_log_write_hour_group where regdate like ${beforeYear} ||'%') as beforeyearvisitview,
+                    (select count(0) + (select nvl(sum(visit_cnt),0) as call_cnt from srv_log_daily where ((f_class_1_cd in ('D0', 'I0')) or (f_class_1_cd = 'A0'	and f_class_2_cd = '04') or (f_class_1_cd = 'A0'	and f_class_2_cd = '15')or (f_class_1_cd = 'A0'	and f_class_2_cd = '05'	and f_class_3_cd = '09'	and f_class_4_cd = '00')) and call_dt like ${year}  ||'%' and call_dt > '201904') from api_log_write_hour_group where regdate like ${year} ||'%') as nowyearvisitview,
+                    (select count(0) + (select nvl(sum(visit_cnt),0) as call_cnt from srv_log_daily where ((f_class_1_cd in ('D0', 'I0')) or (f_class_1_cd = 'A0'	and f_class_2_cd = '04') or (f_class_1_cd = 'A0'	and f_class_2_cd = '15')or (f_class_1_cd = 'A0'	and f_class_2_cd = '05'	and f_class_3_cd = '09'	and f_class_4_cd = '00')) and call_dt like  ${yearMonth}||'%' and call_dt > '201904')  from api_log_write_hour_group where regdate like ${yearMonth}||'%') as nowmonthvisitview,
+                    (select count(0) + (select nvl(sum(visit_cnt),0) as call_cnt from srv_log_daily where ((f_class_1_cd in ('D0', 'I0')) or (f_class_1_cd = 'A0'	and f_class_2_cd = '04') or (f_class_1_cd = 'A0'	and f_class_2_cd = '15')or (f_class_1_cd = 'A0'	and f_class_2_cd = '05'	and f_class_3_cd = '09'	and f_class_4_cd = '00')) and call_dt like ${beforeMonth}  ||'%' and call_dt > '201904')  from api_log_write_hour_group where regdate like ${beforeMonth} ||'%') as premonthvisitview,
+                    (select count(0) + (select nvl(sum(visit_cnt),0) as call_cnt from srv_log_daily where ((f_class_1_cd in ('D0', 'I0')) or (f_class_1_cd = 'A0'	and f_class_2_cd = '04') or (f_class_1_cd = 'A0'	and f_class_2_cd = '15')or (f_class_1_cd = 'A0'	and f_class_2_cd = '05'	and f_class_3_cd = '09'	and f_class_4_cd = '00')) and call_dt like ${beforeYearMonth} ||'%' and call_dt > '201904') from api_log_write_hour_group where regdate like ${beforeYearMonth} ||'%') as oldmonthvisitview,
+                    (select nvl(sum(hourly_call_cnt),0) as cnt from SRV_DT_APIHOURLYSTAT where call_hourly like ${year} ||'%') as apiusecnt,
+                    (select  sum(hourly_call_cnt) from root.srv_dt_apihourlystat where call_hourly like  ${year}||'%') as apiyearcount,
+                    (select count(0) + (select nvl(sum(visit_cnt),0) as call_cnt from srv_log_daily where ((f_class_1_cd in ('D0', 'I0')) or (f_class_1_cd = 'A0'	and f_class_2_cd = '04') or (f_class_1_cd = 'A0'	and f_class_2_cd = '15')or (f_class_1_cd = 'A0'	and f_class_2_cd = '05'	and f_class_3_cd = '09'	and f_class_4_cd = '00')) and call_dt > '201904') from api_log_write_hour_group ) as totalvisitview,
+                    (select sum(count) + (select nvl(sum(call_cnt),0) as call_cnt from srv_log_daily where ((f_class_1_cd in ('D0', 'I0')) or (f_class_1_cd = 'A0'	and f_class_2_cd = '04') or (f_class_1_cd = 'A0'	and f_class_2_cd = '15')or (f_class_1_cd = 'A0'	and f_class_2_cd = '05'	and f_class_3_cd = '09'	and f_class_4_cd = '00')) and call_dt > '201904') from api_log_write_hour_group ) as totalpageview
+                from dual
+    	)
+	</select>
+	<select id="getTotStatView_new" parameterType="Map" resultType="Map">
+	<!-- 총괄page Data -->
+			select
+				n_page_cnt as nowMonthPageView,
+				(select sum(api_page_cnt) from api_log_write_daily) as totalPageView,
+				n_page_cnt - bm_page_cnt as pageViewPreMonthBigyo,
+				case when bm_page_cnt != 0 then round(100* n_page_cnt/bm_page_cnt, 2) || '%'
+			         when bm_page_cnt = 0   then '전월페이지뷰 0' end as pageviewbigyomonthpersent,            --전월대비 페이지수 증감률
+				n_page_cnt - bysm_page_cnt as pageViewOldMonthBigyo,
+				case when bysm_page_cnt != 0 then round(100* n_page_cnt/bysm_page_cnt, 2) || '%'
+			         when bysm_page_cnt = 0   then '전년동월페이지뷰 0' end as pageViewBigyoOldMonthPersent,
+				n_visit_cnt as nowMonthVisitView, 
+				(select sum(api_visit_cnt) from api_log_write_daily) as totalVisitView,
+				n_visit_cnt - bm_visit_cnt as preMonthVisitViewBigyo,
+				case when bm_visit_cnt != 0 then round(100* n_visit_cnt/bm_visit_cnt, 2) || '%'
+			         when bm_visit_cnt = 0   then '전월방문자수 0' end as preMonthVisitViewBigyoPersent,
+				n_visit_cnt - bysm_visit_cnt as oldMonthVisitViewBigyo,
+				case when bysm_visit_cnt != 0 then round(100* n_visit_cnt/bysm_visit_cnt, 2) || '%'
+			         when bysm_visit_cnt = 0   then '전년동월방문자수 0' end as oldmonthvisitviewbigyopersent,
+				ny_api_cnt as yearapicount,
+				ny_page_cnt /to_int(to_char(sysdate, 'mm'))-1 as nowYearAvrPageView,
+				to_char(add_months(sysdate, -1),'yyyymm') as nowyearmonth,
+				ny_page_cnt as nowYearPageView
+				
+				
+			from 
+			(
+				select 
+					sum(n_page_cnt) as n_page_cnt,
+					sum(n_visit_cnt) as n_visit_cnt,
+					sum(n_api_cnt) as n_api_cnt,
+					sum(bm_page_cnt) as bm_page_cnt,
+					sum(bm_visit_cnt) as bm_visit_cnt,
+					sum(bm_api_cnt) as bm_api_cnt,
+					sum(bysm_page_cnt) as bysm_page_cnt,
+					sum(bysm_visit_cnt) as bysm_visit_cnt,
+					sum(bysm_api_cnt) as bysm_api_cnt,
+					sum(ny_page_cnt) as ny_page_cnt,
+					sum(ny_visit_cnt) as ny_visit_cnt,
+					sum(ny_api_cnt) as ny_api_cnt,
+					sum(by_visit_view) as by_visit_view,
+					sum(by_api_cnt) as by_api_cnt
+				from
+				(
+				select 	sum(api_page_cnt) as n_page_cnt, sum(api_visit_cnt) as n_visit_cnt, sum(open_api_cnt) as n_api_cnt ,
+						0 as bm_page_cnt,0 as bm_visit_cnt,	0 as bm_api_cnt, 
+						0 as bysm_page_cnt, 0 as bysm_visit_cnt, 0 as bysm_api_cnt,
+						0 as ny_page_cnt,0 as ny_visit_cnt, 0 as ny_api_cnt,
+						0 as by_page_view,0 as by_visit_view,0 as by_api_cnt
+				from api_log_write_daily where regdate like ${yearMonth}||'%'
+				union
+				select 
+					0,0,0, sum(api_page_cnt) as bm_page_cnt, sum(api_visit_cnt) as bm_visit_cnt, sum(open_api_cnt) as bm_api_cnt ,0,0,0,0,0,0,0,0,0
+				from api_log_write_daily
+				where regdate like ${beforeMonth}||'%'
+				union
+				select 
+					0,0,0,0,0,0,sum(api_page_cnt) as by_page_cnt, sum(api_visit_cnt) as by_visit_cnt, sum(open_api_cnt) as by_api_cnt ,0,0,0,0,0,0
+				from api_log_write_daily
+				where regdate like ${beforeYearMonth}||'%'
+				union
+				select 0,0,0,0,0,0,0,0,0,sum(api_page_cnt), sum(api_visit_cnt), sum(open_api_cnt) as ny_api_cnt ,0,0,0
+				from api_log_write_daily
+				where regdate like ${year}||'%'
+				union
+					select 0,0,0,0,0,0,0,0,0,0,0,0,sum(api_page_cnt), sum(api_visit_cnt), sum(open_api_cnt) as ny_api_cnt 
+				from api_log_write_daily
+				where regdate like ${beforeYear}||'%'
+				)
+			)
+
+
+	</select>
+	
+	<select id="getTotPageViewGraph" parameterType="Map" resultType="Map">
+		<!-- 총괄page그래픽Data -->
+		<!-- select 
+			yearMonthinfo, nvl(sum(count),0) as pageVnt
+		from 
+			api_log_write_hour_group a
+			right outer join
+			(
+					select yearinfo|| monthinfo as yearMonthinfo
+					from
+						(
+									select '01' as monthinfo from dual
+							union 	select '02' from dual
+							union 	select '03' from dual
+							union 	select '04' from dual
+							union 	select '05' from dual
+							union 	select '06' from dual
+							union 	select '07' from dual
+							union 	select '08' from dual
+							union 	select '09' from dual
+							union 	select '10' from dual
+							union 	select '11' from dual
+							union 	select '12' from dual 
+						)  
+						join (select #{year} yearinfo from dual) 
+						on 1=1
+			) b
+			on substr(a.regdate, 0, 6) = b.yearmonthinfo
+		group by yearMonthinfo -->
+		
+		<!-- 
+		select regdate, sum(pagevnt) as pagevnt from(
+			select regdate,sum(pagevnt) as pagevnt 
+			from(
+				select to_char(to_date(regdate, 'yyyymmddhh24'),'yyyymm') as regdate, nvl(sum(count),0) as pageVnt
+				from api_log_write_hour_group where regdate like #{year} ||'%' group by regdate
+				) 
+			group by regdate 
+			union 
+			select substr(call_dt, 0, 6) as regdate, nvl(sum(call_cnt),0) as pagevnt 
+			from srv_log_daily 
+			where ((f_class_1_cd in ('D0', 'I0')) or (f_class_1_cd = 'A0'	and f_class_2_cd = '04') or (f_class_1_cd = 'A0'	and f_class_2_cd = '15')or (f_class_1_cd = 'A0'	and f_class_2_cd = '05'	and f_class_3_cd = '09'	and f_class_4_cd = '00')) 
+			and call_dt like #{year} ||'%' 
+			and call_dt > '201904'
+			group by substr(call_dt, 0, 6)
+		)
+		group by regdate
+		 -->
+		 select substr(regdate,0,6) as regdate, sum(api_page_cnt)  as pageVnt
+			from api_log_write_daily
+			where regdate like #{year} || '%'
+			group by substr(regdate,0,6)
+		 
+
+		
+		
+	</select>
+	
+	<select id="getTotStatPopupView" parameterType="Map" resultType="Map">
+		<!-- 총괄page popup Data -->
+		
+		
+		<!-- 
+		select sum(pageviewcnt) as pageviewcnt, sum(visitviewcnt) as visitviewcnt, sum(apicnt) as apicnt
+		from
+		(
+			select 
+				nvl(sum(count),0) as pageviewcnt,
+				nvl(count(0),0) as visitviewcnt,
+				(select nvl(sum(hourly_call_cnt),0) from  root.srv_dt_apihourlystat where substr(call_hourly, 0,6) >= #{yearMonth} and substr(call_hourly, 0,6) <= #{yearMonth2}) as apicnt
+			from 
+				api_log_write_hour_group
+			where 
+				substr(regdate, 0, 6) >= #{yearMonth}
+			and substr(regdate, 0, 6) <= #{yearMonth2}
+			union
+			select  nvl(sum(call_cnt),0) , nvl(sum(visit_cnt),0) , 0
+			from srv_log_daily 
+			where ((f_class_1_cd in ('D0', 'I0')) or (f_class_1_cd = 'A0'	and f_class_2_cd = '04') or (f_class_1_cd = 'A0'	and f_class_2_cd = '15')or (f_class_1_cd = 'A0'	and f_class_2_cd = '05'	and f_class_3_cd = '09'	and f_class_4_cd = '00')) 
+			and substr(call_dt, 0, 6) >= #{yearMonth}
+			and substr(call_dt, 0, 6) <= #{yearMonth2}
+			and call_dt > '201904'
+		)
+		 -->
+		
+		<![CDATA[
+		select sum(api_page_cnt) as pageviewcnt, sum(api_visit_cnt) as visitviewcnt, sum(open_api_cnt) as apicnt
+		from api_log_write_daily
+		where 
+			substr(regdate, 0, 6) >= #{yearMonth}
+		and substr(regdate, 0, 6) <= #{yearMonth2}
+
+		
+		]]>
+		
+		
+		
+		
+	</select>
+	
+	<select id="getServiceUseView" parameterType="Map" resultType="Map">
+		<!-- 서비스별 이용현황 -->
+		<!-- 
+			select 
+				tot.type,
+				case when tot.type = 'K1' then '통계커뮤니티맵 모바일'
+				when tot.type = 'K3' then '통계커뮤니티맵 웹 등록'
+				when tot.type = 'K4' then '통계커뮤니티맵 모바일 등록'
+				when tot.type = 'K0' then '통계커뮤니티맵'
+				else b_code_nm
+				end b_code_nm,
+				count(0) as visitview, sum(count)as pageview, nvl(monthuse.visitview,0) as monthvisitview, nvl(monthuse.pageview,0) as monthpageview
+			from 
+				api_log_write_hour_group tot
+			left outer join
+				(
+					select substr(regdate,0,6) as regdate, type, count(0) as visitview, sum(count)as pageview from api_log_write_hour_group where substr(regdate,0,6) = #{yearMonth} group by substr(regdate,0,6), type
+				) as monthuse
+				on tot.type = monthuse.type
+			left outer join
+				api_log_write_code code
+				on tot.type = code.b_code
+				and tot.api_id = code.s_code
+			group by tot.type, monthuse.visitview, monthuse.pageview,code.b_code_nm
+
+ -->
+ 
+	<!-- 	 	select 
+				substr(regdate,0,6) regdate, type, count(0) as monthvisitview, sum(count)as monthpageview 
+			from api_log_write_hour_group 
+			where 
+				regdate like #{yearMonth} || '%' 
+			group by substr(regdate,0,6), type
+			union	
+			select #{yearMonth} as regdate, f_class_1_cd as type, sum(visit_cnt) as monthvisitview, sum(call_cnt)as monthpageview from srv_log_daily
+			where f_class_1_cd in ('D0', 'I0') 
+			and call_dt > '201904'
+			and substr(call_dt, 0, 6) = #{yearMonth}
+			group by f_class_1_cd
+			union
+			select #{yearMonth} as regdate, 'MAINCLICKLOG' as type, sum(visit_cnt) as monthvisitview, sum(call_cnt)as monthpageview from srv_log_daily
+			where f_class_1_cd = 'A0'
+			and f_class_2_cd = '04'
+			and call_dt > '201904'
+			and substr(call_dt, 0, 6) = #{yearMonth}
+			union
+			select #{yearMonth} as regdate, 'EVENT' as type, sum(visit_cnt) as monthvisitview, sum(call_cnt)as monthpageview from srv_log_daily
+			where f_class_1_cd = 'A0'
+			and f_class_2_cd = '15'
+			and call_dt > '201904'
+			and substr(call_dt, 0, 6) = #{yearMonth}
+			union
+			select #{yearMonth} as regdate, 'PUBLIC' as type, sum(visit_cnt) as monthvisitview, sum(call_cnt)as monthpageview from srv_log_daily
+			where f_class_1_cd = 'A0'
+			and f_class_2_cd = '05'
+			and f_class_3_cd = '09'
+			and f_class_4_cd = '00'
+			and call_dt > '201904'
+			and substr(call_dt, 0, 6) = #{yearMonth}
+	 -->
+	 
+	 <![CDATA[
+	   select type, sum(monthpageview) as monthpageview, sum(monthvisitview) as monthvisitview
+	from
+		(
+		select
+			regdate, type || '' as type, 
+			sum(monthpageview) as monthpageview, sum(monthvisitview) as monthvisitview
+		from
+			(
+			select 
+				regdate,
+				case 	
+					when type = 'F0' then '헤더 클릭 로그'
+					when type = 'G0' then '메인페이지 클릭 로그'
+					when type = 'A0' then '대화형통계지도'
+					when type = 'C0' then '통계주제도'
+					when type = 'D4' then '인구피라미드'
+					when type = 'D1' then '지방의변화보기'
+					when type = 'D2' then '월간통계'
+					when type = 'E1' or type = 'I0' then '통계지도체험'
+					when type = 'D3' then '고령화현황보기'
+					when type = 'D5' then '성씨분포'
+					when type = 'N0' then '개발자지원센터'
+					when type = 'O0' then '도움말'
+					
+					--mng_s 20201019 이진호
+					--SRV_O0는 개편된 모바일, SRV_O0_M0는 개편된 모바일 일자리맵
+					--when type = 'L0' or type = 'K4' or type = 'K1' or type = 'SRV_M0' then '도움말'
+					when type = 'L0' or type = 'K4' or type = 'K1' or type = 'SRV_M0' or type = 'SRV_O0' or type = 'SRV_O0_M0' then '도움말'
+					--mng_e 20201019 이진호
+					
+					when type = 'K0' or type = 'K3' then '지역현안 소통지도'				
+					when type = 'E2' then '자료신청'
+					when type = 'H0' then '검색'
+					when type = 'S0' then '정책통계지도'
+					when type = 'T0' then '기술업종통계지도'
+					when type = 'R0' or type = 'EVENT'  then '이벤트'
+					when type = 'Q0' then 'SGIS에듀'
+					when type = 'P0' then '홍보동영상'
+					when type = 'U0' or type = 'PUBLIC' then '공개강의실'
+					when type = 'B0' then '생활업종통계지도'
+					when type = 'J0' then '살고싶은우리동네'
+					when type = 'MAINCLICKLOG' then '메인페이지 클릭 로그'
+					when type = 'D0' then '일자리맵'
+					
+					--mng_s 20200324 이진호  / api_log의 'M0' 와 구분하기 위해 모바일 일자리 맵은 'SRV_M0'로 임시 선언
+					when type = 'SRV_M0' then '모바일 일자리 맵'
+					--mng_e 20200324 이진호
+					
+					--mng_s 20200226 이진호 / My통계로 type이 원래는 'N0' 인데 위 개발자지원센터의 type값도 'N0'이기 때문에 임시로 My통계로를 'SRV_N0' 로 명시함.
+					when type = 'SRV_N0' then 'My통계로'
+					--mng_e 20200226 이진호
+					
+					--mng_s 20201019 이진호 / SRV_O0 : 모바일 개편(일자리맵 제외), SRV_O0_M0 : 모바일 개편(일자리맵 포함)
+					when type = 'SRV_O0' then '모바일 개편(일자리맵 제외)'
+					when type = 'SRV_O0_M0' then '모바일 개편(일자리맵 포함)'
+					--mng_e 20201019 이진호
+					
+					--mng_s 20201102 이진호 / 홍보동영상도 'P0' 이기 때문에 총조사 시각화는 'SRV_P0'로 임시 선언
+					when type = 'SRV_P0' then '총조사 시각화'
+					--mng_e 20201102 이진호
+					
+					--mng_s 20210319 이진호 / SGIS 에듀 도 'Q0' 이기 때문에 생활권역 통계지도는 'SRV_Q0'로 임시 선언
+					when type = 'SRV_Q0' then '생활권역 통계지도'
+					--mng_e 20201102 이진호
+					
+					--mng_s 20220210 이진호 / 개발지원센터 : f_class_1_cd = 'A0', f_class_2_cd = '07'
+					when type = 'SRV_A0_07' then '개발자지원센터'
+					--mng_e 20220210 이진호
+					
+					--mng_s 20220217 이진호 / 정책통계지도도 'S0' 이기 때문에 행정통계 시각화지도는 'SRV_S0'로 선언
+					when type = 'SRV_S0' then '행정통계 시각화지도'
+					--mng_e 20220217 이진호
+					
+					--mng_s 20220217 이진호 / 이벤트도 'R0' 이기 때문에 도시화 분석 지도는 'SRV_R0'로 선언
+					when type = 'SRV_R0' then '도시화 분석 지도'
+					--mng_e 20220217 이진호
+				end as type_nm,
+				case 
+				
+					--mng_s 20200324 이진호 / 모바일 일자리 맵도 모바일 방문자 통계에 합산하여 들어가기 위해 'SRV_M0'  추가
+					
+					--mng_s 20201019 이진호
+					--when type = 'L0' or type = 'K4' or type = 'K1' or type = 'SRV_M0' then 'L0'
+					when type = 'L0' or type = 'K4' or type = 'K1' or type = 'SRV_M0' or type = 'SRV_O0' or type = 'SRV_O0_M0' then 'L0'
+					--mng_e 20201019 이진호
+					
+					--mng_e 20200324 이진호
+					
+					
+					
+					when type = 'K0' or type = 'K3' then 'K0'	
+					when type = 'R0' or type = 'EVENT'  then 'R0'			
+					when type = 'E1' or type = 'I0' then 'E1'
+					when type = 'U0' or type = 'PUBLIC' then 'U0'
+					else type
+				end type,
+				monthpageview,
+				monthvisitview
+			from 
+			(
+				select #{yearMonth} as regdate, a.type || '' as type, count(0) as monthvisitview, sum(count)as monthpageview
+				from api_log_write_hour_group with (nolock) a , (select distinct b_code from api_log_write_code with (nolock)) b
+				where a.type = b.b_code
+				and a.regdate like #{yearMonth} || '%' 
+				and (
+				a.type <> 'M0'
+				--mng_s 20201019 이진호 / 모바일 개편으로 인해 제외처리
+				and a.type <> 'L0'
+				and a.type <> 'K4'
+				and a.type <> 'K1'
+				--mng_s 20220210 이진호 / 개발지원센터 예외 처리 아래에서 union으로 추가
+				and a.type <> 'N0'
+				--mng_e 20220210 이진호
+				)
+ 				--mng_e 20201019 이진호
+				
+				group by a.type
+				
+				--mng_s 20220210 이진호 / 개발지원센터 'N0' 따로 처리
+				--개발지원센터는 2022년1월까진 APILOG 조회, 2022년 2월 부터는 SRVLOG 조회 하기로 하였음
+				union
+				select #{yearMonth} as regdate, a.type || '' as type, count(0) as monthvisitview, sum(count)as monthpageview
+				from api_log_write_hour_group with (nolock) a , (select distinct b_code from api_log_write_code with (nolock)) b
+				where a.type = b.b_code
+				and a.regdate like #{yearMonth} || '%' 
+				and a.type = 'N0'
+				and substr(a.regdate,0,6) < '202202'
+				group by a.type
+				--mng_e 20220210 이진호
+				
+				--mng_s 20220210 이진호 / 개발지원센터 srvLog 추가
+				--개발지원센터는 2022년1월까진 APILOG 조회, 2022년 2월 부터는 SRVLOG 조회 하기로 하였음
+				union
+				select #{yearMonth} as regdate, 'SRV_A0_07' as type, sum(visit_cnt) as monthvisitview, sum(call_cnt) as monthpageview from srv_log_daily with (nolock)
+				where f_class_1_cd = 'A0'
+				and f_class_2_cd = '07'
+				and call_dt > '20220131'
+				and call_dt like #{yearMonth} || '%'
+				group by f_class_1_cd
+				--mng_e 20220210 이진호
+				
+				--mng_s 20220217 이진호 / 도시화 분석 지도
+				union
+				select #{yearMonth} as regdate, 'SRV_R0' as type, sum(visit_cnt) as monthvisitview, sum(call_cnt) as monthpageview from srv_log_daily with (nolock)
+				where f_class_1_cd = 'R0'
+				and call_dt like #{yearMonth} || '%'
+				group by f_class_1_cd
+				--mng_e 20220217 이진호
+				
+				--mng_s 20220217 이진호 / 행정통계 시각화지도
+				union
+				select #{yearMonth} as regdate, 'SRV_S0' as type, sum(visit_cnt) as monthvisitview, sum(call_cnt) as monthpageview from srv_log_daily with (nolock)
+				where f_class_1_cd = 'S0'
+				and call_dt like #{yearMonth} || '%'
+				group by f_class_1_cd
+				--mng_e 20220217 이진호
+				
+				--mng_s 20210319 이진호 / 생활권역 통계지도
+				union
+				select #{yearMonth} as regdate, 'SRV_Q0' as type, sum(visit_cnt) as monthvisitview, sum(call_cnt) as monthpageview from srv_log_daily with (nolock)
+				where f_class_1_cd = 'Q0'
+				and call_dt like #{yearMonth} || '%'
+				group by f_class_1_cd
+				--mng_e 20210319 이진호
+				
+				--mng_s 20201102 이진호 / 총조사 시각화
+				union
+				select #{yearMonth} as regdate, 'SRV_P0' as type, sum(visit_cnt) as monthvisitview, sum(call_cnt) as monthpageview from srv_log_daily with (nolock)
+				where f_class_1_cd = 'P0'
+				and call_dt like #{yearMonth} || '%'
+				group by f_class_1_cd
+				--mng_e 20201102 이진호
+				
+				--mng_s 20201019 이진호 / 'L0', 'K1', 'K4' 제외한 항목 따로 찾아서 union 처리, 201910
+				union
+				select 
+					#{yearMonth} as regdate, 
+					type || '' as type, count(0) as monthvisitview, sum(count)as monthpageview 
+				from api_log_write_hour_group with (nolock)
+				where 
+					regdate like #{yearMonth} || '%'
+					and regdate < '20200917'
+				and type in ('L0', 'K1', 'K4')
+				group by type
+				
+				--mng_s 20201019 이진호 / 모바일 개편 로그
+				union
+				--하단 select : 개편 모바일 일자리맵 제외 
+				select #{yearMonth} as regdate, 'SRV_O0' as type, sum(visit_cnt) as monthvisitview, sum(call_cnt) as monthpageview from srv_log_daily with (nolock)
+				where f_class_1_cd = 'O0'
+				and call_dt > '20200915'
+				and call_dt like #{yearMonth} || '%'		
+				and f_class_2_cd not in ('04', '05', '06')
+				group by f_class_1_cd
+				
+				--하단 select : 개편 모바일 일자리맵 만
+				union
+				select #{yearMonth} as regdate, 'SRV_O0_M0' as type, sum(visit_cnt) as monthvisitview ,sum(call_cnt) as monthpageview from srv_log_daily with (nolock)
+				where f_class_1_cd = 'O0'
+				and call_dt > '20200915'
+				and call_dt like #{yearMonth} || '%'
+				and f_class_2_cd in ('04', '05', '06')
+				group by f_class_1_cd
+			
+				--mng_e 20201019 이진호
+				
+				--mng_s 20200324 이진호
+				--api_log에 'M0'가 있기 때문에 모바일 일자리맵은 'SRV_M0'로 임시 변경
+				union
+				select #{yearMonth} as regdate, 'SRV_M0' as type, nvl(sum(visit_cnt),0) as monthvisitview, nvl(sum(call_cnt),0) as monthpageview from srv_log_daily with (nolock)
+				where f_class_1_cd = 'M0'
+				and call_dt > '202001'
+				and call_dt < '20200917'
+				and call_dt like #{yearMonth} || '%'
+				and 
+				((f_class_2_cd = '09' and f_class_3_cd = '01') or 
+				(f_class_2_cd = '09' and f_class_3_cd = '05' and f_class_4_cd = '01') or
+				(f_class_2_cd = '10' and f_class_3_cd = '01') or
+				(f_class_2_cd = '11' and f_class_3_cd = '01'))
+				group by f_class_1_cd
+				--mng_e 20200324 이진호
+				
+				--mng_s 20200226 이진호 / My통계로 type이 원래는 'N0' 인데 위 개발자지원센터의 type값도 'N0'이기 때문에 임시로 My통계로를 'SRV_N0' 로 명시함.
+				union	
+				select #{yearMonth} as regdate, 'SRV_N0' as type, sum(visit_cnt) as monthvisitview, sum(call_cnt)as monthpageview  from srv_log_daily with (nolock)
+				where f_class_1_cd = 'N0'
+				and call_dt > '201904'
+				and call_dt like #{yearMonth} || '%'
+				group by f_class_1_cd
+				--mng_e 20200226 이진호
+				
+				union	
+				select #{yearMonth} as regdate, f_class_1_cd as type, sum(visit_cnt) as monthvisitview, sum(call_cnt)as monthpageview from srv_log_daily with (nolock)
+				where f_class_1_cd in ('D0', 'I0') 
+				and call_dt > '201904'
+				and call_dt like #{yearMonth} || '%'
+				group by f_class_1_cd
+				union
+				select #{yearMonth} as regdate, 'MAINCLICKLOG' as type, sum(visit_cnt) as monthvisitview, sum(call_cnt)as monthpageview from srv_log_daily with (nolock)
+				where f_class_1_cd = 'A0'
+				and f_class_2_cd = '04'
+				and call_dt > '201904'
+				and call_dt like #{yearMonth} ||'%'
+				union
+				select #{yearMonth} as regdate, 'EVENT' as type, sum(visit_cnt) as monthvisitview, sum(call_cnt)as monthpageview from srv_log_daily with (nolock)
+				where f_class_1_cd = 'A0'
+				and f_class_2_cd = '15'
+				and call_dt > '201904'
+				and call_dt < '201910'
+				and call_dt like #{yearMonth} || '%'
+				union
+				select #{yearMonth} as regdate, 'PUBLIC' as type, sum(visit_cnt) as monthvisitview, sum(call_cnt)as monthpageview from srv_log_daily with (nolock)
+				where f_class_1_cd = 'A0'
+				and f_class_2_cd = '05'
+				and f_class_3_cd = '09'
+				and f_class_4_cd = '00'
+				and call_dt > '201904'
+				and call_dt like #{yearMonth}||'%'
+			)
+			order by monthpageview
+		)
+		group by regdate, type
+	
+		union
+	
+		select #{yearMonth} as regdate, type, sum(monthpageview), sum(monthvisitview) from (
+			select
+				case 
+					when ( parameter not like '%/view/member%' and parameter like '%/view/index%' ) 													then '메인페이지'	-- 메인페이지
+					when ( parameter not like '%/view/member%' and parameter like '%/view/common/serviceMain%' )										then '활용서비스 메인'	-- 메인>활용서비스 메인
+					when ( parameter not like '%/view/member%' and parameter like '%/view/common/analMapMain%' ) 										then '분석지도 메인'	-- 메인>분석지도 메인
+					when ( parameter not like '%/view/member%' and (parameter like '%/view/map/interactiveMap%' or parameter like '%/view/indoor%') ) 	then 'A0'	-- 대화형통계지도
+					when ( parameter not like '%/view/member%' and parameter like '%/view/thematicMap%' ) 												then 'C0'	-- 통계주제도
+					when ( parameter not like '%/view/member%' and parameter like '%/view/house/houseAnalysisMap%' ) 									then 'J0'	-- 살고싶은우리동네
+					when ( parameter not like '%/view/member%' and parameter like '%/view/bizStats/bizStatsMap%' ) 									then 'B0'	-- 생활업종통계지도
+					when ( parameter not like '%/view/member%' and parameter like '%/view/community%' ) 												then 'K0'	-- 지역현안소통지도
+					when ( parameter not like '%/view/member%' and parameter like '%/jsp/pyramid%' ) 													then 'D4'	-- 인구피라미드
+					when ( parameter not like '%/view/member%' and parameter like '%/jsp/share/useBoard%' ) 											then '우수활용사례'	-- 우수활용사례
+					when ( parameter not like '%/view/member%' and parameter like '%/view/board/sopBoardMain%' ) 										then '알림마당 메인'	-- 알림마당>알림마당 메인
+					when ( parameter not like '%/view/member%' and parameter like '%/view/board/sopIntro%' ) 											then 'SGIS+소개'	-- 알림마당>SGIS+소개
+					when ( parameter not like '%/view/member%' and parameter like '%/view/board/expAndNotice%' ) 										then '설명과 공지'	-- 알림마당>설명과 공지
+					when ( parameter not like '%/view/member%' and parameter like '%/contents/shortcut/shortcut_05%' ) 								then 'E2'	-- 알림마당>자료신청
+					when ( parameter not like '%/view/member%' and (parameter like '%/view/board/qna%' or parameter like '%/view/board/faq%') ) 		then '질문과 개선요청'	-- 알림마당>질문과 개선요청
+					when ( parameter not like '%/view/member%' and parameter like '%/view/common/searchList%' ) 										then 'H0'	-- 검색
+					when ( parameter not like '%/view/member%' and parameter like '%/view/mypage%' ) 													then '마이페이지'	-- 마이페이지
+					when ( parameter not like '%/view/member%' and parameter like '%/view/technicalBiz%' ) 											then 'T0'	-- 기술업종통계지도
+					when ( parameter not like '%/view/member%' and parameter like '%/view/map/policyStaticMap%' )										then 'S0'	-- 정책통계지도
+					when ( parameter not like '%/view/member%' and parameter like '%/view/gallery%' )													then '통계갤러리'	-- 통계갤러리
+					when (                                         parameter like '%/view/member%' ) 													then '로그인'	-- 로그인
+					else '기타'
+				end as type ,
+				sum(count) as  monthpageview, count(1) as monthvisitview	
+			from
+				api_log_write_hour_group with (nolock)
+			where
+				type = 'M0' 
+				and regdate like #{yearMonth} || '%'
+		group by parameter
+		) group by type
+	)
+	group by type
+	 
+	 ]]>
+	 
+
+	</select>
+	
+	
+	
+	<select id="getPopSearchCondiView" parameterType="Map" resultType="Map">
+		<!-- 대화형통계지도 인기검색조건 -->
+		
+			select top 20 tot.title as tottitle, tot.cnt as totcnt, mon.title as montitle, nvl(mon.cnt, 0) as  moncnt 
+			from 
+			(
+					select count(0) cnt, title 
+					from pop_search_condi
+					where to_char(regdate, 'yyyy') =  #{year}
+					group by title
+			) tot
+			join 
+					(
+						select to_char(regdate, 'yyyymm'), count(0) cnt, title from pop_search_condi
+						where to_char(regdate, 'yyyymm') =  #{yearMonth}
+						group by to_char(regdate, 'yyyymm'), title
+						order by cnt desc
+					) mon
+			on	tot.title = mon.title	
+			order by moncnt desc, totcnt desc
+
+	</select>
+	
+	
+	<select id="getNewStatCommUseStat" parameterType="Map" resultType="Map">
+		<!-- 신규 통계커뮤니티맵View  -->
+		<!-- 
+		select  map.cmmnty_map_id, map.cmmnty_map_nm,  nvl(poi.cnt,0) as ppl_cnt, nvl(poi.sumcnt, 0) take_cnt
+		, map.usr_id, mem.member_nm, map.reg_date
+		from 
+		srv_dt_cmmnty_map map
+		left outer join (
+		select cmmnty_map_id, count(0) cnt, sum(cnt) as sumcnt
+						from (
+							select cmmnty_map_id, count(0) as cnt, usr_id
+							from 
+								SRV_DT_CMMNTY_POI poi
+							where del_yn ='N'
+							group by cmmnty_map_id, usr_id
+							)
+							group by cmmnty_map_id)poi
+		on map.cmmnty_map_id = poi.cmmnty_map_id
+		join srv_dt_memberinfo mem
+		on map.usr_id = mem.member_id
+		 where to_date(reg_date) > add_months(sysdate, -2)
+		order by map.reg_date desc, map.cmmnty_map_id desc
+		 -->
+
+	select  
+			(SELECT COUNT(1) FROM SRV_DT_CMMNTY_POI WHERE map.CMMNTY_MAP_ID = SRV_DT_CMMNTY_POI.CMMNTY_MAP_ID AND SRV_DT_CMMNTY_POI.DEL_YN = 'N') AS take_cnt,
+			CASE WHEN CMMNTY_PARTCPTN_GRANT_YN = 'Y' 
+			THEN (SELECT COUNT(1) FROM SRV_DT_CMMNTY_APPROVAL WHERE map.CMMNTY_MAP_ID = SRV_DT_CMMNTY_APPROVAL.CMMNTY_MAP_ID AND APPROVAL_DISTINCT LIKE '%A%') 
+			WHEN CMMNTY_PARTCPTN_GRANT_YN = 'M' THEN (SELECT COUNT(1) FROM SRV_DT_CMMNTY_MAP_REG_MBER_LIST WHERE map.CMMNTY_MAP_ID = SRV_DT_CMMNTY_MAP_REG_MBER_LIST.CMMNTY_MAP_ID) 
+			ELSE (SELECT COUNT(DISTINCT USR_ID) FROM SRV_DT_CMMNTY_POI WHERE map.CMMNTY_MAP_ID = SRV_DT_CMMNTY_POI.CMMNTY_MAP_ID) END AS ppl_cnt,
+			 map.cmmnty_map_id, map.cmmnty_map_nm, map.usr_id, map.reg_date, mem.member_nm
+		from 
+		SRV_DT_CMMNTY_MAP map
+		join srv_dt_memberinfo mem
+		on map.usr_id = mem.member_id
+		 where to_date(reg_date) > add_months(sysdate, -2)
+		order by map.reg_date desc, map.cmmnty_map_id desc
+		
+				
+		
+	</select>
+	
+	<select id="getMenuView" parameterType="Map" resultType="Map">
+		<!-- 각 서비스별 munuView  -->
+		<!-- 
+		select 
+			tot.api_id,  code.s_code_nm, count(0) as visitview, sum(count)as pageview, nvl(monthuse.visitview,0) as monthvisitview, nvl(monthuse.pageview,0) as monthpageview, code.bigo
+		from 
+			api_log_write_hour_group tot
+		left outer join
+			(
+				select substr(regdate,0,6) as regdate, api_id, count(0) as visitview, sum(count)as pageview from api_log_write_hour_group where substr(regdate,0,6) = #{yearMonth} group by substr(regdate,0,6), api_id
+			) as monthuse
+			on tot.api_id = monthuse.api_id
+		left outer join api_log_write_code code
+			on tot.type = code.b_code
+			and tot.api_id = code.s_code
+		where 1=1
+			and	type = #{type}
+			and code.gubun_1 = 'M'
+		group by tot.api_id, code.s_code_nm, monthuse.visitview, monthuse.pageview, code.bigo
+		 -->
+		 
+		 select state.api_id, code.s_code_nm, yearvisitview as visitview, yearpageview as pageview, monthvisitview, monthpageview, code.bigo
+		from
+		(
+			select sum(yearpageview) as yearpageview, sum(yearvisitview) as yearvisitview, sum(monthpageview) as monthpageview, sum(monthvisitview) as monthvisitview, api_id
+			from
+			(
+				select sum(count) as yearpageview, count(count) as yearvisitview, '0' as monthpageview, '0' as monthvisitview, api_id from api_log_write_hour_group where regdate like #{year} ||'%' and type = #{type}
+				group by api_id
+				union
+				select '0', '0' ,sum(count) as monthpageview, count(count) as monthvisitview, api_id from api_log_write_hour_group where regdate like #{yearMonth} || '%' and type = #{type}
+				group by api_id
+			)	
+			group by api_id) state
+		join	(select * from api_log_write_code where gubun_1 = 'M') code 
+		on state.api_id = code.s_code
+		 
+		 
+	</select>
+	
+	
+	
+	<select id="getPolicyStaticMapMenu" parameterType="Map" resultType="Map">
+	<![CDATA[
+		select mon_gubun_1_nm, mon_gubun_1, sum(mon_page_cnt) as mon_page_cnt , sum(mon_visit_cnt)as mon_visit_cnt, sum(year_page_cnt) as year_page_cnt, sum(year_visit_cnt) as year_visit_cnt
+			from (
+			select case when gubun_1 = 'P' then '인구의 변화'
+						when gubun_1 = 'F' then '가구 및 주택 변화'
+						when gubun_1 = 'B' then '사업체 변화'
+						when gubun_1 = 'C' then '융합' 
+						when gubun_1 = 'L' then '지역별 정책지도' 
+						when gubun_1 = 'JP01' then '인구,가구,주택' 
+						when gubun_1 = 'JP02' then '보건,복지' 
+						when gubun_1 = 'JP03' then '교육문화' 
+						when gubun_1 = 'JP04' then '고용,소득,소비' 
+						when gubun_1 = 'JP05' then '산업,생산' 
+						when gubun_1 = 'JP06' then '환경,안전' 
+						end as mon_gubun_1_nm,
+			gubun_1 as mon_gubun_1
+			, sum(a.count) as mon_page_cnt , count(0) as mon_visit_cnt , 0 as year_page_cnt, 0 as year_visit_cnt from api_log_write_hour_group a
+			left outer join api_log_write_code code
+			on a.api_id = code.s_code
+			where a.type = #{type}
+			and gubun_1 is not null
+			and substr(regdate, 0, 6) =  #{yearMonth} 
+			group by gubun_1
+			union
+			select case when gubun_1 = 'P' then '인구의 변화'
+						when gubun_1 = 'F' then '가구 및 주택 변화'
+						when gubun_1 = 'B' then '사업체 변화'
+						when gubun_1 = 'C' then '융합' 
+						when gubun_1 = 'L' then '지역별 정책지도'
+						when gubun_1 = 'JP01' then '인구,가구,주택' 
+						when gubun_1 = 'JP02' then '보건,복지' 
+						when gubun_1 = 'JP03' then '교육문화' 
+						when gubun_1 = 'JP04' then '고용,소득,소비' 
+						when gubun_1 = 'JP05' then '산업,생산' 
+						when gubun_1 = 'JP06' then '환경,안전' 
+						 end as mon_gubun_1_nm,
+			gubun_1 as mon_gubun_1
+			, 0 as mon_page_cnt, 0 as mon_visit_cnt , sum(a.count) as year_page_cnt , count(0) as year_visit_cnt from api_log_write_hour_group a
+			left outer join api_log_write_code code
+			on a.api_id = code.s_code
+			where a.type = 'S0'
+			and gubun_1 is not null
+			and substr(regdate, 0, 4) = #{year}
+			group by gubun_1
+			)group by 
+			mon_gubun_1_nm, mon_gubun_1
+			]]>
+	</select>
+	
+	
+	<select id="getCommuniteMobileMenuView" parameterType="Map" resultType="Map">
+		<!-- 각 서비스별 munuView  -->
+		select 
+			nvl(count(0),0) as totpageview, nvl(sum(count),0) totvisitview ,
+			(select count(0) from api_log_write_hour_group where type in ('K1','K4') and substr(regdate, 0, 6) = #{yearMonth}) as monpageview,
+			(select nvl(sum(count),0) from api_log_write_hour_group where type in ('K1','K4') and substr(regdate, 0, 6) = #{yearMonth}) as monvisitview
+		from
+			api_log_write_hour_group 
+		where 
+			substr(regdate, 0, 4) = ${year}
+		and	type like 'K%'
+
+	</select>
+	
+	<!-- mng_s 20200323 이진호 -->
+	<!-- 모바일 이용현황에 일자리맵 추가 -->
+	<select id ="getJobMobileMenuView" parameterType="Map" resultType="Map">
+	<!--  일자리맵 menuView -->
+	select A.*, B.* 
+	from
+	(
+	select nvl(sum(call_cnt),0) as monpageview, nvl(sum(visit_cnt), 0) as monvisitview
+		 from srv_log_daily
+		 where substr(call_dt,1,6) > '201912'
+			and substr(call_dt,1,6)  like #{yearMonth} ||'%'
+			and f_class_1_cd = 'M0'
+			and (
+			(f_class_2_cd = '09' and f_class_3_cd = '01') or 
+			(f_class_2_cd = '09' and f_class_3_cd = '05' and f_class_4_cd = '01') or
+			(f_class_2_cd = '10' and f_class_3_cd = '01') or
+			(f_class_2_cd = '11' and f_class_3_cd = '01')
+			)
+	)A,
+	
+	(
+	select nvl(sum(call_cnt),0) as totpageview, nvl(sum(visit_cnt), 0) as totvisitview
+	from srv_log_daily
+		 where  substr(call_dt,1,4) >= '2020'
+		 	and substr(call_dt,1,4)  like #{year} ||'%'
+			and f_class_1_cd = 'M0'
+			and (
+			(f_class_2_cd = '09' and f_class_3_cd = '01') or 
+			(f_class_2_cd = '09' and f_class_3_cd = '05' and f_class_4_cd = '01') or
+			(f_class_2_cd = '10' and f_class_3_cd = '01') or
+			(f_class_2_cd = '11' and f_class_3_cd = '01')
+			)
+	)B
+	
+	</select>
+	<!-- mng_e 20200323 이진호 -->
+	
+	
+	
+	<select id="getThemaCondi" parameterType="Map" resultType="Map">
+		<!-- 각 서비스별 munuView  -->
+		select 
+			top 20
+			mon.regdate,
+			mon.condition as moncondition,
+			nvl(mon.cnt, 0) as moncnt,
+			yr.condition as yrcondition,
+			yr.cnt as yrcnt
+		from
+		(
+			select 
+				to_char(regdate, 'yyyymm') as regdate,
+				condition,
+				count(0) as cnt
+			from thema_condi 
+			where to_char(regdate, 'yyyymm') = #{yearMonth} 
+			group by to_char(regdate, 'yyyymm'), condition
+		) mon
+		right join
+		(
+		select 
+			to_char(regdate, 'yyyy') as regdate,
+			condition,
+			count(0) cnt
+		from thema_condi 
+		where to_char(regdate, 'yyyy') =  #{year} 
+		group by to_char(regdate, 'yyyy'), condition
+		) yr
+		on mon.condition = yr.condition
+		order by moncnt desc, yrcnt desc
+	</select>
+	
+	<select id="getPopCondi" parameterType="Map" resultType="Map">
+		<!-- 인기도 munuView  -->
+			select 
+					top 20
+					condition
+				   ,nvl(min(decode(type, 'J01',cnt)),0) as J01
+				   ,nvl(min(decode(type, 'J02',cnt)),0) as J02
+				   ,nvl(min(decode(type, 'J01',cnt)),0) + nvl(min(decode(type, 'J02',cnt)),0) as totsum
+			from
+			(
+				select count(0) as cnt, condition,type  from house_analysis_map_condition
+				where to_char(regdate,'yyyymm')= #{yearMonth}
+				group by condition, type
+			)
+			group by condition
+			order by totsum desc
+	</select>
+	
+	<select id="getPopCondiMix" parameterType="Map" resultType="Map">
+		<!-- 인기지표조합(추천지역 찾기) -->
+			select 
+					top 20
+					yr.condition_mix as condition_mix, nvl(mon.cnt,0) as moncnt, nvl(yr.cnt,0) as yrcnt
+			from 
+				(
+				select 
+					condition_mix, count(0) as cnt
+				from 
+					house_analysis_map_condition_mix 
+				where to_char(regdate, 'yyyymm') = #{yearMonth}
+				group by condition_mix
+				) mon
+				right outer join
+				(
+					select 
+						condition_mix, count(0) as cnt
+					from 
+						house_analysis_map_condition_mix 
+					where to_char(regdate, 'yyyy') = #{year}
+					group by condition_mix
+				) yr
+					on mon.condition_mix = yr.condition_mix
+			order by yr.cnt desc
+
+	</select>
+	
+	<select id="getInterestArea" parameterType="Map" resultType="Map">
+		<!-- 인기관심지역 -->
+			select 
+				top 20
+				adm_nm
+				,nvl(min(decode(type, 'J01',cnt)),0) as J01
+				,nvl(min(decode(type, 'J02',cnt)),0) as J02
+			   ,nvl(min(decode(type, 'J01',cnt)),0) + nvl(min(decode(type, 'J02',cnt)),0) as totsum
+			from
+				(
+					select 
+						count(0) cnt, adm_nm, type,
+						to_char(regdate, 'yyyymm') as regdate
+					from
+						interest_Area
+					where to_char(regdate, 'yyyymm') = #{yearMonth}
+					group by adm_nm, type, to_char(regdate, 'yyyymm')
+				)
+			group by adm_nm
+			order by totsum desc
+
+	</select>
+	
+	<select id="getPopSearchTheme" parameterType="Map" resultType="Map">
+		<!-- 생활관심지역 인기검색 업종-->
+			select top 20 cnt, theme_nm from (
+				select count(0) as cnt, theme_nm from pop_search_theme
+							where to_char(regdate, 'yyyymm') = #{yearMonth}
+							group by theme_nm
+				)
+order by cnt desc
+
+	</select>
+	
+	<select id="getIntHighFunUseStat" parameterType="Map" resultType="Map">
+		<!-- 대화형통계지도 이용현황-->
+			select 
+			tot.api_id,  code.s_code_nm, count(0) as visitview, sum(count)as pageview, nvl(monthuse.visitview,0) as monthvisitview, nvl(monthuse.pageview,0) as monthpageview
+		from 
+			api_log_write_hour_group tot
+		left outer join
+			(
+				select substr(regdate,0,6) as regdate, api_id, count(0) as visitview, sum(count)as pageview from api_log_write_hour_group where substr(regdate,0,6) = #{yearMonth} group by substr(regdate,0,6), api_id
+			) as monthuse
+			on tot.api_id = monthuse.api_id
+		join api_log_write_code code
+			on tot.type = code.b_code
+			and tot.api_id = code.s_code
+		where 1=1
+			and	type = 'A0'
+			and gubun_1 = 'F'
+		group by tot.api_id, code.s_code_nm, monthuse.visitview, monthuse.pageview
+	</select>
+
+	<select id="getBizStatintPoi" parameterType="Map" resultType="Map">
+		<!-- 생활업종지도 인기 POI-->
+				select top 20 parameter as poi_nm, sum(yr_cnt) as yr_cnt, sum(mon_cnt) as mon_cnt
+				from 
+				(
+				select 
+					parameter, sum(count) as yr_cnt, 0 as mon_cnt
+				from 
+					api_log_write_hour_group
+				where 
+					substr(regdate, 0,4) = #{year}
+				and api_id = 'B17'
+				group by parameter
+				union
+				select 
+					parameter, 0, sum(count) as mon_cnt
+				from 
+					api_log_write_hour_group
+				where 
+					substr(regdate, 0,6) = #{yearMonth}
+				and api_id = 'B17'
+					group by parameter
+				)
+				group by parameter
+				order by mon_cnt desc
+
+
+	</select>
+	
+	<select id="getBizStatIntSear" parameterType="Map" resultType="Map">
+		<!-- 생활업종지도 인기 검색조건-->
+			select 
+			top 20
+			yr.title, nvl(mon.monthcnt,0) as moncnt, yearcnt from
+			(select title, count(0) as monthcnt from api_log_write_hour_group
+			where type = 'B0'
+			and api_id = 'B01'
+			and substr(regdate, 0, 6) = #{yearMonth}
+			group by title
+			) mon
+			right outer join
+			(
+			select title, count(0) as yearcnt from api_log_write_hour_group
+			where type = 'B0'
+			and api_id = 'B01'
+			and substr(regdate, 0, 4) = #{year}
+			group by title
+			) yr
+			on yr.title = mon.title
+			order by moncnt desc , yearcnt desc
+
+	</select>
+	
+	<select id="getIntCommMap" parameterType="Map" resultType="Map">
+		<!-- 통계커뮤니티맵 인기 커뮤니티맵-->
+		
+		<!-- 
+		select 
+			count(0) cnt, map.cmmnty_map_nm, map.reg_date, map.takecnt
+		from 
+			api_log_write_hour_group log
+		left outer join 
+				(
+					select cmmnty_map_nm, reg_date, cmmnty_map_id, 
+					(select count(0) from SRV_DT_CMMNTY_POI b where a.cmmnty_map_id = b.cmmnty_map_id and del_yn = 'N') as takecnt
+					from srv_dt_cmmnty_map a
+				) map
+				on to_char(map.cmmnty_map_id) = log.api_id
+		where type like 'K%'
+		and log.api_id != 'K01'
+		and substr(log.regdate, 0, 6) = #{yearMonth}
+		group by log.api_id, map.cmmnty_map_nm, map.reg_date, map.takecnt
+		order by cnt
+		 -->
+		 
+		 
+		 select 
+		 	top 20
+			count(0) cnt, map.cmmnty_map_nm, map.reg_date,
+			<!-- 2017.07.20 [개발팀] khc 참여수가 null일 경우 처리  start-->
+			nvl(map.takecnt,0) as takecnt
+			<!-- 2017.07.20 [개발팀] khc 참여수가 null일 경우 처리  end-->
+		from 
+			(	select * 
+				from api_log_write_hour_group 
+				where substr(regdate, 0, 6) = #{yearMonth}
+			)log
+		left outer join 
+				(
+					select cmmnty_map_nm, reg_date, cmmnty_map_id, 
+					
+					CASE
+					  WHEN CMMNTY_PARTCPTN_GRANT_YN = 'Y'				--공개일 경우
+					  THEN
+						 (SELECT COUNT (1)
+							FROM SRV_DT_CMMNTY_APPROVAL
+						   WHERE     A.CMMNTY_MAP_ID =
+										SRV_DT_CMMNTY_APPROVAL.CMMNTY_MAP_ID
+								 AND APPROVAL_DISTINCT LIKE '%A%')
+					  WHEN CMMNTY_PARTCPTN_GRANT_YN = 'M'					--회원테이블을 따로 가지고 있는 경우
+					  THEN
+						 (select count(0) from srv_dt_cmmnty_map_reg_mber_list where CMMNTY_MAP_ID = a.CMMNTY_MAP_ID)
+					  else
+						 (  SELECT COUNT (COUNT (USR_ID))
+							  FROM SRV_DT_CMMNTY_POI
+							 WHERE A.CMMNTY_MAP_ID = SRV_DT_CMMNTY_POI.CMMNTY_MAP_ID
+						  GROUP BY USR_ID)
+				   END
+					  AS takecnt
+					from srv_dt_cmmnty_map a
+				) map
+				on to_char(map.cmmnty_map_id) = log.api_id
+		where type like 'K%'
+		and log.api_id != 'K01'
+		group by log.api_id, map.cmmnty_map_nm, map.reg_date, map.takecnt
+		order by cnt desc
+		
+		
+
+	</select>
+	
+	<select id="getStatCommMobilUse" parameterType="Map" resultType="Map">
+		<!-- 모바일 이용현황 통계커뮤니티맵 -->
+		
+		select 
+			monk0cnt, monk1cnt, yrk0cnt, yrk1cnt, moncnt, yrcnt
+			,decode(monk0cnt, 0, 0,to_int((monk1cnt/(monk0cnt+monk1cnt))*100)) as biyul,
+			monk3cnt, monk4cnt, yrk3cnt, yrk4cnt, regmoncnt, regyrcnt
+			,decode(monk3cnt, 0, 0,to_int((monk4cnt/(monk3cnt+monk4cnt))*100)) as regbiyul
+		from 
+		(
+			select 
+				sum(monk0cnt) as monk0cnt, sum(monk1cnt) as monk1cnt, sum(yrk0cnt) as yrk0cnt, sum(yrk1cnt)as yrk1cnt
+				, sum(monk0cnt) + sum(monk1cnt) as moncnt
+				, sum(yrk0cnt) + sum(yrk1cnt) as yrcnt
+				
+				,sum(monk3cnt) as monk3cnt, sum(monk4cnt) as monk4cnt, sum(yrk3cnt) as yrk3cnt, sum(yrk4cnt)as yrk4cnt
+				, sum(monk3cnt) + sum(monk4cnt) as regmoncnt
+				, sum(yrk3cnt) + sum(yrk4cnt) as regyrcnt
+				
+			from 
+			(
+				select sum(decode(type, 'K0', 1, 0)) as monk0cnt, sum(decode(type, 'K1', 1, 0)) as monk1cnt, 0 as yrk0cnt, 0 as yrk1cnt  ,
+				sum(decode(type, 'K3', 1, 0)) as monk3cnt, sum(decode(type, 'K4', 1, 0)) as monk4cnt, 0 as yrk3cnt, 0 as yrk4cnt
+				from api_log_write_hour_group
+				where type in ('K0', 'K1', 'K3', 'K4')
+				and substr(regdate, 0, 6) = #{yearMonth}
+				union 
+				select 0 as monk0cnt, 0 as monk1cnt ,sum(decode(type, 'K0', 1, 0)) as yrk0cnt, sum(decode(type, 'K1', 1, 0)) as yrk1cnt,
+				0 as monk3cnt, 0 as monk4cnt ,sum(decode(type, 'K3', 1, 0)) as yrk3cnt, sum(decode(type, 'K4', 1, 0)) as yrk4cnt
+		from api_log_write_hour_group
+				where type in ('K0', 'K1', 'K3', 'K4')
+				and substr(regdate, 0, 4) = #{year}
+			)
+		)
+
+
+
+
+	</select>
+	
+	<select id="gethousePoiSear" parameterType="Map" resultType="Map">
+		<!-- 살고싶은 우리동네 이용현황 -->
+		select parameter, count(0) as cnt from api_log_write_hour_group
+		where type='J0'
+		and api_id = 'J03'
+		and substr(regdate, 0, 6) >= #{yearMonth}
+		group by parameter
+		
+		
+	</select>
+	
+	<select id="getTotStatPopupView2" parameterType="Map" resultType="Map">
+		<!-- SGIS플러스 이용현황 더보기2(일별) -->
+		<!-- 
+		<![CDATA[
+		
+			select to_char(to_date(regdate), 'yyyy-mm-dd') as regdate, sum(pageviewcnt) as pageviewcnt, sum(visitviewcnt) as visitviewcnt, sum(apicnt ) as apicnt
+			from 
+			(
+				select 
+					substr(regdate, 0, 8) as regdate,
+					nvl(sum(count),0) as pageviewcnt,
+					nvl(count(0),0) as visitviewcnt,
+					'0' as apicnt
+				from 
+					api_log_write_hour_group
+				where 
+					substr(regdate, 0, 8) >= #{year}
+				and substr(regdate, 0, 8) <= #{year2}
+				group by substr(regdate, 0, 8)
+			union 
+			select 
+				substr(call_dt, 0, 8) as regdate, 
+				nvl(sum(call_cnt),0) as pageviewcnt,   
+				nvl(sum(visit_cnt),0) as visitviewcnt ,
+				0
+			from srv_log_daily 
+			where f_class_1_cd in ('D0', 'I0') 
+			and substr(call_dt, 0, 8) >= #{year}
+			and substr(call_dt, 0, 8) <= #{year2}
+			and call_dt > '201904'
+			group by substr(call_dt, 0, 8)
+			union 
+			select 
+				substr(call_dt, 0, 8) as regdate, 
+				nvl(sum(call_cnt),0) as pageviewcnt,   
+				nvl(sum(visit_cnt),0) as visitviewcnt ,
+				0
+			from srv_log_daily 
+			where f_class_1_cd = 'A0'
+			and f_class_2_cd = '04'
+			and substr(call_dt, 0, 8) >= #{year}
+			and substr(call_dt, 0, 8) <= #{year2}
+			and call_dt > '201904'
+			group by substr(call_dt, 0, 8)
+			union 
+			select 
+				substr(call_dt, 0, 8) as regdate, 
+				nvl(sum(call_cnt),0) as pageviewcnt,   
+				nvl(sum(visit_cnt),0) as visitviewcnt ,
+				0
+			from srv_log_daily 
+			where f_class_1_cd = 'A0'
+			and f_class_2_cd = '15'
+			and substr(call_dt, 0, 8) >= #{year}
+			and substr(call_dt, 0, 8) <= #{year2}
+			and call_dt > '201904'
+			group by substr(call_dt, 0, 8)
+			union 
+			select 
+				substr(call_dt, 0, 8) as regdate, 
+				nvl(sum(call_cnt),0) as pageviewcnt,   
+				nvl(sum(visit_cnt),0) as visitviewcnt ,
+				0
+			from srv_log_daily 
+			where f_class_1_cd = 'A0'
+			and f_class_2_cd = '05'
+			and f_class_3_cd = '09'
+			and f_class_4_cd = '00'
+			and substr(call_dt, 0, 8) >= #{year}
+			and substr(call_dt, 0, 8) <= #{year2}
+			and call_dt > '201904'
+			group by substr(call_dt, 0, 8)
+			union
+				select substr(call_hourly, 0, 8) as regdate, 0, 0, sum(hourly_call_cnt) as apicnt 
+				from srv_dt_apihourlystat
+				where 
+					substr(call_hourly, 0, 8) >= #{year}
+				and substr(call_hourly, 0, 8) <= #{year2}
+				group by substr(call_hourly, 0, 8)
+			) 
+			group by to_char(to_date(regdate), 'yyyy-mm-dd')
+			order by regdate asc
+
+		]]>
+		 -->
+		 	<![CDATA[
+		 select substr(regdate, 0, 8) as regdate, sum(api_page_cnt) as pageviewcnt, sum(api_visit_cnt) as visitviewcnt, sum(open_api_cnt) as apicnt
+			from api_log_write_daily
+			where 
+				substr(regdate, 0, 8) >= #{year}
+			and substr(regdate, 0, 8) <= #{year2}
+			group by substr(regdate, 0, 8)
+					]]>
+				
+	</select>
+	
+	
+		
+	<select id="getDirectCallStat" parameterType="Map" resultType="Map">
+		<!-- SGIS플러스 서비스 직접호출 통계(기타는 제외 하기로 함) -->
+		<![CDATA[
+				
+	select
+		nvl(sum(servicegba1),0) as servicegba1,	-- 메인페이지
+		nvl(sum(servicegba2),0) as servicegba2,	-- 메인>활용서비스 메인
+		nvl(sum(servicegba3),0) as servicegba3,	-- 메인>분석지도 메인
+		0 as servicegba4,  					-- Header 클릭 로그
+		0 as servicegba5,  					-- 메인페이지 클릭 로그
+		nvl(sum(servicegba6),0) as servicegba6,   	-- 대화형통계지도
+		nvl(sum(servicegba7),0) as servicegba7,  	-- 통계주제도
+		nvl(sum(servicegba8),0) as servicegba8,   	-- 통계주제도
+		nvl(sum(servicegba9),0) as servicegba9,   	-- 생활업종통계지도
+		nvl(sum(servicegba10),0) as servicegba10,   -- 통계커뮤니티맵
+		nvl(sum(servicegba11),0) as servicegba11,   -- 인구피라미드
+		0 as servicegba12,   -- 지방의변화보기
+		0 as servicegba13,   -- 월간통계
+		0 as servicegba14,   -- 통계지도체험
+		0 as servicegba15,   -- 고령화현황보기
+		0 as servicegba16,   -- 성씨분포
+		nvl(sum(servicegba17),0) as servicegba17,   -- 우수활용사례
+		0 as servicegba18,   -- 개발지원센터
+		0 as servicegba19,   -- 도움말
+		0 as servicegba20,   -- 모바일
+		nvl(sum(servicegba21),0) as servicegba21,   -- 알림마당 메인
+		nvl(sum(servicegba22),0) as servicegba22,   -- SGIS+소개
+		nvl(sum(servicegba23),0) as servicegba23,   -- 설명과 공지
+		nvl(sum(servicegba24),0) as servicegba24,   -- 자료신청
+		nvl(sum(servicegba25),0) as servicegba25,   -- 질문과 개선요청
+		nvl(sum(servicegba26),0) as servicegba26,   -- 검색
+		nvl(sum(servicegba27),0) as servicegba27,   -- 마이페이지
+		nvl(sum(servicegba28),0) as servicegba28,   -- 로그인
+		nvl(sum(servicegba29),0) as servicegba29,   -- 기술업종통계지도
+		nvl(sum(servicegba30),0) as servicegba30,   -- 정책통계지도
+		nvl(sum(servicegba31),0) as servicegba31,   -- 통계갤러리
+		
+		
+		nvl(sum(servicegbb1),0) as servicegbb1,	-- 메인페이지
+		nvl(sum(servicegbb2),0) as servicegbb2,	-- 메인>활용서비스 메인
+		nvl(sum(servicegbb3),0) as servicegbb3,	-- 메인>분석지도 메인
+		0 as servicegbb4,  					-- Header 클릭 로그
+		0 as servicegbb5,  					-- 메인페이지 클릭 로그
+		nvl(sum(servicegbb6),0) as servicegbb6,   	-- 대화형통계지도
+		nvl(sum(servicegbb7),0) as servicegbb7,  	-- 통계주제도
+		nvl(sum(servicegbb8),0) as servicegbb8,   	-- 통계주제도
+		nvl(sum(servicegbb9),0) as servicegbb9,   	-- 생활업종통계지도
+		nvl(sum(servicegbb10),0) as servicegbb10,   -- 통계커뮤니티맵
+		nvl(sum(servicegbb11),0) as servicegbb11,   -- 인구피라미드
+		0 as servicegbb12,   -- 지방의변화보기
+		0 as servicegbb13,   -- 월간통계
+		0 as servicegbb14,   -- 통계지도체험
+		0 as servicegbb15,   -- 고령화현황보기
+		0 as servicegbb16,   -- 성씨분포
+		nvl(sum(servicegbb17),0) as servicegbb17,   -- 우수활용사례
+		0 as servicegbb18,   -- 개발지원센터
+		0 as servicegbb19,   -- 도움말
+		0 as servicegbb20,   -- 모바일
+		nvl(sum(servicegbb21),0) as servicegbb21,   -- 알림마당 메인
+		nvl(sum(servicegbb22),0) as servicegbb22,   -- SGIS+소개
+		nvl(sum(servicegbb23),0) as servicegbb23,   -- 설명과 공지
+		nvl(sum(servicegbb24),0) as servicegbb24,   -- 자료신청
+		nvl(sum(servicegbb25),0) as servicegbb25,   -- 질문과 개선요청
+		nvl(sum(servicegbb26),0) as servicegbb26,   -- 검색
+		nvl(sum(servicegbb27),0) as servicegbb27,   -- 마이페이지
+		nvl(sum(servicegbb28),0) as servicegbb28,   -- 로그인
+		nvl(sum(servicegbb29),0) as servicegbb29,   -- 정책통계지도
+		nvl(sum(servicegbb30),0) as servicegbb30,   -- 기술업종통계지도
+		nvl(sum(servicegbb31),0) as servicegbb31   -- 통계갤러리
+	from
+		(
+			select
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/index%' ) 													then sum(count) end servicegba1,	-- 메인페이지
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/common/serviceMain%' )										then sum(count) end servicegba2,	-- 메인>활용서비스 메인
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/common/analMapMain%' ) 										then sum(count) end servicegba3,	-- 메인>분석지도 메인
+				case when ( parameter not like '%/view/member%' and (parameter like '%/view/map/interactiveMap%' or parameter like '%/view/indoor%') ) 	then sum(count) end servicegba6,	-- 대화형통계지도
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/thematicMap%' ) 												then sum(count) end servicegba7,	-- 통계주제도
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/house/houseAnalysisMap%' ) 									then sum(count) end servicegba8,	-- 살고싶은우리동네
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/bizStats/bizStatsMap%' ) 									then sum(count) end servicegba9,	-- 생활업종통계지도
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/community%' ) 												then sum(count) end servicegba10,	-- 통계커뮤니티맵
+				case when ( parameter not like '%/view/member%' and parameter like '%/jsp/pyramid%' ) 													then sum(count) end servicegba11,	-- 인구피라미드
+				case when ( parameter not like '%/view/member%' and parameter like '%/jsp/share/useBoard%' ) 											then sum(count) end servicegba17,	-- 우수활용사례
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/board/sopBoardMain%' ) 										then sum(count) end servicegba21,	-- 알림마당>알림마당 메인
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/board/sopIntro%' ) 											then sum(count) end servicegba22,	-- 알림마당>SGIS+소개
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/board/expAndNotice%' ) 										then sum(count) end servicegba23,	-- 알림마당>설명과 공지
+				case when ( parameter not like '%/view/member%' and parameter like '%/contents/shortcut/shortcut_05%' ) 								then sum(count) end servicegba24,	-- 알림마당>자료신청
+				case when ( parameter not like '%/view/member%' and (parameter like '%/view/board/qna%' or parameter like '%/view/board/faq%') ) 		then sum(count) end servicegba25,	-- 알림마당>질문과 개선요청
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/common/searchList%' ) 										then sum(count) end servicegba26,	-- 검색
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/mypage%' ) 													then sum(count) end servicegba27,	-- 마이페이지
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/technicalBiz%'	 )											then sum(count) end servicegba30,	-- 기술업종통계지도
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/map/policyStaticMap%' )										then sum(count) end servicegba29,	-- 정책통계지도
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/gallery%' )													then sum(count) end servicegba31,	-- 통계갤러리
+				case when (                                         parameter like '%/view/member%' ) 													then sum(count) end servicegba28,	-- 로그인
+				
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/index%' ) 													then sum(1) end servicegbb1,	-- 메인페이지
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/common/serviceMain%' )										then sum(1) end servicegbb2,	-- 메인>활용서비스 메인
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/common/analMapMain%' ) 										then sum(1) end servicegbb3,	-- 메인>분석지도 메인
+				case when ( parameter not like '%/view/member%' and (parameter like '%/view/map/interactiveMap%' or parameter like '%/view/indoor%') ) 	then sum(1) end servicegbb6,	-- 대화형통계지도
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/thematicMap%' ) 												then sum(1) end servicegbb7,	-- 통계주제도
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/house/houseAnalysisMap%' ) 									then sum(1) end servicegbb8,	-- 살고싶은우리동네
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/bizStats/bizStatsMap%' ) 									then sum(1) end servicegbb9,	-- 생활업종통계지도
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/community%' ) 												then sum(1) end servicegbb10,	-- 통계커뮤니티맵
+				case when ( parameter not like '%/view/member%' and parameter like '%/jsp/pyramid%' ) 													then sum(1) end servicegbb11,	-- 인구피라미드
+				case when ( parameter not like '%/view/member%' and parameter like '%/jsp/share/useBoard%' ) 											then sum(1) end servicegbb17,	-- 우수활용사례
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/board/sopBoardMain%' ) 										then sum(1) end servicegbb21,	-- 알림마당>알림마당 메인
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/board/sopIntro%' ) 											then sum(1) end servicegbb22,	-- 알림마당>SGIS+소개
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/board/expAndNotice%' ) 										then sum(1) end servicegbb23,	-- 알림마당>설명과 공지
+				case when ( parameter not like '%/view/member%' and parameter like '%/contents/shortcut/shortcut_05%' ) 								then sum(1) end servicegbb24,	-- 알림마당>자료신청
+				case when ( parameter not like '%/view/member%' and (parameter like '%/view/board/qna%' or parameter like '%/view/board/faq%') ) 		then sum(1) end servicegbb25,	-- 알림마당>질문과 개선요청
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/common/searchList%' ) 										then sum(1) end servicegbb26,	-- 검색
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/mypage%' ) 													then sum(1) end servicegbb27,	-- 마이페이지
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/technicalBiz%' ) 											then sum(1) end servicegbb30,	-- 기술업종통계지도
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/map/policyStaticMap%' )										then sum(1) end servicegbb29,	-- 정책통계지도
+				case when ( parameter not like '%/view/member%' and parameter like '%/view/gallery%' )													then sum(1) end servicegbb31,	-- 통계갤러리
+				case when (                                         parameter like '%/view/member%' ) 													then sum(1) end servicegbb28	-- 로그인
+				
+			from
+				api_log_write_hour_group
+			where
+				type = 'M0' 
+				and substr(replace(regdate,'-',''),0,6) = #{yearMonth}
+		)
+
+		]]>
+		
+	</select>
+	
+		
+	<select id="getDirectCallStat2" parameterType="Map" resultType="Map">
+		<!-- SGIS플러스 서비스 직접호출 통계(기타는 제외 하기로 함) -->
+		<![CDATA[
+				
+	
+			select a.service , nvl(a.pagecnt,0) as pagecnt, nvl(a.visitcnt,0) as visitcnt, b_code_nm, s_code_nm, gubun_1 as sunser, s_code
+			from
+			(select 
+							service, sum(pagecnt) as pagecnt, sum(visitcnt) as visitcnt
+						from 
+						(		
+							
+							select substring(value,0,3) as service, sum(to_number(substring(value, 4))) as pageCnt , 0 as visitcnt from (	
+								select  
+									case when (parameter not like '%/view/member%' and parameter like '%/view/index%' ) 													then 'M02' ||sum(count)
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/common/serviceMain%' )										then 'M03' ||sum(count)
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/common/analMapMain%' ) 										then 'M04' ||sum(count) 
+										 when ( parameter not like '%/view/member%' and (parameter like '%/view/map/interactiveMap%' or parameter like '%/view/indoor%') ) 	then 'M08' ||sum(count)
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/thematicMap%' ) 												then 'M09' ||sum(count) 	-- 통계주제도
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/house/houseAnalysisMap%' ) 									then 'M10'	||sum(count)	-- 살고싶은우리동네
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/bizStats/bizStatsMap%' ) 									then 'M09' ||sum(count)
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/community%' ) 												then 'M12' ||sum(count)
+										 when ( parameter not like '%/view/member%' and parameter like '%/jsp/pyramid%' ) 													then 'M13' ||sum(count)
+										 when ( parameter not like '%/view/member%' and parameter like '%/jsp/share/useBoard%' ) 											then 'M19' ||sum(count)
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/board/sopBoardMain%' ) 										then 'M23' ||sum(count)
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/board/sopIntro%' ) 											then 'M24' ||sum(count)
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/board/expAndNotice%' ) 										then 'M25' ||sum(count)
+										 when ( parameter not like '%/view/member%' and parameter like '%/contents/shortcut/shortcut_05%' ) 								then 'M26' ||sum(count)
+										 when ( parameter not like '%/view/member%' and (parameter like '%/view/board/qna%' or parameter like '%/view/board/faq%') ) 		then 'M27' ||sum(count)
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/common/searchList%' ) 										then 'M28' ||sum(count) 	-- 검색
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/mypage%' ) 													then 'M30' ||sum(count)
+										 when ( parameter like '%/view/member%' ) 																							then 'M28' ||sum(count)
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/map/policyStaticMap%' )										then 'M31' ||sum(count)
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/technicalBiz%'	 )											then 'M32' ||sum(count)
+										else 'M07'||sum(count) end value
+								from api_log_write_hour_group
+								where
+										type = 'M0' 
+										and substr(replace(regdate,'-',''),0,6) = #{yearMonth}
+							) group by substring(value, 0,3)
+							union
+								select substring(value,0,3) as service, 0 as pageCnt,   sum(to_number(substring(value, 4))) as visitCnt from (	
+								select  
+									case when (parameter not like '%/view/member%' and parameter like '%/view/index%' ) 													then 'M02' ||sum(1)
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/common/serviceMain%' )										then 'M03' ||sum(1)
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/common/analMapMain%' ) 										then 'M04' ||sum(1) 
+										 when ( parameter not like '%/view/member%' and (parameter like '%/view/map/interactiveMap%' or parameter like '%/view/indoor%') ) 	then 'M08' ||sum(1)
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/thematicMap%' ) 												then 'M09' ||sum(1) 	-- 통계주제도
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/house/houseAnalysisMap%' ) 									then 'M10'	||sum(1)	-- 살고싶은우리동네
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/bizStats/bizStatsMap%' ) 									then 'M09' ||sum(1)
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/community%' ) 												then 'M10' ||sum(1)
+										 when ( parameter not like '%/view/member%' and parameter like '%/jsp/pyramid%' ) 													then 'M11' ||sum(1)
+										 when ( parameter not like '%/view/member%' and parameter like '%/jsp/share/useBoard%' ) 											then 'M17' ||sum(1)
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/board/sopBoardMain%' ) 										then 'M21' ||sum(1)
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/board/sopIntro%' ) 											then 'M22' ||sum(1)
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/board/expAndNotice%' ) 										then 'M23' ||sum(1)
+										 when ( parameter not like '%/view/member%' and parameter like '%/contents/shortcut/shortcut_05%' ) 								then 'M24' ||sum(1)
+										 when ( parameter not like '%/view/member%' and (parameter like '%/view/board/qna%' or parameter like '%/view/board/faq%') ) 		then 'M25' ||sum(1)
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/common/searchList%' ) 										then 'M26' ||sum(1) 	-- 검색
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/mypage%' ) 													then 'M27' ||sum(1)
+										 when ( parameter like '%/view/member%' ) 																							then 'M28' ||sum(1)
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/map/policyStaticMap%' )										then 'M29' ||sum(1)
+										 when ( parameter not like '%/view/member%' and parameter like '%/view/technicalBiz%'	 )											then 'M30' ||sum(1)
+										else 'M07'||sum(count) end value
+								from api_log_write_hour_group
+								where
+										type = 'M0' 
+										and substr(replace(regdate,'-',''),0,6) = #{yearMonth}
+							) group by substring(value, 0,3)
+							)
+							group by service)  a
+			right outer join 
+				(select b_code, s_code, b_code_nm, s_code_nm, gubun_1 from api_log_write_code where s_code != 'M01' and b_code = 'M0') b
+				on a.service = b.s_code
+			order by to_number(gubun_1)
+	
+
+		]]>
+		
+	</select>
+	
+	<!-- 통계갤러리 이용현황 -->
+	<select id="getGalleryUseStat" parameterType="Map" resultType="Map">
+		SELECT
+            ROW_NUMBER() OVER(ORDER BY SUPPORT_TYPE) AS RNUM,
+            DECODE(SUPPORT_TYPE,'A0','대화형 통계지도','B0','생활업종 통계지도','J0','살고싶은 우리동네','C0','통계주제도','T0','기술업종 통계지도','E0','활용사례', '기타') AS SUPPORT_TYPE,
+            COUNT(SUPPORT_TYPE) AS CNT,  
+            COUNT(EXCELLENT_CASE_SLCTN_YN) AS CNT2
+        FROM  SRV_DT_GALLERYLIST
+        WHERE SUBSTR(REPLACE(REG_DT,'-',''),0,6) = #{yearMonth}
+		AND (SRV_TYPE = '1' or SRV_TYPE = '2')
+        GROUP BY SUPPORT_TYPE
+	</select>
+	
+	<!-- 정책통계지도 인기 이용현황 -->
+	<select id="getPopPol" parameterType="Map" resultType="Map">
+		
+		select s_code, s_code_nm, b.api_id
+			, nvl(b.mon_page_view, 0) as mon_page_view 
+			, nvl(b.mon_visit_view, 0)as  mon_visit_view 
+			, nvl(c.year_page_view, 0) as year_page_view 
+			, nvl(c.year_visit_view, 0)as year_visit_view 
+		from 
+			(select 
+				s_code, s_code_nm, gubun_1
+			from 
+				api_log_write_code
+			where b_code = 'S0') a
+			left outer join (
+					select api_id, sum(count) as  mon_page_view, count(0) as mon_visit_view from 
+					api_log_write_hour_group 
+					where 
+						substr(regdate, 0, 6) = #{yearMonth}
+					and type = 'S0'
+					group by api_id
+					) b
+			  on a.s_code = b.api_id
+			  left outer join (
+					select api_id, sum(count) as  year_page_view, count(0) as year_visit_view from 
+					api_log_write_hour_group 
+					where 
+						substr(regdate, 0, 4) = #{year}
+					and type = 'S0'
+					group by api_id
+					) c
+			  on a.s_code = c.api_id
+	  where s_code not in ('S40', 'S39')
+	  order by mon_page_view desc
+
+	</select>
+	
+	
+	<!-- 직접호출 이용현황 -->
+	<select id="getDirectCall" parameterType="Map" resultType="Map">
+		
+		select regdate, cnt, address  from 
+(
+	select 
+		a.regdate, a.cnt, a.sido_cd, a.sgg_cd,
+		case when a.sgg_cd = null then sido_nm else addr end address,
+		b.addr, c.sido_nm 
+	from 
+	(
+		select 
+			regdate, sum(cnt) as cnt, sido_cd, sgg_cd
+		from 
+			(
+				select 
+					regdate,
+					parameter, 
+					cnt,
+					case when instr(parameter, 'sido_cd=', 1, 1) = 0 then '' else  substr(parameter, instr(parameter, 'sido_cd=', 1, 1) +8,2) end as sido_cd,
+					case when instr(parameter, 'sgg_cd=', 1, 1) = 0 then '' else  substr(parameter, instr(parameter, 'sgg_cd=', 1, 1) +7,3) end as sgg_cd
+				from 
+					(
+					select count(0) cnt, parameter,
+						substr(regdate, 0,6) regdate  
+					from api_log_write_hour_group
+					where
+					api_id = 'M01'
+					and parameter like '%view/house/houseAnalysisMap?%'
+					group by substr(regdate, 0,6), parameter 
+					)
+			)
+		group by regdate, sido_cd, sgg_cd
+	) a
+	left outer join 
+		(select sido_cd, sgg_cd, addr from srv_pg_sggbord where base_year = '2015') b
+	on a.sido_cd = b.sido_cd
+	and a.sgg_cd = b.sgg_cd
+	left outer join 
+		(select sido_cd, sido_nm from srv_pg_sidobord where base_year = '2015') c
+	on a.sido_cd = c.sido_cd
+) where address is not null
+and regdate =  #{yearMonth}
+order by regdate, cnt desc
+
+
+
+	</select>
+	
+	<!-- mng_s 201710109 lifestyle 추가 leekh -->
+	<!-- 라이프스타일 이용현황 -->
+	<select id="getLifeStyle" parameterType="Map" resultType="Map">
+		
+		select parameter, sum(count) as cnt from api_log_write_hour_group with (nolock)
+		where api_id = 'J06'
+		and substr(regdate, 0, 6) = #{yearMonth}
+		group by parameter
+
+	</select>
+	<!-- mng_e 201710109 lifestyle 추가 leekh -->
+	
+</mapper>

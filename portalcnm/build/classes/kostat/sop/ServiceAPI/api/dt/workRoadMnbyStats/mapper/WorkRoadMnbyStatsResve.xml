@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 2021.06.09[hjh] 일자리 경계 현행화 관리 -->
+<mapper namespace="WorkRoadMnbyStatsResve">
+
+	<sql id="WhereSearchWorkRoadMnbyStatsResve">
+		<if test="SEARCH_BGN_RESVE_DT != null and SEARCH_BGN_RESVE_DT != ''">
+			AND substring(t1.resve_dt, 1, 8) <![CDATA[>=]]> replace(#{SEARCH_BGN_RESVE_DT}, '-', '')
+		</if>
+		<if test="SEARCH_END_RESVE_DT != null and SEARCH_END_RESVE_DT != ''">
+			AND substring(t1.resve_dt, 1, 8) <![CDATA[<=]]> replace(#{SEARCH_END_RESVE_DT}, '-', '')
+		</if>
+		<if test='SEARCH_STTUS != null and SEARCH_STTUS != ""'>
+			AND t1.sttus = #{SEARCH_STTUS}
+		</if>
+		<if test='SEARCH_BNDRY_YEAR != null and SEARCH_BNDRY_YEAR != ""'>
+			AND t1.bndry_year = #{SEARCH_BNDRY_YEAR}
+		</if>
+		<if test="SEARCH_BGN_EXC_DT != null and SEARCH_BGN_EXC_DT != ''">
+			AND substring(t1.exc_dt, 1, 8) <![CDATA[>=]]> replace(#{SEARCH_BGN_EXC_DT}, '-', '')
+		</if>
+		<if test="SEARCH_END_EXC_DT != null and SEARCH_END_EXC_DT != ''">
+			AND substring(t1.exc_dt, 1, 8) <![CDATA[<=]]> replace(#{SEARCH_END_EXC_DT}, '-', '')
+		</if>
+		<if test="SEARCH_BGN_END_DT != null and SEARCH_BGN_END_DT != ''">
+			AND substring(t1.end_dt, 1, 8) <![CDATA[>=]]> replace(#{SEARCH_BGN_END_DT}, '-', '')
+		</if>
+		<if test="SEARCH_END_END_DT != null and SEARCH_END_END_DT != ''">
+			AND substring(t1.end_dt, 1, 8) <![CDATA[<=]]> replace(#{SEARCH_END_END_DT}, '-', '')
+		</if>
+	</sql>
+
+	<!-- 일자리 경계 현행화 관리 건수 조회 -->
+	<select id="searchWorkRoadMnbyStatsResveCount" parameterType="hashmap" resultType="int">
+		SELECT
+			count(*) AS cnt
+		FROM
+			srv_dt_job_mnby_sm_resve t1
+		WHERE
+			1 = 1
+			<include refid="WhereSearchWorkRoadMnbyStatsResve" />
+	</select>
+
+	<!-- 일자리 경계 현행화 관리 목록 페이징 조회 -->
+	<select id="searchWorkRoadMnbyStatsResve" parameterType="Map" resultType="Map">
+		SELECT
+			*
+		FROM
+			(
+				SELECT
+					ROW_NUMBER() OVER(
+						ORDER BY
+							t1.resve_dt DESC
+					) AS row_num
+					, t1.resve_dt
+					, t1.resve_dt AS resve_dt_2
+					, t1.sttus
+					, t1.bndry_year
+					, t1.exc_dt
+					, t1.end_dt
+				FROM
+					srv_dt_job_mnby_sm_resve t1
+				WHERE
+					1 = 1
+					<include refid="WhereSearchWorkRoadMnbyStatsResve" />
+			)
+		WHERE
+			1 = 1
+			<if test='START_INDEX != null and START_INDEX != ""'>
+				AND row_num <![CDATA[>=]]> #{START_INDEX}
+			</if>
+			<if test='END_INDEX != null and END_INDEX != ""'>
+				AND row_num <![CDATA[<=]]> #{END_INDEX}
+			</if>
+		ORDER BY
+			row_num
+	</select>
+
+	<!-- 일자리 경계 현행화 관리 경계년도 건수 조회 -->
+	<select id="getWorkRoadMnbyStatsResveCount" parameterType="Map" resultType="int">
+		SELECT
+			count(*)
+		FROM
+			srv_dt_job_mnby_sm_bndry
+		WHERE
+			1 = 1
+			AND bndry_year <![CDATA[<=]]> #{BNDRY_YEAR}
+			AND to_char(sysdate, 'yyyy') <![CDATA[>=]]> #{BNDRY_YEAR}
+	</select>
+
+	<!-- 일자리 경계 현행화 관리 등록 -->
+	<insert id="addWorkRoadMnbyStatsResve" parameterType="Map">
+		INSERT
+			INTO
+			srv_dt_job_mnby_sm_resve (
+				resve_dt
+				, sttus
+				, BNDRY_YEAR
+			)
+		VALUES (
+			to_char(sysdate, 'yyyymmddhh24missff')
+			, '0'
+			, #{BNDRY_YEAR}
+		)
+	</insert>
+
+	<!-- 일자리 경계 현행화 관리 삭제 -->
+	<delete id="deleteWorkRoadMnbyStatsResve">
+		DELETE
+		FROM
+			srv_dt_job_mnby_sm_resve
+		WHERE
+			1 = 1
+			AND sttus = '0'
+			AND exc_dt IS NULL
+			AND resve_dt IN
+			<foreach collection="list" item="item" open="(" separator="," close=")">
+				${item.RESVE_DT}
+			</foreach>
+	</delete>
+
+</mapper>

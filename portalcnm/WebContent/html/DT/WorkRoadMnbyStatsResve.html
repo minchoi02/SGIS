@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>SGIS 관리자사이트(CNM)</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<link rel="stylesheet" href="./../include/css/login.css" />
+<link rel="stylesheet" href="./../include/css/default.css" />
+<script type="text/javascript" src="./../include/js/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="./../include/js/default.js"></script>
+<script type="text/javascript" src="../../js/common/includeHead.js"></script>
+<script src="../../js/common/common.js"></script>
+<link rel="stylesheet" href="../../css/jquery-ui-1.10.4.custom.css" />
+<script type="text/javascript" src="../../js/plugins/jquery-ui-1.10.3.custom.js"></script>
+<script type="text/javascript" src="../../js/plugins/jquery-ui-timepicker-addon.js"></script>
+<script type='text/javascript' src='../../js/plugins/ckeditor/ckeditor.js'></script>
+<script type="text/javascript" src="../../js/DT/WorkRoadMnbyStatsResve.js"></script>
+</head>
+<body>
+	<div class="wrapper">
+		<!-- cls:header start -->
+		<div class="header">
+			<div class="defaultbox">
+				<div class="logo">
+					<a href="#">
+						<img src="/s-portalcnm/html/include/img/pic/pic_logo.png" alt="logo" />
+					</a>
+				</div>
+				<div class="navi"></div>
+			</div>
+			<div class="menuWrapper">
+				<div class="menuCnm">
+					<ul>
+						<li><a>서비스 현황</a></li>
+						<li><a>사용자 현황</a></li>
+						<li><a class="on">서비스 관리</a></li>
+						<li><a>정보 관리</a></li>
+						<li><a>게시판 관리</a></li>
+						<li><a>회원 관리</a></li>
+					</ul>
+				</div>
+			</div>
+			<div class="subMenuWrapper">
+				<div class="subMenu"></div>
+			</div>
+			<!-- cls:header end -->
+		</div>
+		<div class="contents">
+			<!-- cls:left start -->
+			<div class="lefitMenuWrapper">
+				<script type="text/javascript">
+					makeLeftMenu("3", "11", "4"); //탑메뉴순서, 선택된 왼쪽 빅메뉴, 선택된 왼쪽 small메뉴
+				</script>
+			</div>
+			<!-- cls:left end -->
+			<div class="acticle">
+				<div class="location">
+					<p>
+						<a>
+							<img src="../../html/include/img/ico/ico_home.png" alt="home" />
+						</a>
+						<span>
+							<img src="../../html/include/img/ico/ico_navi.png" alt="다음" />
+						</span>
+						<span>서비스관리</span>
+						<span>
+							<img src="../../html/include/img/ico/ico_navi.png" alt="다음" />
+						</span>
+						<span>일자리 맵</span>
+						<span>
+							<img src="../../html/include/img/ico/ico_navi.png" alt="다음" />
+						</span>
+						<span class="fontS">일자리 경계 현행화 관리</span>
+					</p>
+				</div>
+				<p class="title01">일자리 경계 현행화 관리</p>
+				<div class="tilte03">조회조건</div>
+				<div class="searchBtn04" id="searchButton">
+					<a style="cursor: pointer">
+						<img src="./../include/img/btn/btn_search.png" alt="검색" />
+					</a>
+				</div>
+				<form id="resetForm">
+					<table class="apiTable02" summary="조회조건">
+						<caption>조회조건</caption>
+						<colgroup>
+							<col width="14%" />
+							<col width="36%" />
+							<col width="14%" />
+							<col width="36%" />
+						</colgroup>
+						<tbody>
+							<tr>
+								<th>예약일시</th>
+								<td>
+									<div class="searchBtn02">
+										<a>
+											<input type="text" class="input_use06" id="SEARCH_BGN_RESVE_DT" style="width: 68px; margin-right: 3px" readonly="readonly" />
+										</a>
+									</div>
+									<div class="searchBtn02">
+										<a>
+											<input type="text" class="input_use06" id="SEARCH_END_RESVE_DT" style="width: 68px; margin-right: 3px" readonly="readonly" />
+										</a>
+									</div>
+								</td>
+								<th>경계년도</th>
+								<td>
+									<div class="searchBtn02">
+										<a>
+											<input type="text" class="input_use06" id="SEARCH_BNDRY_YEAR" style="width: 68px;" maxlength="4" />
+										</a>
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<th>수행시작일시</th>
+								<td>
+									<div class="searchBtn02">
+										<a>
+											<input type="text" class="input_use06" id="SEARCH_BGN_EXC_DT" style="width: 68px; margin-right: 3px" readonly="readonly" />
+										</a>
+									</div>
+									<div class="searchBtn02">
+										<a>
+											<input type="text" class="input_use06" id="SEARCH_END_EXC_DT" style="width: 68px; margin-right: 3px" readonly="readonly" />
+										</a>
+									</div>
+								</td>
+								<th>수행종료일시</th>
+								<td>
+									<div class="searchBtn02">
+										<a>
+											<input type="text" class="input_use06" id="SEARCH_BGN_END_DT" style="width: 68px; margin-right: 3px" readonly="readonly" />
+										</a>
+									</div>
+									<div class="searchBtn02">
+										<a>
+											<input type="text" class="input_use06" id="SEARCH_END_END_DT" style="width: 68px; margin-right: 3px" readonly="readonly" />
+										</a>
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<th>상태</th>
+								<td colspan="3">
+									<select class="input_use31" id="SEARCH_STTUS" style="width: 80px;">
+										<option value="">전체</option>
+										<option value="0">예약</option>
+										<option value="1">수행중</option>
+										<option value="2">완료</option>
+										<option value="3">실패</option>
+									</select>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</form>
+				<div class="tilte03">검색결과</div>
+				<div class="searchBtn04">
+					<a id="newButton" style="cursor: pointer;">
+						<img src="./../include/img/btn/btn_regist02.png" alt="등록" />
+					</a>
+					<a id="delButton" style="cursor: pointer;">
+						<img src="./../include/img/btn/btn_del.png" alt="삭제" />
+					</a>
+				</div>
+				<table class="apiTable03" summary="기본정보"></table>
+				<table summary="기본정보" id="searchResultTable"></table>
+				<div class="searchWrapper02" id="noSearchResult" style="margin-top: -95px; border-left: 0; border-top: 0; border-right: 0; position: absolute; height: 30px; padding-top: 0px; text-align: center">검색 결과가 없습니다</div>
+			</div>
+		</div>
+		<!-- cls:footer start -->
+		<div class="footerWrapper"></div>
+
+	</div>
+	<div class="popupWrapper">
+		<div class="aplPopupWrapper">
+			<div class="aplPopupTitle">
+				<div class="myTitleFont" id="popTitle">신규등록</div>
+				<div class="myXbtn">
+					<a style="cursor: pointer">
+						<img src="./../include/img/btn/btn_popupX.png" alt="종료" />
+					</a>
+				</div>
+			</div>
+			<form id="popupForm">
+				<table class="popupTable" summary="경계 현행화 예약popup">
+					<caption>경계 현행화 예약popup</caption>
+					<tbody>
+						<tr>
+							<th class="right" style="width: 68px;">경계년도</th>
+							<td>
+								<input type="text" class="input_use06" id="BNDRY_YEAR" style="width: 68px;" maxlength="4" />년
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</form>
+			<div class="btnbox">
+				<a id="addButton" style="cursor: pointer">
+					<img src="./../include/img/btn/btn_regist02.png" alt="등록" />
+				</a>
+				<a class="cancel" style="cursor: pointer">
+					<img src="./../include/img/btn/btn_cancel.png" alt="취소" />
+				</a>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

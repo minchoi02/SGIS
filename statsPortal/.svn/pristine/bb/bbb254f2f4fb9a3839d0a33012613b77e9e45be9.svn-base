@@ -1,0 +1,735 @@
+var colorsAr = [
+    'rgb(79, 121, 166,0.4)',
+    'rgb(160, 202, 231,0.4)',
+    'rgb(241, 144, 56,0.4)',
+    'rgba(255,99,132,0.2)',
+    'rgb(254, 191, 129,0.4)',
+    'rgba(241, 206, 105,0.4)',
+    ];
+
+var colorsArBorder = [        
+	'rgb(79, 121, 166,1.0)',
+    'rgb(160, 202, 231,1.0)',
+    'rgb(241, 144, 56,1.0)',
+    'rgba(255,99,132,1)',
+    'rgb(254, 191, 129,1.0)',
+    'rgba(241, 206, 105,1.0)'
+    ];
+
+var colorRed = ['rgba(255,99,132,1)','rgba(255,99,132,0.2)'];
+var colorOrange = ['rgb(241, 144, 56,1.0)','rgb(241, 144, 56,0.4)'];
+var colorBlue = ['rgba(54,162,235,1)','rgba(54,162,235,0.2)'];
+var colorGray = ['rgba(195, 201, 205,1)','rgba(195, 201, 205,0.5)'];
+var colorYellow = ['rgba(241, 206, 105,1.0)','rgba(241, 206, 105,0.4)'];
+let color1 = 'rgba(255,99,132,0.2)'
+let color2 = 'rgba(54,162,235,0.2)'
+let cTrans1 = 'rgba(255,99,132,1)'
+let cTrans2 = 'rgba(54,162,235,1)'
+
+let ltrsList  = [];
+let mident    = [];
+let smlpz     = [];
+let smltrdids = [];
+let chartMap = null;
+let chartXCoor = "";
+let chartYCoor = "";
+let chartMarker ="";
+let crrentItem = 1; 
+
+$(function () {
+	
+});
+
+function setChart(){
+	//var seriesData = [1, 2, 3, 4, 5, 6];
+	
+	
+	
+//  setPieChart();
+	
+	setTimeout(function() {
+		getLinCartData();
+	}, 50);
+	
+	setTimeout(function() {
+		getActiveCompanyCountBy();
+	}, 50);
+	
+	
+	setTimeout(function() {
+		getGrowthChart();
+	}, 50);
+	
+	setTimeout(function() {
+		getAvgData();
+	}, 50);
+	
+	setTimeout(function() {
+		getCompanyAnalysis();
+	}, 50);
+	
+	
+	setTimeout(function() {
+		getCompanyMain();
+	}, 50);
+    //
+    //getOpenCloseCountByCondition();
+	
+	
+
+}
+
+
+function getCompanyMain(){
+	var formData = $('#searchFrom').serialize();
+	$.ajax({
+		type:"GET",
+		url: "/view/sbrStats/sbrCompanyMain",
+		data: formData,
+		dataType:"json",
+		async: false,
+		success:function(res){
+			
+			ltrsList  = [];
+			mident    = [];
+			smlpz     = [];
+			smltrdids = [];
+			
+			res.forEach(function(item,index){
+				
+				if(item.ent_sz == 1 || item.ent_sz == 2  ){
+					ltrsList.push(item);	
+				}else if(item.ent_sz == 3){
+					mident.push(item);
+				}else if(item.ent_sz == 4 || item.ent_sz == 5){
+					smlpz.push(item);
+				}else if(item.ent_sz == 6){
+					smltrdids.push(item);
+				}
+				
+			});
+			
+			$('#tableDummy').html(createTable(ltrsList));
+			
+		}
+	});
+}
+
+function mostCompanyTab(data,item){
+	
+	if(crrentItem == data) return ;
+	
+	var str = "";
+	
+	if(data == 1) $('#tableDummy').html(createTable(ltrsList));
+	else if(data == 2) $('#tableDummy').html(createTable(mident));
+	else if(data == 3) $('#tableDummy').html(createTable(smlpz));
+	else if(data == 4) $('#tableDummy').html(createTable(smltrdids));
+	else               $('#tableDummy').html(createTable(ltrsList));
+	
+	$('#mostCompanyUl').find('.active').removeClass('active');
+	$(item).addClass('active');
+	
+	crrentItem = data;
+}
+
+function createTable(data){
+	var list = "";
+	var x ="";
+	var y= "";
+	
+	data.forEach(function(item,index){
+		html = "";
+	    html += '<li data-content="" onclick="setMapPoint(\''+item.x_coor+'\',\''+item.y_coor+'\')">';
+	    html += '<span class="number">'+(index+1)+'</span>';
+	    html += '<span class="title">'+item.biz_nm+'</span>';
+	    html += '<span class="count">'+item.biz_cnt+'개</span>';
+	    html += '</li>';
+	    list += html;
+	    
+	    if(index ==0){
+	    	x = item.x_coor;
+	    	y = item.y_coor;
+	    }
+	});
+	
+	if(x !="") setMap(x,y);
+	return list;
+}
+
+function getCompanyAnalysis(){
+	var formData = $('#searchFrom').serialize();
+	$.ajax({
+		type:"GET",
+		url: "/view/sbrStats/sbrCompanyAnalysis",
+		data: formData,
+		dataType:"json",
+		async: false,
+		success:function(res){
+			
+			
+			$('#comBYear').html(res.b_base_year);
+			$('#comBCount').html(getCash(res.b_enfsn_co));
+			$('#comBCo').html(getCash(res.b_ent_co));
+			$('#comBSls').html(getCash(res.b_sls_amt));
+			
+			
+			$('#comCYear').html(res.base_year);
+			$('#comCCount').html(getCash(res.enfsn_co));
+			$('#comCCo').html(getCash(res.ent_co));
+			$('#comCSls').html(getCash(res.sls_amt));
+			
+			
+			var comDCount = res.enfsn_co - res.b_enfsn_co;
+			var comDCo    = res.ent_co - res.b_ent_co;
+			var comDSls   = res.sls_amt - res.b_sls_amt;
+			
+			var comPCount = Math.ceil(((comDCount)/res.enfsn_co)*1000)/10;
+			var comPCo    = Math.ceil(((comDCo)/res.ent_co)*1000)/10;
+			var comPSls   = Math.ceil(((comDSls)/res.sls_amt)*1000)/10;
+			
+			
+			
+			
+			$('#comPCount').html(getCash(comPCount)+"%");
+			$('#comPCo').html(getCash(comPCo)+"%");
+			$('#comPSls').html(getCash(comPSls)+"%");
+			
+			
+			$("#comPCount").siblings('i').removeClass('up');
+			$("#comPCount").siblings('i').removeClass('down');
+			
+			$("#comPCo").siblings('i').removeClass('up');
+			$("#comPCo").siblings('i').removeClass('down');
+			
+			$("#comPSls").siblings('i').removeClass('up');
+			$("#comPSls").siblings('i').removeClass('down');
+			
+			
+			$('#comDCount').html(setUpDown($('#comPCount'),comDCount,0));
+			$('#comDCo').html(setUpDown($('#comPCo'),comDCo,1));
+			$('#comDSls').html(setUpDown($('#comPSls'),comDSls,2));
+			
+			
+			setbarChart(res);
+			
+		}
+	});
+}
+
+function setUpDown(obj,number,i){
+	console.log("넘버버버버버");
+	console.log(number);
+	
+	var array = ["개","명","만원"];
+	
+	if(number>0){
+		number = "(+"+getCash(number)+" "+array[i]+")";
+		obj.siblings('i').addClass('up');
+	}else if(number<0){
+		number = "(-"+getCash(number)+" "+array[i]+")";
+		obj.siblings('i').addClass('down');
+	}else{
+		number = "(-)";
+	}
+	return number;
+}
+
+function getAvgData(){
+	var formData = $('#searchFrom').serialize();
+	
+	$.ajax({
+		type:"GET",
+		url: "/view/sbrStats/sbrAvgData",
+		data: formData,
+		dataType:"json",
+		async: false,
+		success:function(res){
+			
+			var val1 = Math.ceil((res.avg_sls_amt/res.max_sls_amt) * 100 *10)/10;
+			$('#avrCostLowData').html(getCash(res.min_sls_amt)+"만원");
+			$('#avrCostHighData').html(getCash(res.max_sls_amt)+"만원");
+			$('#avrCostTargetData').html(getCash(res.avg_sls_amt)+"만원");
+			$('#avrCostGaugeLen').css("width",val1+"%");
+			$('#avrCostPointer').css("left",val1+"%");
+			$('#avrCostBadge').css("left",val1+"%");
+			
+			
+			
+			var val2 = Math.ceil((res.avg_bsn_prid/res.max_avg_bsn_prid) * 100 *10)/10;
+			$('#avrTimeLowData').html(getCash(res.min_avg_bsn_prid)+"년");
+			$('#avrTimeHighData').html(getCash(res.max_avg_bsn_prid)+"년");
+			$('#avrTimeTargetData').html(getCash(res.avg_bsn_prid)+"년");
+			$('#avrTimeGaugeLen').css("width",val1+"%");
+			$('#avrTimePointer').css("left",val1+"%");
+			$('#avrTimeBadge').css("left",val1+"%");
+			
+			
+		}
+	});
+}
+
+function getLinCartData(){
+	
+	var formData = $('#searchFrom').serialize();
+	$.ajax({
+		type:"GET",
+		url: "/view/sbrStats/sbrCompanyInfoList",
+		data: formData,
+		dataType:"json",
+		async: false,
+		success:function(res){
+			setLinChart(res);
+			
+			
+			$('#lineChartTitle').html($('#searchYear').val()+"년 전체 기업");
+			var val = res[res.length-1].ent_co;
+			$('#lineChartCount').html(getCash(val)+"개");
+			var val2 = val-res[res.length-2].ent_co;
+			
+			
+			
+			
+			$('#lineChartUpDown').removeClass("up");
+			$('#lineChartUpDown').removeClass("down");
+			
+			if(val2 < 0){
+				$('#lineChartUpDown').addClass("up");
+			}else if(val2 > 0){
+				$('#lineChartUpDown').addClass("down");
+			}
+			if(val2 == 0 ) $('#lineChartUpDown').html("-");
+			else           $('#lineChartUpDown').html(getCash(val2));
+			
+			
+			var val3 = Math.ceil(((val-res[res.length-2].ent_co)/res[res.length-2].ent_co) * 100 *10)/10; 
+			$('#lineChartBadge').html(val3+"%");
+		}
+	});
+	
+}
+
+function getGrowthChart(){
+	
+	var formData = $('#searchFrom').serialize();
+	$.ajax({
+		type:"GET",
+		url: "/view/sbrStats/sbrGrowthList",
+		data: formData,
+		dataType:"json",
+		async: false,
+		success:function(res){
+			
+			var data = [];
+			var sumCom = 0;
+			var totalCom = 0;
+			res.forEach(function(item,index){
+				if(item.cnd_cd == "GR_ETC") data[0] = item.act_co;
+				else if(item.cnd_cd == "GR_10PLT") data[1] = item.act_co;
+				else if(item.cnd_cd == "GR_10P_20PLT") data[2] = item.act_co;
+				else if(item.cnd_cd == "GR_20P_") data[3] = item.act_co;
+				else if(item.cnd_cd == "GR_HIGH") data[4] = item.act_co;
+				
+				sumCom += item.act_co;
+				totalCom += item.ent_co;
+			});
+			
+			var result = [ {'name':'그외','y':data[0],borderColor:colorsArBorder[0]}
+            ,{'name':'10% 미만','y':data[1],borderColor:colorsArBorder[1]}
+            ,{'name':'10% ~ 20%','y':data[2],borderColor:colorsArBorder[2]}
+            ,{'name':'20% 이상','y':data[3],borderColor:colorsArBorder[3]}
+            ,{'name':'급성장','y':data[4],borderColor:colorsArBorder[4]}];
+			
+			
+			setTriangleChart(result);
+			
+			var avg =  Math.ceil((sumCom/totalCom)*100*10)/10;
+			
+			
+			$('#totalGrowCom').html(getCash(sumCom)+"개");
+			$('#rateI').html(avg);
+			
+			$('#grEtc').html(getCash(data[4])+"개");
+			$('#gr20').html(getCash(data[3])+"개");
+			$('#gr1020').html(getCash(data[2])+"개");
+			$('#gr10').html(getCash(data[1])+"개");
+			$('#grHigh').html(getCash(data[0])+"개");
+			
+		
+		}
+	});
+}
+
+
+
+function setLinChart(data){
+	
+	var seriesData = [];
+	var titleData = [];
+	
+	data.forEach(function(item,index) {
+		seriesData[index] = item.ent_co;
+		titleData[index] = item.base_year;
+	});
+	
+	
+	$('#layerLgChart1').highcharts(
+			{
+				chart : {
+		            type : 'line',
+		            style: {			 
+		                fontFamily: 'Pretendard', 
+		            }
+		        },
+		        credits: {
+		            enabled: false
+		        },
+		        exporting : {
+		            enabled : false
+		        },
+		        title: {
+		            text: '',
+		        },
+		        subtitle: {
+		            text: '',
+		        },
+		        yAxis: {
+		            title: {
+		            text: '',
+		            },
+		            labels: {
+		                enabled : false
+		            },
+		        },
+		        xAxis: {
+		            labels: {
+		                style: {
+		                    color: '#666',
+		                    fontSize:'12px',
+		                    fontWeight: '500',
+		                    letterSpacing: '0px',
+		                }
+		            },
+		            categories: titleData
+		        },
+		        legend: {
+		            enabled: false
+		        },
+		        plotOptions: {
+		            series: {
+		                marker: {
+		                    enabled: true, //마커 보이기 / 안보이기 [true : 보이기, false : 안보이기]
+		                    lineWidth: 2, //라인 굵기
+		                    lineColor:'#0475F4', //라인 색
+		                    fillColor:'#ffffff'
+		                },
+		                dataLabels: {
+		                    enabled: true, //데이터레이블 보이기/안보이기 [true : 보이기, false : 안보이기]
+		                    allowOverlap: true //데이터레이블 겹치기/안겹치기 (안겹치기시 겹치는 데이터레이블 안보임) [true : 겹치다, false : 안겹치다]
+		                },
+		                events: {
+		                    mouseOver: function (event) { //마우스 오버 이벤트[마우스올리면 : show(데이터레이블 보이기)]
+		                        $.each(this.data, function(i, point){
+		                            point.dataLabel.show();
+		                        });
+		                    },
+		                    mouseOut: function (e) { //마우스 오버 이벤트[마우스내리면 : hide(데이터레이블 안보이기)]
+		                        $.each(this.data, function(i, point){
+		                            point.dataLabel.hide();
+		                        });
+		                    }
+		                }
+		            }
+		        },
+		        series: [
+                    {name:"전체기업수",
+                    	data:seriesData,
+                	}
+                ]
+			});
+	
+}
+
+
+function setOpenCloseBoardData(res){
+	// 전체 업종 , Order by biz_cd DESC 하여 0번째가 전체업종임
+	console.log(res[0]);
+	$('#allOpenCompanyCount').text(res[0].opbiz_co);
+	$('#allCloseCompanyCount').text(res[0].clsbiz_co);
+
+	$('#openCompanyCount').text(res[1].opbiz_co);
+	$('#closeCompanyCount').text(res[1].clsbiz_co);
+
+	$('#openCompanyRatio').text((res[1].opbiz_co / res[0].opbiz_co * 100).toFixed(2) + '%');
+	$('#closeCompanyRatio').text((res[1].clsbiz_co / res[0].clsbiz_co * 100).toFixed(2) + '%');
+}
+
+function getCompanyCountByCondition(){
+	
+	$.ajax({
+		type:"GET",
+		url: "/view/sbrStats/sbrStatsCompanyCount",
+//		data: {year: count},
+		dataType:"json",
+		async: false,
+		success:function(res){
+			console.log(res);
+		},
+		error:function() {
+			
+			return "faill";
+		}
+	});
+	
+}
+
+//활동현환, 개폐업 현황
+function getActiveCompanyCountBy(){
+
+	var formData = $('#searchFrom').serialize();
+	$.ajax({
+		type: "GET",
+		url: "/view/sbrStats/sbrActiveCompanyCount",
+		data: formData,
+		dataType:"json",
+		async:false,
+		success:function(res){
+			
+			//환동현황
+			setPieChart(res);
+			$('#acCmCntOn').html(getCash(res.act_co)+" 개");
+			$('#acCmCntOff').html(getCash(res.nact_co)+" 개");
+			
+			//개폐업현황
+			
+			var ageValue1 = Math.ceil((res.opbiz_co/res.tol_opbiz_co)*100*10)/10;
+			$('#openCompanyCount').html(getCash(res.opbiz_co)+" 개");
+			$('#allOpenCompanyCount').html(getCash(res.tol_opbiz_co)+" 개");
+			$('#openCompanyRatio').html(ageValue1+" %");
+			
+			var ageValue2 = Math.ceil((res.clsbiz_co/res.tol_clsbiz_co)*100*10)/10;
+			$('#closeCompanyCount').html(getCash(res.clsbiz_co)+" 개");
+			$('#allCloseCompanyCount').html(getCash(res.tol_clsbiz_co)+" 개");
+			$('#closeCompanyRatio').html(ageValue2+" %");
+			
+			
+		},
+		error:function(){
+		}
+	})
+}
+
+ 
+
+
+
+
+function setPieChart(res) {
+	
+	$('#layerLgChart2').highcharts(
+		{
+
+	        chart : {
+	            renderTo: 'dounutChart',
+	            type: 'pie',
+	            style: {			 
+	                fontFamily: 'Pretendard', 
+	            }
+	        },
+			
+			colors:[color1, color2],
+			credits: {enabled: false}, // highchart watermark hide
+			exporting: {enabled: false},
+			title: {
+				text: '',
+			},
+			
+			legend: {
+				enabled: true,
+				padding: 1,
+				itemMarginTop: 5,
+				itemMarginBottom: 0,
+			},
+			
+	        plotOptions: {
+	            pie: {//도넛(파이)차트 전체 옵션 지정.
+	                size: '140%', 
+	                showInLegend: true, //범례 show/hide 설정. (series 내에서 개별 지정도 가능.)
+	                
+	            }
+	        },
+	        
+	        tooltip: {
+	            useHTML: false,//툴팁 포맷을 html로 변경할 경우 true로 지정.(default false)
+	            borderRadius: 10,
+	            backgroundColor :'#000000', 
+	            borderWidth:0,
+	            shadow: false,
+	            padding:10,
+	            style: {			 
+	                fontSize :'14px',  
+	                color: '#fff',
+	                fontWeight: '600',
+	                textAlign:'center',
+	            },
+	            shared: true,
+	            formatter: function() {
+	                return '<span style="color:#fff">'  + this.point.name + '</span> : ' + this.y + '개';
+	            },
+	        },
+	        
+	        series: [
+	            {name: '활동현황',
+	            borderWidth: 1,        
+	            // innerSize:30%,
+	            dataLabels: {
+	                enabled: false
+	            },
+	            data: [
+	            	{name:'활동기업'	,y:res.act_co,sliced:true,borderColor:cTrans1},      
+	            	{name:'비활동기업'	,y:res.nact_co,borderColor:cTrans2},
+	                ]
+	            }
+	        ]
+	});
+}
+
+
+function setTriangleChart(data) {
+    
+	$('#growCompanyDistChart').highcharts(
+		 {	
+			 
+			 chart: {
+		            type: 'pyramid'
+		        },
+		        colors:colorsAr,
+		        credits: {enabled: false}, //highchart 워터마크 숨김처리
+		        exporting : { enabled : false },
+		        title: {
+		            text: '',
+		        },
+		        plotOptions: {
+		            series: {
+		                dataLabels: {
+		                    enabled: true,
+		                    format: "({point.x:,.0f})",
+		                    allowOverlap: false,
+		                    connectorPadding: 0,
+		                    distance: 10,
+		                    softConnector: true,
+		                    x: 0,
+		                    connectorShape: "fixedOffset",
+		                    crookDistance: "70%"
+		                },
+		                showInLegend: false,
+		                cursor: "pointer",
+		 
+		            }
+		        },
+		        series: [{
+		            name: '전체성장기업',
+		            keys: ['name', 'y'], 
+		            width:'80%',
+		            dataLabels: {
+		                enabled: true,
+		                format: '<b>{point.name}</b> ({point.y:,.0f})',
+		                softConnector: true
+		            },
+		            data: data,
+		            colors:colorsAr
+		        }],
+		    
+		        responsive: {
+		            rules: [{
+		                condition: {
+		                    maxWidth: 300,
+		                    maxHeight: 200
+		                }
+		                
+		            }]
+		        }
+		        
+		 });
+}
+
+function setbarChart(data){
+	
+	var data1 = [data.ltrs_co, data.ltrs_enfsn_co, data.ltrs_sls_amt];
+	var data2 = [data.mident_co, data.mident_enfsn_co, data.mident_sls_amt];
+	var data3 = [data.smlpz_enfsn_co, data.smlpz_enfsn_co, data.smlpz_sls_amt];
+	var data4 = [data.smltrdids_co, data.smltrdids_enfsn_co, data.smltrdids_sls_amt];
+	
+	$('#barChartDiv').highcharts({
+        chart: {
+            type: 'bar' 
+            ,width: 539
+         },
+        colors:colorsAr,
+	    credits: {enabled: false}, //highchart 워터마크 숨김처리
+	    exporting : { enabled : false },
+        title: {
+            text: ''
+        },
+        xAxis: {
+            categories: ['기업수', '종사자', '매출액']
+        },
+        yAxis: {
+            min: 0,
+            title: {
+                text: ''
+            }
+        },
+        plotOptions: {
+            bar: {
+                stacking: 'percent',
+                borderWidth: 0,
+                dataLabels: {
+                    enabled: true,
+                    color: 'white',
+                    formatter: function () {
+                        //return Highcharts.numberFormat(this.percentage, 0) + "%";
+                        return "";
+                    }
+                }
+            }
+        },
+        series: [{
+            name: '대기업',
+            data: data1,
+            borderColor:cTrans1
+        }, {
+            name: '중견기업',
+            data: data2,
+            borderColor:cTrans2
+        },{
+            name: '중소기업',
+            data: data3
+        },  {
+            name: '소상공인',
+            data: data4
+        }]
+    });
+    
+    
+    $('#resize').click(function () {
+        $('#container').highcharts().setSize(316, null, false);
+    });
+	
+	
+}
+
+function setMap(x,y){
+	if(chartMap == null)chartMap = sop.map('chartMap');
+	chartMap.setView(sop.utmk(x, y), 9);
+	chartMarker = sop.marker([x, y]);
+    chartMarker.addTo(chartMap);
+}
+
+function setMapPoint(x,y){
+	chartMap.setView(sop.utmk(x, y), 9);
+	chartMarker.remove();
+	chartMarker = sop.marker([x, y]);
+    chartMarker.addTo(chartMap);
+}
+

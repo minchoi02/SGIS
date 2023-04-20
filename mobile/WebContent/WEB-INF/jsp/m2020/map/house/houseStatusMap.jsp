@@ -1,0 +1,210 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@include file="/WEB-INF/jsp/includes/taglib.jsp" %>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<title>주거현황보기</title>
+<meta name="title" content="살고싶은 우리동네">
+<link rel="stylesheet" href="${ctx }/resources/m2020/css/subpage.css" />
+<link rel="stylesheet" href="${ctx }/resources/m2020/css/houseNew.css" />
+<!-- 하단 리스트 Swiper -->
+<link rel="stylesheet" href="${ctx }/resources/m2020/plugins/swiper.css" />
+<script src="${ctx }/resources/m2020/plugins/swiper.min.js" type="text/javascript"></script>
+<!-- 하단 리스트 위 아래 Swipe 이벤트 -->
+<script src="${ctx }/resources/m2020/plugins/jquery.touchSwipe.min.js" type="text/javascript"></script>
+<!-- 좌우 스크롤 -->
+<script src="${ctx }/resources/m2020/js/jquery.touchFlow.js" type="text/javascript"></script>
+<!-- 페이지 전역변수 -->
+<script type="text/javascript">
+	var bClassInfoList = ${heumTag:convertJson(mlsfcLists)};
+	var idealTypeInfoList = ${heumTag:convertJson(idealTypeLists)};
+	var b_class_idx_id = '<c:out value="${b_class_idx_id}"/>';	/* 2020.09.02[한광희] 메인화면 살고싶은 우리동네 정보 카드 link 추가 */
+</script>
+<!-- 기본 js -->
+<script src="${ctx }/resources/m2020/js/house/houseStatusMap.js"></script>
+<script src="${ctx }/resources/m2020/js/house/houseMap.api.js"></script>
+</head>
+
+<body>
+	<!-- 메뉴 버튼 Swiper START -->
+	
+	<div class="nav-2022">
+		<div class="leftCol">
+			<span class="btnNavThematic">주거현황보기
+				<svg width="12" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 8C6.71875 8 6.46875 7.90625 6.28125 7.71875L1.28125 2.71875C0.875 2.34375 0.875 1.6875 1.28125 1.3125C1.65625 0.90625 2.3125 0.90625 2.6875 1.3125L7 5.59375L11.2812 1.3125C11.6562 0.90625 12.3125 0.90625 12.6875 1.3125C13.0938 1.6875 13.0938 2.34375 12.6875 2.71875L7.6875 7.71875C7.5 7.90625 7.25 8 7 8Z" /></svg>
+			</span>
+			<span id="maptit">녹지비율</span>
+		</div>
+		<!-- <div class="">안들어감...</div> -->
+	</div>
+	<div class="nav-layer">
+		<ul>
+			<li><a href="${ctx }/m2020/map/house/recomendHouseMap.sgis">추천지역찾기</a></li>
+			<li><a href="${ctx }/m2020/map/house/houseSearchMap.sgis">간편동네찾기</a></li>
+			<li class="on3"><a href="${ctx }/m2020/map/house/houseStatusMap.sgis">주거현황보기</a></li> <!-- 2022-11-24 class 추가  -->
+			<li><a href="${ctx }/m2020/map/biz/bizMap.sgis">우리동네 생활업종</a></li>
+			
+		</ul>
+	</div>
+	
+	
+	<%-- <div class="swiper-container Tabarea mlr16">
+		<div class="swiper-wrapper Tab-wrapper">
+			<div class="swiper-slide Tabbtn">
+				<a href="${ctx }/m2020/map/house/recomendHouseMap.sgis">추천지역찾기</a>
+			</div>
+			<div class="swiper-slide Tabbtn">
+				<a href="${ctx }/m2020/map/house/houseSearchMap.sgis">간편동네찾기</a>
+			</div>
+			<div class="swiper-slide Tabbtn on5">
+				<a href="${ctx }/m2020/map/house/houseStatusMap.sgis">주거현황보기</a>
+			</div>
+			<div class="swiper-slide Tabbtn" style="min-width: 120px;">
+				<a href="${ctx }/m2020/map/biz/bizMap.sgis">우리동네 생활업종</a>
+			</div>
+		</div>
+	</div> --%>
+
+	<!-- Initialize Swiper -->
+	<script>
+		var swiper = new Swiper('.swiper-container', {
+			slidesPerView : 2.6,	// 2020.09.15[한광희] 메뉴 swipe 수정
+			spaceBetween : 10,
+			initialSlide: 2,
+			pagination : {
+				el : '.swiper-pagination',
+				clickable : true,
+			},
+		});
+		srvLogWrite('O0', '09', '04', '01', '주거현황보기 지도화면 메인', '');
+	</script>
+	<!-- 메뉴 버튼 Swiper END -->
+	
+	<div class="contentBox" id="houseStatusMapArea">
+		<div class="MapArea">
+			<!-- 지도 영역 START -->
+			<div class="Map" style="overflow: hidden; position: fixed; top: 101px; width: 100%;">
+				<div id="map"></div>
+			</div>
+			<!-- 지도 영역 END -->
+			
+			<!-- 선택항목명 표출 START -->
+			<!-- <div class="map_tit" style="z-index: 990">
+				<span id="maptit" class="maptit05">녹지비율</span>
+			</div> -->
+			<!-- 선택항목명 표출 END -->
+			
+			<!-- 생활환경 정보 START --><!-- 2022-11-24 기존 toggle 삭제 -->
+<!-- 			<div id="lifeEnvironmentToggle" class="btn_infoView infoOff" style="z-index: 990"></div> -->
+			<!-- 생활환경 정보 END -->
+			
+			<div class="resultWrap">
+				<!-- 내 위치 버튼 START -->
+				<div class="currenPositionWrap">
+					<div class="currenPosition" style="bottom: 10px;">
+						<!-- <span id="myMapAreaText"></span>
+						<button id="myMapLocation" class="btn_goPostion" type="button">현재위치로</button>
+						관심지역 설정 버튼
+						<button id="selectArea" class="databtn04" title="관심지역 설정 버튼">관심지역 설정 버튼</button> 2020.09.11[신예리] 웹접근성 문제로 인한 text 추가
+						 -->
+						<!-- 관심지역 설정 버튼 -->
+						<div class="locationboxwrap" id="selectArea">
+							<span class="selectAreaIcon">
+								<svg width="17" height="17" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<path d="M13.125 6.25C13.125 10.625 7.5 14.375 7.5 14.375C7.5 14.375 1.875 10.625 1.875 6.25C1.875 4.75816 2.46763 3.32742 3.52252 2.27252C4.57742 1.21763 6.00816 0.625 7.5 0.625C8.99184 0.625 10.4226 1.21763 11.4775 2.27252C12.5324 3.32742 13.125 4.75816 13.125 6.25Z" stroke="#4F4F4F" stroke-linecap="round" stroke-linejoin="round"/>
+									<path d="M7.5 8.125C8.53553 8.125 9.375 7.28553 9.375 6.25C9.375 5.21447 8.53553 4.375 7.5 4.375C6.46447 4.375 5.625 5.21447 5.625 6.25C5.625 7.28553 6.46447 8.125 7.5 8.125Z" stroke="#4F4F4F" stroke-linecap="round" stroke-linejoin="round"/>
+								</svg>						
+							</span>
+							<span id="myMapAreaText" class="selectArea">전국</span>
+						</div>
+						
+						
+						<button id="myMapLocation" class="btn_goPostion" type="button">
+							<svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<path d="M8.49918 14.1727C11.6323 14.1727 14.1722 11.6328 14.1722 8.49967C14.1722 5.36655 11.6323 2.82666 8.49918 2.82666C5.36607 2.82666 2.82617 5.36655 2.82617 8.49967C2.82617 11.6328 5.36607 14.1727 8.49918 14.1727Z" fill="white" stroke="#4F4F4F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+								<path d="M8.4999 10.5667C9.64163 10.5667 10.5672 9.64114 10.5672 8.49941C10.5672 7.35768 9.64163 6.43213 8.4999 6.43213C7.35817 6.43213 6.43262 7.35768 6.43262 8.49941C6.43262 9.64114 7.35817 10.5667 8.4999 10.5667Z" fill="white" stroke="#4F4F4F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+								<path d="M8.5 2.8269V1" stroke="#4F4F4F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+								<path d="M2.8269 8.49951H1" stroke="#4F4F4F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+								<path d="M8.5 14.1729V15.9998" stroke="#4F4F4F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+								<path d="M14.1729 8.49951H15.9998" stroke="#4F4F4F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+							</svg><!-- 현재위치로 -->
+						</button>
+					</div> 
+					<div class="databtnWrap" style="bottom:10px !important;">
+						<!-- 생활환경 정보  -->
+						<button id="lifeEnvironmentToggle" class="btn_infoView infoOff" title="생활환경종합 팝업 열기 버튼">
+							<svg width="18" height="13" viewBox="0 0 18 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<path d="M13.2237 1.15562C11.7734 0.509204 10.1741 2.01021 9.17043 3.20443C8.16124 2.01021 6.56198 0.509204 5.11713 1.15562C3.23661 1.99377 2.32669 4.36031 3.0822 6.44199C3.83772 8.52366 9.14838 12.2761 9.14838 12.2761C9.14838 12.2761 14.4756 8.52366 15.2146 6.44199C15.9535 4.36031 15.1208 1.99377 13.2237 1.15562Z" stroke="#222222" stroke-linejoin="round"/>
+								<path d="M0 7.58142H7.03676L8.44302 4.93002L9.75552 9.2851L11.7408 3.98779L12.7004 7.58142H18" fill="white"/>
+								<path d="M0 7.58142H7.03676L8.44301 4.93002L9.75551 9.2851L11.7408 3.98779L12.7004 7.58142H18" stroke="#222222" stroke-linejoin="round"/>
+							</svg><br />종합
+						</button>
+						<!-- 범례 --> 
+						<button onclick="#" id="legendInfoBtn" class="databtn02" title="범례 버튼">
+							<svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<g clip-path="url(#clip0_999_8968)">
+								<path d="M8.50033 1.4165L1.41699 4.95817L8.50033 8.49984L15.5837 4.95817L8.50033 1.4165Z" stroke="#222222" stroke-linecap="round" stroke-linejoin="round"/>
+								<path d="M1.41699 12.0415L8.50033 15.5832L15.5837 12.0415" stroke="#222222" stroke-linecap="round" stroke-linejoin="round"/>
+								<path d="M1.41699 8.5L8.50033 12.0417L15.5837 8.5" stroke="#222222" stroke-linecap="round" stroke-linejoin="round"/>
+								</g>
+								<defs>
+								<clipPath id="clip0_999_8968">
+								<rect width="17" height="17" fill="white"/>
+								</clipPath>
+								</defs>
+							</svg><br />범례
+						</button> <!-- 2020.09.11[신예리] 웹접근성 문제로 인한 text 추가 -->
+
+						<!-- 범례 tooltip START --> 
+						<div class="tooltipbox" style="top: -30px; right: 45px;"> <!-- 2020.09.08[신예리] 범례 위치 조정 -->
+							<div class="tooltipbox_row">
+								<button type="button" class="syncBtn" id="reverseBtn"></button>
+								<div class="color_checkbox" id="color_range">
+									<!-- 색상선택 영역 -->
+								</div>
+								<button class="ColorRangeClose" id="dataRemarks_close" type="button" title="닫기"></button> <!-- 2020.09.08[신예리] 범례 닫기 버튼 추가 -->
+							</div>
+							<div class="tooltipbox_row"> 
+								<div id="color_list" class="color_checkbox">
+									<!-- 색상 범위 영역 -->
+								</div>
+								<p style="margin-left: 10px;"></p>
+							</div> 
+						</div>
+						<!-- 범례 tooltip END -->
+					</div>					
+				</div>
+				<!-- 내 위치 버튼 END -->
+				
+				<!-- 추천지역 리스트 START -->
+				<div class="Btnarea" id="houseListBtn">
+					<h2 class="tit">지표선택
+						<svg width="20" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 8C6.71875 8 6.46875 7.90625 6.28125 7.71875L1.28125 2.71875C0.875 2.34375 0.875 1.6875 1.28125 1.3125C1.65625 0.90625 2.3125 0.90625 2.6875 1.3125L7 5.59375L11.2812 1.3125C11.6562 0.90625 12.3125 0.90625 12.6875 1.3125C13.0938 1.6875 13.0938 2.34375 12.6875 2.71875L7.6875 7.71875C7.5 7.90625 7.25 8 7 8Z" fill="#4f4f4f"></path></svg>
+					</h2>
+					<!-- <button type="button" class="swiperBtn" name="button" title="결과 목록 토글 버튼"/> --> <!-- 2020.09.11 [신예리] 웹접근성 문제로 인한 text 추가 --> 
+				</div>
+				<div class="result_list2" id="result_list2" style="bottom: 0 !important;">
+					<!-- <h2 class="tit">지표선택</h2> -->
+					<div class="gridWrap" id="list_div" style="height: 220px;">
+						 <!-- 지표 설정 START -->
+						<div class="nav_h_type lifeMenuWrap" id="houseMap_list">
+							<ul id="housetab">
+								<li style="width: 15px;"></li>
+								<%@include file="/WEB-INF/jsp/m2020/map/house/getSubMenuElement.jsp" %>
+							</ul>
+						</div>
+						<!-- 지표 설정 END -->
+						
+						<!-- 상세 지표 설정 START -->
+						<div id="houseStatusSwiper">
+							<%@include file="/WEB-INF/jsp/m2020/map/house/getStatusClassElement.jsp" %>
+						</div>
+						<!-- 상세 지표 설정 END -->
+					</div> 
+				</div>
+				<!-- 추천지역 리스트 END -->
+			</div>
+		</div>
+	</div>
+</body>
+</html> 

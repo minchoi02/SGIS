@@ -1,0 +1,47 @@
+<%
+/**************************************************************************************************************************
+* Program Name	: 일자리 맵 서비스 > 일자리 보기 > 산업분류 선택 (팝업창) 	
+* File Name		: viewJobs > vjSelectIndustryClassification.jsp
+* Comment		: 
+* History		:
+*	2018-10-02	ywKim	신규
+*
+**************************************************************************************************************************/
+%>
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<script src="${pageContext.request.contextPath}/js/workRoad/viewJobs/vjSelectIndustryClassification.js"></script>
+
+<div class="dialogbox pwType"  id="vjSelectIndustryClassification">
+	<div class="popBox wrmDraggable">
+		<div class="topbar wrmHeader">
+			<span>산업분류 선택</span>
+			<a href="javascript:void(0)">닫기</a>
+		</div>
+		<div class="cont-box">
+			<article>
+				<div class="cont-info" style="float:left; width: 50%;">
+					<div class="wrmScrollable">
+						<ul class="multiCheckBox" id="vjDataList">
+						</ul>
+					</div>
+				</div>
+				<div class="cont-info" style="float:left; width: 50%;">
+					<div class="wrmScrollable" id="vjDataListSub">
+						<ul class="multiCheckBox" id="vjDataListTemp">
+							<li>
+								<label>먼저 대분류를 선택해주세요.</label>
+							</li>
+						</ul>
+					</div>
+				</div>
+				<p class="notice" style="float:left;"> 다중 선택 가능합니다.</p>
+			</article>
+		</div>
+		<div class="popup-btn-area ">
+			<a href="javascript:void(0)" class="default-color " id="vjOk"><span>선택완료</span></a>
+			<a href="javascript:void(0)" class="dark-gray" id="vjClear"><span>선택취소</span></a>
+			<a href="javascript:void(0)" class="dark-gray" id="vjCancel"><span>취소</span></a>
+		</div>
+	</div>
+</div>

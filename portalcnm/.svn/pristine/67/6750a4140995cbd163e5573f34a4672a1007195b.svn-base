@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="PolicyCategoryManage">
+	
+	<!-- 2017.07.19 [개발팀] khc 표출순위  추가  start -->	
+	<select id="searchPolicyCategory" parameterType="Map" resultType="Map">
+		SELECT * FROM(
+			SELECT *,ROWNUM R FROM(
+			SELECT * FROM(
+			SELECT * FROM SRV_DT_POLICYMAP_CATEGORY ) C LEFT JOIN(
+			                           SELECT
+			                                A.CATEGORY_ID,                               
+			                                NVL(COUNT(A.CATEGORY_ID),0) AS CNT
+			                            FROM
+			                                SRV_DT_POLICYMAP_LIST A,
+			                                (
+			                                    SELECT
+			                                        CATEGORY_ID,
+			                                        CATEGORY_NM,
+			                                        EXP,
+			                                        DISP_RANK AS DR
+			                                    FROM
+			                                        SRV_DT_POLICYMAP_CATEGORY
+			                                ) B
+			                            WHERE
+			                                A.CATEGORY_ID = B.CATEGORY_ID
+			                            GROUP BY
+			                                A.CATEGORY_ID
+			                        )  D ON  C.CATEGORY_ID = D.CATEGORY_ID
+			                    <if test="SEARCH_WORD != null">  
+					           		and CATEGORY_NM like '%' || #{SEARCH_WORD} || '%'
+					  			</if>    
+			                    )
+			                    WHERE ROWNUM <![CDATA[<=]]> #{END_INDEX} )
+			                    WHERE R <![CDATA[>=]]> #{START_INDEX}
+	</select>
+	<select id="searchPolicyCategoryCount" parameterType="Map" resultType="int">
+		SELECT
+		   count(*) as cnt
+		FROM
+		    SRV_DT_POLICYMAP_CATEGORY
+		<if test="SEARCH_WORD != null">  
+			WHERE CATEGORY_NM like '%' || #{SEARCH_WORD} || '%'
+		</if>    
+    </select>
+    <update id="updatePolicyCategory" parameterType="Map">
+		update SRV_DT_POLICYMAP_CATEGORY set
+			CATEGORY_NM = #{CATEGORY_NM},
+			EXP = #{EXP},
+			DISP_RANK = #{DISP_RANK}
+		where CATEGORY_ID = #{CATEGORY_ID}
+	</update>
+	<select id="getSearchCategoryCount" parameterType="hashmap"
+		resultType="int">
+		SELECT COUNT(CATEGORY_ID) AS CNT
+		FROM
+		SRV_DT_POLICYMAP_CATEGORY
+	</select>
+	<select id="selectID" parameterType="hashmap" resultType="String">
+		select
+		TRIM(TO_CHAR(nvl(MAX(SUBSTR(CATEGORY_ID,6,3))+1,1),'000'))
+		from
+		SRV_DT_POLICYMAP_CATEGORY
+		order by CATEGORY_ID desc limit 1
+	</select>
+	<insert id="addPolicyCategory" parameterType="Map">
+		insert into SRV_DT_POLICYMAP_CATEGORY
+            (
+                CATEGORY_ID,               
+                CATEGORY_NM,
+                EXP,
+                DISP_RANK
+            )
+        values
+            (
+                #{CATEGORY_ID},              
+                #{CATEGORY_NM},
+                #{EXP},
+                #{DISP_RANK}
+            )
+	</insert>
+	<delete id="deletePolicyCategory">
+		DELETE FROM SRV_DT_POLICYMAP_CATEGORY WHERE CATEGORY_ID IN
+		<foreach collection="array" index="index" item="item" open="("
+			separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	<select id="getTipDiv" parameterType="hashmap" resultType="Map">
+		SELECT CATEGORY_ID, CATEGORY_NM FROM SRV_DT_POLICYMAP_CATEGORY
+	</select>
+</mapper>

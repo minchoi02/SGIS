@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="administStats">
+
+	<select id="getDispSrvList" resultType="egovframework.rte.psl.dataaccess.util.EgovMap">
+		SELECT
+			LIST.ORG_ID
+			, LIST.TBL_ID
+			, LIST.REGION_VAR_ORD
+			, LIST.STATTB_URL
+
+			, SETUP.CHART_ORD
+			, SETUP.CHART_NM
+			, SETUP.KOSIS_UNIT_NM
+			, SETUP.KOSIS_UNIT
+			, SETUP.DISP_UNIT_NM
+			, SETUP.DISP_UNIT
+			, SETUP.DISP_CO
+			, SETUP.ALL_DISP_AT
+			, SETUP.CHART_TYPE
+			, SETUP.DISP_VAR_ORD
+			, SETUP.DISP_LV
+			, SETUP.CHART_SNO
+			, SETUP.IEM_CL
+			, SETUP.CHART_CM
+			, SETUP.RMNDR_USE_YN
+			, SETUP.CHART_SNO
+
+			, DET.OBJ_VAR_ID
+			, DET.ITM_ID
+			, DET.VAR_ORD
+			, DET.SCR_KOR
+			, DET.ALTRTV_DISP_WRD
+			, DET.SUBSUM_YN
+			, DET.UNACTIVY_YN
+			, DET.CLICK_EVENT_YN
+			, DET.TTIP_USE_YN
+			, DET.LABEL_USE_YN
+			, DET.CHART_NM_BY_AREA
+			, DET.CHART_NM_BY_YEAR
+			, DET.USE_YN_BY_YEAR_CHART
+
+		FROM
+			(
+				SELECT
+					ORG_ID
+					, TBL_ID
+					, REGION_VAR_ORD
+					, STATTB_URL
+				FROM
+					SRV_DT_ST_LIST
+				WHERE
+					ORG_ID = #{org_id_list}
+			) LIST
+			, (
+				SELECT
+					ORG_ID
+					, TBL_ID
+					, CHART_ORD
+					, CHART_NM
+					, KOSIS_UNIT_NM
+					, KOSIS_UNIT
+					, DISP_UNIT_NM
+					, DISP_UNIT
+					, DISP_CO
+					, ALL_DISP_AT
+					, CHART_TYPE
+					, DISP_VAR_ORD
+					, DISP_LV
+					, IEM_CL
+					, CHART_CM
+					, RMNDR_USE_YN
+					, CHART_SNO
+				FROM
+					SRV_DT_ST_CHART_ITM_SETUP
+				WHERE
+					ORG_ID = #{org_id_list}
+					AND DEL_YN = 'N'
+					AND DET_YN = 'N'
+					AND TOT_SURV_YN = 'N'
+					AND IEM_CL = #{iem_cl}
+					AND CHART_SNO IS NOT NULL
+			) SETUP
+			, (
+				SELECT
+					ORG_ID
+					, TBL_ID
+					, CHART_ORD
+					, OBJ_VAR_ID
+					, ITM_ID
+					, VAR_ORD
+					, SCR_KOR
+					, ALTRTV_DISP_WRD
+					, SUBSUM_YN
+					, UNACTIVY_YN
+					, CLICK_EVENT_YN
+					, TTIP_USE_YN
+					, LABEL_USE_YN
+					, CHART_NM_BY_AREA
+					, CHART_NM_BY_YEAR
+					, USE_YN_BY_YEAR_CHART
+				FROM
+					SRV_DT_ST_CHART_DET_ITM_SETUP
+				WHERE
+					ORG_ID = #{org_id_list}
+					AND DET_YN = 'N'
+					AND TOT_SURV_YN = 'N'
+					AND CHOISE_YN = 'Y'
+					AND DEL_YN = 'N'
+			) DET
+		WHERE
+			LIST.ORG_ID = SETUP.ORG_ID
+			AND LIST.TBL_ID = SETUP.TBL_ID
+			AND SETUP.ORG_ID = DET.ORG_ID(+)
+			AND SETUP.TBL_ID = DET.TBL_ID(+)
+			AND SETUP.CHART_ORD = DET.CHART_ORD(+)
+	</select>
+
+	<select id="getYearList" resultType="egovframework.rte.psl.dataaccess.util.EgovMap">
+		SELECT
+			MAX(STATTB_BEGIN_YEAR) AS STATTB_BEGIN_YEAR
+			, MIN(STATTB_END_YEAR) AS STATTB_END_YEAR
+		FROM
+			SRV_DT_ST_LIST
+		WHERE
+			1 = 1
+			AND ORG_ID = #{org_id_list}
+			AND TBL_ID IN
+				<foreach collection="tbl_id_list" item="items" open="(" separator="," close=")">
+					#{items}
+				</foreach>
+	</select>
+</mapper>

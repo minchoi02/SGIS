@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="srvLogWrite">
+	
+	<select id="insertLog" parameterType="hashmap">
+		Insert into public.srv_log (
+		 	 call_ts,  
+		 	 f_class_1_cd,  
+		 	 f_class_2_cd,  
+		 	 f_class_3_cd,  
+		 	 f_class_4_cd,  
+		 	 det_cd,  
+		 	 param,  
+		 	 member_id,  
+		 	 ip 
+		)values (
+			now(),
+			#{f_class_1_cd},
+			#{f_class_2_cd},
+			#{f_class_3_cd},
+			#{f_class_4_cd},
+			#{det_cd},
+			#{param},
+			#{member_id},
+			#{ip}
+		)
+	</select>
+</mapper>

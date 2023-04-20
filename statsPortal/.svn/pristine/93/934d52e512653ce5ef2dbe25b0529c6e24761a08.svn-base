@@ -1,0 +1,95 @@
+function getReversGeoCode(map){
+	var x_coor = map.center[0];
+	var y_coor = map.center[1];
+	console.log(map.zoom);
+	//map.clearData();
+	
+	if(map.zoom < 4){
+		
+		$.ajax({
+			  type: "GET",
+			  url: "/js/data/geo_sido_" + $('#searchYear').val() + ".js",
+			  dataType: "json",
+			  success: function(res) {
+				  getMapdata(map,"00",res);
+			  } ,
+		});
+		
+	}else{
+		
+		$.ajax({
+			  type: "GET",
+			  url: openApiPath + "/OpenAPI3/addr/rgeocode.json",
+			  data : {"accessToken" : accessToken,"addr_type" :  "20","x_coor" :  x_coor,"y_coor" : y_coor,"bnd_year" :  $('#searchYear').val()},
+			  dataType: "json",
+			  success: function(res) {
+				  console.log(map.zoom);
+				  var admCd = "";
+				  if(res.result == null) return null;
+				  if(map.zoom < 6) {
+					  admCd = res.result[0].sido_cd;
+				  }else{
+					  admCd = res.result[0].sido_cd+""+res.result[0].sgg_cd;
+				  }
+				  getHadMareaCode(map,admCd);
+			  }   
+		});
+	
+	}
+}
+
+function getHadMareaCode(map,admCd){
+	$.ajax({
+		  type: "GET",
+		  url: openApiPath + "/OpenAPI3/boundary/hadmarea.geojson",
+		  data : {"accessToken" : accessToken,"adm_cd" : admCd ,"year" :  $('#searchYear').val(),"low_search": "1"},
+		  dataType: "json",
+		  success: function(res) {
+			  getMapdata(map,admCd,res);
+		  }   
+	});
+}
+
+
+function getMapdata(map,admCd,data){
+	
+	//map.addPolygonGeoJson(data,"polygon");
+	
+	$.ajax({
+		  type: "GET",
+		  url: "/view/sbrStats/sbrMapList",
+		  data : {"year":$('#searchYear').val(),"adm_cd":admCd},
+		  dataType: "json",
+		  success: function(res) {
+			  
+			  
+			  
+			  data.features.forEach(function(item,index){
+				  res.forEach(function(item2,index2){
+					  if(item.properties.adm_cd == item2.bord_cd){
+						  item.properties.value = item2.ent_tot;
+						  
+					  }
+				  });
+			  });
+			  console.log("과연2");
+			  console.log(data);
+			  
+			  map.setLegendForStatsData(data);
+			  map.addPolygonGeoJson(data,"polygon");
+			  
+		  }   
+	});
+
+}
+
+
+
+
+
+
+
+
+
+
+

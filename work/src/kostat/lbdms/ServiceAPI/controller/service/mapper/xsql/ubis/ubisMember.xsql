@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ubis">
+	
+	<!-- UBIS 사용자정보 조회 -->
+	<select id="getUbisUserInfo" parameterType="hashmap" resultType="hashmap">
+        SELECT
+           		  MEMBER_ID as member_id
+           	   	, INST.UPPER_GROUP_ID as upper_group_id
+            	, MB.INST_GROUP_ID as inst_group_id
+            	, INST.INST_GROUP_NM as inst_group_nm
+            	, USR_AUTHORITY as usr_authority
+            	, MEMBER_NM as member_nm
+            	, INST_GROUP_TYPE as inst_group_type
+            	, MB.MEMBER_JOB_POS as member_job_pos
+        FROM SURV_DT_UBISMEMBERINFO MB, SURV_DT_INSTCDINFO INST
+        WHERE MB.INST_GROUP_ID = INST.INST_GROUP_ID
+        AND INST.LOGIN_PERMIT_YN = 'Y'
+        AND MEMBER_ID = #{user_id}
+        AND PW = #{user_pw}
+    </select>
+
+	<!-- UBIS 회원체크 -->
+    <select id="getUbisUserCheck" parameterType="hashmap" resultType="int">
+        SELECT	COUNT(*) as cnt
+        FROM SURV_DT_UBISMEMBERINFO MB, SURV_DT_INSTCDINFO INST
+        WHERE MB.INST_GROUP_ID = INST.INST_GROUP_ID
+        AND INST.LOGIN_PERMIT_YN = 'Y'
+        AND MEMBER_ID = #{user_id}
+        AND PW = #{user_pw}
+    </select>
+
+</mapper>

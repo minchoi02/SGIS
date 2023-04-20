@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="addr">
+
+	<!-- 단계별 주소검색 -->
+	<select id="stage" parameterType="hashmap" resultType="hashmap">
+		<if  test = "sido_cd == null and sgg_cd == null">
+			select sido_cd cd, sido_nm addr_name, sido_nm full_addr, round(x_coor) x_coor, round(y_coor) y_coor
+			<if test = "pg_yn != null and pg_yn == 1">
+				,st_astext(lighten_bord) pg
+			</if>
+			from srv_pg_sidobord with (nolock) adm
+			where 
+			  adm.base_year = #{bnd_year}
+			  order by cd 
+		</if>
+		<if test = "sido_cd != null and sgg_cd == null">
+			select sido_cd||sgg_cd cd, sgg_nm addr_name, addr full_addr, round(x_coor) x_coor, round(y_coor) y_coor
+			<if test = "pg_yn != null and pg_yn == 1">
+				,st_astext(lighten_bord) pg
+			</if>
+			from srv_pg_sggbord with (nolock) adm
+			where 
+			  adm.base_year = #{bnd_year}
+			  and sido_cd = #{sido_cd}
+			  order by full_addr 
+		</if>
+		<if test = "sido_cd != null and sgg_cd != null">
+			select sido_cd||sgg_cd||emdong_cd cd, emdong_nm addr_name, addr full_addr, round(x_coor) x_coor, round(y_coor) y_coor
+			<if test = "pg_yn != null and pg_yn == 1">
+				,st_astext(lighten_bord) pg
+			</if>
+			from srv_pg_admbord with (nolock) adm
+			where 
+			  adm.base_year = #{bnd_year}
+			  and sido_cd = #{sido_cd} and sgg_cd = #{sgg_cd}
+			  order by full_addr 
+		</if> 
+	</select>
+	
+	<!-- 리버스 지오코딩 -->
+	<select id="rgeocode" parameterType="hashmap" resultType="hashmap">
+		<if test = "addr_type == 10">
+		/* 리버스 지오코딩 [ 도로명 주소 ] */
+			SELECT
+					adm.sido_cd
+					, adm.sgg_cd
+					, bd.road_cd road_cd
+					, adm.sido_nm
+					, adm.sgg_nm
+					, decode(bd.bd_nm, '', null, bd.bd_nm) bd_nm
+					, decode(bd.sub_bd_nm, '', null, bd.sub_bd_nm) sub_bd_nm
+					, bd.road_nm as road_nm
+					, decode(bd.bd_base_no, '0', null, bd.bd_base_no) as road_nm_main_no
+					, decode(bd.bd_sub_no, '0', null, bd.bd_sub_no) as road_nm_sub_no
+					, bd.naddr as full_addr
+			FROM
+					SRV_PG_SGGBORD with (nolock) adm
+			INNER JOIN (
+				SELECT
+						a.ADM_CD
+						, a.ROAD_CD
+						, a.BD_NM
+						, a.SUB_BD_NM
+						, a.ROAD_NM
+						, a.BD_BASE_NO
+						, a.BD_SUB_NO
+						, a.NADDR
+				From (
+					SELECT *
+					  FROM SRV_PG_CENSUSBD with (nolock) 
+					<if test = "accuracy == null or accuracy == 0">
+				   /* x, y 좌표에서 50m 반경안에 들어오는 건물 검색 */
+					 WHERE st_intersects (BORD, st_buffer(st_pointfromtext ('point('||to_char(#{x_coor})||' '||to_char(#{y_coor})||')', 0 ), 50)) = 1
+					</if>
+					<if test="accuracy == 1">
+				   /* 건물에 x, y가 포함 되었을 경우 검색 */
+					 WHERE st_within(st_pointfromtext ('point('||to_char(#{x_coor})||' '||to_char(#{y_coor})||')', 0 ), bord ) = 1 
+					</if>
+				)a
+				, (
+				   /* x, y 좌표에서 가장 가까운 건물 검색 */
+					SELECT *
+					  FROM SRV_PG_CENSUSBD with (nolock) 
+					 WHERE st_nearest(BORD, st_pointfromtext ('point('||to_char(#{x_coor})||' '||to_char(#{y_coor})||')', 0 ), 1)                 = 1
+				) b
+				WHERE a.SUFID = b.SUFID
+				) bd 
+				ON adm.SIDO_CD = substr(bd.ADM_CD, 1, 2) AND adm.SGG_CD = substr(bd.ADM_CD, 3, 3) 
+				WHERE adm.BASE_YEAR = #{bnd_year}
+		</if>
+		<if test = "addr_type == 20">
+		/* 리버스 지오코딩 [ 행정동 주소 ] */
+			select sido_cd
+		     , sido_nm
+		     , sgg_cd
+		     , sgg_nm
+		     , emdong_cd
+		     , emdong_nm
+		     , addr full_addr
+		  from srv_pg_admbord with (nolock) adm
+		 where 
+		   adm.base_year = #{bnd_year}
+		   AND st_within (st_pointfromtext ('point('||to_char(#{x_coor})||' '||to_char(#{y_coor})||')', 0 ), lighten_bord) = 1
+		</if>
+		<if test = "addr_type == 21">
+		/* 리버스 지오코딩 [ 행정동 지번 주소 ] */
+			select pclpt.sido_cd
+		     , pclpt.sgg_cd
+		     , pclpt.emdong_cd
+		     , pclpt.main_no main_no
+		     , decode(pclpt.sub_no, 0, null, pclpt.sub_no) sub_no
+		     , adm.sido_nm
+		     , adm.sgg_nm
+		     , adm.emdong_nm
+		     , pclpt.sido_cd || pclpt.sgg_cd || pclpt.emdong_cd adm_dr_cd
+		     , adm.addr||' '||decode((pclpt.mnt_yn), '2', '산', '')|| pclpt.main_no ||decode (pclpt.sub_no, '0', '', '-'|| pclpt.sub_no) full_addr
+		  from srv_pg_pclpt with (nolock) pclpt
+		     , srv_pg_admbord with (nolock) adm
+		 where
+		   adm.base_year = #{bnd_year}
+		   and st_within (st_pointfromtext ('point('||to_char(#{x_coor})||' '||to_char(#{y_coor})||')', 0 ), adm.lighten_bord) = 1 
+		   and pclpt.sido_cd = adm.sido_cd
+		   and pclpt.sgg_cd = adm.sgg_cd
+		   and pclpt.emdong_cd = adm.emdong_cd
+		   and st_nearest (pclpt.bord, st_pointfromtext ('point('||to_char(#{x_coor})||' '||to_char(#{y_coor})||')', 0 ), 1) = 1
+		</if>
+		<if test = "addr_type == 30">
+		/* 리버스 지오코딩 [ 집계구 코드 + 행정동 주소 ] */
+			SELECT
+				TOTBORD.SIDO_CD        AS SIDO_CD
+				, ADMBORD.SIDO_NM      AS SIDO_NM
+				, TOTBORD.SGG_CD       AS SGG_CD
+				, ADMBORD.SGG_NM       AS SGG_NM
+				, TOTBORD.EMDONG_CD    AS EMDONG_CD
+				, ADMBORD.EMDONG_NM    AS EMDONG_NM
+				, TOTBORD.TOT_REG_CD   AS TOT_REG_CD
+				, ADMBORD.ADDR         AS FULL_ADDR
+			FROM
+					 SRV_PG_TOTREGBORD with (nolock) TOTBORD
+			INNER JOIN (
+					SELECT
+							SIDO_NM
+							, SGG_NM
+							, EMDONG_NM
+							, SIDO_CD
+							, SGG_CD
+							, EMDONG_CD
+							, BASE_YEAR
+							, ADDR
+					FROM
+							SRV_PG_ADMBORD with (nolock) 
+					WHERE 
+							BASE_YEAR = (
+								SELECT
+										TOP 1 BASE_YEAR
+								FROM 
+										SRV_PG_ADMBORD with (nolock) 
+								GROUP BY BASE_YEAR 
+								ORDER BY BASE_YEAR DESC
+							)
+			) ADMBORD
+					ON
+						TOTBORD.SIDO_CD = ADMBORD.SIDO_CD 
+						AND TOTBORD.SGG_CD = ADMBORD.SGG_CD
+						AND TOTBORD.EMDONG_CD = ADMBORD.EMDONG_CD
+						AND TOTBORD.BASE_YEAR = ADMBORD.BASE_YEAR
+			WHERE 
+					st_within (st_pointfromtext ('point(' || #{x_coor} ||' '|| #{y_coor} || ')', 0 ), TOTBORD.BORD) = 1
+		</if>
+	</select>
+</mapper>

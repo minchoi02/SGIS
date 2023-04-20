@@ -1,0 +1,527 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ststisticsCmmn"> 
+
+	<sql id="pageHeader">
+		SELECT * FROM
+		(
+			SELECT * FROM
+			(
+				SELECT * FROM 
+				(
+	</sql>
+	
+	<sql id="pageFotter">
+				)
+				ORDER BY RNUM ASC
+			)
+			ORDER BY RNUM ASC
+		)
+		WHERE RNUM BETWEEN CNT - TO_NUMBER(#{paging.pageNo}) * TO_NUMBER(#{paging.pageRows}) + 1
+						AND CNT - (TO_NUMBER(#{paging.pageNo}) - 1) * TO_NUMBER(#{paging.pageRows})
+		ORDER BY RNUM DESC
+	</sql>
+	
+	<select id="getStstisticsUSSubKeyWord"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		/** getStstisticsUSSubKeyWord start ... **/
+		SELECT CTLG_SIMILR_KWRD_SERIAL AS CODE , CTLG_SIMILR_KWRD AS NAME FROM SRV_DT_CTLG_SIMILR_KWRD_LIST
+	</select>
+	
+	<select id="getStstisticsUSKeyWord"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		/** getStstisticsUSKeyWord start ... **/
+		SELECT CTLG_MAIN_KWRD_SERIAL AS CODE ,CTLG_MAIN_KWRD AS NAME FROM SRV_DT_CTLG_MAIN_KWRD_LIST
+	</select>
+	
+	<select id="getStstisticsUSInterests"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		/** getStstisticsUSInterests start ... **/
+		SELECT STAT_DISTANCE_NM AS NAME , STAT_DISTANCE_ID AS CODE FROM SRV_DT_CTLG_DISTANCE_LIST
+	</select>
+	<select id="getStstisticsUSInterestsData"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		/** getStstisticsUSInterestsData start ... **/
+		SELECT LFE_CYCLE_NM, STAT_DISTANCE_NM, LFE_CYCLE_NM||' '||STAT_DISTANCE_NM AS NAME ,LFE_CYCLE_ID, STAT_DISTANCE_ID,LFE_CYCLE_ID||','||STAT_DISTANCE_ID AS CODE FROM SRV_DT_CTLG_LFE_CYCLE_LIST,SRV_DT_CTLG_DISTANCE_LIST
+	</select>
+	<select id="getStstisticsUSLifeCycle"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		/** getStstisticsUSLifeCycle start ... **/
+		SELECT LFE_CYCLE_ID AS CODE , LFE_CYCLE_NM AS NAME FROM SRV_DT_CTLG_LFE_CYCLE_LIST
+	</select>
+	<select id="getStstisticsUSData"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		/** getStstisticsUSData start ... **/
+		SELECT STAT_DATA_ID AS CODE , STAT_DATA_NM AS NAME FROM SRV_DT_CTLG_DATA_LIST
+	</select>
+	
+	<select id="getSido"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT SIDO_CD AS CODE , SIDO_NM AS NAME FROM SRV_PG_SIDOBORD WHERE BASE_YEAR = #{base_year}
+	</select>
+	
+	<select id="getSgg"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT SGG_CD AS CODE  , SGG_NM AS NAME FROM SRV_PG_SGGBORD WHERE BASE_YEAR = #{base_year} AND SIDO_CD = #{sidoCd}
+	</select>
+	
+	<select id="getEmdong"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT EMDONG_CD AS CODE  , EMDONG_NM AS NAME FROM SRV_PG_ADMBORD WHERE BASE_YEAR = #{base_year} AND SIDO_CD = #{sidoCd} AND SGG_CD = #{sggCd}
+	</select>
+	
+	<delete id="interestsRemoveMappingStstisticsUSLifeCycleMng" parameterType="java.util.HashMap">
+		/** interestsRemoveMappingStstisticsUSLifeCycleMng start ... **/
+	</delete>
+	
+	<insert id="registerMappingCycleDstncMng" parameterType="java.util.HashMap">
+		/** registerMappingCycleDstncMng start ... **/
+			INSERT INTO SRV_DT_CTLG_CYCLE_DISTANCE (
+				LFE_CYCLE_ID
+				,STAT_DISTANCE_ID
+				,REG_TS 
+				,REG_MANAGER_ID
+			) 
+			VALUES
+			(
+				#{lfeCycleId}
+				,#{statDistanceId}
+				,SYSDATE
+				,#{regManagerId}
+			) 
+	</insert>
+	<insert id="registerMappingDstncMng" parameterType="java.util.HashMap">
+		/** registerMappingDstncMng start ... **/
+			INSERT INTO SRV_DT_CTLG_DISTANCE_DATA (
+				LFE_CYCLE_ID
+				,STAT_DISTANCE_ID
+				,STAT_DATA_ID
+				,REG_TS 
+				,REG_MANAGER_ID
+			) 
+			VALUES
+			(
+				#{lfeCycleId}
+				,#{statDistanceId}
+				,#{statDataId}
+				,SYSDATE
+				,#{regManagerId}
+			) 
+	</insert>
+	
+	<insert id="registerMappingMainSubMng" parameterType="java.util.HashMap">
+		/** registerMappingMainSubMng start ... **/
+			INSERT INTO SRV_DT_CTLG_MAIN_SIMILR_KWRD (
+				CTLG_MAIN_KWRD_SERIAL
+				,CTLG_SIMILR_KWRD_SERIAL
+				,REG_TS 
+				,REG_MANAGER_ID
+			) 
+			VALUES
+			(
+				#{ctlgMainKwrdSerial}
+				,#{ctlgSimilrKwrdSerial}
+				,SYSDATE
+				,#{regManagerId}
+			) 
+	</insert>
+	
+	<insert id="registerMappingMainDataMng" parameterType="java.util.HashMap">
+		/** registerMappingMainDataMng start ... **/
+			INSERT INTO SRV_DT_CTLG_MAIN_KWRD_DATA (
+				CTLG_MAIN_KWRD_SERIAL
+				,STAT_DATA_ID
+				,REG_TS 
+				,REG_MANAGER_ID
+			) 
+			VALUES
+			(
+				#{ctlgMainKwrdSerial}
+				,#{statDataId}
+				,SYSDATE
+				,#{regManagerId}
+			) 
+	</insert>
+	
+	<select id="checkMappingStstisticsUSCycleDstncMng" parameterType="java.util.HashMap" resultType="int">
+		/** checkMappingStstisticsUSCycleDstncMng start ... **/
+		SELECT COUNT(LFE_CYCLE_ID) FROM SRV_DT_CTLG_CYCLE_DISTANCE WHERE LFE_CYCLE_ID = #{lfeCycleId} AND STAT_DISTANCE_ID = #{statDistanceId}
+	</select>
+	
+	<select id="checkMappingStstisticsUSDstncMng" parameterType="java.util.HashMap" resultType="int">
+		/** checkMappingStstisticsUSDstncMng start ... **/
+		SELECT COUNT(LFE_CYCLE_ID) FROM SRV_DT_CTLG_DISTANCE_DATA WHERE LFE_CYCLE_ID = #{lfeCycleId} AND STAT_DISTANCE_ID = #{statDistanceId} AND STAT_DATA_ID = #{statDataId}
+	</select>
+	
+	<select id="checkMappingStstisticsUSMainSubMng" parameterType="java.util.HashMap" resultType="int">
+		/** checkMappingStstisticsUSMainSubMng start ... **/
+		SELECT COUNT(CTLG_MAIN_KWRD_SERIAL) FROM SRV_DT_CTLG_MAIN_SIMILR_KWRD WHERE CTLG_MAIN_KWRD_SERIAL = #{ctlgMainKwrdSerial} AND CTLG_SIMILR_KWRD_SERIAL = #{ctlgSimilrKwrdSerial}
+	</select>
+	
+	
+	<select id="checkMappingStstisticsUSMainDataMng" parameterType="java.util.HashMap" resultType="int">
+		/** checkMappingStstisticsUSMainDataMng start ... **/
+		SELECT COUNT(CTLG_MAIN_KWRD_SERIAL) FROM SRV_DT_CTLG_MAIN_KWRD_DATA WHERE CTLG_MAIN_KWRD_SERIAL = #{ctlgMainKwrdSerial} AND STAT_DATA_ID = #{statDataId}
+	</select>
+	
+	<select id="getSrvDtCltgCycleDstnc" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		/** getSrvDtCltgCycleDstnc start ... **/
+		<if test="from != 'Datainterests' ">
+		SELECT 
+			LFE_CYCLE_ID
+			,STAT_DISTANCE_ID
+			,( SELECT STAT_DISTANCE_NM 	FROM SRV_DT_CTLG_DISTANCE_LIST 	SUB WHERE SUB.STAT_DISTANCE_ID	= TB001.STAT_DISTANCE_ID) 	AS STAT_DISTANCE_NM
+			<!--,( SELECT LFE_CYCLE_NM 		FROM SRV_DT_CTLG_LFE_CYCLE_LIST SUB WHERE SUB.LFE_CYCLE_ID 	= TB001.LFE_CYCLE_ID) ||' ' || ( SELECT STAT_DISTANCE_NM 	FROM SRV_DT_CTLG_DISTANCE_LIST 	SUB WHERE SUB.STAT_DISTANCE_ID	= TB001.STAT_DISTANCE_ID) 	AS STAT_DISTANCE_NM-->
+			,( SELECT LFE_CYCLE_NM 		FROM SRV_DT_CTLG_LFE_CYCLE_LIST SUB WHERE SUB.LFE_CYCLE_ID 	= TB001.LFE_CYCLE_ID) 	AS LFE_CYCLE_NM
+		FROM
+			SRV_DT_CTLG_CYCLE_DISTANCE TB001
+			WHERE 1 = 1 
+			<if test="statDistanceId != null and statDistanceId != '' ">
+				AND STAT_DISTANCE_ID = #{statDistanceId}
+			</if>
+			<if test="lfeCycleId != null and lfeCycleId != '' ">
+				AND LFE_CYCLE_ID = #{lfeCycleId}
+			</if>
+			<if test="statDataId != null and statDataId != '' ">
+				AND STAT_DISTANCE_ID IN (SELECT STAT_DISTANCE_ID FROM SRV_DT_CTLG_DISTANCE_DATA WHERE STAT_DATA_ID = #{statDataId})
+			</if>
+		</if>
+		<if test="from == 'Datainterests' ">
+			SELECT
+				A.LFE_CYCLE_ID
+				,A.STAT_DISTANCE_ID
+				,C.LFE_CYCLE_NM||' '||B.STAT_DISTANCE_NM AS STAT_DISTANCE_NM
+				,C.LFE_CYCLE_NM
+			FROM 
+				SRV_DT_CTLG_DISTANCE_DATA A, SRV_DT_CTLG_DISTANCE_LIST B, SRV_DT_CTLG_LFE_CYCLE_LIST C
+			WHERE
+				A.STAT_DISTANCE_ID = B.STAT_DISTANCE_ID
+			AND
+				A.LFE_CYCLE_ID = C.LFE_CYCLE_ID
+			AND
+				A.STAT_DATA_ID = #{statDataId}
+		</if>	
+	</select>
+	
+<!-- 	<select id="getSrvDtCltgMainSub" parameterType="java.util.HashMap" resultType="StastisticsCamelcase"> -->
+<!-- 		/** getSrvDtCltgMainSub start ... **/ -->
+<!-- 		SELECT  -->
+<!-- 			 CTLG_MAIN_KWRD_SERIAL -->
+<!-- 			,CTLG_SIMILR_KWRD_SERIAL -->
+<!-- 			,( SELECT CTLG_MAIN_KWRD FROM SRV_DT_CTLG_MAIN_KWRD_LIST SUB WHERE SUB.CTLG_MAIN_KWRD_SERIAL=TB001.CTLG_MAIN_KWRD_SERIAL) 	AS CTLG_MAIN_KWRD_SERIAL_NM -->
+<!-- 			,( SELECT CTLG_SIMILR_KWRD FROM SRV_DT_CTLG_SIMILR_KWRD_LIST SUB WHERE SUB.CTLG_SIMILR_KWRD_SERIAL=TB001.CTLG_SIMILR_KWRD_SERIAL) 	AS CTLG_SIMILR_KWRD_SERIAL_NM -->
+<!-- 		FROM -->
+<!-- 			SRV_DT_CTLG_MAIN_SIMILR_KWRD TB001 -->
+<!-- 			WHERE 1 = 1  -->
+<!-- 			<if test="statDstncId != null and statDstncId != '' "> -->
+<!-- 				AND STAT_DISTANCE_ID = #{statDstncId} -->
+<!-- 			</if> -->
+<!-- 			<if test="lfeCycleId != null and lfeCycleId != '' "> -->
+<!-- 				AND LFE_CYCLE_ID = #{lfeCycleId} -->
+<!-- 			</if> -->
+<!-- 	</select> -->
+	
+	<select id="getSrvDtCtlgMainSubKwrd" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		/** getSrvDtCtlgMainSubKwrd start ....**/
+		SELECT 
+			CTLG_MAIN_KWRD_SERIAL
+			,CTLG_SIMILR_KWRD_SERIAL
+			,( SELECT CTLG_MAIN_KWRD 	FROM SRV_DT_CTLG_MAIN_KWRD_LIST 	SUB WHERE SUB.CTLG_MAIN_KWRD_SERIAL	= TB001.CTLG_MAIN_KWRD_SERIAL) 	AS CTLG_MAIN_KWRD_SERIAL_NM
+			,( SELECT CTLG_SIMILR_KWRD 	FROM SRV_DT_CTLG_SIMILR_KWRD_LIST SUB WHERE SUB.CTLG_SIMILR_KWRD_SERIAL 	= TB001.CTLG_SIMILR_KWRD_SERIAL) 	AS CTLG_SIMILR_KWRD_SERIAL_NM
+		FROM
+			SRV_DT_CTLG_MAIN_SIMILR_KWRD TB001
+			WHERE 1 = 1 
+			<if test="ctlgMainKwrdSerial != null and ctlgMainKwrdSerial != '' ">
+				AND CTLG_MAIN_KWRD_SERIAL = #{ctlgMainKwrdSerial}
+			</if>
+			<if test="ctlgSimilrKwrdSerial != null and ctlgSimilrKwrdSerial != '' ">
+				AND CTLG_SIMILR_KWRD_SERIAL = #{ctlgSimilrKwrdSerial}
+			</if>
+			<if test="statDataId != null and statDataId != '' ">
+				AND TB001.CTLG_MAIN_KWRD_SERIAL IN (SELECT CTLG_MAIN_KWRD_SERIAL FROM SRV_DT_CTLG_MAIN_KWRD_DATA SUB WHERE SUB.STAT_DATA_ID = #{statDataId}) 
+			</if>
+	</select>
+	
+	<select id="getSrvDtCtlgMainKwrd" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		/** getSrvDtCtlgMainKwrd start ....**/
+		SELECT 
+			CTLG_MAIN_KWRD_SERIAL
+			,( SELECT CTLG_MAIN_KWRD FROM SRV_DT_CTLG_MAIN_KWRD_LIST SUB WHERE SUB.CTLG_MAIN_KWRD_SERIAL 	= TB001.CTLG_MAIN_KWRD_SERIAL) 	AS CTLG_MAIN_KWRD_SERIAL_NM
+		FROM
+			SRV_DT_CTLG_MAIN_KWRD_DATA TB001
+			WHERE 1 = 1 
+			<if test="statDataId != null and statDataId != '' ">
+				AND TB001.STAT_DATA_ID  = #{statDataId}
+			</if>
+	</select>
+	
+	<select id="getSrvDtCtlgDataList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		/** getSrvDtCtlgDataList start ... **/
+		SELECT 
+			STAT_DATA_ID
+			,( SELECT STAT_DATA_NM FROM SRV_DT_CTLG_DATA_LIST SUB WHERE SUB.STAT_DATA_ID 	= TB001.STAT_DATA_ID) 	AS STAT_DATA_NM
+		FROM
+			SRV_DT_CTLG_MAIN_KWRD_DATA TB001
+			WHERE 1 = 1 
+			<if test="ctlgMainKwrdSerial != null and ctlgMainKwrdSerial != '' ">
+				AND TB001.CTLG_MAIN_KWRD_SERIAL  = #{ctlgMainKwrdSerial}
+			</if>
+	</select>
+	
+	<delete id="removeMapping" parameterType="java.util.HashMap" >
+		/** removeMapping start .... **/
+		DELETE 
+		FROM 	
+		<if test="param[0].from == 'Interests'">
+			SRV_DT_CTLG_CYCLE_DISTANCE 
+			WHERE 	LFE_CYCLE_ID = #{param[0].lfeCycleId}
+			AND 	STAT_DISTANCE_ID NOT IN
+			<foreach collection="param" item="items" open="(" close=")" separator=",">
+				#{items.statDistanceId}
+			</foreach>
+		</if>
+		<if test="param[0].from == 'LifeCycle'">
+			SRV_DT_CTLG_CYCLE_DISTANCE 
+			WHERE 	STAT_DISTANCE_ID = #{param[0].statDistanceId} 
+			AND 	LFE_CYCLE_ID NOT IN
+			<foreach collection="param" item="items" open="(" close=")" separator=",">
+				#{items.lfeCycleId}
+			</foreach>
+		</if>
+		<if test="param[0].from == 'SubKeyWord'">
+			SRV_DT_CTLG_MAIN_SIMILR_KWRD 
+			WHERE 	CTLG_MAIN_KWRD_SERIAL = #{param[0].ctlgMainKwrdSerial} 
+			AND 	CTLG_SIMILR_KWRD_SERIAL NOT IN
+			<foreach collection="param" item="items" open="(" close=")" separator=",">
+				#{items.ctlgSimilrKwrdSerial}
+			</foreach>
+		</if>
+		<if test="param[0].from == 'KeyWord'">
+			SRV_DT_CTLG_MAIN_SIMILR_KWRD 
+			WHERE 	CTLG_SIMILR_KWRD_SERIAL = #{param[0].ctlgSimilrKwrdSerial} 
+			AND 	CTLG_MAIN_KWRD_SERIAL NOT IN
+			<foreach collection="param" item="items" open="(" close=")" separator=",">
+				#{items.ctlgMainKwrdSerial}
+			</foreach>
+		</if>
+		<if test="param[0].from == 'MainKeyWord'">
+			SRV_DT_CTLG_MAIN_KWRD_DATA 
+			WHERE 	STAT_DATA_ID = #{param[0].statDataId} 
+			AND 	CTLG_MAIN_KWRD_SERIAL NOT IN
+			<foreach collection="param" item="items" open="(" close=")" separator=",">
+				#{items.ctlgMainKwrdSerial}
+			</foreach>
+		</if>
+		<if test="param[0].from == 'Datainterests'">
+			SRV_DT_CTLG_DISTANCE_DATA 
+			WHERE	 STAT_DATA_ID = #{param[0].statDataId}
+			<foreach collection="param" item="items">
+				AND   STAT_DISTANCE_ID || LFE_CYCLE_ID   <![CDATA[<>]]> (SELECT #{items.statDistanceId} || #{items.lfeCycleId} FROM DUAL)
+			</foreach> 
+		</if>
+		<if test="param[0].from == 'Service'">
+			SRV_DT_CTLG_MAIN_KWRD_DATA 
+			WHERE	CTLG_MAIN_KWRD_SERIAL = #{param[0].ctlgMainKwrdSerial}
+			AND 	STAT_DATA_ID NOT IN
+			<foreach collection="param" item="items" open="(" close=")" separator=",">
+				#{items.statDataId}
+			</foreach>
+		</if>
+	</delete>
+	
+	<select id="getExcelDownload" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT *
+		FROM
+		<if test="type =='lifeCycle'">SRV_DT_CTLG_LFE_CYCLE_LIST</if>
+		<if test="type =='interests'">SRV_DT_CTLG_DISTANCE_LIST</if>
+		<if test="type =='keyWord'">SRV_DT_CTLG_MAIN_KWRD_LIST</if>
+		<if test="type =='subKeyWord'">SRV_DT_CTLG_SIMILR_KWRD_LIST</if>
+		<if test="type =='accumulateKeyWord'">SRV_DT_CTLG_ACC_KWRD_LIST</if>
+		<if test="type =='data'">SRV_DT_CTLG_DATA_LIST</if>
+	</select>
+	<!-- 2020년 SGIS고도화 3차 시작 -->
+	<select id="getAccKwrdExcelDownload" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+	    SELECT 
+			SIDO_CD
+			,(SELECT SIDO_NM FROM SRV_PG_SIDOBORD INTB WHERE INTB.SIDO_CD = TB001.SIDO_CD AND ROWNUM <![CDATA[<]]> 2) AS SIDO_NM
+			,SGG_CD
+			,(SELECT SGG_NM FROM SRV_PG_SGGBORD INTB WHERE INTB.SIDO_CD = TB001.SIDO_CD AND  INTB.SGG_CD = TB001.SGG_CD AND ROWNUM <![CDATA[<]]> 2) AS SGG_NM
+			,EMDONG_CD
+			,(SELECT EMDONG_NM FROM SRV_PG_ADMBORD INTB WHERE INTB.SIDO_CD = TB001.SIDO_CD AND  INTB.SGG_CD = TB001.SGG_CD AND INTB.EMDONG_CD = TB001.EMDONG_CD AND ROWNUM <![CDATA[<]]> 2) AS EMDONG_NM
+			,ACC_KWRD
+			,ACC_CNT
+		FROM SRV_DT_CTLG_ACC_KWRD_LIST TB001
+	</select>
+	<select id="getKwrdContentServiceExcelDownload" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT 
+				ROW_NUMBER() OVER(ORDER BY TEMP DESC) AS RNUM
+				,SLCTN_KWRD
+				,EM_CNT
+				,LVBOT_CNT
+				,TECHBIZ_CNT
+				,LVLHBIZ_CNT
+				,WM_CNT
+				,PSM_CNT
+				,TM_CNT
+			FROM (
+				SELECT
+ 					SLCTN_KWRD
+ 					, SUM(CASE WHEN RECMD_SRV_MENU_NM = '대화형 통계지도' THEN 1 ELSE 0 END) AS EM_CNT
+ 					, SUM(CASE WHEN RECMD_SRV_MENU_NM = '살고싶은 우리동네' THEN 1 ELSE 0 END) AS LVBOT_CNT
+ 					, SUM(CASE WHEN RECMD_SRV_MENU_NM = '업종통계지도: 기술업종통계지도' THEN 1 ELSE 0 END) AS TECHBIZ_CNT
+ 					, SUM(CASE WHEN RECMD_SRV_MENU_NM = '업종통계지도: 생활업종통계지도' THEN 1 ELSE 0 END) AS LVLHBIZ_CNT
+					, SUM(CASE WHEN RECMD_SRV_MENU_NM = '일자리 맵' THEN 1 ELSE 0 END) AS WM_CNT
+					, SUM(CASE WHEN RECMD_SRV_MENU_NM = '정책통계지도' THEN 1 ELSE 0 END) AS PSM_CNT
+					, SUM(CASE WHEN RECMD_SRV_MENU_NM = '통계주제도' THEN 1 ELSE 0 END) AS TM_CNT
+					, COUNT(SLCTN_KWRD) AS temp
+				FROM (
+					SELECT 
+						SLCTN_KWRD
+						, RECMD_SRV_MENU_NM
+					FROM (
+						SELECT * FROM (
+							SELECT 
+   								T1.SLCTN_KWRD
+								, T3.STAT_DATA_ID AS RECMD_SRV_ID
+								, T2.STAT_DATA_NM AS RECMD_SRV_NM
+								, T2.MENU_NM AS RECMD_SRV_MENU_NM
+								, TO_CHAR(T3.USE_TS, 'YYYY-MM-DD') AS DATETEMP 
+							FROM SRV_DT_CTLG_SLCTN_KWRD_LIST T1
+							LEFT OUTER JOIN SRV_DT_CTLG_RECMD_SRV_LIST T3 ON T3.SLCTN_KWRD_SEQ = T1.SEQ
+							LEFT OUTER JOIN SRV_DT_CTLG_DATA_LIST T2 ON T2.STAT_DATA_ID = T3.STAT_DATA_ID
+						)
+					<include refid="kwrdContentExcelWhere" /> 
+				)
+				GROUP BY SLCTN_KWRD, RECMD_SRV_MENU_NM
+			)
+			GROUP BY SLCTN_KWRD
+		)
+		ORDER BY RNUM
+	</select>
+	
+	<select id="getKwrdContentMaptypeExcelDownload" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT 
+				ROW_NUMBER() OVER(ORDER BY TEMP DESC) AS RNUM
+				, SLCTN_KWRD
+				, JEONGUG_CNT
+				, SIDO_CNT
+				, SIGUNGU_CNT
+				, EUPMYEONDONG_CNT
+				, GYEOGJA_CNT
+				, COLOR_CNT
+				, BUBBLE_CNT
+				, HEAT_CNT
+				, POI_CNT
+			FROM (
+			SELECT
+				SLCTN_KWRD
+				, SUM(CASE WHEN AREA_BORD_TYPE = 01 THEN 1 ELSE 0 END) AS JEONGUG_CNT
+				, SUM(CASE WHEN AREA_BORD_TYPE = 02 THEN 1 ELSE 0 END) AS SIDO_CNT
+				, SUM(CASE WHEN AREA_BORD_TYPE = 03 THEN 1 ELSE 0 END) AS SIGUNGU_CNT
+				, SUM(CASE WHEN AREA_BORD_TYPE = 04 THEN 1 ELSE 0 END) AS EUPMYEONDONG_CNT
+				, SUM(CASE WHEN AREA_BORD_TYPE = 05 THEN 1 ELSE 0 END) AS GYEOGJA_CNT
+				, SUM(CASE WHEN MAP_TYPE = 01 THEN 1 ELSE 0 END) AS COLOR_CNT
+				, SUM(CASE WHEN MAP_TYPE = 02 THEN 1 ELSE 0 END) AS BUBBLE_CNT
+				, SUM(CASE WHEN MAP_TYPE = 03 THEN 1 ELSE 0 END) AS HEAT_CNT
+				, SUM(CASE WHEN MAP_TYPE = 04 THEN 1 ELSE 0 END) AS POI_CNT
+				, COUNT(SLCTN_KWRD) AS TEMP
+			FROM (
+				SELECT * FROM (
+					SELECT 
+						T2.SLCTN_KWRD
+						, T1.AREA_BORD_TYPE
+						, T1.MAP_TYPE
+						, TO_CHAR(T1.USE_TS, 'YYYY-MM-DD') AS DATETEMP 
+					FROM SRV_DT_CTLG_MAP_SRV_LIST T1
+					LEFT OUTER JOIN SRV_DT_CTLG_SLCTN_KWRD_LIST T2
+					ON T1.SLCTN_KWRD_SEQ = T2.SEQ
+				)
+				<include refid="kwrdContentExcelWhere" /> 
+			)
+			GROUP BY SLCTN_KWRD
+			)
+			ORDER BY RNUM
+	</select>
+	
+	<select id="getKwrdContentLifecycleExcelDownload" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+			select 
+				ROW_NUMBER() OVER(ORDER BY TEMP DESC) AS RNUM
+				,SLCTN_KWRD
+				,INFANT_CHILD_CNT
+				,YNGBGS_CNT
+				,YGMN_CNT
+				,ADULT_CNT
+				,ODSN_CNT
+				,PCCF_CNT
+				,FAMILY1_CNT
+			from (
+			SELECT 
+				SLCTN_KWRD
+ 				, SUM(CASE WHEN (LFE_CYCLE_1_ID = 'LFECYCLE_INFANT_CHILD' OR LFE_CYCLE_2_ID = 'LFECYCLE_INFANT_CHILD') THEN 1 ELSE 0 END) AS INFANT_CHILD_CNT
+ 				, SUM(CASE WHEN (LFE_CYCLE_1_ID = 'LFECYCLE_YNGBGS' OR LFE_CYCLE_2_ID = 'LFECYCLE_YNGBGS') THEN 1 ELSE 0 END) AS YNGBGS_CNT
+ 				, SUM(CASE WHEN (LFE_CYCLE_1_ID = 'LFECYCLE_YGMN' OR LFE_CYCLE_2_ID = 'LFECYCLE_YGMN') THEN 1 ELSE 0 END) AS YGMN_CNT
+ 				, SUM(CASE WHEN (LFE_CYCLE_1_ID = 'LFECYCLE_ADULT' OR LFE_CYCLE_2_ID = 'LFECYCLE_ADULT') THEN 1 ELSE 0 END) AS ADULT_CNT
+ 				, SUM(CASE WHEN (LFE_CYCLE_1_ID = 'LFECYCLE_ODSN' OR LFE_CYCLE_2_ID = 'LFECYCLE_ODSN') THEN 1 ELSE 0 END) AS ODSN_CNT
+ 				, SUM(CASE WHEN (LFE_CYCLE_1_ID = 'LFECYCLE_PREGNAN_CHLDBRTH_CHLDCR_FEMALE' OR LFE_CYCLE_2_ID = 'LFECYCLE_PREGNAN_CHLDBRTH_CHLDCR_FEMALE') THEN 1 ELSE 0 END) AS PCCF_CNT
+ 				, SUM(CASE WHEN (LFE_CYCLE_1_ID = 'LFECYCLE_PSN_1_FAMILY' OR LFE_CYCLE_2_ID = 'LFECYCLE_PSN_1_FAMILY') THEN 1 ELSE 0 END) AS FAMILY1_CNT
+ 				, COUNT(SLCTN_KWRD) AS TEMP
+			FROM(
+				SELECT * FROM (
+					SELECT 
+						TO_CHAR(USE_TS, 'YYYY-MM-DD') AS DATETEMP  
+						,SLCTN_KWRD
+						,LFE_CYCLE_1_ID
+						,LFE_CYCLE_2_ID
+					FROM SRV_DT_CTLG_SLCTN_KWRD_LIST
+				)
+			<include refid="kwrdContentExcelWhere" /> 
+			)
+			GROUP BY SLCTN_KWRD
+			)
+			ORDER BY RNUM
+	</select>
+	
+	<select id="getKwrdContentInterestsExcelDownload" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT 
+				ROW_NUMBER() OVER(ORDER BY TEMP DESC) AS RNUM
+				,SLCTN_KWRD
+				,FD_CNT
+				,HOUSE_CNT
+				,JOB_CNT
+				,TRNSPORT_CNT
+				,EDU_CNT
+				,PLY_CNT
+				,HEALTH_CNT
+				,SAFE_CNT
+			FROM (
+			SELECT 
+				SLCTN_KWRD
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_FD' OR STAT_DSTNC_2_ID = 'DSTNC_FD') THEN 1 ELSE 0 END) AS FD_CNT
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_HOUSE' OR STAT_DSTNC_2_ID = 'DSTNC_HOUSE') THEN 1 ELSE 0 END) AS HOUSE_CNT
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_JOB' OR STAT_DSTNC_2_ID = 'DSTNC_JOB') THEN 1 ELSE 0 END) AS JOB_CNT
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_TRNSPORT' OR STAT_DSTNC_2_ID = 'DSTNC_TRNSPORT') THEN 1 ELSE 0 END) AS TRNSPORT_CNT
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_PLY' OR STAT_DSTNC_2_ID = 'DSTNC_PLY') THEN 1 ELSE 0 END) AS EDU_CNT
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_EDU' OR STAT_DSTNC_2_ID = 'DSTNC_EDU') THEN 1 ELSE 0 END) AS PLY_CNT
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_HEALTH' OR STAT_DSTNC_2_ID = 'DSTNC_HEALTH') THEN 1 ELSE 0 END) AS HEALTH_CNT
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_SAFE' OR STAT_DSTNC_2_ID = 'DSTNC_SAFE') THEN 1 ELSE 0 END) AS SAFE_CNT
+ 				, COUNT(SLCTN_KWRD) AS TEMP
+			FROM(
+				SELECT * FROM (
+					SELECT 
+						TO_CHAR(USE_TS, 'YYYY-MM-DD') AS DATETEMP  
+						,SLCTN_KWRD
+						,STAT_DSTNC_1_ID
+						,STAT_DSTNC_2_ID
+					FROM SRV_DT_CTLG_SLCTN_KWRD_LIST
+				)
+				<include refid="kwrdContentExcelWhere" /> 
+			)
+			GROUP BY SLCTN_KWRD
+			)
+			ORDER BY RNUM
+	</select>
+	
+	<sql id="kwrdContentExcelWhere">
+		<where>
+		    1 = 1
+			<if test='word != null and word !=""'>
+				AND SLCTN_KWRD LIKE '%'|| #{word} || '%'
+			</if>
+			<if test='startDate != "" and startDate != null and endDate != "" and endDate != null'>
+				AND DATETEMP BETWEEN #{startDate} AND #{endDate}
+			</if>
+		</where>
+	</sql>
+	<!-- 2020년 SGIS고도화 3차 끝-->
+</mapper>

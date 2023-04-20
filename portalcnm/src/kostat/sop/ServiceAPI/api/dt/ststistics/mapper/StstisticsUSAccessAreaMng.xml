@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ststisticsUSAccessAreaMng"> 
+
+	<select id="getAccessAreaSidoCd"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT DISTINCT 
+			SIDO_CD
+			, SIDO_NM 
+		FROM 
+		(
+			SELECT 
+				SIDO_CD
+				, SIDO_NM
+				, MAX(BASE_YEAR) 
+			FROM SRV_PG_SIDOBORD
+			GROUP BY SIDO_CD, SIDO_NM
+		) 
+		WHERE SIDO_NM != '제주도'
+	</select>
+	
+	<select id="getAccessAreaSggCd"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT DISTINCT 
+			SGG_CD
+			, SGG_NM 
+		FROM 
+		(
+			SELECT 
+				SIDO_CD
+				, SGG_CD
+				, SGG_NM
+				, MAX(BASE_YEAR) 
+			FROM SRV_PG_SGGBORD 
+			WHERE SIDO_CD = #{sidoCd}
+			GROUP BY SIDO_CD, SGG_CD, SGG_NM
+		)
+	</select>
+
+	
+	<select id="getStstisticsUSServiceUsedCntByAreaAndDate" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+	select
+		row_number() over(order by date_location_cd_table.date desc, date_location_cd_table.location asc) as row_num
+		, date_location_cd_table.date
+		/* 기간 유형 (시작) */
+		<if test="searchDateType=='yearType'">
+		, substr(date_location_cd_table.date,1,4) || '-01-01' as start_date
+		, substr(date_location_cd_table.date,1,4) || '-12-31' as end_date
+		</if>
+		<if test="searchDateType=='quarterType'">
+		,TO_CHAR(add_months(  
+		to_date( substr(date_location_cd_table.DATE,1,4) 
+		|| '-' 
+		|| ( substr(date_location_cd_table.DATE,8,1) * 3 ) ,'YYYY-MM') ,-2),'YYYY-MM-DD') AS start_date
+		, to_char(last_day( 
+		to_date( substr(date_location_cd_table.DATE,1,4) 
+		|| '-' 
+		|| ( substr(date_location_cd_table.DATE,8,1) * 3 ) ,'YYYY-MM') ),'YYYY-MM-DD') AS end_date
+		</if>
+		<if test="searchDateType=='monthType'">
+		, to_char(
+			to_date( 
+				substr(date_location_cd_table.date,1,4) ||'-'|| substr(date_location_cd_table.date,7,2)
+			,'YYYY-MM')
+		  ,'YYYY-MM-DD') as start_date
+		, to_char(
+			last_day(
+				to_date( 
+				substr(date_location_cd_table.date,1,4) ||'-'|| substr(date_location_cd_table.date,7,2)
+				,'YYYY-MM')
+			)
+		, 'YYYY-MM-DD') as end_date
+		</if>
+		/* 기간 유형 (끝) */
+		, date_location_cd_table.location
+		, date_location_cd_table.location_name 
+		, nvl(service_used_cnt.count ,0) as count
+	from 
+	(	
+		select date,location,location_name from
+		(
+			Select 
+				distinct
+				adm_cd as location
+				, sido_nm as location_name
+			from 
+				srv_dt_adm_leg_match
+			where 
+				/*(adm_cd != '') and (length(adm_cd)=2)*/
+				length(adm_cd)=2
+			union all
+			( select null as location, null as location_name from dual ) 
+		) 
+		cross join
+		(
+	        /* 기간 유형 + 기간 선택 (시작)*/
+	        <if test="searchDateType=='yearType'">
+			select 
+				#{searchDate} || '년' as "date"
+			from dual
+			</if>
+			<if test="searchDateType=='quarterType'">
+				<foreach collection="dateList" item="item" separator=" UNION ALL ">
+					select 	#{searchDate} || '년의 '||to_char(#{item})||'분기' as date from dual
+				</foreach>
+			</if>
+			<if test="searchDateType=='monthType'">
+				<foreach collection="dateList" item="item" separator=" UNION ALL ">
+					select #{searchDate} || '년 '|| lpad(to_char(#{item}),2,0) ||'월' as date from dual
+				</foreach>
+			</if>
+	        /* 기간 유형 + 기간 선택 (끝)*/
+		)
+	
+	) as date_location_cd_table 
+	left join 
+	(
+	  select 
+			date
+			, location
+			, count (*) count
+		from (
+			select 
+	        	/* 기간 유형 (시작) */
+	        	<if test="searchDateType=='yearType'">
+				substr(use_ts,1,4) || '년' as "date"
+				</if>
+				<if test="searchDateType=='quarterType'">
+				substr(use_ts,1,4) || '년의 ' || CEIL(SUBSTR(use_ts,6,2)/3) || '분기' as "date" 
+				</if>
+				<if test="searchDateType=='monthType'">
+				to_char(use_ts,'YYYY') || '년 ' || trim(to_char(use_ts,'MM'))||'월' as "date"
+				</if>
+		        /* 기간 유형 (끝) */
+				,use_ts
+				, sido_cd as location
+				,slctn_kwrd
+			from srv_dt_ctlg_slctn_kwrd_list
+			where 
+				to_char(use_ts,'YYYY-MM-DD') 
+	        	/* 기간 선택 (시작) */
+				between (#{searchDate} || '-01-01') and (#{searchDate} || '-12-31')
+				/* 기간 선택 (끝) */
+		) 
+		group by date, location
+	) as service_used_cnt
+	on 
+		date_location_cd_table.date =  service_used_cnt.date
+		and 
+		nvl(date_location_cd_table.location,'no_select') = nvl(service_used_cnt.location,'no_select')
+	</select>
+	
+	<select id="getStstisticsSubServiceRank" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+	select 
+		T1.rank, T1.count, T2.stat_data_srv_nm
+	from
+	(
+		select stat_data_id, count, dense_rank() over(order by count desc) as rank, row_number() over(order by count desc) as rown
+		from (
+			select 
+				stat_data_id, count(*) count
+			from 
+				srv_dt_ctlg_slctn_kwrd_list
+			where
+				sido_cd = #{sidoCd}
+				<if test ="sggCd != null and sggCd != ''">
+				and sgg_cd = #{sggCd}
+				</if>
+				and (to_char(use_ts,'YYYY-MM-DD') between #{startDate} and #{endDate}) /* 날짜 제한 (2020년 2분기) */
+			group by 
+				stat_data_id
+		)
+	) T1
+	inner join
+	(
+		select stat_data_id,stat_data_srv_nm from SRV_DT_CTLG_DATA_LIST
+	) T2
+	on T1.stat_data_id = T2.stat_data_id
+	where rown between 1 and 10
+	order by rank
+	</select>
+	
+	<select id="getStstisticsSubKwrdUsedRank" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+	select slctn_kwrd, count, rank from (
+		select
+			slctn_kwrd
+			, count
+			, dense_rank() over(order by count desc) rank
+			, row_number() over(order by count desc) rown
+		from
+		(
+			select 
+				slctn_kwrd , count(*) count
+			from 
+				srv_dt_ctlg_slctn_kwrd_list
+			where
+				sido_cd = #{sidoCd}
+				<if test ="sggCd != null and sggCd != ''">
+					and sgg_cd = #{sggCd}
+				</if>
+				and (to_char(use_ts,'YYYY-MM-DD') between #{startDate} and #{endDate}) 
+			group by 
+				slctn_kwrd
+		)
+		order by rown
+	) where rown between 1 and 10
+	</select>
+	
+	<select id="getStstisticsSubSearchWrdUsedRank" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+	select search_word,count,rank from 
+	(
+		select  search_word, count, dense_rank() over(order by count desc) rank, row_number() over(order by count desc) rown
+		from
+		(
+			select 
+				search_word, count(*) count
+			from
+				srv_dt_ctlg_search_kwrd_list
+			where
+				sido_cd = #{sidoCd}
+				<if test ="sggCd != null and sggCd != ''">
+					and sgg_cd = #{sggCd}
+				</if>
+				and (to_char(search_ts,'YYYY-MM-DD') between #{startDate} and #{endDate}) 
+			group by
+				search_word
+		)
+		order by rank
+	)  where rown between 1 and 10
+	</select>
+	
+	<select id="getYearList" resultType="StastisticsCamelcase">
+	select distinct
+		to_char(use_ts,'YYYY') as year
+	from 
+		srv_dt_ctlg_slctn_kwrd_list
+	order by year desc
+	</select>
+</mapper>

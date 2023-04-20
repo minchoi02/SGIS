@@ -1,0 +1,2310 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="statsMeMap_PolicyStaticMap">
+<!-- My통계로 데이터 수집 정책통계지도 -->	
+
+	<!-- Select One 정책통계지도 -->
+	<select id="selectPolicyStaticMapList" parameterType="hashmap" resultType="hashmap">
+		SELECT B.IDX_ID
+			 , B.IDX_TYPE
+			 , B.NOMFRM_BASE_MAP_DIV
+			 , B.NOMFRM_CD
+			 , C.CALL_URL
+			 , C.CALL_INFO_SERIAL
+			 , C.CALL_PARAM
+			 , C.MAP_PARAM
+			 , A.*
+		  FROM SRV_DT_CTLG_DATA_LIST A WITH(NOLOCK)
+		 <choose>
+			<when test='idx_id != null and idx_id != ""'>
+				INNER JOIN SRV_DT_POLICYMAP_LIST B WITH(NOLOCK) ON B.IDX_ID = #{idx_id}
+		 	</when>
+		 	<otherwise>
+		 		INNER JOIN SRV_DT_POLICYMAP_LIST B WITH(NOLOCK) ON B.POLICY_IDX_NM = REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(A.STAT_DATA_NM,'1인 가구 변화','1인 가구의 변화'),'단독주택 변화','단독주택의 변화'),'65세 이상 1인가구 변화','65세 이상 1인가구의 변화'),'도서관 운영','도서관 운영 현황'),'슈퍼마켓 변화','슈퍼마켓의 변화')
+		 	</otherwise>
+		 </choose>
+		 INNER JOIN SRV_DT_POLICYMAP_APIPARAM C WITH(NOLOCK) ON C.IDX_ID = B.IDX_ID
+		 WHERE 1=1
+		   AND A.STAT_DATA_ID = #{stat_data_id}
+		 ORDER BY A.STAT_DATA_ID, C.CALL_INFO_SERIAL
+	</select>
+
+	<!-- Insert 카탈로그 데이터마트 정책통계지도:총조사주요지표(행정동) -->
+	<insert id="insertSrvDtCtlgDtwrh_PolicyStaticMap_Population_1" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+		  	 , SIDO_CD
+		  	 , SGG_CD
+		  	 , EMDONG_CD
+		  	 , X_COOR
+		  	 , Y_COOR
+		  	 , POI_SE_NM
+		  	 , POI_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , X.MAP_TY	/* 지도유형 */
+			 , X.AREA_BNDRY_SE	/* 지역경계구분 */
+			 , X.BASE_YEAR	/* 기준년도 */
+			 , X.ADM_CD	/* 지역코드 */
+			 , X.ADM_NM	/* 지역명 */
+			 , X.SIDO_CD	/* 시도코드 */
+			 , X.SGG_CD	/* 시군구코드 */
+			 , X.EMDONG_CD	/* 읍면동코드 */
+			 , X.X_COOR	/* X 좌표 */
+			 , X.Y_COOR	/* Y 좌표 */
+			 , X.POI_SE_NM	/* 점(POI) 구분 */
+			 , X.POI_NM	/* 점(POI) 명 */
+			 , X.UNIT	/* 단위 */
+			 , X.UNIT_NM	/* 단위 명 */
+			 , X.TOOLTIP_CN	/* 툴팁내용 */
+			 , X.STATS_DTA_CO	/* 통계자료건수 */
+		  FROM (<!-- 시작년도(시도, 시군구, 읍면동) -->
+		  		SELECT 'color2' AS MAP_TY
+					 , CASE INFO_DIV
+						WHEN '1' THEN 'sido'
+						WHEN '2' THEN 'sgg'
+						WHEN '3' THEN 'emdong'
+					   END AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , REGION_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(REGION_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(REGION_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(REGION_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_1} AS STATS_DTA_CO
+				  FROM SRV_DT_CENSUS_INDEX WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_1}
+				   AND BORD_BASE_YEAR = (SELECT MAX(BORD_BASE_YEAR)
+				   						   FROM SRV_DT_CENSUS_INDEX WITH(NOLOCK)
+				   						)
+				   AND REGION_CD NOT IN ('00')
+				<!-- 최종년도(시도, 시군구, 읍면동) -->
+				 UNION ALL
+				SELECT 'color' AS MAP_TY
+					 , CASE INFO_DIV
+						WHEN '1' THEN 'sido'
+						WHEN '2' THEN 'sgg'
+						WHEN '3' THEN 'emdong'
+					   END AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , REGION_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(REGION_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(REGION_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(REGION_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_2} AS STATS_DTA_CO
+				  FROM SRV_DT_CENSUS_INDEX WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_2}
+				   AND BORD_BASE_YEAR = (SELECT MAX(BORD_BASE_YEAR)
+				   						   FROM SRV_DT_CENSUS_INDEX WITH(NOLOCK)
+				   						)
+				   AND REGION_CD NOT IN ('00')
+				<!-- 시작년도(소지역) -->
+				 UNION ALL
+				SELECT 'color2' AS MAP_TY
+					 , 'totreg' AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , TOT_REG_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_1} AS STATS_DTA_CO
+				  FROM SRV_DT_TOTCENSUS_INDEX WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_1}
+				<!-- 최종년도(소지역) -->
+				 UNION ALL
+				SELECT 'color' AS MAP_TY
+					 , 'totreg' AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , TOT_REG_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_2} AS STATS_DTA_CO
+				  FROM SRV_DT_TOTCENSUS_INDEX WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_2}
+				<!-- 격자조회(전체인구의 변화, 평균 가구원의 변화) -->
+				<!-- <if test='stat_data_id == "PS0001" or stat_data_id == "PS0006"'> -->
+				<!-- 시작년도(격자) -->
+				 <!-- UNION ALL
+				SELECT 'color2' AS MAP_TY
+					 , GRID_LEVEL_DIV AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , GRID_CD AS ADM_CD
+					 , GRID_CD AS ADM_NM
+					 , NULL AS SIDO_CD
+					 , NULL AS SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_1} AS STATS_DTA_CO
+				  FROM SRV_DT_GRID_TOTIDX
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_1} -->
+				<!-- 최종년도(격자) -->
+				 <!-- UNION ALL
+				SELECT 'color' AS MAP_TY
+					 , GRID_LEVEL_DIV AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , GRID_CD AS ADM_CD
+					 , GRID_CD AS ADM_NM
+					 , NULL AS SIDO_CD
+					 , NULL AS SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_2} AS STATS_DTA_CO
+				  FROM SRV_DT_GRID_TOTIDX
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_2} -->
+				<!-- </if> -->
+		  	   ) X
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 정책통계지도:총조사주요지표(사업체_행정동) -->
+	<insert id="insertSrvDtCtlgDtwrh_PolicyStaticMap_Population_2" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+		  	 , SIDO_CD
+		  	 , SGG_CD
+		  	 , EMDONG_CD
+		  	 , X_COOR
+		  	 , Y_COOR
+		  	 , POI_SE_NM
+		  	 , POI_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , X.MAP_TY	/* 지도유형 */
+			 , X.AREA_BNDRY_SE	/* 지역경계구분 */
+			 , X.BASE_YEAR	/* 기준년도 */
+			 , X.ADM_CD	/* 지역코드 */
+			 , X.ADM_NM	/* 지역명 */
+			 , X.SIDO_CD	/* 시도코드 */
+			 , X.SGG_CD	/* 시군구코드 */
+			 , X.EMDONG_CD	/* 읍면동코드 */
+			 , X.X_COOR	/* X 좌표 */
+			 , X.Y_COOR	/* Y 좌표 */
+			 , X.POI_SE_NM	/* 점(POI) 구분 */
+			 , X.POI_NM	/* 점(POI) 명 */
+			 , X.UNIT	/* 단위 */
+			 , X.UNIT_NM	/* 단위 명 */
+			 , X.TOOLTIP_CN	/* 툴팁내용 */
+			 , X.STATS_DTA_CO	/* 통계자료건수 */
+		  FROM (<!-- 시작년도(시도, 시군구, 읍면동) -->
+		  		SELECT 'color2' AS MAP_TY
+					 , CASE INFO_DIV
+						WHEN '1' THEN 'sido'
+						WHEN '2' THEN 'sgg'
+						WHEN '3' THEN 'emdong'
+					   END AS AREA_BNDRY_SE
+					 <choose>
+						<when test='stat_data_base_year_1 != "9016"'>
+							, #{stat_data_base_year_1} AS BASE_YEAR
+						</when>
+						<otherwise>
+							, '2016' AS BASE_YEAR
+						</otherwise>
+					 </choose>
+					 , REGION_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(REGION_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(REGION_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(REGION_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_1} AS STATS_DTA_CO
+				  FROM SRV_DT_CORPCENSUS_INDEX WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_1}
+				   AND BORD_BASE_YEAR = (SELECT MAX(BORD_BASE_YEAR)
+				   						   FROM SRV_DT_CORPCENSUS_INDEX WITH(NOLOCK)
+				   						)
+				   AND REGION_CD NOT IN ('00')
+				<!-- 최종년도(시도, 시군구, 읍면동) -->
+				 UNION ALL
+				SELECT 'color' AS MAP_TY
+					 , CASE INFO_DIV
+						WHEN '1' THEN 'sido'
+						WHEN '2' THEN 'sgg'
+						WHEN '3' THEN 'emdong'
+					   END AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , REGION_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(REGION_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(REGION_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(REGION_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_2} AS STATS_DTA_CO
+				  FROM SRV_DT_CORPCENSUS_INDEX WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year}
+				   AND BORD_BASE_YEAR = (SELECT MAX(BORD_BASE_YEAR)
+				   						   FROM SRV_DT_CORPCENSUS_INDEX WITH(NOLOCK)
+				   						)
+				   AND REGION_CD NOT IN ('00')
+				<!-- 시작년도(소지역) -->
+				 UNION ALL
+				SELECT 'color2' AS MAP_TY
+					 , 'totreg' AS AREA_BNDRY_SE
+					 <choose>
+						<when test='stat_data_base_year_1 != "9016"'>
+							, #{stat_data_base_year_1} AS BASE_YEAR
+						</when>
+						<otherwise>
+							, '2016' AS BASE_YEAR
+						</otherwise>
+					 </choose>
+					 , TOT_REG_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_1} AS STATS_DTA_CO
+				  FROM SRV_DT_TOTCORPCENSUS_INDEX WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_1}
+				<!-- 최종년도(소지역) -->
+				 UNION ALL
+				SELECT 'color' AS MAP_TY
+					 , 'totreg' AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , TOT_REG_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_2} AS STATS_DTA_CO
+				  FROM SRV_DT_TOTCORPCENSUS_INDEX WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year}
+				<!-- 시작년도(격자) -->
+				<!--  UNION ALL
+				SELECT 'color2' AS MAP_TY
+					 , GRID_LEVEL_DIV AS AREA_BNDRY_SE
+					 <choose>
+						<when test='stat_data_base_year_1 != "9016"'>
+							, #{stat_data_base_year_1} AS BASE_YEAR
+						</when>
+						<otherwise>
+							, '2016' AS BASE_YEAR
+						</otherwise>
+					 </choose>
+					 , GRID_CD AS ADM_CD
+					 , GRID_CD AS ADM_NM
+					 , NULL AS SIDO_CD
+					 , NULL AS SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_1} AS STATS_DTA_CO
+				  FROM SRV_DT_GRID_TOTIDX_CORP WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_1}
+				최종년도(격자)
+				 UNION ALL
+				SELECT 'color' AS MAP_TY
+					 , GRID_LEVEL_DIV AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , GRID_CD AS ADM_CD
+					 , GRID_CD AS ADM_NM
+					 , NULL AS SIDO_CD
+					 , NULL AS SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_2} AS STATS_DTA_CO
+				  FROM SRV_DT_GRID_TOTIDX_CORP WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year} -->
+		  	   ) X
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 정책통계지도:총조사주요지표(사업체당 평균인구현황) -->
+	<insert id="insertSrvDtCtlgDtwrh_PolicyStaticMap_Population_3" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+		  	 , SIDO_CD
+		  	 , SGG_CD
+		  	 , EMDONG_CD
+		  	 , X_COOR
+		  	 , Y_COOR
+		  	 , POI_SE_NM
+		  	 , POI_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , X.MAP_TY	/* 지도유형 */
+			 , X.AREA_BNDRY_SE	/* 지역경계구분 */
+			 , X.BASE_YEAR	/* 기준년도 */
+			 , X.ADM_CD	/* 지역코드 */
+			 , X.ADM_NM	/* 지역명 */
+			 , X.SIDO_CD	/* 시도코드 */
+			 , X.SGG_CD	/* 시군구코드 */
+			 , X.EMDONG_CD	/* 읍면동코드 */
+			 , X.X_COOR	/* X 좌표 */
+			 , X.Y_COOR	/* Y 좌표 */
+			 , X.POI_SE_NM	/* 점(POI) 구분 */
+			 , X.POI_NM	/* 점(POI) 명 */
+			 , X.UNIT	/* 단위 */
+			 , X.UNIT_NM	/* 단위 명 */
+			 , X.TOOLTIP_CN	/* 툴팁내용 */
+			 , X.STATS_DTA_CO	/* 통계자료건수 */
+		  FROM (<!-- 시도, 시군구, 읍면동 -->
+		  		SELECT 'color' AS MAP_TY
+					 , CASE INFO_DIV
+						WHEN '1' THEN 'sido'
+						WHEN '2' THEN 'sgg'
+						WHEN '3' THEN 'emdong'
+					   END AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , REGION_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(REGION_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(REGION_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(REGION_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_1} AS STATS_DTA_CO
+				  FROM SRV_DT_CENSUS_INDEX WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_1}
+				   AND BORD_BASE_YEAR = (SELECT MAX(BORD_BASE_YEAR)
+				   						   FROM SRV_DT_CENSUS_INDEX WITH(NOLOCK)
+				   						)
+				   AND REGION_CD NOT IN ('00')
+				<!-- 소지역 -->
+				 UNION ALL
+				SELECT 'color' AS MAP_TY
+					 , 'totreg' AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , TOT_REG_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_1} AS STATS_DTA_CO
+				  FROM SRV_DT_TOTCENSUS_INDEX WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_1}
+				<!-- 격자 -->
+				 <!-- UNION ALL
+				SELECT 'color' AS MAP_TY
+					 , GRID_LEVEL_DIV AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , GRID_CD AS ADM_CD
+					 , GRID_CD AS ADM_NM
+					 , NULL AS SIDO_CD
+					 , NULL AS SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_1} AS STATS_DTA_CO
+				  FROM SRV_DT_GRID_TOTIDX WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_1} -->
+				<!-- 시도, 시군구, 읍면동 -->   
+				 UNION ALL
+				SELECT 'color2' AS MAP_TY
+					 , CASE INFO_DIV
+						WHEN '1' THEN 'sido'
+						WHEN '2' THEN 'sgg'
+						WHEN '3' THEN 'emdong'
+					   END AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , REGION_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(REGION_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(REGION_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(REGION_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_2} AS STATS_DTA_CO
+				  FROM SRV_DT_CORPCENSUS_INDEX WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_2}
+				   AND BORD_BASE_YEAR = (SELECT MAX(BORD_BASE_YEAR)
+				   						   FROM SRV_DT_CORPCENSUS_INDEX WITH(NOLOCK)
+				   						)
+				   AND REGION_CD NOT IN ('00')
+				<!-- 소지역 -->
+				 UNION ALL
+				SELECT 'color2' AS MAP_TY
+					 , 'totreg' AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , TOT_REG_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_2} AS STATS_DTA_CO
+				  FROM SRV_DT_TOTCORPCENSUS_INDEX WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_2}
+				<!-- 격자 -->   				   
+				 <!-- UNION ALL
+				SELECT 'color2' AS MAP_TY
+					 , GRID_LEVEL_DIV AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , GRID_CD AS ADM_CD
+					 , GRID_CD AS ADM_NM
+					 , NULL AS SIDO_CD
+					 , NULL AS SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_2} AS STATS_DTA_CO
+				  FROM SRV_DT_GRID_TOTIDX_CORP WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_2} -->
+		  	   ) X
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 정책통계지도:사업체당 평균 종사자 수 -->
+	<insert id="insertSrvDtCtlgDtwrh_PolicyStaticMap_Population_4" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+		  	 , SIDO_CD
+		  	 , SGG_CD
+		  	 , EMDONG_CD
+		  	 , X_COOR
+		  	 , Y_COOR
+		  	 , POI_SE_NM
+		  	 , POI_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , X.MAP_TY	/* 지도유형 */
+			 , X.AREA_BNDRY_SE	/* 지역경계구분 */
+			 , X.BASE_YEAR	/* 기준년도 */
+			 , X.ADM_CD	/* 지역코드 */
+			 , X.ADM_NM	/* 지역명 */
+			 , X.SIDO_CD	/* 시도코드 */
+			 , X.SGG_CD	/* 시군구코드 */
+			 , X.EMDONG_CD	/* 읍면동코드 */
+			 , X.X_COOR	/* X 좌표 */
+			 , X.Y_COOR	/* Y 좌표 */
+			 , X.POI_SE_NM	/* 점(POI) 구분 */
+			 , X.POI_NM	/* 점(POI) 명 */
+			 , X.UNIT	/* 단위 */
+			 , X.UNIT_NM	/* 단위 명 */
+			 , X.TOOLTIP_CN	/* 툴팁내용 */
+			 , X.STATS_DTA_CO	/* 통계자료건수 */
+		  FROM (<!-- 좌측지도(시도, 시군구, 읍면동) -->
+		  		SELECT 'color' AS MAP_TY
+					 , CASE INFO_DIV
+						WHEN '1' THEN 'sido'
+						WHEN '2' THEN 'sgg'
+						WHEN '3' THEN 'emdong'
+					   END AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , REGION_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(REGION_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(REGION_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(REGION_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_1} AS STATS_DTA_CO
+				  FROM SRV_DT_CORPCENSUS_INDEX WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_1}
+				   AND BORD_BASE_YEAR = (SELECT MAX(BORD_BASE_YEAR)
+				   						   FROM SRV_DT_CORPCENSUS_INDEX WITH(NOLOCK)
+				   						)
+				   AND REGION_CD NOT IN ('00')
+				<!-- 우측지도(시도, 시군구, 읍면동) -->
+				 UNION ALL
+				SELECT 'color2' AS MAP_TY
+					 , CASE INFO_DIV
+						WHEN '1' THEN 'sido'
+						WHEN '2' THEN 'sgg'
+						WHEN '3' THEN 'emdong'
+					   END AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , REGION_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(REGION_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(REGION_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(REGION_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_2} AS STATS_DTA_CO
+				  FROM SRV_DT_CORPCENSUS_INDEX WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_2}
+				   AND BORD_BASE_YEAR = (SELECT MAX(BORD_BASE_YEAR)
+				   						   FROM SRV_DT_CORPCENSUS_INDEX WITH(NOLOCK)
+				   						)
+				   AND REGION_CD NOT IN ('00')
+				<!-- 좌측지도(소지역) -->
+				 UNION ALL
+				SELECT 'color' AS MAP_TY
+					 , 'totreg' AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , TOT_REG_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_1} AS STATS_DTA_CO
+				  FROM SRV_DT_TOTCORPCENSUS_INDEX WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_1}
+				<!-- 우측지도(소지역) -->
+				 UNION ALL
+				SELECT 'color2' AS MAP_TY
+					 , 'totreg' AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , TOT_REG_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_2} AS STATS_DTA_CO
+				  FROM SRV_DT_TOTCORPCENSUS_INDEX WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_2}
+				<!-- 좌측지도(격자) -->
+				 <!-- UNION ALL
+				SELECT 'color' AS MAP_TY
+					 , GRID_LEVEL_DIV AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , GRID_CD AS ADM_CD
+					 , GRID_CD AS ADM_NM
+					 , NULL AS SIDO_CD
+					 , NULL AS SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_1} AS STATS_DTA_CO
+				  FROM SRV_DT_GRID_TOTIDX_CORP WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_1}
+				우측지도(격자)
+				 UNION ALL
+				SELECT 'color2' AS MAP_TY
+					 , GRID_LEVEL_DIV AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , GRID_CD AS ADM_CD
+					 , GRID_CD AS ADM_NM
+					 , NULL AS SIDO_CD
+					 , NULL AS SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co_2} AS STATS_DTA_CO
+				  FROM SRV_DT_GRID_TOTIDX_CORP WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_2} -->
+		  	   ) X
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 정책통계지도:총인구 -->
+	<insert id="insertSrvDtCtlgDtwrh_PolicyStaticMap_Population_5" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+		  	 , SIDO_CD
+		  	 , SGG_CD
+		  	 , EMDONG_CD
+		  	 , X_COOR
+		  	 , Y_COOR
+		  	 , POI_SE_NM
+		  	 , POI_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , X.MAP_TY	/* 지도유형 */
+			 , X.AREA_BNDRY_SE	/* 지역경계구분 */
+			 , X.BASE_YEAR	/* 기준년도 */
+			 , X.ADM_CD	/* 지역코드 */
+			 , X.ADM_NM	/* 지역명 */
+			 , X.SIDO_CD	/* 시도코드 */
+			 , X.SGG_CD	/* 시군구코드 */
+			 , X.EMDONG_CD	/* 읍면동코드 */
+			 , X.X_COOR	/* X 좌표 */
+			 , X.Y_COOR	/* Y 좌표 */
+			 , X.POI_SE_NM	/* 점(POI) 구분 */
+			 , X.POI_NM	/* 점(POI) 명 */
+			 , X.UNIT	/* 단위 */
+			 , X.UNIT_NM	/* 단위 명 */
+			 , X.TOOLTIP_CN	/* 툴팁내용 */
+			 , X.STATS_DTA_CO	/* 통계자료건수 */
+		  FROM (<!-- 시도, 시군구, 읍면동 -->
+				SELECT #{map_ty} AS MAP_TY
+					 , CASE INFO_DIV
+						WHEN '1' THEN 'sido'
+						WHEN '2' THEN 'sgg'
+						WHEN '3' THEN 'emdong'
+					   END AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , REGION_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(REGION_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(REGION_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(REGION_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co} AS STATS_DTA_CO
+				  FROM SRV_DT_CENSUS_INDEX WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_1}
+				   AND BORD_BASE_YEAR = (SELECT MAX(BORD_BASE_YEAR)
+				   						   FROM SRV_DT_CENSUS_INDEX
+				   						)
+				   AND REGION_CD NOT IN ('00')
+				<!-- 소지역 정보는 재해위험지구, 민방위대피시설 분포 현황은 제외 -->
+				<if test='stat_data_id != "PS0045" and stat_data_id != "PS0046"'>
+				<!-- 소지역 -->
+				 UNION ALL
+				SELECT #{map_ty} AS MAP_TY
+					 , 'totreg' AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , TOT_REG_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co} AS STATS_DTA_CO
+				  FROM SRV_DT_TOTCENSUS_INDEX WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_1}
+				</if>
+				<!-- 격자 정보는 재해위험지구, 민방위대피시설 분포 현황, 도시공원 분포 현황은 제외 -->
+				<!-- <if test='stat_data_id != "PS0045" and stat_data_id != "PS0046" and stat_data_id != "PS0047"'> -->
+				<!-- 격자 -->
+				<!--  UNION ALL
+				SELECT #{map_ty} AS MAP_TY
+					 , GRID_LEVEL_DIV AS AREA_BNDRY_SE
+					 , BASE_YEAR
+					 , GRID_CD AS ADM_CD
+					 , GRID_CD AS ADM_NM
+					 , NULL AS SIDO_CD
+					 , NULL AS SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , ${stats_dta_co} AS STATS_DTA_CO
+				  FROM SRV_DT_GRID_TOTIDX WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BASE_YEAR = #{stat_data_base_year_1} -->
+				<!-- </if> -->
+		  	   ) X
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 정책통계지도:인구집계 -->
+	<insert id="insertSrvDtCtlgDtwrh_PolicyStaticMap_Innersearchpopulation" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+		  	 , SIDO_CD
+		  	 , SGG_CD
+		  	 , EMDONG_CD
+		  	 , X_COOR
+		  	 , Y_COOR
+		  	 , POI_SE_NM
+		  	 , POI_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , X.MAP_TY	/* 지도유형 */
+			 , X.AREA_BNDRY_SE	/* 지역경계구분 */
+			 , X.BASE_YEAR	/* 기준년도 */
+			 , X.ADM_CD	/* 지역코드 */
+			 , X.ADM_NM	/* 지역명 */
+			 , X.SIDO_CD	/* 시도코드 */
+			 , X.SGG_CD	/* 시군구코드 */
+			 , X.EMDONG_CD	/* 읍면동코드 */
+			 , X.X_COOR	/* X 좌표 */
+			 , X.Y_COOR	/* Y 좌표 */
+			 , X.POI_SE_NM	/* 점(POI) 구분 */
+			 , X.POI_NM	/* 점(POI) 명 */
+			 , X.UNIT	/* 단위 */
+			 , X.UNIT_NM	/* 단위 명 */
+			 , X.TOOLTIP_CN	/* 툴팁내용 */
+			 , X.STATS_DTA_CO	/* 통계자료건수 */
+		  FROM (<!-- 시도 -->
+		  		SELECT CAST(ISNULL(#{map_ty},'') AS VARCHAR(100)) AS MAP_TY	/* 지도유형 */
+					 , CAST('sido' AS VARCHAR(100)) AS AREA_BNDRY_SE	/* 지역경계구분 */
+					 , CAST(ISNULL(#{base_year},'') AS VARCHAR(100)) AS BASE_YEAR	/* 기준년도 */
+					 , CAST(SIDO_CD AS VARCHAR(50)) AS ADM_CD	/* 지역코드 */
+					 , CAST('' AS VARCHAR(200)) AS ADM_NM /* 지역명 */
+					 , CAST(SIDO_CD AS VARCHAR(50)) AS SIDO_CD	/* 시도코드 */
+					 , CAST('' AS VARCHAR(50)) AS SGG_CD	/* 시군구코드 */
+					 , CAST('' AS VARCHAR(50)) AS EMDONG_CD	/* 읍면동코드 */
+					 , CAST('' AS VARCHAR(100)) AS X_COOR	/* X 좌표 */
+					 , CAST('' AS VARCHAR(100)) AS Y_COOR	/* Y 좌표 */
+					 , CAST('' AS VARCHAR(100)) AS POI_SE_NM	/* 점(POI) 구분 */
+					 , CAST('' AS VARCHAR(200)) AS POI_NM	/* 점(POI) 명 */
+					 , CAST(ISNULL(#{unit},'') AS VARCHAR(100)) AS UNIT	/* 단위 */
+					 , CAST(ISNULL(#{unit_nm},'') AS VARCHAR(100)) AS UNIT_NM	/* 단위 명 */
+					 , CAST(ISNULL(#{tooltip_cn},'') AS VARCHAR(300)) AS TOOLTIP_CN	/* 툴팁내용 */
+					 , CAST(SUM(PPLTN_CNT) AS NUMBER) AS STATS_DTA_CO	/* 통계자료건수 */
+				  FROM SRV_DT_POPSGG_${base_year} WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BORD_BASE_YEAR = (SELECT MAX(BORD_BASE_YEAR)
+				   						   FROM SRV_DT_POPSGG_${base_year} WITH(NOLOCK)
+				   						)
+				   <if test='age_from != null and age_from != "" and age_from != undefined'>
+				   		AND AGE <![CDATA[>=]]> ${age_from}
+				   </if>
+				   <if test='age_to != null and age_to != "" and age_to != undefined'>
+				   		AND AGE <![CDATA[<=]]> ${age_to}
+				   </if>
+				   <if test='gender != null and gender != "" and gender != undefined'>
+				   		AND GENDER = #{gender}
+				   </if>
+				 GROUP BY SIDO_CD
+				<!-- 시군구 -->
+				 UNION ALL
+				SELECT CAST(ISNULL(#{map_ty},'') AS VARCHAR(100)) AS MAP_TY	/* 지도유형 */
+					 , CAST('sgg' AS VARCHAR(100)) AS AREA_BNDRY_SE	/* 지역경계구분 */
+					 , CAST(ISNULL(#{base_year},'') AS VARCHAR(100)) AS BASE_YEAR	/* 기준년도 */
+					 , CAST(SIDO_CD || SGG_CD AS VARCHAR(50)) AS ADM_CD	/* 지역코드 */
+					 , CAST('' AS VARCHAR(200)) AS ADM_NM /* 지역명 */
+					 , CAST(SIDO_CD AS VARCHAR(50)) AS SIDO_CD	/* 시도코드 */
+					 , CAST(SGG_CD AS VARCHAR(50)) AS SGG_CD	/* 시군구코드 */
+					 , CAST('' AS VARCHAR(50)) AS EMDONG_CD	/* 읍면동코드 */
+					 , CAST('' AS VARCHAR(100)) AS X_COOR	/* X 좌표 */
+					 , CAST('' AS VARCHAR(100)) AS Y_COOR	/* Y 좌표 */
+					 , CAST('' AS VARCHAR(100)) AS POI_SE_NM	/* 점(POI) 구분 */
+					 , CAST('' AS VARCHAR(200)) AS POI_NM	/* 점(POI) 명 */
+					 , CAST(ISNULL(#{unit},'') AS VARCHAR(100)) AS UNIT	/* 단위 */
+					 , CAST(ISNULL(#{unit_nm},'') AS VARCHAR(100)) AS UNIT_NM	/* 단위 명 */
+					 , CAST(ISNULL(#{tooltip_cn},'') AS VARCHAR(300)) AS TOOLTIP_CN	/* 툴팁내용 */
+					 , CAST(SUM(PPLTN_CNT) AS NUMBER) AS STATS_DTA_CO	/* 통계자료건수 */
+				  FROM SRV_DT_POPSGG_${base_year} WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BORD_BASE_YEAR = (SELECT MAX(BORD_BASE_YEAR)
+				   						   FROM SRV_DT_POPSGG_${base_year} WITH(NOLOCK)
+				   						)
+				   <if test='age_from != null and age_from != "" and age_from != undefined'>
+				   		AND AGE <![CDATA[>=]]> ${age_from}
+				   </if>
+				   <if test='age_to != null and age_to != "" and age_to != undefined'>
+				   		AND AGE <![CDATA[<=]]> ${age_to}
+				   </if>
+				   <if test='gender != null and gender != "" and gender != undefined'>
+				   		AND GENDER = #{gender}
+				   </if>
+				 GROUP BY SIDO_CD, SGG_CD
+				<!-- 읍면동 -->
+				 UNION ALL
+				SELECT CAST(ISNULL(#{map_ty},'') AS VARCHAR(100)) AS MAP_TY	/* 지도유형 */
+					 , CAST('emdong' AS VARCHAR(100)) AS AREA_BNDRY_SE	/* 지역경계구분 */
+					 , CAST(ISNULL(#{base_year},'') AS VARCHAR(100)) AS BASE_YEAR	/* 기준년도 */
+					 , CAST(SUBSTR(TOT_REG_CD, 1, 7) AS VARCHAR(50)) AS ADM_CD	/* 지역코드 */
+					 , CAST('' AS VARCHAR(200)) AS ADM_NM /* 지역명 */
+					 , CAST(SUBSTR(SUBSTR(TOT_REG_CD, 1, 7), 1, 2) AS VARCHAR(50)) AS SIDO_CD	/* 시도코드 */
+					 , CAST(SUBSTR(SUBSTR(TOT_REG_CD, 1, 7), 3, 3) AS VARCHAR(50)) AS SGG_CD	/* 시군구코드 */
+					 , CAST(SUBSTR(SUBSTR(TOT_REG_CD, 1, 7), 6, 2) AS VARCHAR(50)) AS EMDONG_CD	/* 읍면동코드 */
+					 , CAST('' AS VARCHAR(100)) AS X_COOR	/* X 좌표 */
+					 , CAST('' AS VARCHAR(100)) AS Y_COOR	/* Y 좌표 */
+					 , CAST('' AS VARCHAR(100)) AS POI_SE_NM	/* 점(POI) 구분 */
+					 , CAST('' AS VARCHAR(200)) AS POI_NM	/* 점(POI) 명 */
+					 , CAST(ISNULL(#{unit},'') AS VARCHAR(100)) AS UNIT	/* 단위 */
+					 , CAST(ISNULL(#{unit_nm},'') AS VARCHAR(100)) AS UNIT_NM	/* 단위 명 */
+					 , CAST(ISNULL(#{tooltip_cn},'') AS VARCHAR(300)) AS TOOLTIP_CN	/* 툴팁내용 */
+					 , CAST(SUM(PPLTN_CNT) AS NUMBER) AS STATS_DTA_CO	/* 통계자료건수 */
+				  FROM SRV_DT_POPSREG_${base_year} WITH(NOLOCK)
+				 <where>
+				   <if test='age_from != null and age_from != "" and age_from != undefined'>
+				   		AND AGE <![CDATA[>=]]> ${age_from}
+				   </if>
+				   <if test='age_to != null and age_to != "" and age_to != undefined'>
+				   		AND AGE <![CDATA[<=]]> ${age_to}
+				   </if>
+				   <if test='gender != null and gender != "" and gender != undefined'>
+				   		AND GENDER = #{gender}
+				   </if>
+				 </where>
+				 GROUP BY SUBSTR(TOT_REG_CD, 1, 7)
+				<!-- 소지역 -->
+				 UNION ALL
+				SELECT CAST(ISNULL(#{map_ty},'') AS VARCHAR(100)) AS MAP_TY	/* 지도유형 */
+					 , CAST('totreg' AS VARCHAR(100)) AS AREA_BNDRY_SE	/* 지역경계구분 */
+					 , CAST(ISNULL(#{base_year},'') AS VARCHAR(100)) AS BASE_YEAR	/* 기준년도 */
+					 , CAST(TOT_REG_CD AS VARCHAR(50)) AS ADM_CD	/* 지역코드 */
+					 , CAST('' AS VARCHAR(200)) AS ADM_NM /* 지역명 */
+					 , CAST(SUBSTR(TOT_REG_CD, 1, 2) AS VARCHAR(50)) AS SIDO_CD	/* 시도코드 */
+					 , CAST(SUBSTR(TOT_REG_CD, 3, 3) AS VARCHAR(50)) AS SGG_CD	/* 시군구코드 */
+					 , CAST(SUBSTR(TOT_REG_CD, 6, 2) AS VARCHAR(50)) AS EMDONG_CD	/* 읍면동코드 */
+					 , CAST('' AS VARCHAR(100)) AS X_COOR	/* X 좌표 */
+					 , CAST('' AS VARCHAR(100)) AS Y_COOR	/* Y 좌표 */
+					 , CAST('' AS VARCHAR(100)) AS POI_SE_NM	/* 점(POI) 구분 */
+					 , CAST('' AS VARCHAR(200)) AS POI_NM	/* 점(POI) 명 */
+					 , CAST(ISNULL(#{unit},'') AS VARCHAR(100)) AS UNIT	/* 단위 */
+					 , CAST(ISNULL(#{unit_nm},'') AS VARCHAR(100)) AS UNIT_NM	/* 단위 명 */
+					 , CAST(ISNULL(#{tooltip_cn},'') AS VARCHAR(300)) AS TOOLTIP_CN	/* 툴팁내용 */
+					 , CAST(SUM(PPLTN_CNT) AS NUMBER) AS STATS_DTA_CO	/* 통계자료건수 */
+				  FROM SRV_DT_POPSREG_${base_year} WITH(NOLOCK)
+				 <where>
+				   <if test='age_from != null and age_from != "" and age_from != undefined'>
+				   		AND AGE <![CDATA[>=]]> ${age_from}
+				   </if>
+				   <if test='age_to != null and age_to != "" and age_to != undefined'>
+				   		AND AGE <![CDATA[<=]]> ${age_to}
+				   </if>
+				   <if test='gender != null and gender != "" and gender != undefined'>
+				   		AND GENDER = #{gender}
+				   </if>
+				 </where>
+				 GROUP BY TOT_REG_CD
+				<!-- 격자(어린이집 분포현황, 어린이보호구역 분포 현황은 제외) -->
+				<!-- <if test='stat_data_id != "PS0018" and stat_data_id != "PS0044"'>
+				 UNION ALL
+				SELECT #{map_ty} AS MAP_TY
+					 , GRID_LEVEL_DIV AS AREA_BNDRY_SE
+					 , GRID_CD AS ADM_CD
+					 , GRID_CD AS ADM_NM
+					 , NULL AS SIDO_CD
+					 , NULL AS SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , SUM(PPLTN_CNT) AS STATS_DTA_CO
+				<choose>
+					<when test='base_year == "2000" or base_year == "2005" or base_year == "2010"'>
+						FROM SRV_DT_GRID_POPS_2010_LT WITH(NOLOCK)
+					</when>
+					<otherwise>
+						FROM SRV_DT_GRID_POPS_2015_MT WITH(NOLOCK)
+					</otherwise>
+				 </choose>
+				 WHERE 1=1
+				   AND BASE_YEAR = #{base_year}
+				   <if test='gender != null and gender != "" and gender != undefined'>
+				   		AND GENDER = #{gender}
+				   </if>
+				   <if test='age_group_cd != null and age_group_cd != "" and age_group_cd != undefined'>
+				   		AND AGE_GROUP_CD IN
+				   		<foreach  collection="age_group_cd" item="type" open="(" separator="," close=")"> 
+				   			#{type}
+				   		</foreach>
+				   </if>
+				 GROUP BY GRID_LEVEL_DIV, GRID_CD
+				 </if> -->
+		  	   ) X
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 정책통계지도:주택집계 -->
+	<insert id="insertSrvDtCtlgDtwrh_PolicyStaticMap_House" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+		  	 , SIDO_CD
+		  	 , SGG_CD
+		  	 , EMDONG_CD
+		  	 , X_COOR
+		  	 , Y_COOR
+		  	 , POI_SE_NM
+		  	 , POI_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , X.MAP_TY	/* 지도유형 */
+			 , X.AREA_BNDRY_SE	/* 지역경계구분 */
+			 , #{base_year} AS BASE_YEAR	/* 기준년도 */
+			 , X.ADM_CD	/* 지역코드 */
+			 , X.ADM_NM	/* 지역명 */
+			 , X.SIDO_CD	/* 시도코드 */
+			 , X.SGG_CD	/* 시군구코드 */
+			 , X.EMDONG_CD	/* 읍면동코드 */
+			 , X.X_COOR	/* X 좌표 */
+			 , X.Y_COOR	/* Y 좌표 */
+			 , X.POI_SE_NM	/* 점(POI) 구분 */
+			 , X.POI_NM	/* 점(POI) 명 */
+			 , X.UNIT	/* 단위 */
+			 , X.UNIT_NM	/* 단위 명 */
+			 , X.TOOLTIP_CN	/* 툴팁내용 */
+			 , X.STATS_DTA_CO	/* 통계자료건수 */
+		  FROM (<!-- 시도 -->
+		  		SELECT #{map_ty} AS MAP_TY
+					 , 'sido' AS AREA_BNDRY_SE
+					 , SIDO_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SIDO_CD
+					 , NULL AS SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , SUM(RESID_CNT) AS STATS_DTA_CO
+				  FROM SRV_DT_HOUSESGG_${base_year} WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BORD_BASE_YEAR = (SELECT MAX(BORD_BASE_YEAR)
+				   						   FROM SRV_DT_HOUSESGG_${base_year}
+				   						)
+				   AND HOUSE_YN = 'Y'
+				   <if test='house_type != null and house_type != "" and house_type != undefined'>
+				   		AND RD_RESID_1_TYPE IN
+				   		<foreach  collection="house_type" item="type" open="(" separator="," close=")"> 
+				   			#{type}
+				   		</foreach>
+				   </if>
+				 GROUP BY SIDO_CD
+				<!-- 시군구 -->
+				 UNION ALL
+				SELECT #{map_ty} AS MAP_TY
+					 , 'sgg' AS AREA_BNDRY_SE
+					 , SIDO_CD || SGG_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SIDO_CD
+					 , SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , SUM(RESID_CNT) AS STATS_DTA_CO
+				  FROM SRV_DT_HOUSESGG_${base_year} WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BORD_BASE_YEAR = (SELECT MAX(BORD_BASE_YEAR)
+				   						   FROM SRV_DT_HOUSESGG_${base_year}
+				   						)
+				   AND HOUSE_YN = 'Y'
+				   <if test='house_type != null and house_type != "" and house_type != undefined'>
+				   		AND RD_RESID_1_TYPE IN
+				   		<foreach  collection="house_type" item="type" open="(" separator="," close=")"> 
+				   			#{type}
+				   		</foreach>
+				   </if>
+				 GROUP BY SIDO_CD, SGG_CD
+				<!-- 읍면동 -->
+				 UNION ALL
+				SELECT #{map_ty} AS MAP_TY
+					 , 'emdong' AS AREA_BNDRY_SE
+					 , SUBSTR(TOT_REG_CD, 1, 7) AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , SUM(RESID_CNT) AS STATS_DTA_CO
+				  FROM SRV_DT_HOUSEREG_${base_year} WITH(NOLOCK)
+				 WHERE 1=1
+				   AND HOUSE_YN = 'Y'
+				   <if test='house_type != null and house_type != "" and house_type != undefined'>
+				   		AND RD_RESID_1_TYPE IN
+				   		<foreach  collection="house_type" item="type" open="(" separator="," close=")"> 
+				   			#{type}
+				   		</foreach>
+				   </if>
+				 GROUP BY SUBSTR(TOT_REG_CD, 1, 7), SUBSTR(TOT_REG_CD, 1, 2), SUBSTR(TOT_REG_CD, 3, 3), SUBSTR(TOT_REG_CD, 6, 2)
+				<!-- 소지역 -->
+				 UNION ALL
+				SELECT #{map_ty} AS MAP_TY
+					 , 'totreg' AS AREA_BNDRY_SE
+					 , TOT_REG_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , SUM(RESID_CNT) AS STATS_DTA_CO
+				  FROM SRV_DT_HOUSEREG_${base_year} WITH(NOLOCK)
+				 WHERE 1=1
+				   AND HOUSE_YN = 'Y'
+				   <if test='house_type != null and house_type != "" and house_type != undefined'>
+				   		AND RD_RESID_1_TYPE IN
+				   		<foreach  collection="house_type" item="type" open="(" separator="," close=")"> 
+				   			#{type}
+				   		</foreach>
+				   </if>
+				 GROUP BY TOT_REG_CD, SUBSTR(TOT_REG_CD, 1, 2), SUBSTR(TOT_REG_CD, 3, 3), SUBSTR(TOT_REG_CD, 6, 2)
+				<!-- 격자 -->
+				 <!-- UNION ALL
+				SELECT #{map_ty} AS MAP_TY
+					 , GRID_LEVEL_DIV AS AREA_BNDRY_SE
+					 , GRID_CD AS ADM_CD
+					 , GRID_CD AS ADM_NM
+					 , NULL AS SIDO_CD
+					 , NULL AS SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , SUM(RESID_CNT) AS STATS_DTA_CO
+				<choose>
+					<when test='base_year == "2000" or base_year == "2005" or base_year == "2010"'>
+						FROM SRV_DT_GRID_HOUSE_2010_LT
+					</when>
+					<otherwise>
+						FROM SRV_DT_GRID_HOUSE_2015_MT
+					</otherwise>
+				 </choose>
+				 WHERE 1=1
+				   AND BASE_YEAR = #{base_year}
+				   AND HOUSE_YN = 'Y'
+				   <if test='house_type != null and house_type != "" and house_type != undefined'>
+				   		AND RD_RESID_1_TYPE IN
+				   		<foreach  collection="house_type" item="type" open="(" separator="," close=")"> 
+				   			#{type}
+				   		</foreach>
+				   </if>
+				 GROUP BY GRID_LEVEL_DIV, GRID_CD  -->
+		  	   ) X
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 정책통계지도:가구집계 -->
+	<insert id="insertSrvDtCtlgDtwrh_PolicyStaticMap_Household" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+		  	 , SIDO_CD
+		  	 , SGG_CD
+		  	 , EMDONG_CD
+		  	 , X_COOR
+		  	 , Y_COOR
+		  	 , POI_SE_NM
+		  	 , POI_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , X.MAP_TY	/* 지도유형 */
+			 , X.AREA_BNDRY_SE	/* 지역경계구분 */
+			 , #{base_year} AS BASE_YEAR	/* 기준년도 */
+			 , X.ADM_CD	/* 지역코드 */
+			 , X.ADM_NM	/* 지역명 */
+			 , X.SIDO_CD	/* 시도코드 */
+			 , X.SGG_CD	/* 시군구코드 */
+			 , X.EMDONG_CD	/* 읍면동코드 */
+			 , X.X_COOR	/* X 좌표 */
+			 , X.Y_COOR	/* Y 좌표 */
+			 , X.POI_SE_NM	/* 점(POI) 구분 */
+			 , X.POI_NM	/* 점(POI) 명 */
+			 , X.UNIT	/* 단위 */
+			 , X.UNIT_NM	/* 단위 명 */
+			 , X.TOOLTIP_CN	/* 툴팁내용 */
+			 , X.STATS_DTA_CO	/* 통계자료건수 */
+		  FROM (<!-- 시도 -->
+		  		SELECT #{map_ty} AS MAP_TY
+					 , 'sido' AS AREA_BNDRY_SE
+					 , SIDO_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SIDO_CD
+					 , NULL AS SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , SUM(FAMILY_CNT) AS STATS_DTA_CO
+				  FROM SRV_DT_FAMILYSGG_${base_year} WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BORD_BASE_YEAR = (SELECT MAX(BORD_BASE_YEAR)
+				   						   FROM SRV_DT_FAMILYSGG_${base_year}
+				   						)
+				   <if test='household_type != null and household_type != "" and household_type != undefined'>
+				   		AND RD_HOUSEHOLD_TYPE IN
+				   		<foreach  collection="household_type" item="type" open="(" separator="," close=")"> 
+				   			#{type}
+				   		</foreach>
+				   </if>
+				 GROUP BY SIDO_CD
+				<!-- 시군구 -->
+				 UNION ALL
+				SELECT #{map_ty} AS MAP_TY
+					 , 'sgg' AS AREA_BNDRY_SE
+					 , SIDO_CD || SGG_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SIDO_CD
+					 , SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , SUM(FAMILY_CNT) AS STATS_DTA_CO
+				  FROM SRV_DT_FAMILYSGG_${base_year} WITH(NOLOCK)
+				 WHERE 1=1
+				   AND BORD_BASE_YEAR = (SELECT MAX(BORD_BASE_YEAR)
+				   						   FROM SRV_DT_FAMILYSGG_${base_year}
+				   						)
+				   <if test='household_type != null and household_type != "" and household_type != undefined'>
+				   		AND RD_HOUSEHOLD_TYPE IN
+				   		<foreach  collection="household_type" item="type" open="(" separator="," close=")"> 
+				   			#{type}
+				   		</foreach>
+				   </if>
+				 GROUP BY SIDO_CD, SGG_CD
+				<!-- 읍면동 -->
+				 UNION ALL
+				SELECT #{map_ty} AS MAP_TY
+					 , 'emdong' AS AREA_BNDRY_SE
+					 , SUBSTR(TOT_REG_CD, 1, 7) AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , SUM(FAMILY_CNT) AS STATS_DTA_CO
+				  FROM SRV_DT_FAMILYREG_${base_year} WITH(NOLOCK)
+				 WHERE 1=1
+				   <if test='household_type != null and household_type != "" and household_type != undefined'>
+				   		AND RD_HOUSEHOLD_TYPE IN
+				   		<foreach  collection="household_type" item="type" open="(" separator="," close=")"> 
+				   			#{type}
+				   		</foreach>
+				   </if>
+				 GROUP BY SUBSTR(TOT_REG_CD, 1, 7), SUBSTR(TOT_REG_CD, 1, 2), SUBSTR(TOT_REG_CD, 3, 3), SUBSTR(TOT_REG_CD, 6, 2)
+				<!-- 소지역 -->
+				 UNION ALL
+				SELECT #{map_ty} AS MAP_TY
+					 , 'totreg' AS AREA_BNDRY_SE
+					 , TOT_REG_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , SUM(FAMILY_CNT) AS STATS_DTA_CO
+				  FROM SRV_DT_FAMILYREG_${base_year} WITH(NOLOCK)
+				 WHERE 1=1
+				   <if test='household_type != null and household_type != "" and household_type != undefined'>
+				   		AND RD_HOUSEHOLD_TYPE IN
+				   		<foreach  collection="household_type" item="type" open="(" separator="," close=")"> 
+				   			#{type}
+				   		</foreach>
+				   </if>
+				 GROUP BY TOT_REG_CD, SUBSTR(TOT_REG_CD, 1, 2), SUBSTR(TOT_REG_CD, 3, 3), SUBSTR(TOT_REG_CD, 6, 2)
+				<!-- 격자 -->
+				 <!-- UNION ALL
+				SELECT #{map_ty} AS MAP_TY
+					 , GRID_LEVEL_DIV AS AREA_BNDRY_SE
+					 , GRID_CD AS ADM_CD
+					 , GRID_CD AS ADM_NM
+					 , NULL AS SIDO_CD
+					 , NULL AS SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , SUM(FAMILY_CNT) AS STATS_DTA_CO
+				<choose>
+					<when test='base_year == "2000" or base_year == "2005" or base_year == "2010"'>
+						FROM SRV_DT_GRID_FAMILY_2010_LT
+					</when>
+					<otherwise>
+						FROM SRV_DT_GRID_FAMILY_2015_MT
+					</otherwise>
+				 </choose>
+				 WHERE 1=1
+				   AND BASE_YEAR = #{base_year}
+				   <if test='household_type != null and household_type != "" and household_type != undefined'>
+				   		AND RD_HOUSEHOLD_TYPE IN
+				   		<foreach  collection="household_type" item="type" open="(" separator="," close=")"> 
+				   			#{type}
+				   		</foreach>
+				   </if>
+				 GROUP BY GRID_LEVEL_DIV, GRID_CD -->
+		  	   ) X
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 정책통계지도:농가/임가 변화:시도,시군구,읍면동,소지역:어가:내수면 총어가 변화, 해수면 총어가 변화 -->
+	<insert id="insertSrvDtCtlgDtwrh_PolicyStaticMap_FarmForestryhousehold_Fishery_1" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+		  	 , SIDO_CD
+		  	 , SGG_CD
+		  	 , EMDONG_CD
+		  	 , X_COOR
+		  	 , Y_COOR
+		  	 , POI_SE_NM
+		  	 , POI_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , X.MAP_TY	/* 지도유형 */
+			 , X.AREA_BNDRY_SE	/* 지역경계구분 */
+			 , #{base_year} AS BASE_YEAR	/* 기준년도 */
+			 , X.ADM_CD	/* 지역코드 */
+			 , X.ADM_NM	/* 지역명 */
+			 , X.SIDO_CD	/* 시도코드 */
+			 , X.SGG_CD	/* 시군구코드 */
+			 , X.EMDONG_CD	/* 읍면동코드 */
+			 , X.X_COOR	/* X 좌표 */
+			 , X.Y_COOR	/* Y 좌표 */
+			 , X.POI_SE_NM	/* 점(POI) 구분 */
+			 , X.POI_NM	/* 점(POI) 명 */
+			 , X.UNIT	/* 단위 */
+			 , X.UNIT_NM	/* 단위 명 */
+			 , X.TOOLTIP_CN	/* 툴팁내용 */
+			 , X.STATS_DTA_CO	/* 통계자료건수 */
+		  FROM (<!-- 시도 -->
+		  		SELECT #{map_ty} AS MAP_TY
+		  			 , 'sido' AS AREA_BNDRY_SE
+					 , SUBSTR(B.TOT_REG_CD, 1, 2) AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(B.TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , NULL AS SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , '${tooltip_cn}' AS TOOLTIP_CN
+					 , COUNT(A.FMEMBER_CNT) AS STATS_DTA_CO
+				  FROM ${table_nm} A WITH(NOLOCK)
+				 INNER JOIN SRV_PT_BD B WITH(NOLOCK) ON A.SUFID = B.SUFID
+				 WHERE 1=1
+				   <!-- AND B.TOT_REG_CD IN (SELECT A.TOT_REG_CD
+								   		  FROM SRV_PG_TOTREGBORD A
+												INNER JOIN (SELECT MAX(BASE_YEAR) AS BASE_YEAR FROM SRV_PG_TOTREGBORD) B ON B.BASE_YEAR = A.BASE_YEAR
+								   	   ) -->
+				 <if test='oga_div != null and oga_div != "" and oga_div != undefined'>
+				 	AND A.OGA_DIV = #{oga_div}
+				 </if>
+				 GROUP BY SUBSTR(B.TOT_REG_CD, 1, 2)
+				<!-- 시군구 -->
+				 UNION ALL
+				SELECT #{map_ty} AS MAP_TY
+					 , 'sgg' AS AREA_BNDRY_SE
+					 , SUBSTR(B.TOT_REG_CD, 1, 2) || SUBSTR(B.TOT_REG_CD, 3, 3) AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(B.TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(B.TOT_REG_CD, 3, 3) AS SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , '${tooltip_cn}' AS TOOLTIP_CN
+					 , COUNT(A.FMEMBER_CNT) AS STATS_DTA_CO
+				  FROM ${table_nm} A WITH(NOLOCK)
+				 INNER JOIN SRV_PT_BD B WITH(NOLOCK) ON A.SUFID = B.SUFID
+				 WHERE 1=1
+				   <!-- AND B.TOT_REG_CD IN (SELECT A.TOT_REG_CD
+								   		  FROM SRV_PG_TOTREGBORD A
+												INNER JOIN (SELECT MAX(BASE_YEAR) AS BASE_YEAR FROM SRV_PG_TOTREGBORD) B ON B.BASE_YEAR = A.BASE_YEAR
+								   	   ) -->
+				 <if test='oga_div != null and oga_div != "" and oga_div != undefined'>
+				 	AND A.OGA_DIV = #{oga_div}
+				 </if>
+				 GROUP BY SUBSTR(B.TOT_REG_CD, 1, 2), SUBSTR(B.TOT_REG_CD, 3, 3)
+				<!-- 읍면동 -->
+				 UNION ALL
+				SELECT #{map_ty} AS MAP_TY
+					 , 'emdong' AS AREA_BNDRY_SE
+					 , SUBSTR(B.TOT_REG_CD, 1, 2) || SUBSTR(B.TOT_REG_CD, 3, 3) ||SUBSTR(B.TOT_REG_CD, 6, 2) AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(B.TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(B.TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(B.TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , '${tooltip_cn}' AS TOOLTIP_CN
+					 , COUNT(A.FMEMBER_CNT) AS STATS_DTA_CO
+				  FROM ${table_nm} A WITH(NOLOCK)
+				 INNER JOIN SRV_PT_BD B WITH(NOLOCK) ON A.SUFID = B.SUFID
+				 WHERE 1=1
+				   <!-- AND B.TOT_REG_CD IN (SELECT A.TOT_REG_CD
+								   		  FROM SRV_PG_TOTREGBORD A
+												INNER JOIN (SELECT MAX(BASE_YEAR) AS BASE_YEAR FROM SRV_PG_TOTREGBORD) B ON B.BASE_YEAR = A.BASE_YEAR
+								   	   ) -->
+				 <if test='oga_div != null and oga_div != "" and oga_div != undefined'>
+				 	AND A.OGA_DIV = #{oga_div}
+				 </if>
+				 GROUP BY SUBSTR(B.TOT_REG_CD, 1, 2) ,SUBSTR(B.TOT_REG_CD, 3, 3) ,SUBSTR(B.TOT_REG_CD, 6, 2)
+				<!-- 소지역 -->
+				 UNION ALL
+				SELECT #{map_ty} AS MAP_TY
+					 , 'totreg' AS AREA_BNDRY_SE
+					 , B.TOT_REG_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(B.TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(B.TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(B.TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , '${tooltip_cn}' AS TOOLTIP_CN
+					 , COUNT(A.FMEMBER_CNT) AS STATS_DTA_CO
+				  FROM ${table_nm} A WITH(NOLOCK)
+				 INNER JOIN SRV_PT_BD B WITH(NOLOCK) ON B.SUFID = A.SUFID
+				 WHERE 1=1
+				   <!-- AND B.TOT_REG_CD IN (SELECT A.TOT_REG_CD
+							   		  	  FROM SRV_PG_TOTREGBORD A
+												INNER JOIN (SELECT MAX(BASE_YEAR) AS BASE_YEAR FROM SRV_PG_TOTREGBORD) B ON B.BASE_YEAR = A.BASE_YEAR
+								   	   ) -->
+				 <if test='oga_div != null and oga_div != "" and oga_div != undefined'>
+				 	AND A.OGA_DIV = #{oga_div}
+				 </if>
+				 GROUP BY B.TOT_REG_CD
+		  	   ) X
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 정책통계지도:농가/임가 변화:어가:내수면 총어가 변화, 해수면 총어가 변화:격자 -->
+	<insert id="insertSrvDtCtlgDtwrh_PolicyStaticMap_FarmForestryhousehold_Fishery_2" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		  WITH W_SRV_DT_CENSUS AS (SELECT CASE TRUNC(ST_X(B.PT), -5)
+													WHEN 700000 THEN '가' WHEN 800000 THEN '나' WHEN 900000 THEN '다' WHEN 1000000 THEN '라' WHEN 1100000 THEN '마' WHEN 1200000 THEN '바' WHEN 1300000 THEN '사' WHEN 1400000 THEN '아' WHEN 1500000 THEN '자' ELSE '가'
+													 END AS X_TEXT
+												  , CASE TRUNC(ST_Y(B.PT), -5)
+													WHEN 1300000 THEN '가' WHEN 1400000 THEN '나' WHEN 1500000 THEN '다' WHEN 1600000 THEN '라' WHEN 1700000 THEN '마' WHEN 1800000 THEN '바' WHEN 1900000 THEN '사' WHEN 2000000 THEN '아' WHEN 2100000 THEN '자' ELSE '가'
+													 END AS Y_TEXT
+												  , LEFT(RIGHT(TRUNC(ST_X(B.PT), -2),5),3) AS X_NUM_100M
+												  , LEFT(RIGHT(TRUNC(ST_Y(B.PT), -2),5),3) AS Y_NUM_100M
+												  , LEFT(RIGHT(TRUNC(ST_X(B.PT), -3),5),2) AS X_NUM_1K
+												  , LEFT(RIGHT(TRUNC(ST_Y(B.PT), -3),5),2) AS Y_NUM_1K
+												  , LEFT(RIGHT(TRUNC(ST_X(B.PT), -4),5),1) AS X_NUM_10K
+												  , LEFT(RIGHT(TRUNC(ST_Y(B.PT), -4),5),1) AS Y_NUM_10K
+											   FROM ${table_nm} A WITH(NOLOCK)
+											  INNER JOIN SRV_PT_BD B WITH(NOLOCK) ON B.SUFID = A.SUFID
+											  WHERE 1=1
+											  <if test='oga_div != null and oga_div != "" and oga_div != undefined'>
+											  	AND A.OGA_DIV = '${oga_div}'
+											  </if>
+		  									)
+		SELECT '${stat_data_id}' AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , X.MAP_TY	/* 지도유형 */
+			 , X.AREA_BNDRY_SE	/* 지역경계구분 */
+			 , '${base_year}' AS BASE_YEAR	/* 기준년도 */
+			 , X.ADM_CD	/* 지역코드 */
+			 , X.ADM_NM	/* 지역명 */
+			 , X.UNIT	/* 단위 */
+			 , X.UNIT_NM	/* 단위 명 */
+			 , X.TOOLTIP_CN	/* 툴팁내용 */
+			 , X.STATS_DTA_CO	/* 통계자료건수 */
+		  FROM (<!-- 100k -->
+		  		SELECT '${map_ty}' AS MAP_TY
+		  			 , '100k' AS AREA_BNDRY_SE
+					 , A.X_TEXT || A.Y_TEXT AS ADM_CD
+					 , A.X_TEXT || A.Y_TEXT AS ADM_NM
+					 , '${unit}' AS UNIT
+					 , '${unit_nm}' AS UNIT_NM
+					 , '${tooltip_cn}' AS TOOLTIP_CN
+					 , COUNT(*) AS STATS_DTA_CO
+				  FROM W_SRV_DT_CENSUS A
+				 GROUP BY A.X_TEXT, A.Y_TEXT
+				<!-- 10k -->
+				 UNION ALL
+				SELECT '${map_ty}' AS MAP_TY
+		  			 , '10k' AS AREA_BNDRY_SE
+					 , A.X_TEXT || A.Y_TEXT || A.X_NUM_10K || A.Y_NUM_10K AS ADM_CD
+					 , A.X_TEXT || A.Y_TEXT || A.X_NUM_10K || A.Y_NUM_10K AS ADM_NM
+					 , '${unit}' AS UNIT
+					 , '${unit_nm}' AS UNIT_NM
+					 , '${tooltip_cn}' AS TOOLTIP_CN
+					 , COUNT(*) AS STATS_DTA_CO
+				  FROM W_SRV_DT_CENSUS A
+				 GROUP BY A.X_TEXT, A.Y_TEXT, A.X_NUM_10K, A.Y_NUM_10K
+				<!-- 1k -->
+				 UNION ALL
+				SELECT '${map_ty}' AS MAP_TY
+		  			 , '1k' AS AREA_BNDRY_SE
+					 , A.X_TEXT || A.Y_TEXT || A.X_NUM_1K || A.Y_NUM_1K AS ADM_CD
+					 , A.X_TEXT || A.Y_TEXT || A.X_NUM_1K || A.Y_NUM_1K AS ADM_NM
+					 , '${unit}' AS UNIT
+					 , '${unit_nm}' AS UNIT_NM
+					 , '${tooltip_cn}' AS TOOLTIP_CN
+					 , COUNT(*) AS STATS_DTA_CO
+				  FROM W_SRV_DT_CENSUS A
+				 GROUP BY A.X_TEXT, A.Y_TEXT, A.X_NUM_1K, A.Y_NUM_1K
+				<!-- 100m -->
+				 UNION ALL
+				SELECT '${map_ty}' AS MAP_TY
+		  			 , '100m' AS AREA_BNDRY_SE
+					 , A.X_TEXT || A.Y_TEXT || A.X_NUM_100M || A.Y_NUM_100M AS ADM_CD
+					 , A.X_TEXT || A.Y_TEXT || A.X_NUM_100M || A.Y_NUM_100M AS ADM_NM
+					 , '${unit}' AS UNIT
+					 , '${unit_nm}' AS UNIT_NM
+					 , '${tooltip_cn}' AS TOOLTIP_CN
+					 , COUNT(*) AS STATS_DTA_CO
+				  FROM W_SRV_DT_CENSUS A
+				 GROUP BY A.X_TEXT, A.Y_TEXT, A.X_NUM_100M, A.Y_NUM_100M
+		  	   ) X
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 정책통계지도:협업형POI:어린이집 분포현황,공공자전거수 대비 보관소 분포 현황,도서관 운영, 여성 1인가구 거주현황 대비 CCTV -->
+	<insert id="insertSrvDtCtlgDtwrh_PolicyStaticMap_LocalGovernmentPoi" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+		  	 , SIDO_CD
+		  	 , SGG_CD
+		  	 , EMDONG_CD
+		  	 , X_COOR
+		  	 , Y_COOR
+		  	 , POI_SE_NM
+		  	 , POI_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , 'poi' AS MAP_TY	/* 지도유형 */
+			 , 'all' AS AREA_BNDRY_SE	/* 지역경계구분 */
+			 , NULL AS BASE_YEAR	/* 기준년도 */
+			 , A.ADM_DR_CD AS ADM_CD	/* 지역코드 */
+			 , NULL AS ADM_NM	/* 지역명 */
+			 , SUBSTR(A.ADM_DR_CD, 1, 2) AS SIDO_CD	/* 시도코드 */
+			 , SUBSTR(A.ADM_DR_CD, 3, 3) AS SGG_CD	/* 시군구코드 */
+			 , SUBSTR(A.ADM_DR_CD, 6, 2) AS EMDONG_CD	/* 읍면동코드 */
+			 , ST_X(PT) AS X_COOR	/* X 좌표 */
+			 , ST_Y(PT) AS Y_COOR	/* Y 좌표 */
+			 , #{poi_se_nm} AS POI_SE_NM	/* 점(POI) 구분 */
+			 , A.DIV_NM AS POI_NM	/* 점(POI) 명 */
+			 , NULL AS UNIT	/* 단위 */
+			 , NULL AS UNIT_NM	/* 단위 명 */
+			 , A.DIV_NM AS TOOLTIP_CN	/* 툴팁내용 */
+			 , NULL AS STATS_DTA_CO	/* 통계자료건수 */
+		  FROM SRV_PT_OPEN_DATA A WITH(NOLOCK)
+		  <!-- 2019-12-17 [김남민] 불필요한 구문 주석 -->
+		  <!-- INNER JOIN SRV_PG_SGGBORD B WITH(NOLOCK)
+				 ON ST_INTERSECTS(B.LIGHTEN_BORD,A.PT) = 1 
+				AND B.BASE_YEAR = (SELECT MAX(BASE_YEAR)
+		   						     FROM SRV_PG_SGGBORD WITH(NOLOCK)
+		   						  ) -->
+		 WHERE 1=1
+		 <if test='div_cd != null and div_cd != "" and div_cd != undefined'>
+		   AND DIV_CD = #{div_cd}
+		 </if>
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 정책통계지도:사업체POI:노인요양시설 분포현황 -->
+	<insert id="insertSrvDtCtlgDtwrh_PolicyStaticMap_CompanyPoi" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+		  	 , SIDO_CD
+		  	 , SGG_CD
+		  	 , EMDONG_CD
+		  	 , X_COOR
+		  	 , Y_COOR
+		  	 , POI_SE_NM
+		  	 , POI_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , 'poi' AS MAP_TY	/* 지도유형 */
+			 , 'all' AS AREA_BNDRY_SE	/* 지역경계구분 */
+			 , NULL AS BASE_YEAR	/* 기준년도 */
+			 , SUBSTR(BD.TOT_REG_CD, 1, 7) AS ADM_CD	/* 지역코드 */
+			 , NULL AS ADM_NM	/* 지역명 */
+			 , SUBSTR(BD.TOT_REG_CD, 1, 2) AS SIDO_CD	/* 시도코드 */
+			 , SUBSTR(BD.TOT_REG_CD, 3, 3) AS SGG_CD	/* 시군구코드 */
+			 , SUBSTR(BD.TOT_REG_CD, 6, 2) AS EMDONG_CD	/* 읍면동코드 */
+			 , ST_X(BD.PT) AS X_COOR	/* X 좌표 */
+			 , ST_Y(BD.PT) AS Y_COOR	/* Y 좌표 */
+			 , '3' AS POI_SE_NM	/* 점(POI) 구분 */
+			 , A.CORP_NM || '$' || A.NADDR AS POI_NM	/* 점(POI) 명 */
+			 , NULL AS UNIT	/* 단위 */
+			 , NULL AS UNIT_NM	/* 단위 명 */
+			 , NULL AS TOOLTIP_CN	/* 툴팁내용 */
+			 , NULL AS STATS_DTA_CO	/* 통계자료건수 */
+		  FROM (SELECT A.SUFID
+					 , A.CORP_NM
+					 , B.NADDR 
+				  FROM <choose>
+							<when test='stat_data_base_year != null and stat_data_base_year lte "2005"'>
+								SRV_DT_CORPCENSUS_8 A WITH(NOLOCK)
+							</when>
+							<when test='stat_data_base_year != null and stat_data_base_year lte "2016"'>
+								SRV_DT_CORPCENSUS_9 A WITH(NOLOCK)
+							</when>
+							<otherwise>
+								SRV_DT_CORPCENSUS_10 A WITH(NOLOCK)
+							</otherwise>
+						</choose>
+				  	 , SRV_PG_CENSUSBD B WITH(NOLOCK)
+				 WHERE 1=1
+				   AND A.BASE_YEAR = #{stat_data_base_year}	
+				   AND A.KSIC_1_CD = #{ksic_1_cd}
+				   AND A.KSIC_5_CD = #{ksic_5_cd}
+				   AND A.SUFID = B.SUFID
+			   ) A
+		 INNER JOIN SRV_PT_BD BD
+				 ON BD.SUFID = A.SUFID
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 정책통계지도:사업체POI:노인요양시설 분포현황,공공자전거수 대비 보관소 분포 현황,인구대비도서관평균도서 보유 현황,어린이보호구역 분포 현황,여성 1인가구 거주현황 대비 CCTV -->
+	<insert id="insertSrvDtCtlgDtwrh_PolicyStaticMap_LocalGovernmentPolygon" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+		  	 , SIDO_CD
+		  	 , SGG_CD
+		  	 , EMDONG_CD
+		  	 , X_COOR
+		  	 , Y_COOR
+		  	 , POI_SE_NM
+		  	 , POI_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , X.MAP_TY	/* 지도유형 */
+			 , X.AREA_BNDRY_SE	/* 지역경계구분 */
+			 , X.BASE_YEAR	/* 기준년도 */
+			 , X.ADM_CD AS ADM_CD	/* 지역코드 */
+			 , X.ADM_NM	/* 지역명 */
+			 , X.SIDO_CD	/* 시도코드 */
+			 , X.SGG_CD	/* 시군구코드 */
+			 , X.EMDONG_CD	/* 읍면동코드 */
+			 , X.X_COOR	/* X 좌표 */
+			 , X.Y_COOR	/* Y 좌표 */
+			 , X.POI_SE_NM	/* 점(POI) 구분 */
+			 , X.POI_NM	/* 점(POI) 명 */
+			 , X.UNIT	/* 단위 */
+			 , X.UNIT_NM	/* 단위 명 */
+			 , X.TOOLTIP_CN	/* 툴팁내용 */
+			 , X.STATS_DTA_CO	/* 통계자료건수 */
+		  FROM (<!-- 시도 -->
+		  		SELECT CAST(ISNULL(#{map_ty},'') AS VARCHAR(100)) AS MAP_TY	/* 지도유형 */
+					 , CAST('sido' AS VARCHAR(100)) AS AREA_BNDRY_SE	/* 지역경계구분 */
+					 , CAST(ISNULL(#{base_year},'') AS VARCHAR(100)) AS BASE_YEAR	/* 기준년도 */
+					 , CAST(TRIM(A.SIDO_CD) AS VARCHAR(50)) AS ADM_CD	/* 지역코드 */
+					 , CAST('' AS VARCHAR(200)) AS ADM_NM /* 지역명 */
+					 , CAST(TRIM(A.SIDO_CD) AS VARCHAR(50)) AS SIDO_CD	/* 시도코드 */
+					 , CAST('' AS VARCHAR(50)) AS SGG_CD	/* 시군구코드 */
+					 , CAST('' AS VARCHAR(50)) AS EMDONG_CD	/* 읍면동코드 */
+					 , CAST('' AS VARCHAR(100)) AS X_COOR	/* X 좌표 */
+					 , CAST('' AS VARCHAR(100)) AS Y_COOR	/* Y 좌표 */
+					 , CAST('' AS VARCHAR(100)) AS POI_SE_NM	/* 점(POI) 구분 */
+					 , CAST('' AS VARCHAR(200)) AS POI_NM	/* 점(POI) 명 */
+					 , CAST(B.DATA_UNIT AS VARCHAR(100)) AS UNIT	/* 단위 */
+					 , CAST(B.DIV_NM AS VARCHAR(100)) AS UNIT_NM	/* 단위 명 */
+					 , CAST(ISNULL(#{tooltip_cn},'') AS VARCHAR(300)) AS TOOLTIP_CN	/* 툴팁내용 */
+					 , CAST(A.CNT AS NUMBER) AS STATS_DTA_CO	/* 통계자료건수 */
+				  FROM SRV_DT_OPEN_DATA_SIDO_TOT A WITH(NOLOCK)
+					 , SRV_DT_OPEN_DATA_NM B WITH(NOLOCK)
+				 INNER JOIN SRV_PG_SIDOBORD C WITH(NOLOCK) 
+						 ON A.SIDO_CD = C.SIDO_CD
+				 WHERE 1=1
+				   AND C.BASE_YEAR = (SELECT MAX(BASE_YEAR)
+			   						    FROM SRV_PG_SIDOBORD WITH(NOLOCK)
+			   						 )
+				   AND A.DIV_CD = B.DIV_CD
+				   AND A.DIV_CD = #{div_cd}
+				<!-- 시군구 -->
+				 UNION ALL
+				SELECT CAST(ISNULL(#{map_ty},'') AS VARCHAR(100)) AS MAP_TY	/* 지도유형 */
+					 , CAST('sgg' AS VARCHAR(100)) AS AREA_BNDRY_SE	/* 지역경계구분 */
+					 , CAST(ISNULL(#{base_year},'') AS VARCHAR(100)) AS BASE_YEAR	/* 기준년도 */
+					 , CAST(TRIM(A.SIDO_CD) || TRIM(A.SGG_CD) AS VARCHAR(50)) AS ADM_CD	/* 지역코드 */
+					 , CAST('' AS VARCHAR(200)) AS ADM_NM /* 지역명 */
+					 , CAST(TRIM(A.SIDO_CD) AS VARCHAR(50)) AS SIDO_CD	/* 시도코드 */
+					 , CAST(TRIM(A.SGG_CD) AS VARCHAR(50)) AS SGG_CD	/* 시군구코드 */
+					 , CAST('' AS VARCHAR(50)) AS EMDONG_CD	/* 읍면동코드 */
+					 , CAST('' AS VARCHAR(100)) AS X_COOR	/* X 좌표 */
+					 , CAST('' AS VARCHAR(100)) AS Y_COOR	/* Y 좌표 */
+					 , CAST('' AS VARCHAR(100)) AS POI_SE_NM	/* 점(POI) 구분 */
+					 , CAST('' AS VARCHAR(200)) AS POI_NM	/* 점(POI) 명 */
+					 , CAST(B.DATA_UNIT AS VARCHAR(100)) AS UNIT	/* 단위 */
+					 , CAST(B.DIV_NM AS VARCHAR(100)) AS UNIT_NM	/* 단위 명 */
+					 , CAST(ISNULL(#{tooltip_cn},'') AS VARCHAR(300)) AS TOOLTIP_CN	/* 툴팁내용 */
+					 , CAST(A.CNT AS NUMBER) AS STATS_DTA_CO	/* 통계자료건수 */
+				  FROM SRV_DT_OPEN_DATA_SGG_TOT A WITH(NOLOCK)
+					 , SRV_DT_OPEN_DATA_NM B WITH(NOLOCK)
+				 INNER JOIN SRV_PG_SGGBORD C WITH(NOLOCK) 
+						 ON A.SIDO_CD = C.SIDO_CD
+						AND A.SGG_CD = C.SGG_CD
+				 WHERE 1=1
+				   AND C.BASE_YEAR = (SELECT MAX(BASE_YEAR)
+			   						    FROM SRV_PG_SGGBORD WITH(NOLOCK)
+			   						 )
+				   AND A.DIV_CD = B.DIV_CD
+				   AND A.DIV_CD = #{div_cd}
+				<!-- 읍면동 -->
+				 UNION ALL
+				SELECT CAST(ISNULL(#{map_ty},'') AS VARCHAR(100)) AS MAP_TY	/* 지도유형 */
+					 , CAST('emdong' AS VARCHAR(100)) AS AREA_BNDRY_SE	/* 지역경계구분 */
+					 , CAST(ISNULL(#{base_year},'') AS VARCHAR(100)) AS BASE_YEAR	/* 기준년도 */
+					 , CAST(TRIM(A.SIDO_CD) || TRIM(A.SGG_CD) || TRIM(A.EMDONG_CD) AS VARCHAR(50)) AS ADM_CD	/* 지역코드 */
+					 , CAST('' AS VARCHAR(200)) AS ADM_NM /* 지역명 */
+					 , CAST(TRIM(A.SIDO_CD) AS VARCHAR(50)) AS SIDO_CD	/* 시도코드 */
+					 , CAST(TRIM(A.SGG_CD) AS VARCHAR(50)) AS SGG_CD	/* 시군구코드 */
+					 , CAST(TRIM(A.EMDONG_CD) AS VARCHAR(50)) AS EMDONG_CD	/* 읍면동코드 */
+					 , CAST('' AS VARCHAR(100)) AS X_COOR	/* X 좌표 */
+					 , CAST('' AS VARCHAR(100)) AS Y_COOR	/* Y 좌표 */
+					 , CAST('' AS VARCHAR(100)) AS POI_SE_NM	/* 점(POI) 구분 */
+					 , CAST('' AS VARCHAR(200)) AS POI_NM	/* 점(POI) 명 */
+					 , CAST(B.DATA_UNIT AS VARCHAR(100)) AS UNIT	/* 단위 */
+					 , CAST(B.DIV_NM AS VARCHAR(100)) AS UNIT_NM	/* 단위 명 */
+					 , CAST(ISNULL(#{tooltip_cn},'') AS VARCHAR(300)) AS TOOLTIP_CN	/* 툴팁내용 */
+					 , CAST(A.CNT AS NUMBER) AS STATS_DTA_CO	/* 통계자료건수 */
+				  FROM SRV_DT_OPEN_DATA_EMDONG_TOT A WITH(NOLOCK)
+					 , SRV_DT_OPEN_DATA_NM B WITH(NOLOCK)
+				 INNER JOIN SRV_PG_ADMBORD C WITH(NOLOCK) 
+						 ON A.SIDO_CD = C.SIDO_CD
+						AND A.SGG_CD = C.SGG_CD
+						AND A.EMDONG_CD = C.EMDONG_CD
+				 WHERE 1=1
+				   AND C.BASE_YEAR = (SELECT MAX(BASE_YEAR)
+			   						    FROM SRV_PG_ADMBORD WITH(NOLOCK)
+			   						 )
+				   AND A.DIV_CD = B.DIV_CD
+				   AND A.DIV_CD = #{div_cd}
+		  	   ) X
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 정책통계지도:65세 이상 1인가구 변화 -->
+	<insert id="insertSrvDtCtlgDtwrh_PolicyStaticMap_Fusionstats_1" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+		  	 , SIDO_CD
+		  	 , SGG_CD
+		  	 , EMDONG_CD
+		  	 , X_COOR
+		  	 , Y_COOR
+		  	 , POI_SE_NM
+		  	 , POI_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		SELECT #{stat_data_id} AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , X.MAP_TY	/* 지도유형 */
+			 , X.AREA_BNDRY_SE	/* 지역경계구분 */
+			 , #{base_year} AS BASE_YEAR	/* 기준년도 */
+			 , X.ADM_CD	/* 지역코드 */
+			 , X.ADM_NM	/* 지역명 */
+			 , X.SIDO_CD	/* 시도코드 */
+			 , X.SGG_CD	/* 시군구코드 */
+			 , X.EMDONG_CD	/* 읍면동코드 */
+			 , X.X_COOR	/* X 좌표 */
+			 , X.Y_COOR	/* Y 좌표 */
+			 , X.POI_SE_NM	/* 점(POI) 구분 */
+			 , X.POI_NM	/* 점(POI) 명 */
+			 , X.UNIT	/* 단위 */
+			 , X.UNIT_NM	/* 단위 명 */
+			 , X.TOOLTIP_CN	/* 툴팁내용 */
+			 , X.STATS_DTA_CO	/* 통계자료건수 */
+		  FROM (<!-- 시도 -->
+		  		SELECT #{map_ty} AS MAP_TY
+					 , 'sido' AS AREA_BNDRY_SE
+					 , SUBSTR(A.TOT_REG_CD, 1, 2) AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(A.TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , NULL AS SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , COUNT(DISTINCT B.PPLTN_FAMILY_JOIN_KEY) AS STATS_DTA_CO
+				  FROM (SELECT *
+						  FROM SRV_DT_PPLTNCENSUS_${base_year} PPL WITH(NOLOCK)
+						 INNER JOIN SRV_PT_BD BD WITH(NOLOCK)
+								 ON BD.SUFID = PPL.SUFID
+						 WHERE 1=1
+					   	   AND PPL.AGE <![CDATA[>=]]> ${age_from}
+				   		   AND PPL.AGE <![CDATA[<=]]> ${age_to}
+					   ) A
+					 , (SELECT *
+						  FROM SRV_DT_FAMILYCENSUS_${base_year} FAMILY WITH(NOLOCK)
+						 INNER JOIN SRV_PT_BD BD WITH(NOLOCK)
+								 ON BD.SUFID = FAMILY.SUFID
+						 WHERE 1=1
+						   AND FAMILY_YN = 'Y'
+				   		   AND RD_HOUSEHOLD_TYPE IN
+			   		   		<foreach  collection="household_type" item="type" open="(" separator="," close=")"> 
+				   				#{type}
+			   				</foreach>
+					   ) B
+				 WHERE A.PPLTN_FAMILY_JOIN_KEY = B.PPLTN_FAMILY_JOIN_KEY
+				 GROUP BY SUBSTR(A.TOT_REG_CD, 1, 2)
+				<!-- 시군구 -->
+				 UNION ALL
+		  		SELECT #{map_ty} AS MAP_TY
+					 , 'sgg' AS AREA_BNDRY_SE
+					 , SUBSTR(A.TOT_REG_CD, 1, 2) || SUBSTR(A.TOT_REG_CD, 3, 3) AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(A.TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(A.TOT_REG_CD, 3, 3) AS SGG_CD
+					 , NULL AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , COUNT(DISTINCT B.PPLTN_FAMILY_JOIN_KEY) AS STATS_DTA_CO
+				  FROM (SELECT *
+						  FROM SRV_DT_PPLTNCENSUS_${base_year} PPL WITH(NOLOCK)
+						 INNER JOIN SRV_PT_BD BD WITH(NOLOCK)
+								 ON BD.SUFID = PPL.SUFID
+						 WHERE 1=1
+						   AND PPL.AGE <![CDATA[>=]]> ${age_from}
+				   		   AND PPL.AGE <![CDATA[<=]]> ${age_to}
+					   ) A
+					 , (SELECT *
+						  FROM SRV_DT_FAMILYCENSUS_${base_year} FAMILY WITH(NOLOCK)
+						 INNER JOIN SRV_PT_BD BD WITH(NOLOCK)
+								 ON BD.SUFID = FAMILY.SUFID
+						 WHERE 1=1
+						   AND FAMILY_YN = 'Y'
+						   AND RD_HOUSEHOLD_TYPE IN
+			   		   		<foreach  collection="household_type" item="type" open="(" separator="," close=")"> 
+				   				#{type}
+			   				</foreach>
+					   ) B
+				 WHERE A.PPLTN_FAMILY_JOIN_KEY = B.PPLTN_FAMILY_JOIN_KEY
+				 GROUP BY SUBSTR(A.TOT_REG_CD, 1, 2),  SUBSTR(A.TOT_REG_CD, 3, 3)
+				<!-- 읍면동 -->
+				 UNION ALL
+				SELECT #{map_ty} AS MAP_TY
+					 , 'emdong' AS AREA_BNDRY_SE
+					 , SUBSTR(A.TOT_REG_CD, 1, 2) || SUBSTR(A.TOT_REG_CD, 3, 3) || SUBSTR(A.TOT_REG_CD, 6, 2) AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(A.TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(A.TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(A.TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , COUNT(DISTINCT B.PPLTN_FAMILY_JOIN_KEY) AS STATS_DTA_CO
+				  FROM (SELECT *
+						  FROM SRV_DT_PPLTNCENSUS_${base_year} PPL WITH(NOLOCK)
+						 INNER JOIN SRV_PT_BD BD WITH(NOLOCK)
+								 ON BD.SUFID = PPL.SUFID
+						 WHERE 1=1
+						   AND PPL.AGE <![CDATA[>=]]> ${age_from}
+				   		   AND PPL.AGE <![CDATA[<=]]> ${age_to}
+					   ) A
+					 , (SELECT *
+						  FROM SRV_DT_FAMILYCENSUS_${base_year} FAMILY WITH(NOLOCK)
+						 INNER JOIN SRV_PT_BD BD WITH(NOLOCK)
+								 ON BD.SUFID = FAMILY.SUFID
+						 WHERE 1=1
+						   AND FAMILY_YN = 'Y'
+						   AND RD_HOUSEHOLD_TYPE IN
+			   		   		<foreach  collection="household_type" item="type" open="(" separator="," close=")"> 
+				   				#{type}
+			   				</foreach>
+					   ) B
+				 WHERE A.PPLTN_FAMILY_JOIN_KEY = B.PPLTN_FAMILY_JOIN_KEY
+				 GROUP BY SUBSTR(A.TOT_REG_CD, 1, 2), SUBSTR(A.TOT_REG_CD, 3, 3), SUBSTR(A.TOT_REG_CD, 6, 2)
+		  		<!-- 소지역 -->
+		  		 UNION ALL
+		  		SELECT #{map_ty} AS MAP_TY
+					 , 'totreg' AS AREA_BNDRY_SE
+					 , A.TOT_REG_CD AS ADM_CD
+					 , NULL AS ADM_NM
+					 , SUBSTR(A.TOT_REG_CD, 1, 2) AS SIDO_CD
+					 , SUBSTR(A.TOT_REG_CD, 3, 3) AS SGG_CD
+					 , SUBSTR(A.TOT_REG_CD, 6, 2) AS EMDONG_CD
+					 , NULL AS X_COOR
+					 , NULL AS Y_COOR
+					 , NULL AS POI_SE_NM
+					 , NULL AS POI_NM
+					 , #{unit} AS UNIT
+					 , #{unit_nm} AS UNIT_NM
+					 , #{tooltip_cn} AS TOOLTIP_CN
+					 , COUNT(DISTINCT B.PPLTN_FAMILY_JOIN_KEY) AS STATS_DTA_CO
+				  FROM (SELECT *
+						  FROM SRV_DT_PPLTNCENSUS_${base_year} PPL WITH(NOLOCK)
+						 INNER JOIN SRV_PT_BD BD WITH(NOLOCK)
+								 ON BD.SUFID = PPL.SUFID
+						 WHERE 1=1
+						   AND PPL.AGE <![CDATA[>=]]> ${age_from}
+				   		   AND PPL.AGE <![CDATA[<=]]> ${age_to}
+					   ) A
+					 , (SELECT *
+						  FROM SRV_DT_FAMILYCENSUS_${base_year} FAMILY WITH(NOLOCK)
+						 INNER JOIN SRV_PT_BD BD WITH(NOLOCK)
+								 ON BD.SUFID = FAMILY.SUFID
+						 WHERE 1=1
+						   AND FAMILY_YN = 'Y'
+						   AND RD_HOUSEHOLD_TYPE IN
+			   		   		<foreach  collection="household_type" item="type" open="(" separator="," close=")"> 
+				   				#{type}
+			   				</foreach>
+					   ) B
+				 WHERE A.PPLTN_FAMILY_JOIN_KEY = B.PPLTN_FAMILY_JOIN_KEY
+				 GROUP BY A.TOT_REG_CD
+		  	   ) X
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 정책통계지도:65세 이상 1인가구 변화:격자 -->
+	<insert id="insertSrvDtCtlgDtwrh_PolicyStaticMap_Fusionstats_2" parameterType="hashmap">
+		INSERT 
+		  INTO SRV_DT_CTLG_DTWRH
+		  	 ( STAT_DATA_ID
+		  	 , STATS_DTA_SN
+		  	 , MAP_TY
+		  	 , AREA_BNDRY_SE
+		  	 , BASE_YEAR
+		  	 , ADM_CD
+		  	 , ADM_NM
+			 , UNIT
+			 , UNIT_NM
+			 , TOOLTIP_CN
+			 , STATS_DTA_CO
+			 )
+		  WITH W_SRV_DT_CENSUS AS (SELECT CASE TRUNC(ST_X(B.PT), -5)
+										  WHEN 700000 THEN '가' WHEN 800000 THEN '나' WHEN 900000 THEN '다' WHEN 1000000 THEN '라' WHEN 1100000 THEN '마' WHEN 1200000 THEN '바' WHEN 1300000 THEN '사' WHEN 1400000 THEN '아' WHEN 1500000 THEN '자' ELSE '가'
+										   END AS X_TEXT
+									    , CASE TRUNC(ST_Y(B.PT), -5)
+										  WHEN 1300000 THEN '가' WHEN 1400000 THEN '나' WHEN 1500000 THEN '다' WHEN 1600000 THEN '라' WHEN 1700000 THEN '마' WHEN 1800000 THEN '바' WHEN 1900000 THEN '사' WHEN 2000000 THEN '아' WHEN 2100000 THEN '자' ELSE '가'
+										   END AS Y_TEXT
+									    , LEFT(RIGHT(TRUNC(ST_X(B.PT), -2),5),3) AS X_NUM_100M
+									    , LEFT(RIGHT(TRUNC(ST_Y(B.PT), -2),5),3) AS Y_NUM_100M
+									    , LEFT(RIGHT(TRUNC(ST_X(B.PT), -3),5),2) AS X_NUM_1K
+									    , LEFT(RIGHT(TRUNC(ST_Y(B.PT), -3),5),2) AS Y_NUM_1K
+									    , LEFT(RIGHT(TRUNC(ST_X(B.PT), -4),5),1) AS X_NUM_10K
+									    , LEFT(RIGHT(TRUNC(ST_Y(B.PT), -4),5),1) AS Y_NUM_10K
+								     FROM (SELECT *
+										  	 FROM SRV_DT_PPLTNCENSUS_${base_year} PPL WITH(NOLOCK)
+										 	INNER JOIN SRV_PT_BD BD WITH(NOLOCK)
+												 	ON BD.SUFID = PPL.SUFID
+										 	WHERE 1=1
+									   	      AND PPL.AGE <![CDATA[>=]]> ${age_from}
+								   		   	  AND PPL.AGE <![CDATA[<=]]> ${age_to}
+									   	  ) A
+								    	, (SELECT *
+										  	 FROM SRV_DT_FAMILYCENSUS_${base_year} FAMILY WITH(NOLOCK)
+										 	INNER JOIN SRV_PT_BD BD WITH(NOLOCK)
+												 	ON BD.SUFID = FAMILY.SUFID
+										 	WHERE 1=1
+										   	  AND FAMILY_YN = 'Y'
+								   		   	  AND RD_HOUSEHOLD_TYPE IN
+							   		   		<foreach  collection="household_type" item="type" open="(" separator="," close=")"> 
+								   				'${type}'
+							   				</foreach>
+									   	  ) B
+									WHERE A.PPLTN_FAMILY_JOIN_KEY = B.PPLTN_FAMILY_JOIN_KEY
+ 								  )
+		SELECT '${stat_data_id}' AS STAT_DATA_ID	/* 통계자료코드 */
+			 , ${stats_dta_sn} + ROWNUM AS STATS_DTA_SN	/* 통계자료순번 */
+			 , X.MAP_TY	/* 지도유형 */
+			 , X.AREA_BNDRY_SE	/* 지역경계구분 */
+			 , '${base_year}' AS BASE_YEAR	/* 기준년도 */
+			 , X.ADM_CD	/* 지역코드 */
+			 , X.ADM_NM	/* 지역명 */
+			 , X.UNIT	/* 단위 */
+			 , X.UNIT_NM	/* 단위 명 */
+			 , X.TOOLTIP_CN	/* 툴팁내용 */
+			 , X.STATS_DTA_CO	/* 통계자료건수 */
+		  FROM (<!-- 100k -->
+		  		SELECT '${map_ty}' AS MAP_TY
+		  			 , '100k' AS AREA_BNDRY_SE
+					 , A.X_TEXT || A.Y_TEXT AS ADM_CD
+					 , A.X_TEXT || A.Y_TEXT AS ADM_NM
+					 , '${unit}' AS UNIT
+					 , '${unit_nm}' AS UNIT_NM
+					 , '${tooltip_cn}' AS TOOLTIP_CN
+					 , COUNT(*) AS STATS_DTA_CO
+				  FROM W_SRV_DT_CENSUS A
+				 GROUP BY A.X_TEXT, A.Y_TEXT
+				<!-- 10k -->
+				 UNION ALL
+				SELECT '${map_ty}' AS MAP_TY
+		  			 , '10k' AS AREA_BNDRY_SE
+					 , A.X_TEXT || A.Y_TEXT || A.X_NUM_10K || A.Y_NUM_10K AS ADM_CD
+					 , A.X_TEXT || A.Y_TEXT || A.X_NUM_10K || A.Y_NUM_10K AS ADM_NM
+					 , '${unit}' AS UNIT
+					 , '${unit_nm}' AS UNIT_NM
+					 , '${tooltip_cn}' AS TOOLTIP_CN
+					 , COUNT(*) AS STATS_DTA_CO
+				  FROM W_SRV_DT_CENSUS A
+				 GROUP BY A.X_TEXT, A.Y_TEXT, A.X_NUM_10K, A.Y_NUM_10K
+				<!-- 1k -->
+				 UNION ALL
+				SELECT '${map_ty}' AS MAP_TY
+		  			 , '1k' AS AREA_BNDRY_SE
+					 , A.X_TEXT || A.Y_TEXT || A.X_NUM_1K || A.Y_NUM_1K AS ADM_CD
+					 , A.X_TEXT || A.Y_TEXT || A.X_NUM_1K || A.Y_NUM_1K AS ADM_NM
+					 , '${unit}' AS UNIT
+					 , '${unit_nm}' AS UNIT_NM
+					 , '${tooltip_cn}' AS TOOLTIP_CN
+					 , COUNT(*) AS STATS_DTA_CO
+				  FROM W_SRV_DT_CENSUS A
+				 GROUP BY A.X_TEXT, A.Y_TEXT, A.X_NUM_1K, A.Y_NUM_1K
+				<!-- 100m -->
+				 UNION ALL
+				SELECT '${map_ty}' AS MAP_TY
+		  			 , '100m' AS AREA_BNDRY_SE
+					 , A.X_TEXT || A.Y_TEXT || A.X_NUM_100M || A.Y_NUM_100M AS ADM_CD
+					 , A.X_TEXT || A.Y_TEXT || A.X_NUM_100M || A.Y_NUM_100M AS ADM_NM
+					 , '${unit}' AS UNIT
+					 , '${unit_nm}' AS UNIT_NM
+					 , '${tooltip_cn}' AS TOOLTIP_CN
+					 , COUNT(*) AS STATS_DTA_CO
+				  FROM W_SRV_DT_CENSUS A
+				 GROUP BY A.X_TEXT, A.Y_TEXT, A.X_NUM_100M, A.Y_NUM_100M
+		  	   ) X
+	</insert>
+</mapper>

@@ -1,0 +1,494 @@
+<%@page language="java" contentType="text/html;charset=utf-8" %>
+<%@page import="java.math.BigDecimal"%>
+<%@page import="kr.co.offton.jdf.util.StringUtil"%>
+<%@page import="kr.co.offton.jdf.db.RecordModel"%>
+<%@page import="kr.co.offton.jdf.db.DbManager"%>
+<%@page import="kr.co.offton.pdf.basis.GeneralBroker"%>
+
+<%@ include file="/contents/include/comVarCoding.jsp" %>
+<%
+	String leftMenu="shortcut";
+	
+	//자료제공 파일에 오류가 있어서 서비스 정지함. 20191126
+	//out.print("<script type='text/javascript'> alert('집계구별 자료 제공관련, 코드 정비 및 개선을 위하여 인구/사업체 부문 서비스를 잠시 중단하오니 양해바랍니다. 기간 : 11.26.(화)  ~ 12월 (개선완료시점까지)'); location.href='/contents/shortcut/shortcut_05_02.jsp'; </script> ");
+	//out.print("<script type='text/javascript'> alert('‘18년 센서스 내용을 반영하여 최초 제공(’19.11.8.)되었던 자료에 대한 점검을 완료하여 서비스를 다시 시작하며, 점검결과 내용이 일부 변경되었을 수 있음을 알려드립니다.'); </script> ");
+	
+	//자료제공 점검 후 멘트
+	
+
+	if(loginYn.equals("N")) {
+		//return URL
+		session.setAttribute("returnUrl", "/contents/shortcut/shortcut_05_03_step01.jsp");
+		out.print("<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>");
+		out.print("<html xmlns='http://www.w3.org/1999/xhtml' xml:lang='ko' lang='ko'>");
+		out.print("<head>");
+		out.print("<meta http-equiv='Content-Type' content='text/html; charset=utf-8' />");
+		out.print("<title>센서스 공간통계 자료신청:통계지리 정보서비스</title>");
+		out.print("</head>");
+		out.print("<body>");
+		out.print("<script type='text/javascript'> alert('로그인 후 이용할 수 있습니다.'); location.href='/view/member/login_new?returnPage=/contents/shortcut/shortcut_05_03_step01.jsp'; </script> ");
+	} else {
+		GeneralBroker broker = null;
+		DbManager dmg = null;
+		RecordModel rm = null;
+		
+		String sgis_census_req_company = "";
+		if(request.getParameter("sgis_census_req_company") != null && request.getParameter("sgis_census_req_company") != "") {
+			sgis_census_req_company = request.getParameter("sgis_census_req_company");
+			sgis_census_req_company = sgis_census_req_company.replaceAll("<", "");
+		}
+		
+		String sgis_census_req_email = "";
+		if(request.getParameter("sgis_census_req_email") != null && request.getParameter("sgis_census_req_email") != "") {
+			sgis_census_req_email = request.getParameter("sgis_census_req_email");
+			sgis_census_req_email = sgis_census_req_email.replaceAll("<", "");
+		}
+		
+		String sgis_census_req_sosok = "";
+		if(request.getParameter("sgis_census_req_sosok") != null && request.getParameter("sgis_census_req_sosok") != "") {
+			sgis_census_req_sosok = request.getParameter("sgis_census_req_sosok");
+			sgis_census_req_sosok = sgis_census_req_sosok.replaceAll("<", "");
+		}
+		
+		String sgis_census_req_mokjuk = "";
+		if(request.getParameter("sgis_census_req_mokjuk") != null && request.getParameter("sgis_census_req_mokjuk") != "") {
+			sgis_census_req_mokjuk = request.getParameter("sgis_census_req_mokjuk");
+			sgis_census_req_mokjuk = sgis_census_req_mokjuk.replaceAll("<", "");
+		}
+		
+		String sgis_census_req_kwaje = "";
+		if(request.getParameter("sgis_census_req_kwaje") != null && request.getParameter("sgis_census_req_kwaje") != "") {
+			sgis_census_req_kwaje = request.getParameter("sgis_census_req_kwaje");
+			sgis_census_req_kwaje = sgis_census_req_kwaje.replaceAll("<", "");
+		}
+		
+		String sgis_census_req_tel = "";
+		if(request.getParameter("sgis_census_req_tel") != null && request.getParameter("sgis_census_req_tel") != "") {
+			sgis_census_req_tel = request.getParameter("sgis_census_req_tel");
+			sgis_census_req_tel = sgis_census_req_tel.replaceAll("<", "");
+		}
+		
+		String sgis_census_req_goal = "";
+		if(request.getParameter("sgis_census_req_goal") != null && request.getParameter("sgis_census_req_goal") != "") {
+			sgis_census_req_goal = request.getParameter("sgis_census_req_goal");
+			sgis_census_req_goal = sgis_census_req_goal.replaceAll("<", "");
+		}
+		
+		String sgis_census_req_status = "";
+		if(request.getParameter("sgis_census_req_status") != null && request.getParameter("sgis_census_req_status") != "") {
+			sgis_census_req_status = request.getParameter("sgis_census_req_status");
+			sgis_census_req_status = sgis_census_req_status.replaceAll("<", "");
+		}
+%>
+<!DOCTYPE html>
+<html lang="ko">
+	<head>
+		<meta charset="utf-8">
+		<meta name="format-detection" content="telephone=no" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		
+		<script src="/js/common/includeHead.js"></script>
+		<script src="/js/common/common.js"></script>
+		
+		<link rel="stylesheet" type="text/css" href="/publish_2018/include/css/common.css">
+		<!--알림마당 컨텐츠 추가-->
+		<link rel="stylesheet" type="text/css" href="/publish_2018/include/css/contents.css">
+		<!--게시판 css 추가-->
+		<link rel="stylesheet" type="text/css" href="/publish_2018/include/css/board.css">
+		<title>알림마당|통계지리정보서비스</title>
+		<script>
+			var menuType = 'sc0503';
+			$(function(){
+				//apiLogWrite2("E2","E21",$(".ctit").text(),"없음","00","없음");
+				srvLogWrite("A0", "14", "04", "03", "", "");
+				
+				
+				
+			});
+			
+			function onChange_coa_year(what_year) {
+				if( what_year == "2019" ) {
+					jQuery("#txt_data_info").html(" [2019년 6월 30일 경계기준]");
+				} else if( what_year == "2018_4" ) {
+					jQuery("#txt_data_info").html(" [2018년 12월 31일 경계기준]");
+				} else {
+					jQuery("#txt_data_info").html("");
+				}
+			}
+
+			function applyClicked() {
+				var fm=document.censusFm;
+				
+				if(document.getElementById("sgis_census_req_sosok").value == "") {
+					alert("소속구분을 선택하세요.");
+					document.getElementById("sgis_census_req_sosok").focus();
+					return false;
+				}
+				if(fm.sgis_census_req_company.value.trim() == "") {
+					alert("소속을 입력하세요.");
+					fm.sgis_census_req_company.focus();
+					return false;
+				}
+				if(fm.sgis_census_req_tel_1.value.trim() == "" || fm.sgis_census_req_tel_2.value.trim() == "" || fm.sgis_census_req_tel_3.value.trim() == "") {
+					alert("연락처를 입력하세요.");
+					fm.sgis_census_req_tel_1.focus();
+					return false;
+				}
+				if(document.getElementById("email_id").value == "" || document.getElementById("email_addr").value == "") {
+					alert("메일주소를 입력하세요.");
+					document.getElementById("email_id").focus();
+					return false;
+				}
+				if(document.getElementById("sgis_census_req_mokjuk").value == "") {
+					alert("요청목적을 선택하세요.");
+					document.getElementById("sgis_census_req_mokjuk").focus();
+					return false;
+				}
+				if(fm.sgis_census_req_goal.value.trim() == "") {
+					alert("활용목적을 입력하세요.");
+					fm.sgis_census_req_goal.focus();
+					return false;
+				} else if (getLength(fm.sgis_census_req_goal.value) > 500) {
+					alert("입력가능한 글자수는 한글 250자, 영문 500자로 제한되어 있습니다.");
+					fm.sgis_census_req_goal.focus();
+					return false;
+				}
+				if(document.getElementById("sgis_census_req_kwaje").value == "") {
+					alert("수행과제를 입력하세요.");
+					document.getElementById("sgis_census_req_kwaje").focus();
+					return false;
+				}
+				
+				$('input[id=sgis_census_req_mokjuk_nm]').val($("#sgis_census_req_mokjuk option:selected").text());
+				$('input[id=sgis_census_req_sosok_nm]').val($("#sgis_census_req_sosok option:selected").text());
+  
+				if(document.getElementById("concur").checked) {
+					var c = confirm("다음 단계로 넘어가시겠습니까?");
+					if(c == 1) {
+						fm.submit();
+						return true;
+					} else {
+						return false;
+					}
+				} else {
+					alert("제출 동의에 동의하셔야 신청하실 수 있습니다.");
+					return false;
+				}
+			}
+
+			function chkNumber(elem) {
+				if(!elem.value.isInteger() && elem.value != '') {
+					alert("숫자만 입력가능합니다.");
+					elem.value = "";
+					return;
+				}
+			}
+			
+			function in_email_addr(elem) {
+				var val = elem.value;
+				if(val != null && val != '' && val == 'write') {
+					document.censusFm.email_addr.value = '';
+					document.censusFm.email_addr.focus();
+					return;
+				}
+				else if(val != null && val != '' && val != 'write') {
+					document.censusFm.email_addr.value = val;
+					return;
+				}
+			}
+			
+			function len_chk2(len) {
+				var fm = document.censusFm.sgis_census_req_goal;
+				if(getLength(fm.value) > len) {
+					alert("입력가능한 글자수는 한글 "+len/2+"자, 영문 " +len+ "자로 제한되어 있습니다.")
+					fm.value = fm.value.substring(0, len / 2);
+					fm.focus();
+				}
+			}
+			
+			// 한글/영문 바이트 체크 (한글 : 2, 영문 : 1)
+			function getLength(str){
+			  return(str.length+(escape(str)+"%u").match(/%u/g).length-1);
+			}
+		</script>
+	</head>
+	<body>
+		<!--wrap-->
+		<div id="wrap">
+			<!--header-->
+			<header>
+				<jsp:include page="/view/common/includeSearch"></jsp:include>
+			</header>
+			<!--//header-->
+			<!--contents-->
+			<div id="container" class="sub">
+				<!--lnb 시작-->
+				<jsp:include page="/jsp/board/includeLeftMenu.jsp"></jsp:include>
+				<!--//lnb 끝--> 
+				<div id="content">
+					<div id="title-area">
+						<ul class="location">
+						<!-- 190313 방민정 수정 시작 -->
+							<li><a href="/view/view/index"><img src="/images/common/location_home.gif"/></a></li>
+							<li><a href="/view/board/sopBoardMain">알림마당</a></li>
+							<li><a href="/contents/shortcut/shortcut_05_02.jsp">자료신청 서비스</a></li>
+							<li><a href="/contents/shortcut/shortcut_05_03_step01.jsp"><em>자료신청</em></a></li>
+						<!-- 190313 방민정 수정 끝 -->
+						</ul>
+						<h1 class="sub-title">자료신청</h1>
+					</div>
+					<div class="step-box">
+						<ul>
+							<li class="on">
+								<p class="num">01</p>
+								<p class="text">기본정보 입력 및 약관동의</p>
+							</li>
+							<li>
+								<p class="num">02</p>
+								<p class="text">자료선택  및 신청완료</p>
+							</li>
+						</ul>
+					</div>
+					<!--view-->
+					<div id="contents" class="view">
+						<form id="censusFm_id" name="censusFm" method="post" action="shortcut_05_03_step02.jsp">
+							<input type="hidden" name="sgis_census_req_sosok_nm" id="sgis_census_req_sosok_nm"/>
+							<input type="hidden" name="sgis_census_req_mokjuk_nm" id="sgis_census_req_mokjuk_nm"/>
+							<h2>기본정보</h2>
+							<div class="table-type">
+								<p class="required"><em title="필수 항목">*</em> 는 필수 입력 항목입니다.</p>
+								<table class="table-style type02">
+									<colgroup>
+										<col style="width:160px;">
+										<col style="width:auto;">
+									</colgroup>
+									<tbody>
+									
+										<!-- =====================================  신규 데이터 추가시 해당 기준년도를 여기서 바꾸어 주어야 한다.  ============================================ -->
+										<!-- <input type="hidden" id="census_output_area_year" name="census_output_area_year" value="2016" /> -->
+										<tr>
+											<th scope="row"><label for="census_output_area_year">집계구 기준년도<em>*</em></label></th>
+											<td>
+												<!-- 
+												<div class="select-wrap">
+													<select onChange="onChange_coa_year(document.getElementById('census_output_area_year').value);" name="census_output_area_year" id="census_output_area_year"  class="input_use02 select" style="width: 250px;" title="집계구 기준년도" >
+														<option value="2018" selected="selected">2018</option>
+														<option value="2017">2017</option>
+													</select>
+												</div>
+												<span id="txt_data_info"> [2018년 6월 30일 경계기준]</span>
+												 -->
+												<div class="select-wrap">
+													<select onChange="onChange_coa_year(document.getElementById('census_output_area_year').value);" name="census_output_area_year" id="census_output_area_year"  class="input_use02 select" style="width: 250px;" title="집계구 기준년도" >
+														<option value="2018_4" selected="selected">2018</option>
+														<option value="2019" selected="selected">2019</option>
+													</select>
+												</div>
+												<span id="txt_data_info"> [2019년 6월 30일 경계기준]</span>
+											</td>
+										</tr>
+									
+									
+										<tr>
+											<th scope="row"><label>성명(신청인)</label></th>
+											<td><%=sc_username %></td>
+										</tr>
+										<tr>
+											<th scope="row"><label for="sgis_census_req_sosok">소속<em>*</em></label></th>
+											<td>
+												<div class="select-wrap">
+													<select name="sgis_census_req_sosok" id="sgis_census_req_sosok" style="width:250px;" title="기관유형 선택">
+														<option value="">소속구분 선택</option>
+														<%
+															try {
+																broker = new GeneralBroker("ceaa00");
+																lData.setString("PARAM", "CATEGORY_CODE");
+																lData.setString("lclas_cl", "001");
+																rm = broker.getList(lData);
+																
+																String sclas_cl = "";
+																String sclas_nm = "";
+																
+																while(rm != null && rm.next()) {
+																	sclas_cl = StringUtil.verify((String)rm.get("sclas_cl"));
+																	sclas_nm = StringUtil.verify((String)rm.get("sclas_nm"));
+														%>
+														<option value="<%=sclas_cl %>" <%if(sclas_cl.equals(sgis_census_req_sosok)) { %>selected="selected"<%} %>><%=sclas_nm %></option>
+														<%
+																}
+															} catch(IllegalArgumentException e) {
+																System.out.print("sgisWebError : ");
+															}
+														%>
+													</select>
+												</div>
+												<span>
+													<input type="text" name="sgis_census_req_company" id="sgis_census_req_company" title="소속" style="width:200px;" maxlength="20" value="<%=sgis_census_req_company %>" />
+												</span>
+											</td>
+										</tr>
+										<tr>
+											<th scope="row"><label for="sgis_census_req_tel_1">연락처<em>*</em></label></th>
+											<td>
+												<%
+													String tel_1 = "";
+													String tel_2 = "";
+													String tel_3 = "";
+													if(sgis_census_req_tel.split("-").length == 3) { //자료신청이 있을 경우
+														tel_1 = sgis_census_req_tel.substring(0, sgis_census_req_tel.indexOf("-"));
+														tel_2 = sgis_census_req_tel.substring(sgis_census_req_tel.indexOf("-")+1, sgis_census_req_tel.lastIndexOf("-"));
+														tel_3 = sgis_census_req_tel.substring(sgis_census_req_tel.lastIndexOf("-")+1);
+													} else { //자료신청을 아직 하지 않은 경우 로그인 세션 정보로 처리
+														if(sc_telephone != null) {
+															if(sc_telephone.split("-").length == 3 ) {
+																tel_1 = sc_telephone.substring(0, sc_telephone.indexOf("-"));
+																tel_2 = sc_telephone.substring(sc_telephone.indexOf("-")+1, sc_telephone.lastIndexOf("-"));
+																tel_3 = sc_telephone.substring(sc_telephone.lastIndexOf("-")+1);
+															}
+														}
+													}
+												%>
+												<span class="input_area"><input type="text" name="sgis_census_req_tel_1" id="sgis_census_req_tel_1" style="width: 97px;" title="연락처 앞번호" maxlength="3" class="inp" value="<%=tel_1 %>" onkeyup="chkNumber(this);"></span> -
+												<span class="input_area"><input type="text" name="sgis_census_req_tel_2" id="sgis_census_req_tel_2" style="width: 97px;" title="연락처 가운데번호" maxlength="4" class="inp" value="<%=tel_2 %>" onkeyup="chkNumber(this);"></span> -
+												<span class="input_area"><input type="text" name="sgis_census_req_tel_3" id="sgis_census_req_tel_3" style="width: 97px;" title="연락처 뒷번호" maxlength="4" value="<%=tel_3 %>" onkeyup="chkNumber(this);"></span>
+											</td>
+										</tr>
+										<tr>
+											<th scope="row"><label for="email_id">메일주소<em>*</em></label></th>
+											<td>
+												<%
+													String email_id = "";
+													String email_addr = "";
+													if(sgis_census_req_email != null && sgis_census_req_email != "") {
+														email_id = sgis_census_req_email.substring(0, sgis_census_req_email.indexOf("@"));
+														email_addr = sgis_census_req_email.substring(sgis_census_req_email.indexOf("@")+1);
+													}
+													else if(!StringUtil.isEmpty(sc_email) && sc_email.split("@").length == 2) {
+														email_id = sc_email.substring(0, sc_email.indexOf("@"));
+														email_addr = sc_email.substring(sc_email.indexOf("@")+1);
+													}
+												%>
+										        <span><input type="text" name="email_id" id="email_id" title="메일주소" style="width:120px;" maxlength="200" value="<%=email_id %>"/></span>
+							                	@
+							                	<span><input type="text" id="email_addr" name="email_addr" style="width:120px;"  maxlength="200" value="<%=email_addr %>" /></span>
+												
+													<div class="select-wrap">
+														<select name="email_addr_select" id="email_addr_select" style="width: 155px;" onchange="in_email_addr(this)">
+								                			<option value="">= 선택 =</option>
+								                			<option value="naver.com" <% if("naver.com".equals(email_addr)) { %>selected="selected"<% } %>>naver.com</option>
+								                			<option value="nate.com" <% if("nate.com".equals(email_addr)) { %>selected="selected"<% } %>>nate.com</option>
+								                			<option value="hanmail.net" <% if("hanmail.net".equals(email_addr)) { %>selected="selected"<% } %>>hanmail.net</option>
+								                			<option value="gmail.com" <% if("gmail.com".equals(email_addr)) { %>selected="selected"<% } %>>gmail.com</option>
+								                			<option value="hotmail.com" <% if("hotmail.com".equals(email_addr)) { %>selected="selected"<% } %>>hotmail.com</option>
+								                			<option value="yahoo.co.kr" <% if("yahoo.co.kr".equals(email_addr)) { %>selected="selected"<% } %>>yahoo.co.kr</option>
+								                			<option value="empal.com" <% if("empal.com".equals(email_addr)) { %>selected="selected"<% } %>>empal.com</option>
+								                			<option value="dreamwiz.com" <% if("dreamwiz.com".equals(email_addr)) { %>selected="selected"<% } %>>dreamwiz.com</option>
+								                			<option value="freechal.com" <% if("freechal.com".equals(email_addr)) { %>selected="selected"<% } %>>freechal.com</option>
+								                			<option value="netian.com" <% if("netian.com".equals(email_addr)) { %>selected="selected"<% } %>>netian.com</option>
+								                			<option value="write">직접입력</option>
+								                		</select>
+													</div>
+											</td>
+										</tr>
+										<tr>
+											<th scope="row"><label for="sgis_census_req_mokjuk">요청목적<em>*</em></label></th>
+											<td>
+												<span class="select-wrap">
+													<select name="sgis_census_req_mokjuk" id="sgis_census_req_mokjuk" style="width: 250px;" title="요청목적" >
+														<option value="">= 선택 =</option>
+														<%
+															try {
+																broker = new GeneralBroker("ceaa00");
+																lData.setString("PARAM", "CATEGORY_CODE");
+																lData.setString("lclas_cl", "002");
+																rm = broker.getList(lData);
+																
+																String sclas_cl = "";
+																String sclas_nm = "";
+																
+																while(rm != null && rm.next()) {
+																	sclas_cl = StringUtil.verify((String)rm.get("sclas_cl"));
+																	sclas_nm = StringUtil.verify((String)rm.get("sclas_nm"));
+														%>
+					                     				<option value="<%=sclas_cl %>" <%if(sclas_cl.equals(sgis_census_req_mokjuk)) { %>selected="selected"<%} %>><%=sclas_nm %></option>
+					                     				<%
+					                     						}
+															} catch(IllegalArgumentException e) {
+																System.out.print("요청목적에러");//System.out.print("[shortcut_05_03.jsp] sgisWebError : [" + e.toString() );
+																//e.printStackTrace();
+															}
+														%>
+													</select>
+												</span>
+											</td>
+										</tr>
+										<tr>
+											<th scope="row"><label for="sgis_census_req_goal">활용목적<em>*</em></label></th>
+											<td class="color">
+												<!-- onmouseover="tooltip.show('100자이상 구체적으로&lt;br/&gt; 작성해주세요',180,10,-70)" onmouseout="tooltip.hide();" onfocus="tooltip.hide();" -->
+												<textarea name="sgis_census_req_goal" id="sgis_census_req_goal" onkeyup="len_chk2('500');"><%=sgis_census_req_goal %></textarea>
+												<div class="coment mt8 mb5">※ 100자 이상 구체적으로 작성해 주세요.</div>
+											</td>
+										</tr>
+										<tr>
+											<th scope="row"><label for="sgis_census_req_kwaje">수행과제<em>*</em></label></th>
+											<td>
+												<div>
+													<input type="text" name="sgis_census_req_kwaje" id="sgis_census_req_kwaje" title="수행과제" maxlength="200" value="<%=sgis_census_req_kwaje%>" />
+												</div>
+												<div class="coment mt15 mb5">예시)도시디자인과 교통안전고의 연관성을 실증 분석하고자 함</div>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<h2>제출동의 및 자료제공기간<em>(필수)</em></h2>
+							<div class="table-type">
+								<table class="table-style type02">
+									<colgroup>
+										<col style="width:160px;">
+										<col style="width:auto;">
+									</colgroup>
+									<tbody>
+										<tr>
+											<th scope="row">제출동의</th>
+											<td>
+												<ul>
+													<li>제공된 자료에 대한 출처를 반드시 명시하고, 결과물이 완성되었을 때 통계청에<span>사본 1부를 제출할 것을 동의합니다. (논문, URL 등)</span></li>
+													<li>※ 동의하지 않을 경우 신청이 불가합니다.</li>
+													<li>※ 자료제공 신청 시, 신청된 정보는 <strong>통계갤러리 서비스에 비공개 저장</strong>됩니다.</li>
+												</ul>
+											</td>
+										</tr>
+										<tr>
+											<th scope="row"><label>자료제공기간</label></th>
+											<td>
+												<ul>
+													<li>※ 자료 다운로드는<strong>승인 후 일주일 동안</strong>만 가능합니다.</li>
+												</ul>
+											</td>
+										</tr>
+									</tbody>
+								</table>
+								<div class="agree">
+									<input type="checkbox" name="concur" id="concur" <% if(sgis_census_req_sosok != "") { %>checked="checked"<% } %> class="check"/>
+									<label for="concur"><span>위 내용에 동의합니다.</span></label>
+								</div>
+							</div>
+							<div class="btn-area">
+								<button type="button" name="next" class="default-color" id="next" value="다음" onclick="applyClicked();"><span>다음</span></button>
+							</div>
+						</form>
+					</div>
+					<!--//view-->
+				</div>
+			</div>
+			<!--//contents-->
+			<!--footer-->
+			<div id="footer"><jsp:include page="/view/common/includeBottom"></jsp:include></div>
+			<!--//footer-->
+		</div>
+		<!--//wrap-->
+<% } %>
+	</body>
+</html>

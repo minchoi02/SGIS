@@ -1,0 +1,276 @@
+<!-- 
+*
+* HTML입니다.
+* author : 정은우
+*
+//-->
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+	<meta charset="utf-8">
+	<title>통계지리정보서비스</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<script type="text/javascript" src="../../include/js/jquery.min.js"></script>
+	<script src="../../include/plugin/jquery-1.11.3.min.js" type="text/javascript"></script>
+
+	<link rel="stylesheet" type="text/css" href="../../include/css/legend.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/sop.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/technicalBizMap-css.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/default.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slick/slick.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slick/slick-theme.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/jquery.mCustomScrollbar.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slider-Pips/jquery-ui-slider-pips.min.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slider-Pips/jqueryui.min.css">
+	
+	<script type="text/javascript" src="../../include/plugin/slider-Pips/jquery-plus-ui.min.js"></script>
+	<script type="text/javascript" src="../../include/plugin/slider-Pips/jquery-ui-slider-pips.js"></script>
+	<!-- <link href="/css/jquery-ui-1.10.4.custom.css" rel="stylesheet" type="text/css" /> -->
+
+	<script type="text/javascript" src="../../include/js/jquery.mCustomScrollbar.concat.min.js"></script>
+	<script type="text/javascript" src="../../include/js/jquery-ui-1.10.3.custom.js"></script>
+	<script type="text/javascript" src="../../include/js/legendInfo.js"></script>
+	<script type="text/javascript" src="../../include/js/sop-src.js"></script>
+	<script type="text/javascript" src="../../include/js/technicalBizMapCustom.js"></script>
+	
+	
+</head>
+
+<body>
+	<!-- 스킵네비게이션 -->
+	<div class="accNav">
+		<p><a href="#gnb">주메뉴 바로가기</a></p>
+		<p><a href="#container">본문 바로가기</a></p>
+	</div>
+	<!-- 스킵네비게이션 -->
+	<!--wrap-->
+	<div id="wrap">
+		<!--header-->
+		<div id="header">
+			<div class="util"></div>
+		</div>
+		<!--//header-->
+		<hr class="hidden" />
+		<!--contents-->
+		<div class="containerBox">
+			<div class="rela">
+				<div class="sceneBox on">
+					<div class="sceneRela">
+						<div class="toolBar clearfix">
+							<h2>업종통계지도</h2>
+							<div class="viewTitle"> </div>
+							<!-- 현재위치 네비게이션 -->
+							<!-- 현재위치 네비게이션 end -->
+							<!-- 튜토리얼 -->
+							<!-- 가로툴바 -->
+							<div class="tb_right" id="btnList_1">
+								<div class="left">
+									<button type="button" id="tuto_start_btn" onclick="readyTutorial();" title="사용법 따라하기"><span>튜토리얼</span></button>
+								</div>
+								<!-- 튜토리얼 end -->
+								<ul>
+									<li>
+										<a onclick="javascript:$interactiveMap.ui.doMaxSize(1);" class="tb_sizing" title="전체 화면 확대"><img src="../../include/images/ico_toolbars01.png" alt="전체 화면 확대"></a>
+									</li>
+									<li>
+										<a onclick="javascript:$interactiveMap.ui.doClearMap(1);" title="초기화"><img src="../../include/images/ico_toolbars02.png" alt="초기화"></a>
+									</li>
+									<li>
+										<a onclick="javascript:$interactiveMap.ui.doShare(1);" class="tb_share" title="URL 공유하기"><img src="../../include/images/ico_toolbars04.png" alt="URL 공유하기"></a>
+									</li>
+									<li>
+										<a onclick="javascript:$galleryAdd.interactiveGalleryPopOpen();" class="tb_bookmark" title="즐겨찾기로 저장하기"><img src="../../include/images/ico_toolbars05.png" alt="즐겨찾기로 저장하기"></a>
+									</li>
+									<li>
+										<a onclick="javascript:$interactiveMap.ui.reportDataSet(1);" class="tb_report" title="보고서 보기"><img src="../../include/images/ico_toolbars06.png" alt="보고서 보기"></a>
+									</li>
+								</ul>
+							</div>
+							<!-- 가로툴바 end -->
+						</div>
+						<!-- 도움말 -->
+						<div class="interactiveBar">
+							<!-- <a onclick=""tabindex="98"title="통계지도체험">체험하기</a> -->
+							<!-- <span   title="통계지도체험">체험하기</span> -->
+							<h3 class="h3">우리동네 업종 통계지도</h3>
+						</div>
+						<!-- 분석지도 맵 컨텐츠 시작 -->
+						<div class="mapContents" style="position: relative;">
+							<img src="../../include/images/map_img.jpg">
+							<!-- right menu -->
+							<div class="sop-top sop-right">
+								<div class="info sop-control">
+									<div class="mapBtnWrapper"><a class="rightQuick rq01"><span>GPS</span></a></div>
+								</div>
+								<div class="info sop-control">
+									<div class="mapBtnWrapper"><a href="javascript:void(0)" class="rightQuick rq02"><span>맵기능설정</span></a></div>
+								</div>
+								<div class="info sop-control">
+									<div class="mapBtnWrapper"><a class="rightQuick rq06"><span>GPS</span></a></div>
+								</div>
+								<div class="info sop-control">
+									<div class="mapZoomWrapper"><a class="rightQuick rq03">확대하기</a><a class="rightQuick rq07">이동</a><a class="rightQuick rq04">읍면동</a><a class="rightQuick rq05">축소하기</a></div>
+								</div>
+							</div>
+							<!-- right menu -->
+						</div>
+						<!-- //분석지도 맵 컨텐츠 끝 -->
+					</div>
+					<!-- container 끝-->
+				</div>
+				<!--// sceneRela -->
+				<a href="javascript:void(0)" class="sideQuick sq02" id="map_left_btn" tabindex="97">
+					<span>통계메뉴</span><img src="../../include/images/ico_totalmenu.gif"alt="통계메뉴"/>
+				</a>
+				<!-- 왼쪽메뉴  -->
+				<div class="leftArea">
+					<div class="shadow"></div>
+					<div class="quickBox step01">
+						<div class="subj">
+							<h2>우리동네 업종 통계지도</h2>
+						</div>
+						<div class="scrollBox">
+							<ul class="technicalul ul-area">
+								<li><a href="javascript:void(0)">생활업종</a></li>
+								<li><a href="javascript:void(0)">기술업종</a></li>
+								<li><a href="javascript:void(0)">업종 분석지도 </a></li>
+								<li><a href="javascript:void(0)">생활업종 인허가 통계</a></li>
+								<li><a href="javascript:void(0)">기술업종 생태정보 현황  </a></li>
+							</ul>
+							<ol class="stat-infor">
+								<li><a href="/">보고서 보기</a></li>
+								<li><a href="/">도움말 보기</a></li>
+								<li><a href="/">전체 확면 확대</a></li>
+							</ol>
+						</div>
+						<div class="menuAutoClose">
+							<input type="radio " name="menuAutoClose_radio " id="menuAutoClose_radio " onclick="$interactiveLeftMenu.ui.sqlListBoxPosition( '244px'); ">
+							<label for="menuAutoClose_radio " class="on ">메뉴 자동닫기</label>
+						</div>
+						<div class="bottom "><a href="javascript:void(0) " class="buttom stepClose ">닫기</a></div>
+					</div>
+					<div class="nav-sidebar">
+						<ul class="technical nav-list ">
+							<li><a href="javascript:void(0)" title="생활업종"><span>생활업종</span></a></li>
+							<li><a href="javascript:void(0)" title="기술업종"><span>기술업종</span></a></li>
+							<li><a href="javascript:void(0)" title="업종 분석지도 "><span>업종 분석지도</span></a></li>
+							<li><a href="javascript:void(0)" title="생활업종 인허가 통계"><span>생활업종 인허가 통계</span></a></li>
+							<li><a href="javascript:void(0)" title="기술업종 생태정보 현황"><span>기술업종 생태정보 현황</span></a></li>
+						</ul>
+					</div>
+					<div class="expanded">
+						<ul class="mid-nav-list ">
+							<li><a href="javascript:void(0)" title="생활업종현황" class="active"><span>생활업종현황</span></a></li>
+							<li><a href="javascript:void(0)" title="시군구별 업종 현황" class="active">  <span>시군구별 업종 현황</span></a></li>
+							<li><a href="javascript:void(0)" title="업종 밀집도 현황"><span>업종 밀집도 현황</span></a></li>
+							<li><a href="javascript:void(0)" title="업종별 입지계수 지도"><span>업종별 입지계수 지도</span></a></li>
+ 						</ul>
+					</div>
+					<div class="quickBox step02">
+						<div class="subj">
+							<h2>시군구별 생활업종 선택</h2>
+							<a href="javascript:void(0)"></a>
+						</div>
+						<div class="normalBox">
+						<div class="stepBox">
+							<a href="javascript:void(0)" class="roundTextBox on">음식점(11종)</a>
+							<div class="joinDefault" style="display: block;">
+								<ul class="jobArea_stepBox">
+									<li>
+										<input type="checkbox" id="rd_food_5001" name="rd_food" value="5001">
+										<label for="rd_food_5001">한식</label>
+									</li>
+									<li>
+										<input type="checkbox" id="rd_food_5002" name="rd_food" value="5002">
+										<label for="rd_food_5002">중식</label>
+									</li>
+									<li>
+										<input type="checkbox" id="rd_food_5003" name="rd_food" value="5003">
+										<label for="rd_food_5003">일식</label>
+									</li>
+									<li>
+										<input type="checkbox" id="rd_food_5004" name="rd_food" value="5004">
+										<label for="rd_food_5004">분식</label>
+									</li>
+									<li>
+										<input type="checkbox" id="rd_food_5005" name="rd_food" value="5005">
+										<label for="rd_food_5005">서양식</label>
+									</li>
+									<li>
+										<input type="checkbox" id="rd_food_5006" name="rd_food" value="5006">
+										<label for="rd_food_5006">제과점</label>
+									</li>
+									<li>
+										<input type="checkbox" id="rd_food_5007" name="rd_food" value="5007">
+										<label for="rd_food_5007">패스트푸드</label>
+									</li>
+									<li>
+										<input type="checkbox" id="rd_food_5008" name="rd_food" value="5008">
+										<label for="rd_food_5008">치킨</label>
+									</li>
+									<li>
+										<input type="checkbox" id="rd_food_5009" name="rd_food" value="5009">
+										<label for="rd_food_5009">호프 및 간이주점</label>
+									</li>
+									<li>
+										<input type="checkbox" id="rd_food_5010" name="rd_food" value="5010">
+										<label for="rd_food_5010">카페</label>
+									</li>
+									<li>
+										<input type="checkbox" id="rd_food_5011" name="rd_food" value="5011">
+										<label for="rd_food_5011">기타 외국식</label>
+									</li>
+								</ul>
+							</div>
+							<a href="javascript:void(0)" class="roundTextBox">도소매(11종)</a>
+							<div class="joinDefault">
+								<ul class="jobArea_stepBox">
+								</ul>
+							</div>
+							<a href="javascript:void(0)" class="roundTextBox">서비스(11종)</a>
+							<div class="joinDefault" >
+								<ul class="jobArea_stepBox">
+								</ul>
+							</div>
+							<a href="javascript:void(0)" class="roundTextBox">숙박(3종)</a>
+							<div class="joinDefault">
+								<ul class="jobArea_stepBox">
+								</ul>
+							</div>
+						</div>
+						</div>
+						<div class="bottom "><a href="javascript:void(0) " class="stepClose ">닫기</a></div>
+					</div>
+				</div>
+				<!-- 왼쪽메뉴  end -->
+				<!-- 데이터보드 -->
+				<div id="dataBoard">
+					<a href="javascript:void(0)" class="interactiveDataBoard">데이터보드</a>
+					<div class="colorMapLegend">
+						<p>지도정보 기준</p>
+						<a href="javascript:void(0)" class="switchBox">
+					<span class="txt"></span>
+					<span class="ball"></span>
+				</a>
+					</div>
+					<div class="dataSideBox">
+						<div class="bar">
+							<div id="dataSlider" class="dataSlider"></div>
+							<a href="javascript:void(0)" class="stepClose-data">데이터보드 닫기</a>
+						</div>
+						<div class="dataSideContents">
+						</div>
+					</div>
+					<form id="excelDownForm" name="excelDownForm" method="post"></form>
+				</div>
+				<!-- //데이터보드 end -->
+			</div>
+			<!--//rela-->
+		</div>
+		<!--//container-->
+	</div>
+	<!--//wrap-->
+</body>
+
+</html>

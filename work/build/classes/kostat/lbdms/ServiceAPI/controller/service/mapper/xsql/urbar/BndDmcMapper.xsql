@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="urbar_bnd">
+
+	 <!-- 신규 획정 작업 -->
+	 <insert id="createBndInfo" parameterType="hashmap">
+			INSERT INTO urbar.urbar_bnd_result(
+				 project_key
+				,project_nm
+				,urbar_type
+				,create_dt
+				,create_year
+				,use_yn
+
+
+			)VALUES(
+					 default
+					,#{projectNm}
+					,#{urbarType}
+					,to_date(#{createDt} , 'YYYY-MM-DD')
+					,#{createYear}
+					,#{useYn}
+
+			)
+	</insert>
+	<!--획정 목록  -->
+	<select id="selectBndInfoList" parameterType="hashmap" resultType="hashmap">
+		select
+			project_key
+		  , project_nm
+		  ,case urbar_type  when '01' then '도시' when '02' then '준도시' end as urbar_type
+		  , create_dt
+		  , create_year
+		  , COUNT(*) OVER() AS total
+		from urbar.urbar_bnd_result
+			<where>
+			use_yn ='Y'
+			<if test="searchText != null">
+				AND
+				(
+					project_nm LIKE '%'||#{searchText}||'%'
+				)
+			</if>
+			<if test="startDay !=null and endDay !=null ">
+				AND
+				(
+					create_dt between to_date(#{startDay},'YYYY-MM-DD') and to_date(#{endDay},'YYYY-MM-DD')
+				)
+			</if>
+		</where>
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+
+
+	</select>
+
+
+	<select id="selectBndInfoDetail" parameterType="hashmap" resultType="hashmap">
+		select
+			project_key
+		  , project_nm
+		  ,case urbar_type  when '01' then '도시' when '02' then '준도시' end as urbar_type
+		  , create_dt
+		  , create_year
+		from urbar.urbar_bnd_result
+		where project_key =#{projectKey}
+
+	</select>
+
+	<update id="deleteBnd" parameterType="hashmap">
+			update urbar.urbar_bnd_result
+			set use_yn ='N'
+			where project_key =#{projectKey};
+
+	</update>
+
+
+</mapper>

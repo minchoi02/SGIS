@@ -1,0 +1,292 @@
+var colorsAr = [
+    'rgb(79, 121, 166,0.4)',
+    'rgb(160, 202, 231,0.4)',
+    'rgb(241, 144, 56,0.4)',
+    'rgba(255,99,132,0.2)',
+    'rgb(254, 191, 129,0.4)',
+    'rgba(241, 206, 105,0.4)',
+    ];
+
+var colorsArBorder = [        
+	'rgb(79, 121, 166,1.0)',
+    'rgb(160, 202, 231,1.0)',
+    'rgb(241, 144, 56,1.0)',
+    'rgba(255,99,132,1)',
+    'rgb(254, 191, 129,1.0)',
+    'rgba(241, 206, 105,1.0)'
+    ];
+
+var colorRed = ['rgba(255,99,132,1)','rgba(255,99,132,0.2)'];
+var colorOrange = ['rgb(241, 144, 56,1.0)','rgb(241, 144, 56,0.4)'];
+var colorBlue = ['rgba(54,162,235,1)','rgba(54,162,235,0.2)'];
+var colorGray = ['rgba(195, 201, 205,1)','rgba(195, 201, 205,0.5)'];
+var colorYellow = ['rgba(241, 206, 105,1.0)','rgba(241, 206, 105,0.4)'];
+let color1 = 'rgba(255,99,132,0.2)'
+let color2 = 'rgba(54,162,235,0.2)'
+let cTrans1 = 'rgba(255,99,132,1)'
+let cTrans2 = 'rgba(54,162,235,1)'
+
+
+$(function () {
+	getCompanyCountByCondition();
+	getActiveCompanyCountBy();
+});
+
+let companyCountData = [];
+
+function getCompanyCountByCondition(){
+	
+	$.ajax({
+		type:"GET",
+		url: "/view/sbrStats/sbrStatsCompanyCount",
+//		data: {year: count},
+		dataType:"json",
+		async: false,
+		success:function(res){
+			console.log(companyCountData);
+			return res;
+		},
+		error:function() {
+			
+			return "faill";
+		}
+	});
+	
+}
+
+function getActiveCompanyCountBy(){
+
+	$.ajax({
+		type: "GET",
+		url: "/view/sbrStats/sbrActiveCompanyCount",
+		data: {},
+		dataType:"json",
+		async:false,
+		success:function(res){
+			console.log(res);
+			return res;
+		},
+		error:function(){
+			return "fail";
+		}
+	})
+}
+
+ 
+function setChart(){
+	var seriesData = [1, 2, 3, 4, 5, 6];
+	
+	$('#layerLgChart1').highcharts(
+			{
+				chart : {
+		            type : 'line',
+		            style: {			 
+		                fontFamily: 'Pretendard', 
+		            }
+		        },
+		        credits: {
+		            enabled: false
+		        },
+		        exporting : {
+		            enabled : false
+		        },
+		        title: {
+		            text: '',
+		        },
+		        subtitle: {
+		            text: '',
+		        },
+		        yAxis: {
+		            title: {
+		            text: '',
+		            },
+		            labels: {
+		                enabled : false
+		            },
+		        },
+		        xAxis: {
+		            labels: {
+		                style: {
+		                    color: '#666',
+		                    fontSize:'12px',
+		                    fontWeight: '500',
+		                    letterSpacing: '0px',
+		                }
+		            },
+		            categories: ["2015","2016","2017","2018","2019","2020"]
+		        },
+		        legend: {
+		            enabled: false
+		        },
+		        plotOptions: {
+		            series: {
+		                marker: {
+		                    enabled: true, //마커 보이기 / 안보이기 [true : 보이기, false : 안보이기]
+		                    lineWidth: 2, //라인 굵기
+		                    lineColor:'#0475F4', //라인 색
+		                    fillColor:'#ffffff'
+		                },
+		                dataLabels: {
+		                    enabled: true, //데이터레이블 보이기/안보이기 [true : 보이기, false : 안보이기]
+		                    allowOverlap: true //데이터레이블 겹치기/안겹치기 (안겹치기시 겹치는 데이터레이블 안보임) [true : 겹치다, false : 안겹치다]
+		                },
+		                events: {
+		                    mouseOver: function (event) { //마우스 오버 이벤트[마우스올리면 : show(데이터레이블 보이기)]
+		                        $.each(this.data, function(i, point){
+		                            point.dataLabel.show();
+		                        });
+		                    },
+		                    mouseOut: function (e) { //마우스 오버 이벤트[마우스내리면 : hide(데이터레이블 안보이기)]
+		                        $.each(this.data, function(i, point){
+		                            point.dataLabel.hide();
+		                        });
+		                    }
+		                }
+		            }
+		        },
+		        series: [
+                    {name:"전체기업수",
+//                    	data:[33934, 48656, 55165, 61827, 102143, 152383]
+                    	data:companyCountData,
+                	}
+                ]
+			});
+
+}
+
+
+
+function setPieChart() {
+	$('#layerLgChart2').highcharts(
+		{
+
+	        chart : {
+	            renderTo: 'dounutChart',
+	            type: 'pie',
+	            style: {			 
+	                fontFamily: 'Pretendard', 
+	            }
+	        },
+			
+			colors:[color1, color2],
+			credits: {enabled: false}, // highchart watermark hide
+			exporting: {enabled: false},
+			title: {
+				text: '',
+			},
+			
+			legend: {
+				enabled: true,
+				padding: 1,
+				itemMarginTop: 5,
+				itemMarginBottom: 0,
+			},
+			
+	        plotOptions: {
+	            pie: {//도넛(파이)차트 전체 옵션 지정.
+	                size: '140%', 
+	                showInLegend: true, //범례 show/hide 설정. (series 내에서 개별 지정도 가능.)
+	                
+	            }
+	        },
+	        
+	        tooltip: {
+	            useHTML: false,//툴팁 포맷을 html로 변경할 경우 true로 지정.(default false)
+	            borderRadius: 10,
+	            backgroundColor :'#000000', 
+	            borderWidth:0,
+	            shadow: false,
+	            padding:10,
+	            style: {			 
+	                fontSize :'14px',  
+	                color: '#fff',
+	                fontWeight: '600',
+	                textAlign:'center',
+	            },
+	            shared: true,
+	            formatter: function() {
+	                return '<span style="color:#fff">'  + this.point.name + '</span> : ' + this.y + '개';
+	            },
+	        },
+	        
+	        series: [
+	            {name: '활동현황',
+	            borderWidth: 1,        
+	            // innerSize:30%,
+	            dataLabels: {
+	                enabled: false
+	            },
+	            data: [
+	            	{name:'활동기업'	,y:4000000,sliced:true,borderColor:cTrans1},      
+	            	{name:'비활동기업'	,y:6000000,borderColor:cTrans2},
+	                ]
+	            }
+	        ]
+	});
+}
+
+
+function setTriangleChart() {
+    
+	$('#growCompanyDistChart').highcharts(
+		 {
+		        chart: {
+		            type: 'pyramid'
+		        },
+
+		        colors:colorsAr,
+		        credits: {enabled: false}, //highchart 워터마크 숨김처리
+		        exporting : { enabled : false },
+		        title: {
+		            text: '',
+		        },
+		        
+		        plotOptions: {
+		            series: {
+		                dataLabels: {
+		                    enabled: true,
+		                    format: "({point.x:,.0f})",
+		                    allowOverlap: false,
+		                    connectorPadding: 0,
+		                    distance: 10,
+		                    softConnector: true,
+		                    x: 0,
+		                    connectorShape: "fixedOffset",
+		                    crookDistance: "70%"
+		                },
+		                showInLegend: false,
+		                cursor: "pointer",
+		 
+		            }
+		        },
+		        
+		        series: [{
+		            name: '전체성장기업',
+		            keys: ['name', 'y'], 
+		            width:'80%',
+		            dataLabels: {
+		                enabled: true,
+		                format: '<b>{point.name}</b> ({point.y:,.0f})',
+		                softConnector: true
+		            },
+		            data: [
+		                    {name:'그 외',       y:900,borderColor:colorsArBorder[0]},
+		                    {name:'10% 미만',    y:700,borderColor:colorsArBorder[1]},
+		                    {name:'10% ~ 20%',  y:400,borderColor:colorsArBorder[2]},
+		                    {name:'20% 이상',    y:300,borderColor:colorsArBorder[3]},
+		                    {name:'급성장',       y:6,borderColor:colorsArBorder[4]}
+		                ],
+		            colors:colorsAr
+		        }],
+		    
+		        responsive: {
+		            rules: [{
+		                condition: {
+		                    maxWidth: 300,
+		                    maxHeight: 200
+		                }
+		                
+		            }]
+		        }
+		    });
+}

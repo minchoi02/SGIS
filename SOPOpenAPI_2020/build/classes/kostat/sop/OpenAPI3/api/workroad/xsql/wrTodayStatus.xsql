@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="wrTodayStatus">	
+	<!-- 오늘의 구인현황 조회  > 자료제공 -->
+	<select id="getTodayStatus" parameterType="hashmap" resultType="hashmap">
+		SELECT reg_dt
+			 , sido_cd
+			 , sgg_cd
+			 , all_jo_cnt
+			 , all_corp_cnt
+			 , all_rcrit_psn_cnt
+			 , new_jo_cnt
+			 , new_corp_cnt
+			 , new_rcrit_psn_cnt
+			 , clos_jo_cnt
+			 , clos_corp_cnt
+			 , clos_rcrit_psn_cnt			 
+		  FROM srv_dt_job_board_sm	
+		 WHERE reg_dt = #{reg_dt}
+	</select>
+</mapper>

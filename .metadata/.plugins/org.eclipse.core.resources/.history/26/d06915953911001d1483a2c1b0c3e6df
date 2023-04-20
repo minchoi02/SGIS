@@ -1,0 +1,1888 @@
+<%
+/**************************************************************************************************************************
+* Program Name	: 도시화 분석 지도 메인
+* File Name		: urbanMain.jsp
+* Comment		: 
+* History		: 
+*	2021.11.01	신규
+*
+**************************************************************************************************************************/
+%>
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ page import="java.util.Map" %>
+<!DOCTYPE html>
+<html lang="ko">
+	<head>
+	    <meta charset="utf-8" />
+	    <meta name="format-detection" content="telephone=no" />
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	    <title>도시화 분석 지도</title>
+
+		<link rel="stylesheet" href="/css/urban/plugin/jquery-ui.structure.min.css" />
+		<link rel="stylesheet" href="/css/urban/plugin/jquery-ui.theme.min.css" />
+		<link rel="stylesheet" href="/js/plugins/jquery-easyui-1.4/sop.css" />
+		<!-- 도시화 분석 지도 css -->
+	    <link rel="stylesheet" href="/css/urban/font/nanumsquare.css" />
+	    <link rel="stylesheet" href="/css/urban/map.css" />
+	    <link rel="stylesheet" href="/css/urban/bootstrap-slider.css">
+	    <link rel="stylesheet" href="/css/urban/urbanUi.css" />
+
+	    <script src="/js/urban/plugin/jquery.min.js"></script>
+	    <script src="/js/urban/plugin/jquery-ui.js"></script>
+	    <script src="/js/plugins/jquery-easyui-1.4/sop-src.js"></script>
+	    <script src="/js/plugins/jquery.sha256.js"></script>
+	    <script src="/js/urban/plugin/bootstrap-slider.min.js"></script>
+		<script src="/js/plugins/durian-v2.0.js"></script>
+		<script src="/js/common/sop.portal.absAPI.js"></script>
+	    <script src="/js/common/common.js"></script>
+	  	<script src="/js/plugins/highcharts/highcharts.js"></script>
+	    <script src="/js/plugins/highcharts/highcharts-more.js"></script>
+	    <!--
+	    <script src="/jsp/pyramid/js/highchart/js/highcharts-3d.src.js"></script>
+	    <script src="/js/plugins/highcharts/modules/exporting.js"></script>
+	    <script src="/js/plugins/highcharts/highchart.drag.js"></script>
+	    -->
+	    <!-- 도시화 분석 지도 js -->
+	    <script src="/js/common/map.js?version=1.2"></script>	<!--<script src="/js/urban/urbanMap.js?version=1.0"></script>-->
+	    <script src="/js/urban/urbanGeo.js?version=1.0"></script>
+	    <script src="/js/urban/urbanMapBtn.js"></script>
+	    <script src="/js/urban/urbanLegendInfo.js"></script>
+	    <script src="/js/urban/urbanMapNavigation.js"></script>
+	    <script src="/js/urban/urbanMask.js"></script>
+	    <script src="/js/urban/urbanObj.js"></script>
+	    <script src="/js/urban/urbanApi.js"></script>
+	    <script src="/js/urban/urbanLeftMenu.js"></script>
+	    <script src="/js/urban/urbanDataBoard.js"></script>
+	    <script src="/js/catchmentArea/catchmentAreaMsgCommon.js"></script>
+	    <script src="/js/urban/ui.common.js"></script>
+	    <script src="/js/urban/urbanMain.js"></script>
+	    <!-- SGIS4_도시화 sns_공유 시작 -->
+	    <script src="https://developers.kakao.com/sdk/js/kakao.min.js"></script>
+		<!-- SGIS4_도시화 sns_공유 끝 -->
+
+	    <script src="/js/plugins/imageCapture/rgbcolor.js"></script>
+    	<script src="/js/plugins/imageCapture/canvg.js"></script>
+        <script src="/js/plugins/imageCapture/html2canvas.js"></script>
+        <script src="/js/plugins/imageCapture/html2canvas.svg.js"></script>
+
+		<script type="text/javascript">
+			var u_menu = "${u_menu}";
+			var u_class = "${u_class}";
+			var u_type = "${u_type}";
+			var u_year = "${u_year}";
+			var u_area = "${u_area}";
+		</script>
+	</head>
+
+	<body>
+	<!-- SGIS4_도시화 sns_공유 시작  팝업 뒤 검은배경-->
+	<div class="dim"></div>
+	<!-- SGIS4_도시화 sns_공유 끝 -->
+	    <div id="wrap">
+	        <header class="header">
+	            <h1 class="sgis"><a href="javascript:logWriteAndMove('A0', '02', '08', '00', '', '', '/', false);"><img src="/images/urban/logo.png" alt="sgis"></a></h1>
+	            <div class="container">
+	                <div class="header-left">
+	                    <div class="tit">도시화 분석 지도</div>
+	                    <div class="colorMapLegend">
+	                    	<a href="#" class="switchBox">
+								<span class="txt"></span>
+								<!-- SGIS4_220211_도시화_수정_시작 -->
+								<span id="ttip_class" class="ball" data-subj="UN 도시분류 기준" title="<div class='tip_sec01'><p class='subH'><span class='bol'>· UN 도시분류 기준 공식화 </span></p>
+<p class='subC'>: 유럽연합, 유엔 인간거주계획, 세계은행 등 6개 국제기구가 도시 기준을 표준화 </p><p class='subC indent1'>하기 위해 만든 도시 개념으로 `20년 UN 통계위원회에서 공식 채택</p></div>
+<div class='tip_sec01'><p class='subH'><span class='bol'>·</span> 행정구역과는 별개로 <span class='bol'>1㎢ 격자*의 상주인구를 집계</span>한 후, <span class='bol'>인구규모를 기준으로</span></p><p class='subH indent2'><span class='bol'>도시, 준도시</span> 지역으로 구분</p>
+<p class='subC att mb5'>* 격자: 국토를 행정구역과 관계없이 직각으로 교차하는 가로·세로선으로 구분한 영역</p>
+<p class='subC'>- <span class='bol'>(도시, Urban Center)</span> 인구가 1,500명 이상인 격자 추출 후, 인접한 격자끼리</p><p class='subC indent3 mb5'>병합한 격자 그룹 생성, 격자 그룹별 인구 총합이 5만명 이상인 경우</p>
+<p class='subC'>- <span class='bol'>(준도시, Urban Cluster)</span> 인구가 300명 이상인 격자 추출 후, 인접한 격자끼리</p><p class='subC indent3'>병합한 격자 그룹 생성, 격자 그룹별 인구 총합이 5천명 이상인 경우</p></div>">?</span>
+								<!-- SGIS4_220211_도시화_수정_끝 -->
+							</a>
+	                    </div>
+	                    <div class="select-group" id="mapNavi_1">
+	                    <!--
+	                        <select name="sidoSelect_mapNavi_1" id="sidoSelect_mapNavi_1" class="select v1">
+	                            <option value="">서울특별시</option>
+	                        </select>
+	                        <select name="sggSelect_mapNavi_1" id="sggSelect_mapNavi_1" class="select v1">
+	                            <option value="">중구</option>
+	                        </select>
+	                        <select name="admSelect_mapNavi_1" id="admSelect_mapNavi_1" class="select v1">
+	                            <option value="">읍,면,동</option>
+	                        </select>
+	                    -->
+	                    </div>
+	                </div>
+	                <div class="header-right">
+	                    <a href="#" id="tuto_btn"><img src="/images/urban/btn-use.png" alt="사용자가이드"></a>
+	                    <!--<a href="#"><img src="/images/urban/btn-print.png" alt="레포트"></a>-->
+	                    <!-- SGIS4_도시화 sns_공유 시작 -->
+	                    <a href="#" id="share_btn"><img src="/images/urban/btn-share.png" alt="공유"></a>
+	                    <!-- SGIS4_도시화 sns_공유 끝 -->
+	                </div>
+	            </div>
+	        </header>
+	        <div id="aside">
+	            <div class="snb">
+	                <ul id="gnb" class="gnb">
+	                    <li id="gnb_menu_2" class="gnb-li-2 gnb-li"><a href="#">도시변화</a>
+	                        <ul>
+	                            <li><a href="#" data-cls-type="cls_un">UN도시분류</a></li>
+	                            <li><a href="#" data-cls-type="cls_sgis">통계청 분류</a></li>
+	                        </ul>
+	                    </li>
+	                    <li id="gnb_menu_1" class="gnb-li-1 gnb-li"><a href="#">도시화 통계</a>
+	                        <ul>
+	                            <li><a href="#" data-cls-type="cls_un">UN도시분류</a></li>
+	                            <li><a href="#" data-cls-type="cls_sgis">통계청 분류</a></li>
+	                        </ul>
+	                    </li>
+	                    <li id="gnb_menu_3" class="gnb-li-3 gnb-li"><a href="#">도시화 지표분석</a>
+	                        <ul>
+	                            <li><a href="#" data-cls-type="cls_un">UN도시분류</a></li>
+	                            <li><a href="#" data-cls-type="cls_sgis">통계청 분류</a></li>
+	                        </ul>
+	                    </li>
+	                    <li id="gnb_menu_4" class="gnb-li-4 gnb-li"><a href="#">기초생활 분포</a></li>
+	                </ul>
+	                <ul>
+	                	<li>
+		                	<div class="sinceBox">
+			                	<select class="sinceNew" data-since-gb="">
+			                		<option value="">2000</option>
+			                		<option value="">2019</option>
+			                		<option value="">2018</option>
+			                		<option value="">2017</option>
+			                		<option value="">2016</option>
+			                		<option value="">2015</option>
+			                		<option value="">2010</option>
+			                		<option value="">2005</option>
+			                		<option value="">2000</option>
+			                	</select>
+
+								<svg width="14" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg" class="icon--arrow">
+									<path d="M7 8C6.71875 8 6.46875 7.90625 6.28125 7.71875L1.28125 2.71875C0.875 2.34375 0.875 1.6875 1.28125 1.3125C1.65625 0.90625 2.3125 0.90625 2.6875 1.3125L7 5.59375L11.2812 1.3125C11.6562 0.90625 12.3125 0.90625 12.6875 1.3125C13.0938 1.6875 13.0938 2.34375 12.6875 2.71875L7.6875 7.71875C7.5 7.90625 7.25 8 7 8Z" fill="#222222"/>
+								</svg>
+						    </div>
+			                <div class="since" data-since-gb="">
+			                	<!--
+			                    <div class="since-button"><a href="#">2020</a></div>
+			                    <div class="since-button"><a href="#">2019</a></div>
+			                    <div class="since-button"><a href="#">2018</a></div>
+			                    <div class="since-button"><a href="#">2017</a></div>
+			                    <div class="since-button"><a href="#">2016</a></div>
+			                    <div class="since-button"><a href="#">2015</a></div>
+			                    <div class="since-button"><a href="#">2010</a></div>
+			                    <div class="since-button"><a href="#">2005</a></div>
+			                    <div class="since-button"><a href="#">2000</a></div>
+			                    -->
+			                </div>
+						</li>
+	                </ul>
+	            </div>
+	            <!-- // gnb -->
+
+	        </div>
+	        <div class="menu">
+                <div class="menu-wrapper">
+                	<a href="#" class="menu-close">
+                		<svg width="14" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+							<path d="M7 8C6.71875 8 6.46875 7.90625 6.28125 7.71875L1.28125 2.71875C0.875 2.34375 0.875 1.6875 1.28125 1.3125C1.65625 0.90625 2.3125 0.90625 2.6875 1.3125L7 5.59375L11.2812 1.3125C11.6562 0.90625 12.3125 0.90625 12.6875 1.3125C13.0938 1.6875 13.0938 2.34375 12.6875 2.71875L7.6875 7.71875C7.5 7.90625 7.25 8 7 8Z" fill="#222222"/>
+						</svg>
+                	</a>
+                    <div class="menu-content menu-content-1">
+                        <div class="menu-wrap">
+							<ul id="urban_ty_box_1" class="tab">
+								<li data-urbar-type="01">도시</li>
+							    <li data-urbar-type="02">준도시</li>
+							</ul>
+							<div class="gpsBox"><input type="text" class="gps-input" placeholder="고양시 일산동구(정발산동, 마두 1동 등)" /></div>
+
+							<!--
+                            <div id="urban_ty_box_1" class="sub-sort">
+                                <span class="lbl-radio"><input type="radio" id="urban_ty_center" name="ro_urban_ty" value="01" checked><label for="urban_ty_center">도시</label></span>
+                                <span class="lbl-radio"><input type="radio" id="urban_ty_cluster" name="ro_urban_ty" value="02"><label for="urban_ty_cluster">준도시</label></span>
+                            </div>
+                            <div class="menu-total"><b id="urban_tot_cnt_1">67</b> 개 지역</div>
+                            -->
+                            <div id="menu_group_box">
+	                            <div class="menu-group">
+	                                <a href="#" class="menu-toggle">수도권(서울, 경기, 인천)</a>
+	                                <div class="menu-list">
+	                                </div>
+	                            </div>
+	                            <div class="menu-group">
+	                                <a href="#" class="menu-toggle">강원권</a>
+	                                <div class="menu-list">
+	                                </div>
+	                            </div>
+	                            <div class="menu-group">
+	                                <a href="#" class="menu-toggle">세종권</a>
+	                                <div class="menu-list">
+	                                </div>
+	                            </div>
+	                            <div class="menu-group">
+	                                <a href="#" class="menu-toggle">충북권</a>
+	                                <div class="menu-list">
+	                                </div>
+	                            </div>
+	                            <div class="menu-group">
+	                                <a href="#" class="menu-toggle">대전충남권</a>
+	                                <div class="menu-list">
+	                                </div>
+	                            </div>
+	                            <div class="menu-group">
+	                                <a href="#" class="menu-toggle">전북권</a>
+	                                <div class="menu-list">
+	                                </div>
+	                            </div>
+	                            <div class="menu-group">
+	                                <a href="#" class="menu-toggle">광주전남권</a>
+	                                <div class="menu-list">
+	                                </div>
+	                            </div>
+	                            <div class="menu-group">
+	                                <a href="#" class="menu-toggle">대구경북권</a>
+	                                <div class="menu-list">
+	                                </div>
+	                            </div>
+	                            <div class="menu-group">
+	                                <a href="#" class="menu-toggle">부산울산경남권</a>
+	                                <div class="menu-list">
+	                                </div>
+	                            </div>
+	                            <div class="menu-group">
+	                                <a href="#" class="menu-toggle">제주권</a>
+	                                <div class="menu-list">
+	                                </div>
+	                            </div>
+                            </div>
+
+
+                        </div>
+                    </div>
+                    <div class="menu-content menu-content-2">
+                        2
+                    </div>
+                    <div class="menu-content menu-content-3">
+                        3
+                    </div>
+                </div>
+            </div>
+            <div id="sub_group_box">
+            	<div class="subGroupTit"></div>
+            	<div class="subGroupScBox">
+            		<div class="smenu-close"></div>
+	            	<div class="subGroupTit2"></div>
+	            	<div class="subGroupCon"></div>
+	            </div>
+            </div>
+            <!-- // sub -->
+	        <div id="container">
+	            <div class="mapContents" id="mapRgn_1" data-map-id="0">
+	            </div>
+	            <div class="noticeTextPopup" id="noticeTextPopup01">
+					<a onclick="javascript:$urbanMain.ui.informationPopOpen();">
+					<img src="/img/new/use_notice_map.png" alt="더보기"></a>
+				</div>
+	            <div class="control-top control-wrap">
+	                <div class="btn-extend">
+	                    <button type="button" class="btn-extend-open">데이터보드</button>
+	                    <button type="button" class="btn-extend-close">닫기</button>
+	                </div>
+	            </div>
+	            <!-- 데이터 저장소 -->
+	            <div class="extend-data">
+	                <div class="extend-panel">
+	                    <div class="extend-search">
+		                    <div class="data-value value_col03">
+                            	<div class="_yel mightOverflow" id="db01_head_urbars_nm">수도권 1 지역</div>	
+	                        </div>
+							<div class="data-value value_col01" id="db01_head_year">2020년</div>
+	                        <div class="data-value value_col02" id="db01_head_cls">UN 도시분류 : 도시</div> 
+	                        
+	                        <div class="data-value-right">
+		                        <!-- <button id="comp_btn" class="data-value value_col02 btn-modal">행정구역</button> -->
+		                        <span style="display:none">
+			                        <select id="db01_head_subRegion" data-sel-menu="">
+		                                <option value="">행정구역</option>
+		                            </select>
+		                        </span>
+		                        <span><button class="orange-btn2">선택된도시명</button></span>
+		                        <span><button class="gray-btn2">행정구역이름</button></span>
+		                        <span><button class="green-btn2">행정구역 내 도시화 지역</button></span>
+		                        <span><button class="district-btn btn-modal">행정구역 선택</button></span>
+		                        <span><button class="comparison-btn btn-modal" data-modal="#comparison">비교권역 선택</button></span>
+		                        <span class="sViewBtn">간략보기</span>
+		                        
+	                        </div>
+	                    </div>
+	                </div>
+	                <div class="tab_container">
+						<!--탭 메뉴 영역 -->
+						<div class="tabs">
+							<ul>
+								<li class="active"><a href="#" rel="tab1">종합</a></li>
+								<li class="menu2Tab"><a href="#" rel="tab2">면적</a></li>
+								<li class="menu2Tab"><a href="#" rel="tab3">인구</a></li>
+								<li class="menu2Tab"><a href="#" rel="tab4">가구</a></li>
+								<li class="menu2Tab"><a href="#" rel="tab5">주택</a></li>
+								<li class="menu2Tab"><a href="#" rel="tab6">사업체</a></li>
+								<li class="menu2Tab"><a href="#" rel="tab7">종사자</a></li>
+								
+								<li class="menu3Tab"><a href="#" rel="tab8">인구밀도</a></li>
+								<li class="menu3Tab"><a href="#" rel="tab9">평균나이</a></li>
+								<li class="menu3Tab"><a href="#" rel="tab10">노령화지수</a></li>
+								<li class="menu3Tab"><a href="#" rel="tab11">1인가구비율</a></li>
+								<li class="menu3Tab"><a href="#" rel="tab12">아파트비율</a></li>
+							</ul>
+						</div>
+						<div id="tab1" class="tab_content">
+							
+							<script type="text/javascript" src="http://kenwheeler.github.io/slick/slick/slick.min.js"></script>
+							<script type="text/javascript">
+								$(document).ready(function () {
+									$('.slick-box').slick({
+										slide: 'li',		//슬라이드 되어야 할 태그 ex) div, li 
+										infinite : false, 	//무한 반복 옵션	 
+										slidesToShow : 3,		// 한 화면에 보여질 컨텐츠 개수
+										slidesToScroll : 1,		//스크롤 한번에 움직일 컨텐츠 개수
+										speed : 100,	 // 다음 버튼 누르고 다음 화면 뜨는데까지 걸리는 시간(ms)
+										arrows : true, 		// 옆으로 이동하는 화살표 표시 여부
+										dots : false, 		// 스크롤바 아래 점으로 페이지네이션 여부
+										autoplay : false,			// 자동 스크롤 사용 여부
+										autoplaySpeed : 5000, 		// 자동 스크롤 시 다음으로 넘어가는데 걸리는 시간 (ms)
+										pauseOnHover : true,		// 슬라이드 이동	시 마우스 호버하면 슬라이더 멈추게 설정
+										vertical : false,		// 세로 방향 슬라이드 옵션
+										prevArrow : "<button type='button' class='slick-prev'><img src='/images/urban/slickBtnPrev.png' alt=''></button>",		// 이전 화살표 모양 설정
+										nextArrow : "<button type='button' class='slick-next'><img src='/images/urban/slickBtnNext.png' alt=''></button>",		// 다음 화살표 모양 설정
+										dotsClass : "slick-dots", 	//아래 나오는 페이지네이션(점) css class 지정
+										draggable : true, 	//드래그 가능 여부 
+									});
+									$('.slick-box2').slick({
+										slide: 'div',		//슬라이드 되어야 할 태그 ex) div, li 
+										infinite : false, 	//무한 반복 옵션	 
+										slidesToShow : 3,		// 한 화면에 보여질 컨텐츠 개수
+										slidesToScroll : 1,		//스크롤 한번에 움직일 컨텐츠 개수
+										speed : 100,	 // 다음 버튼 누르고 다음 화면 뜨는데까지 걸리는 시간(ms)
+										arrows : true, 		// 옆으로 이동하는 화살표 표시 여부
+										dots : false, 		// 스크롤바 아래 점으로 페이지네이션 여부
+										autoplay : false,			// 자동 스크롤 사용 여부
+										autoplaySpeed : 5000, 		// 자동 스크롤 시 다음으로 넘어가는데 걸리는 시간 (ms)
+										pauseOnHover : true,		// 슬라이드 이동	시 마우스 호버하면 슬라이더 멈추게 설정
+										vertical : false,		// 세로 방향 슬라이드 옵션
+										prevArrow : "<button type='button' class='slick-prev'><img src='/images/urban/slickBtnPrev.png' alt=''></button>",		// 이전 화살표 모양 설정
+										nextArrow : "<button type='button' class='slick-next'><img src='/images/urban/slickBtnNext.png' alt=''></button>",		// 다음 화살표 모양 설정
+										dotsClass : "slick-dots", 	//아래 나오는 페이지네이션(점) css class 지정
+										draggable : true, 	//드래그 가능 여부 
+									});
+								});
+							</script>
+
+						   <!--  <div class="slick-box">
+						        <div class="slick-items">111</div>
+								<div class="slick-items">222</div>
+								<div class="slick-items">333</div>
+								<div class="slick-items">444</div>
+								<div class="slick-items">555</div>
+						    </div> -->
+							<div class="chk chk01">
+			                    <div class="data-wrap">
+			                        <ul class="slick-box">
+			                            <li class="sec01 secMem slick-items">
+			                                <h4>도시화 면적</h4>
+			                                <div class="div_basic">
+												<div class="graph_bg un_shape">
+													<img src="/images/urban/shape02.png">
+						 							<span id="sec01AreaSize" data-reset="00.00 ㎢">360,000 ㎢</span><!--<span class="txt_sm01"> km</span><sup>2</sup> -->
+												</div>
+				                                <!-- <p class="sa_txt02" id="sec01AreaTxt" data-reset=""></p> -->
+				                                <p class="sa_txt01" id="sec01RangeTxt" data-reset=""></p>
+			                                </div>
+			                            </li>
+			                            <li class="sec02 secMem slick-items">
+			                                <h4>인구</h4>
+			                                <div class="div_basic">
+			                                    <div class="txt_box01">
+			                                        <p class="sa_txt01" id="perPopTxt" data-reset="">전체 인구 중 00~00세 인구</p>
+			                                        <p class="sa_txt02" id="perPop" data-reset="">1,000명</p>
+			                                        <a href="" class="zoomBox left" title="상세" data-type="pops">
+			                                            <span class="ball"></span>
+			                                        </a>
+			                                    </div>
+			                                    <div id="popChart" class="cht_box02 reset chart"></div>
+			                                    <div class="chart_ico">
+			                                        <div class="man_txt"><p id="manPer" data-reset="00.00%">50.00%</p><p id="manTtlCnt" data-reset="0명">10,000명</p></div>
+			                                        <div class="man_ico"><img src="/images/urban/man_ico.png" class="mCS_img_loaded"></div>
+			                                        <div class="man_chart"><div class="h55" id="manPerBar" style="height: 100%;"></div></div>
+			                                        <div class="woman_ico"><img src="/images/urban/woman_ico.png" class="mCS_img_loaded"></div>
+			                                        <div class="woman_chart"><div class="h55" id="womanPerBar" style="height:86%;"></div></div>
+			                                        <div class="woman_txt"><p id="womanPer" data-reset="00.00%">50.00%</p><p id="womanTtlCnt" data-reset="0명">10,000명</p></div>
+			                                        <p class="bi_txt">전체 인구에 대한 남·여 비율</p>
+
+			                                    </div>
+			                                    <div class="txt_box02 div_tot">
+			                                        <p class="sa_txt01">전체 인구수</p><p class="sa_txt02" id="totPops" data-total="20000" data-reset="00<span class='sa_txt04'>명</span>">20,000<span class="sa_txt04">명</span></p>
+			                                    </div>
+			                                    <div class="div_year">
+			                                        <p id="popBaseYear" class="sa_txt03" data-reset="">(2020년 기준)</p>
+			                                    </div>
+			                                </div>
+			                                <div class="div_block">
+												<div class="div_block_msg">
+													<span>영역 내 인구 정보 값은 '0' 입니다.</span>
+												</div>
+											</div>
+			                            </li>
+			                            <li class="sec03 secMem slick-items">
+			                                <h4>가구</h4>
+			                                <div class="div_basic">
+			                                    <div class="txt_box01">
+			                                        <p class="sa_txt01" id="perFamilyTxt" data-reset="">전체 가구 중 친족 가구</p>
+			                                        <p class="sa_txt02" id="perFamily" data-reset="">1,000가구</p>
+			                                        <a href="#" class="zoomBox left" title="상세" data-type="family">
+			                                            <span class="ball"></span>
+			                                        </a>
+			                                    </div>
+			                                    <div id="familyChart" class="cht_box01 reset chart"></div>
+			                                    <div class="txt_box03">
+			                                        <span class="cr01"></span><span class="sa_txt01 mR5">비친족 가구</span>
+			                                        <span class="cr02"></span><span class="sa_txt02">1인 가구</span>
+			                                        <span class="cr03"></span><span class="sa_txt03">친족 가구</span>
+			                                    </div>
+			                                    <div class="txt_box02 div_tot">
+			                                        <p class="sa_txt01">총 가구수</p><p class="sa_txt02" id="totFamily" data-total="10000" data-reset="00<span class='sa_txt04'>가구</span>">10,000<span class="sa_txt04">가구</span></p>
+			                                    </div>
+			                                    <div class="div_year">
+			                                        <p id="familyBaseYear" class="sa_txt03" data-reset="">(2020년 기준)</p>
+			                                    </div>
+			                                </div>
+			                                <div class="div_block">
+												<div class="div_block_msg">
+													<span>영역 내 가구 정보 값은 '0' 입니다.</span>
+												</div>
+											</div>
+			                            </li>
+			                            <li class="sec04 secMem slick-items">
+			                                <h4>주택</h4>
+			                                <div class="div_basic">
+			                                    <div class="txt_box01">
+			                                        <p class="sa_txt01" id="perHouseTxt" data-reset="">전체 주택 중 아파트</p>
+			                                        <p class="sa_txt02" id="perHouse" data-reset="">1,000호</p>
+			                                        <a href="#" class="zoomBox left" title="상세" data-type="house">
+			                                            <span class="ball"></span>
+			                                        </a>
+			                                    </div>
+			                                    <div id="houseChart" class="cht_box01 reset chart"></div>
+			                                    <div class="txt_box03">
+			                                        <ul>
+			                                            <li class="list_st cb"><span class="cr01"></span><span class="sa_txt01">단독주택</span></li>
+			                                            <li class="list_st cb"><span class="cr02"></span><span class="sa_txt01">아파트</span></li>
+			                                            <li class="list_st cb"><span class="cr03"></span><span class="sa_txt01">연립주택</span></li>
+			                                            <li class="list_st cb"><span class="cr04"></span><span class="sa_txt01">다세대주택</span></li>
+			                                            <li class="list_st cb"><span class="cr05"></span><span class="sa_txt01">비주거용</span></li>
+			                                            <li class="list_st cb"><span class="sa_txt01 ml16">건물내 주택</span></li>
+			                                        </ul>
+			                                    </div>
+			                                    <div class="txt_box02 div_tot">
+			                                        <p class="sa_txt01">총 주택수</p><p class="sa_txt02" id="totHouse" data-total="10000" data-reset="00<span class='sa_txt04'>호</span>">10,000<span class="sa_txt04">호</span></p>
+			                                    </div>
+			                                    <div class="div_year">
+			                                        <p id="houseBaseYear" class="sa_txt03" data-reset="">(2020년 기준)</p>
+			                                    </div>
+			                                </div>
+			                                <div class="div_block">
+												<div class="div_block_msg">
+													<span>영역 내 주택 정보 값은 '0' 입니다.</span>
+												</div>
+											</div>
+			                            </li>
+			                            <li class="sec05 secMem slick-items">
+			                                <h4>사업체</h4>
+			                                <div class="div_basic">
+			                                    <div class="txt_box01">
+			                                        <p class="sa_txt01">전체 중 분포율 TOP3</p>
+			                                        <p class="sa_txt02" id="top3CorpPerAmongAll" data-reset="0개">10,000개</p>
+			                                        <a href="#" class="zoomBox left" title="상세" data-type="corp">
+			                                            <span class="ball"></span>
+			                                        </a>
+			                                    </div>
+			                                    <div id="corpChart" class="cht_box01 reset chart"></div>                  
+			                                    <div class="txt_box03">
+			                                        <ul>
+			                                            <li class="list_st"><span class="cr01" data-reset-clr="#d4d4d4" style="background: rgb(214, 107, 68);"></span><span class="sa_txt01 mightOverflow" id="top1_corp_txt" data-reset="TOP1 사업체">1. 음식점업 (전체 대비 13.5 %)</span></li>
+			                                            <li class="list_st"><span class="cr02" data-reset-clr="#d4d4d4" style="background: rgb(255, 170, 1);"></span><span class="sa_txt01 mightOverflow" id="top2_corp_txt" data-reset="TOP2 사업체">2. 주점 및 비알코올 음료점업 (전체 대비 5.6 %)</span></li>
+			                                            <li class="list_st"><span class="cr03" data-reset-clr="#d4d4d4" style="background: rgb(254, 215, 71);"></span><span class="sa_txt01 mightOverflow" id="top3_corp_txt" data-reset="TOP3 사업체">3. 섬유, 의복, 신발 및 가죽제품 소매업 (전체 대비 5.2 %)</span></li>
+			                                        </ul>
+			                                    </div>	                                    
+			                                    <div class="txt_box02 div_tot">                         
+			                                        <p class="sa_txt01">총 사업체수</p><p class="sa_txt02" id="totCorp" data-total="20000" data-reset="00<span class='sa_txt04'>개</span>">20,000<span class="sa_txt04">개</span></p>
+			                                    </div>
+			                                    <div class="div_year">
+			                                        <p id="corpBaseYear" class="sa_txt03" data-reset="">(2020년 기준)</p>
+			                                    </div>	                                    
+			                                </div>
+			                                <div class="div_block">
+												<div class="div_block_msg">
+													<span>영역 내 사업체 정보 값은 '0' 입니다.</span>
+												</div>
+											</div>	                                
+			                            </li>
+			                            <li class="sec06 secMem slick-items">
+			                                <h4>종사자</h4>
+			                                <div class="div_basic">	                                	
+			                                    <div class="txt_box01">
+			                                        <p class="sa_txt01">전체 중 분포율 TOP3</p>
+			                                        <p class="sa_txt02" id="top3WorkerPerAmongAll" data-reset="0명">10,000명</p>
+			                                        <a href="#" class="zoomBox left" title="상세" data-type="employee">
+			                                            <span class="ball"></span>
+			                                        </a>
+			                                    </div>
+			                                    <div id="workerChart" class="cht_box01 reset chart"></div>                     
+			                                    <div class="txt_box03">
+			                                        <ul>
+			                                            <li class="list_st"><span class="cr01" data-reset-clr="#d4d4d4" style="background: rgb(214, 107, 68);"></span><span class="sa_txt01 mightOverflow" id="top1_worker_txt" data-reset="TOP1 사업체">1. 음식점업 (전체 대비 7.8 %)</span></li>
+			                                            <li class="list_st"><span class="cr02" data-reset-clr="#d4d4d4" style="background: rgb(255, 170, 1);"></span><span class="sa_txt01 mightOverflow" id="top2_worker_txt" data-reset="TOP2 사업체">2. 비거주 복지시설 운영업 (전체 대비 4.0 %)</span></li>
+			                                            <li class="list_st"><span class="cr03" data-reset-clr="#d4d4d4" style="background: rgb(254, 215, 71);"></span><span class="sa_txt01 mightOverflow" id="top3_worker_txt" data-reset="TOP3 사업체">3. 병원 (전체 대비 3.7 %)</span></li>
+			                                        </ul>
+			                                    </div>	                                    
+			                                    <div class="txt_box02 div_tot">                         
+			                                        <p class="sa_txt01">총 종사자수</p><p class="sa_txt02" id="totWorker" data-total="20000" data-reset="00<span class='sa_txt04'>명</span>">20,000<span class="sa_txt04">명</span></p>                          
+			                                    </div>
+			                                    <div class="div_year">
+			                                        <p id="workerBaseYear" class="sa_txt03" data-reset="">(2020년 기준)</p>
+			                                    </div>	                                    
+			                                </div>
+			                                <div class="div_block">
+												<div class="div_block_msg">
+													<span>영역 내 종사자 정보 값은 '0' 입니다.</span>
+												</div>
+											</div>	                                
+			                            </li>
+			                        </ul>
+			                    </div>
+			                </div>
+			                <div class="chk chk02">
+			                	<div class="data-wrap">
+			                        <!-- <div class="chk02_top">
+			                            <div><span class="mightOverflow">UN도시분류(도시)<br>수도권 1지역</span></div>
+			                            <div><span class="mightOverflow">행정구역<br>창원시 마산합포구</span></div>
+			                        </div> -->
+			                        <ul class="slick-box">
+			                            <li class="sec01 secMem secCT1 slick-items">
+			                                <h4>도시화 면적</h4>
+			                                <div class="div_basic">
+												<div class="graph_bg un_shape">
+													<img src="/images/urban/shape02.png">
+						 							<span id="sec01AreaSizeCT1" data-reset="00.00 ㎢">360,000 ㎢</span>
+												</div>
+				                               <!--  <p class="sa_txt02" id="sec01AreaTxtCT1" data-reset=""></p> -->
+				                                <p class="sa_txt01" id="sec01RangeTxtCT1" data-reset=""></p>
+			                                </div>
+			                            </li>
+			                            <li class="sec01 secMem secCT2 slick-items">
+			                                <h4>행정구역 면적</h4>
+			                                <div class="div_basic">
+												<div class="graph_bg">
+													<img src="/images/urban/shape01.png">
+						 							<span id="sec01AreaSizeCT2" data-reset="00.00 ㎢">360,000 ㎢</span>
+												</div>
+				                                <!-- <p class="sa_txt02" id="sec01AreaTxtCT2" data-reset=""></p> -->
+				                                <p class="sa_txt01" id="sec01RangeTxtCT2" data-reset=""></p>
+			                                </div>
+			                            </li>
+			                            <li class="sec02 secMem secCT1 slick-items">
+			                                <h4>인구</h4>
+			                                <div class="div_basic">
+			                                    <div class="txt_box01">	                                        
+			                                        <p class="sa_txt01" id="perPopTxtCT1" data-reset="">전체 인구 중 00~00세 인구</p>
+			                                        <p class="sa_txt02" id="perPopCT1" data-reset="">1,000명</p>
+			                                        <a href="" class="zoomBox left" title="상세" data-type="pops">
+			                                            <span class="ball"></span>
+			                                        </a>
+			                                    </div>
+			                                    <div id="popChartCT1" class="cht_box02 reset chart"></div>
+			                                    <div class="chart_ico">
+			                                        <div class="man_txt"><p id="manPerCT1" data-reset="00.00%">50.00%</p><p id="manTtlCntCT1" data-reset="0명">10,000명</p></div>
+			                                        <div class="man_ico"><img src="/images/urban/man_ico.png" class="mCS_img_loaded"></div>
+			                                        <div class="man_chart"><div class="h55" id="manPerBarCT1" style="height: 100%;"></div></div>
+			                                        <div class="woman_ico"><img src="/images/urban/woman_ico.png" class="mCS_img_loaded"></div>
+			                                        <div class="woman_chart"><div class="h55" id="womanPerBarCT1" style="height:86%;"></div></div>
+			                                        <div class="woman_txt"><p id="womanPerCT1" data-reset="00.00%">50.00%</p><p id="womanTtlCntCT1" data-reset="0명">10,000명</p></div>
+			                                        <p class="bi_txt">전체 인구에 대한 남·여 비율</p>
+			            
+			                                    </div>
+			                                    <div class="txt_box02 div_tot">                         
+			                                        <p class="sa_txt01">전체 인구수</p><p class="sa_txt02" id="totPopsCT1" data-total="20000" data-reset="00<span class='sa_txt04'>명</span>">20,000<span class="sa_txt04">명</span></p>    
+			                                    </div>
+			                                    <div class="div_year">
+			                                        <p id="popBaseYearCT1" class="sa_txt03" data-reset="">(2020년 기준)</p>
+			                                    </div>
+			                                </div>
+			                                <div class="div_block">
+												<div class="div_block_msg">
+													<span>영역 내 인구 정보 값은 '0' 입니다.</span>
+												</div>
+											</div>
+			                            </li>
+			                            <li class="sec02 secMem secCT2 slick-items">
+			                                <h4>인구</h4>
+			                                <div class="div_basic">
+			                                    <div class="txt_box01">	                                        
+			                                        <p class="sa_txt01" id="perPopTxtCT2" data-reset="">전체 인구 중 00~00세 인구</p>
+			                                        <p class="sa_txt02" id="perPopCT2" data-reset="">1,000명</p>
+			                                        <a href="" class="zoomBox left" title="상세" data-type="pops">
+			                                            <span class="ball"></span>
+			                                        </a>
+			                                    </div>
+			                                    <div id="popChartCT2" class="cht_box02 reset chart"></div>
+			                                    <div class="chart_ico">
+			                                        <div class="man_txt"><p id="manPerCT2" data-reset="00.00%">50.00%</p><p id="manTtlCntCT2" data-reset="0명">10,000명</p></div>
+			                                        <div class="man_ico"><img src="/images/urban/man_ico.png" class="mCS_img_loaded"></div>
+			                                        <div class="man_chart"><div class="h55" id="manPerBarCT2" style="height: 100%;"></div></div>
+			                                        <div class="woman_ico"><img src="/images/urban/woman_ico.png" class="mCS_img_loaded"></div>
+			                                        <div class="woman_chart"><div class="h55" id="womanPerBarCT2" style="height:86%;"></div></div>
+			                                        <div class="woman_txt"><p id="womanPerCT2" data-reset="00.00%">50.00%</p><p id="womanTtlCntCT2" data-reset="0명">10,000명</p></div>
+			                                        <p class="bi_txt">전체 인구에 대한 남·여 비율</p>
+			            
+			                                    </div>
+			                                    <div class="txt_box02 div_tot">                         
+			                                        <p class="sa_txt01">전체 인구수</p><p class="sa_txt02" id="totPopsCT2" data-total="20000" data-reset="00<span class='sa_txt04'>명</span>">20,000<span class="sa_txt04">명</span></p>    
+			                                    </div>
+			                                    <div class="div_year">
+			                                        <p id="popBaseYearCT2" class="sa_txt03" data-reset="">(2020년 기준)</p>
+			                                    </div>
+			                                </div>
+			                                <div class="div_block">
+												<div class="div_block_msg">
+													<span>영역 내 인구 정보 값은 '0' 입니다.</span>
+												</div>
+											</div>
+			                            </li>
+			                            <li class="sec03 secMem secCT1 slick-items">
+			                                <h4>가구</h4>
+			                                <div class="div_basic">	                                	
+			                                    <div class="txt_box01">	                                    	
+			                                        <p class="sa_txt01" id="perFamilyTxtCT1" data-reset="">전체 가구 중 친족 가구</p>
+			                                        <p class="sa_txt02" id="perFamilyCT1" data-reset="">1,000가구</p>
+			                                        <a href="#" class="zoomBox left" title="상세" data-type="family">
+			                                            <span class="ball"></span>
+			                                        </a>
+			                                    </div>
+			                                    <div id="familyChartCT1" class="cht_box01 reset chart"></div>
+			                                    <div class="txt_box03">
+			                                        <span class="cr01"></span><span class="sa_txt01 mR5">비친족 가구</span>
+			                                        <span class="cr02"></span><span class="sa_txt02">1인 가구</span>
+			                                        <span class="cr03"></span><span class="sa_txt03">친족 가구</span>  
+			                                    </div>
+			                                    <div class="txt_box02 div_tot"> 
+			                                        <p class="sa_txt01">총 가구수</p><p class="sa_txt02" id="totFamilyCT1" data-total="10000" data-reset="00<span class='sa_txt04'>가구</span>">10,000<span class="sa_txt04">가구</span></p>                         
+			                                    </div>
+			                                    <div class="div_year">
+			                                        <p id="familyBaseYearCT1" class="sa_txt03" data-reset="">(2020년 기준)</p>
+			                                    </div>
+			                                </div>
+			                                <div class="div_block">
+												<div class="div_block_msg">
+													<span>영역 내 가구 정보 값은 '0' 입니다.</span>
+												</div>
+											</div>
+			                            </li>
+			                            <li class="sec03 secMem secCT2 slick-items">
+			                                <h4>가구</h4>
+			                                <div class="div_basic">	                                	
+			                                    <div class="txt_box01">	                                    	
+			                                        <p class="sa_txt01" id="perFamilyTxtCT2" data-reset="">전체 가구 중 친족 가구</p>
+			                                        <p class="sa_txt02" id="perFamilyCT2" data-reset="">1,000가구</p>
+			                                        <a href="#" class="zoomBox left" title="상세" data-type="family">
+			                                            <span class="ball"></span>
+			                                        </a>
+			                                    </div>
+			                                    <div id="familyChartCT2" class="cht_box01 reset chart"></div>
+			                                    <div class="txt_box03">
+			                                        <span class="cr01"></span><span class="sa_txt01 mR5">비친족 가구</span>
+			                                        <span class="cr02"></span><span class="sa_txt02">1인 가구</span>
+			                                        <span class="cr03"></span><span class="sa_txt03">친족 가구</span>  
+			                                    </div>
+			                                    <div class="txt_box02 div_tot"> 
+			                                        <p class="sa_txt01">총 가구수</p><p class="sa_txt02" id="totFamilyCT2" data-total="10000" data-reset="00<span class='sa_txt04'>가구</span>">10,000<span class="sa_txt04">가구</span></p>                         
+			                                    </div>
+			                                    <div class="div_year">
+			                                        <p id="familyBaseYearCT2" class="sa_txt03" data-reset="">(2020년 기준)</p>
+			                                    </div>
+			                                </div>
+			                                <div class="div_block">
+												<div class="div_block_msg">
+													<span>영역 내 가구 정보 값은 '0' 입니다.</span>
+												</div>
+											</div>
+			                            </li>
+			                            <li class="sec04 secMem secCT1 slick-items">
+			                                <h4>주택</h4>
+			                                <div class="div_basic">	                                	
+			                                    <div class="txt_box01">	                                    	
+			                                        <p class="sa_txt01" id="perHouseTxtCT1" data-reset="">전체 주택 중 아파트</p>
+			                                        <p class="sa_txt02" id="perHouseCT1" data-reset="">1,000호</p>
+			                                        <a href="#" class="zoomBox left" title="상세" data-type="house">
+			                                            <span class="ball"></span>
+			                                        </a>
+			                                    </div>
+			                                    <div id="houseChartCT1" class="cht_box01 reset chart"></div>
+			                                    <div class="txt_box03">
+			                                        <ul>
+			                                            <li class="list_st cb"><span class="cr01"></span><span class="sa_txt01">단독주택</span></li>
+			                                            <li class="list_st cb"><span class="cr02"></span><span class="sa_txt01">아파트</span></li>
+			                                            <li class="list_st cb"><span class="cr03"></span><span class="sa_txt01">연립주택</span></li>
+			                                            <li class="list_st cb"><span class="cr04"></span><span class="sa_txt01">다세대주택</span></li>
+			                                            <li class="list_st cb"><span class="cr05"></span><span class="sa_txt01">비주거용</span></li>
+			                                            <li class="list_st cb"><span class="sa_txt01 ml16">건물내 주택</span></li>
+			                                        </ul>
+			                                    </div>
+			                                    <div class="txt_box02 div_tot">
+			                                        <p class="sa_txt01">총 주택수</p><p class="sa_txt02" id="totHouseCT1" data-total="10000" data-reset="00<span class='sa_txt04'>호</span>">10,000<span class="sa_txt04">호</span></p>
+			                                    </div>
+			                                    <div class="div_year">
+			                                        <p id="houseBaseYearCT1" class="sa_txt03" data-reset="">(2020년 기준)</p>
+			                                    </div>
+			                                </div>
+			                                <div class="div_block">
+												<div class="div_block_msg">
+													<span>영역 내 주택 정보 값은 '0' 입니다.</span>
+												</div>
+											</div>
+			                            </li>
+			                            <li class="sec04 secMem secCT2 slick-items">
+			                                <h4>주택</h4>
+			                                <div class="div_basic">	                                	
+			                                    <div class="txt_box01">	                                    	
+			                                        <p class="sa_txt01" id="perHouseTxtCT2" data-reset="">전체 주택 중 아파트</p>
+			                                        <p class="sa_txt02" id="perHouseCT2" data-reset="">1,000호</p>
+			                                        <a href="#" class="zoomBox left" title="상세" data-type="house">
+			                                            <span class="ball"></span>
+			                                        </a>
+			                                    </div>
+			                                    <div id="houseChartCT2" class="cht_box01 reset chart"></div>
+			                                    <div class="txt_box03">
+			                                        <ul>
+			                                            <li class="list_st cb"><span class="cr01"></span><span class="sa_txt01">단독주택</span></li>
+			                                            <li class="list_st cb"><span class="cr02"></span><span class="sa_txt01">아파트</span></li>
+			                                            <li class="list_st cb"><span class="cr03"></span><span class="sa_txt01">연립주택</span></li>
+			                                            <li class="list_st cb"><span class="cr04"></span><span class="sa_txt01">다세대주택</span></li>
+			                                            <li class="list_st cb"><span class="cr05"></span><span class="sa_txt01">비주거용</span></li>
+			                                            <li class="list_st cb"><span class="sa_txt01 ml16">건물내 주택</span></li>
+			                                        </ul>
+			                                    </div>
+			                                    <div class="txt_box02 div_tot">
+			                                        <p class="sa_txt01">총 주택수</p><p class="sa_txt02" id="totHouseCT2" data-total="10000" data-reset="00<span class='sa_txt04'>호</span>">10,000<span class="sa_txt04">호</span></p>
+			                                    </div>
+			                                    <div class="div_year">
+			                                        <p id="houseBaseYearCT2" class="sa_txt03" data-reset="">(2020년 기준)</p>
+			                                    </div>
+			                                </div>
+			                                <div class="div_block">
+												<div class="div_block_msg">
+													<span>영역 내 주택 정보 값은 '0' 입니다.</span>
+												</div>
+											</div>
+			                            </li>
+			                            <li class="sec05 secMem secCT1 slick-items">
+			                                <h4>사업체</h4>
+			                                <div class="div_basic">	                                	
+			                                    <div class="txt_box01">
+			                                        <p class="sa_txt01">전체 중 분포율 TOP3</p>
+			                                        <p class="sa_txt02" id="top3CorpPerAmongAllCT1" data-reset="0개">10,000개</p>
+			                                        <a href="#" class="zoomBox left" title="상세" data-type="corp">
+			                                            <span class="ball"></span>
+			                                        </a>
+			                                    </div>
+			                                    <div id="corpChartCT1" class="cht_box01 reset chart"></div>                  
+			                                    <div class="txt_box03">
+			                                        <ul>
+			                                            <li class="list_st"><span class="cr01" data-reset-clr="#d4d4d4" style="background: rgb(214, 107, 68);"></span><span class="sa_txt01 mightOverflow" id="top1_corp_txtCT1" data-reset="TOP1 사업체">1. 음식점업 (전체 대비 13.5 %)</span></li>
+			                                            <li class="list_st"><span class="cr02" data-reset-clr="#d4d4d4" style="background: rgb(255, 170, 1);"></span><span class="sa_txt01 mightOverflow" id="top2_corp_txtCT1" data-reset="TOP2 사업체">2. 주점 및 비알코올 음료점업 (전체 대비 5.6 %)</span></li>
+			                                            <li class="list_st"><span class="cr03" data-reset-clr="#d4d4d4" style="background: rgb(254, 215, 71);"></span><span class="sa_txt01 mightOverflow" id="top3_corp_txtCT1" data-reset="TOP3 사업체">3. 섬유, 의복, 신발 및 가죽제품 소매업 (전체 대비 5.2 %)</span></li>
+			                                        </ul>
+			                                    </div>	                                    
+			                                    <div class="txt_box02 div_tot">                         
+			                                        <p class="sa_txt01">총 사업체수</p><p class="sa_txt02" id="totCorpCT1" data-total="20000" data-reset="00<span class='sa_txt04'>개</span>">20,000<span class="sa_txt04">개</span></p>
+			                                    </div>
+			                                    <div class="div_year">
+			                                        <p id="corpBaseYearCT1" class="sa_txt03" data-reset="">(2020년 기준)</p>
+			                                    </div>	                                    
+			                                </div>
+			                                <div class="div_block">
+												<div class="div_block_msg">
+													<span>영역 내 사업체 정보 값은 '0' 입니다.</span>
+												</div>
+											</div>
+			                            </li>
+			                            <li class="sec05 secMem secCT2 slick-items">
+			                                <h4>사업체</h4>
+			                                <div class="div_basic">	                                	
+			                                    <div class="txt_box01">
+			                                        <p class="sa_txt01">전체 중 분포율 TOP3</p>
+			                                        <p class="sa_txt02" id="top3CorpPerAmongAllCT2" data-reset="0개">10,000개</p>
+			                                        <a href="#" class="zoomBox left" title="상세" data-type="corp">
+			                                            <span class="ball"></span>
+			                                        </a>
+			                                    </div>
+			                                    <div id="corpChartCT2" class="cht_box01 reset chart"></div>                  
+			                                    <div class="txt_box03">
+			                                        <ul>
+			                                            <li class="list_st"><span class="cr01" data-reset-clr="#d4d4d4" style="background: rgb(214, 107, 68);"></span><span class="sa_txt01 mightOverflow" id="top1_corp_txtCT2" data-reset="TOP1 사업체">1. 음식점업 (전체 대비 13.5 %)</span></li>
+			                                            <li class="list_st"><span class="cr02" data-reset-clr="#d4d4d4" style="background: rgb(255, 170, 1);"></span><span class="sa_txt01 mightOverflow" id="top2_corp_txtCT2" data-reset="TOP2 사업체">2. 주점 및 비알코올 음료점업 (전체 대비 5.6 %)</span></li>
+			                                            <li class="list_st"><span class="cr03" data-reset-clr="#d4d4d4" style="background: rgb(254, 215, 71);"></span><span class="sa_txt01 mightOverflow" id="top3_corp_txtCT2" data-reset="TOP3 사업체">3. 섬유, 의복, 신발 및 가죽제품 소매업 (전체 대비 5.2 %)</span></li>
+			                                        </ul>
+			                                    </div>	                                    
+			                                    <div class="txt_box02 div_tot">                         
+			                                        <p class="sa_txt01">총 사업체수</p><p class="sa_txt02" id="totCorpCT2" data-total="20000" data-reset="00<span class='sa_txt04'>개</span>">20,000<span class="sa_txt04">개</span></p>
+			                                    </div>
+			                                    <div class="div_year">
+			                                        <p id="corpBaseYearCT2" class="sa_txt03" data-reset="">(2020년 기준)</p>
+			                                    </div>	                                    
+			                                </div>
+			                                <div class="div_block">
+												<div class="div_block_msg">
+													<span>영역 내 사업체 정보 값은 '0' 입니다.</span>
+												</div>
+											</div>
+			                            </li>
+			                            <li class="sec06 secMem secCT1 slick-items">
+			                                <h4>종사자</h4>
+			                                <div class="div_basic">	                                	
+			                                    <div class="txt_box01">
+			                                        <p class="sa_txt01">전체 중 분포율 TOP3</p>
+			                                        <p class="sa_txt02" id="top3WorkerPerAmongAllCT1" data-reset="0명">10,000명</p>
+			                                        <a href="#" class="zoomBox left" title="상세" data-type="employee">
+			                                            <span class="ball"></span>
+			                                        </a>
+			                                    </div>
+			                                    <div id="workerChartCT1" class="cht_box01 reset chart"></div>                     
+			                                    <div class="txt_box03">
+			                                        <ul>
+			                                            <li class="list_st"><span class="cr01" data-reset-clr="#d4d4d4" style="background: rgb(214, 107, 68);"></span><span class="sa_txt01 mightOverflow" id="top1_worker_txtCT1" data-reset="TOP1 사업체">1. 음식점업 (전체 대비 7.8 %)</span></li>
+			                                            <li class="list_st"><span class="cr02" data-reset-clr="#d4d4d4" style="background: rgb(255, 170, 1);"></span><span class="sa_txt01 mightOverflow" id="top2_worker_txtCT1" data-reset="TOP2 사업체">2. 비거주 복지시설 운영업 (전체 대비 4.0 %)</span></li>
+			                                            <li class="list_st"><span class="cr03" data-reset-clr="#d4d4d4" style="background: rgb(254, 215, 71);"></span><span class="sa_txt01 mightOverflow" id="top3_worker_txtCT1" data-reset="TOP3 사업체">3. 병원 (전체 대비 3.7 %)</span></li>
+			                                        </ul>
+			                                    </div>	                                    
+			                                    <div class="txt_box02 div_tot">                         
+			                                        <p class="sa_txt01">총 종사자수</p><p class="sa_txt02" id="totWorkerCT1" data-total="20000" data-reset="00<span class='sa_txt04'>명</span>">20,000<span class="sa_txt04">명</span></p>                          
+			                                    </div>
+			                                    <div class="div_year">
+			                                        <p id="workerBaseYearCT1" class="sa_txt03" data-reset="">(2020년 기준)</p>
+			                                    </div>	                                    
+			                                </div>
+			                                <div class="div_block">
+												<div class="div_block_msg">
+													<span>영역 내 종사자 정보 값은 '0' 입니다.</span>
+												</div>
+											</div>
+			                            </li>
+			                            <li class="sec06 secMem secCT2 slick-items">
+			                                <h4>종사자</h4>
+			                                <div class="div_basic">	                                	
+			                                    <div class="txt_box01">
+			                                        <p class="sa_txt01">전체 중 분포율 TOP3</p>
+			                                        <p class="sa_txt02" id="top3WorkerPerAmongAllCT2" data-reset="0명">10,000명</p>
+			                                        <a href="#" class="zoomBox left" title="상세" data-type="employee">
+			                                            <span class="ball"></span>
+			                                        </a>
+			                                    </div>
+			                                    <div id="workerChartCT2" class="cht_box01 reset chart"></div>                     
+			                                    <div class="txt_box03">
+			                                        <ul>
+			                                            <li class="list_st"><span class="cr01" data-reset-clr="#d4d4d4" style="background: rgb(214, 107, 68);"></span><span class="sa_txt01 mightOverflow" id="top1_worker_txtCT2" data-reset="TOP1 사업체">1. 음식점업 (전체 대비 7.8 %)</span></li>
+			                                            <li class="list_st"><span class="cr02" data-reset-clr="#d4d4d4" style="background: rgb(255, 170, 1);"></span><span class="sa_txt01 mightOverflow" id="top2_worker_txtCT2" data-reset="TOP2 사업체">2. 비거주 복지시설 운영업 (전체 대비 4.0 %)</span></li>
+			                                            <li class="list_st"><span class="cr03" data-reset-clr="#d4d4d4" style="background: rgb(254, 215, 71);"></span><span class="sa_txt01 mightOverflow" id="top3_worker_txtCT2" data-reset="TOP3 사업체">3. 병원 (전체 대비 3.7 %)</span></li>
+			                                        </ul>
+			                                    </div>	                                    
+			                                    <div class="txt_box02 div_tot">                         
+			                                        <p class="sa_txt01">총 종사자수</p><p class="sa_txt02" id="totWorkerCT2" data-total="20000" data-reset="00<span class='sa_txt04'>명</span>">20,000<span class="sa_txt04">명</span></p>                          
+			                                    </div>
+			                                    <div class="div_year">
+			                                        <p id="workerBaseYearCT2" class="sa_txt03" data-reset="">(2020년 기준)</p>
+			                                    </div>	                                    
+			                                </div>
+			                                <div class="div_block">
+												<div class="div_block_msg">
+													<span>영역 내 종사자 정보 값은 '0' 입니다.</span>
+												</div>
+											</div>
+			                            </li>
+			                    	</ul>
+			                	</div> 
+			                </div>
+			                <div class="chk chk03">
+			                    <div class="data-wrap comparison-wrap">
+				                    <!-- s:비교권역선택 -->
+				                    <div class="comparison-panel slick-box2">
+				                        <div class="comparison-item comparison-item01 slick-items2" data-idx-id="ppltn_density">
+				                            <header class="comparison-header">
+				                                <h3>인구밀도 <span>단위 : 명/km2</span></h3>
+				                            </header>
+				                            <div class="comparison-body">
+				                                <div class="flex-box">
+				                                     <div class="slider-conbox">
+				                                        <div class="slider-wrap">
+				                                            <div class="flex-box">
+				                                                <span class="full-left">1위</span>
+				                                                <div class="slider type-color01">
+				                                                    <div class="bar"></div>
+				                                                    <div class="dot dot01 btn-modal" data-modal="#densely" data-cur-rank-id="">
+				                                                            <span>50위</span>
+				                                                    </div>
+				                                                    <!-- <div class="dot btn-modal" data-modal="#densely" data-cur-rank-id=""></div> -->
+				                                                </div>
+				                                                <span class="full-right">67위</span>
+				                                            </div>
+				                                        </div>
+				                                    </div>
+				                                </div>
+				                                <div class="chart-conbox type-color01">
+				                                	<div class="line-01">
+				                                        <!-- <strong>50<span>위</span></strong> -->
+				                                        <p class="type-color01">전년도 대비<span>1.88% <b>▲</b></span></p>
+				                                    </div>
+				                                    <dl class="color-item01">
+				                                        <dt class="mightOverflow">수도권1지역</dt>    
+				                                        <dd>
+				                                            <div></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                    <dl class="color-item02">
+				                                        <dt class="mightOverflow">도시평균</dt>    
+				                                        <dt>도시평균</dt>
+				                                        <dd>
+				                                            <div></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                </div>
+				                                <div class="graph-box">
+				                                	<div class="graph-in"></div>
+				                                </div>
+				                            </div>
+				                        </div>
+				                        <div class="comparison-item comparison-item01 slick-items2" data-idx-id="avg_age">
+				                            <header class="comparison-header">
+				                                <h3>평균나이 <span>단위 : 세(나이)</span></h3>
+				                            </header>
+				                            <div class="comparison-body">
+				                                <div class="flex-box">
+				                                     <div class="slider-conbox">
+				                                        <div class="slider-wrap">
+				                                            <div class="flex-box">
+				                                                <span class="full-left">1위</span>
+				                                                <div class="slider type-color01">
+				                                                    <div class="bar"></div>
+				                                                    <div class="dot dot01 btn-modal" data-modal="#densely" data-cur-rank-id="">
+				                                                            <span>50위</span>
+				                                                    </div>
+				                                                    <!-- <div class="dot btn-modal" data-modal="#densely" data-cur-rank-id=""></div> -->
+				                                                </div>
+				                                                <span class="full-right">67위</span>
+				                                            </div>
+				                                        </div>
+				                                    </div>
+				                                </div>
+				                                <div class="chart-conbox type-color01">
+				                                    <div class="line-01">
+				                                        <!-- <strong>50<span>위</span></strong> -->
+				                                    	<p class="type-color01">전년도 대비<span>1.88% <b>▲</b></span></p>
+				                                 	</div>
+				                                    <dl class="color-item01">
+				                                        <dt class="mightOverflow">수도권1지역</dt>    
+				                                        <dd>
+				                                            <div></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                    <dl class="color-item02">
+				                                        <dt class="mightOverflow">도시평균</dt>    
+				                                        <dd>
+				                                            <div></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                </div>
+				                                <div class="graph-box">
+				                                	<div class="graph-in"></div>
+				                                </div>
+				                            </div>
+				                        </div>
+				                        <div class="comparison-item comparison-item01 slick-items2" data-idx-id="old_child_ratio">
+				                            <header class="comparison-header">
+				                                <h3>노령화지수 <span>단위 : 명/100명당</span></h3>
+				                            </header>
+				                            <div class="comparison-body">
+				                                <div class="flex-box">
+				                                     <div class="slider-conbox">
+				                                        <div class="slider-wrap">
+				                                            <div class="flex-box">
+				                                                <span class="full-left">1위</span>
+				                                                <div class="slider type-color01">
+				                                                    <div class="bar"></div>
+				                                                    <div class="dot dot01 btn-modal" data-modal="#densely" data-cur-rank-id="">
+				                                                            <span>50위</span>
+				                                                    </div>
+				                                                    <!-- <div class="dot btn-modal" data-modal="#densely" data-cur-rank-id=""></div> -->
+				                                                </div>
+				                                                <span class="full-right">67위</span>
+				                                            </div>
+				                                        </div>
+				                                    </div>
+				                                </div>
+				                                <div class="chart-conbox type-color01">
+				                                	<div class="line-01">
+				                                        <!-- <strong>50<span>위</span></strong> -->
+				                                        <p class="type-color01">전년도 대비<span>1.88% <b>▲</b></span></p>
+				                                    </div>
+				                                    <dl class="color-item01">
+				                                        <dt class="mightOverflow">수도권1지역</dt>    
+				                                        <dd>
+				                                            <div></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                    <dl class="color-item02">
+				                                        <dt class="mightOverflow">도시평균</dt>    
+				                                        <dd>
+				                                            <div></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                </div>
+				                                <div class="graph-box">
+				                                	<div class="graph-in"></div>
+				                                </div>
+				                            </div>
+				                        </div>
+				                        <div class="comparison-item comparison-item01 slick-items2" data-idx-id="psn_1_family_per">
+				                            <header class="comparison-header">
+				                                <h3>1인 가구 비율 <span>단위 : %</span></h3>
+				                            </header>
+				                            <div class="comparison-body">
+				                                <div class="flex-box">
+				                                     <div class="slider-conbox">
+				                                        <div class="slider-wrap">
+				                                            <div class="flex-box">
+				                                                <span class="full-left">1위</span>
+				                                                <div class="slider type-color01">
+				                                                    <div class="bar"></div>
+				                                                    <div class="dot dot01 btn-modal" data-modal="#densely" data-cur-rank-id="">
+				                                                            <span>50위</span>
+				                                                    </div>
+				                                                    <!-- <div class="dot btn-modal" data-modal="#densely" data-cur-rank-id=""></div> -->
+				                                                </div>
+				                                                <span class="full-right">67위</span>
+				                                            </div>
+				                                        </div>
+				                                    </div>
+				                                </div>
+				                                <div class="chart-conbox type-color01">
+				                                	<div class="line-01">
+				                                        <!-- <strong>50<span>위</span></strong> -->
+				                                        <p class="type-color01">전년도 대비<span>1.88% <b>▲</b></span></p>
+				                                    </div>
+				                                    <dl class="color-item01">
+				                                        <dt class="mightOverflow">수도권1지역</dt>    
+				                                        <dd>
+				                                            <div></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                    <dl class="color-item02">
+				                                        <dt class="mightOverflow">도시평균</dt>    
+				                                        <dd>
+				                                            <div></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                </div>
+				                                <div class="graph-box">
+				                                	<div class="graph-in"></div>
+				                                </div>
+				                            </div>
+				                        </div>
+				                        <div class="comparison-item comparison-item01 slick-items2" data-idx-id="apt_per">
+				                            <header class="comparison-header">
+				                                <h3>아파트 비율 <span>단위 : %</span></h3>
+				                            </header>
+				                            <div class="comparison-body">
+				                                <div class="flex-box">
+				                                     <div class="slider-conbox">
+				                                        <div class="slider-wrap">
+				                                            <div class="flex-box">
+				                                                <span class="full-left">1위</span>
+				                                                <div class="slider type-color01">
+				                                                    <div class="bar"></div>
+				                                                    <div class="dot dot01 btn-modal" data-modal="#densely" data-cur-rank-id="">
+				                                                            <span>50위</span>
+				                                                    </div>
+				                                                    <!-- <div class="dot btn-modal" data-modal="#densely" data-cur-rank-id=""></div> -->
+				                                                </div>
+				                                                <span class="full-right">67위</span>
+				                                            </div>
+				                                        </div>
+				                                    </div>
+				                                </div>
+				                                <div class="chart-conbox type-color01">
+				                                	<div class="line-01">
+				                                        <!-- <strong>50<span>위</span></strong> -->
+				                                        <p class="type-color01">전년도 대비<span>1.88% <b>▲</b></span></p>
+				                                    </div>
+				                                    <dl class="color-item01">
+				                                        <dt class="mightOverflow">수도권1지역</dt>    
+				                                        <dd>
+				                                            <div></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                    <dl class="color-item02">
+				                                        <dt class="mightOverflow">도시평균</dt>    
+				                                        <dd>
+				                                            <div></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                </div>
+				                                <div class="graph-box">
+				                                	<div class="graph-in"></div>
+				                                </div>
+				                            </div>
+				                        </div>
+				                    </div>
+				                    <!-- e:비교권역선택 -->
+			                    </div>
+							</div>
+							<div class="chk chk05">
+			                    <div class="data-wrap comparison-wrap">
+				                    <!-- s:비교권역선택 -->
+				                    <div class="comparison-panel slick-box2">
+				                        <div class="comparison-item comparison-item03 slick-items2" data-idx-id="ppltn_density">
+				                            <header class="comparison-header">
+				                                <h3>인구밀도 <span>단위 : 명/km2</span></h3>
+				                            </header>
+				                            <div class="comparison-body">
+				                                <div class="flex_wrap">
+				                                    <div class="left">
+				                                        <div class="slider-conbox">
+				                                            <div class="slider-wrap">
+				                                                <div class="flex-box">
+				                                                    <span class="full-left">1위</span>
+				                                                    <div class="slider type-color01">
+				                                                        <div class="bar"></div>
+				                                                        <div class="dot dot01">
+				                                                            <span>50위</span>
+				                                                        </div>
+				                                                    </div>
+				                                                    <span class="full-right">67위</span>
+				                                                </div>
+				                                            </div>
+				                                        </div>
+				                                    </div>
+				                                    <div class="right">
+				                                        <div class="slider-conbox">
+				                                            <div class="slider-wrap">
+				                                                <div class="flex-box">
+				                                                    <span class="full-left">1위</span>
+				                                                    <div class="slider type-color04">
+				                                                        <div class="bar"></div>
+				                                                        <div class="dot dot02">
+				                                                            <span>50위</span>
+				                                                        </div>
+				                                                    </div>
+				                                                    <span class="full-right">67위</span>
+				                                                </div>
+				                                            </div>
+				                                        </div>
+				                                    </div>
+				                                </div>
+				                                <div class="chart-conbox type-color01">
+				                                    <dl class="color-item01">
+				                                        <dt class="mightOverflow">수도권1지역</dt>
+				                                        <dd>
+				                                            <div class="per-240"></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                    <dl class="color-item03">
+				                                        <dt class="mightOverflow">수도권1지역</dt>
+				                                        <dd>
+				                                            <div class="per-240"></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                    <dl class="color-item02">
+				                                        <dt>경북1지역</dt>
+				                                        <dd>
+				                                            <div class="per-120"></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                </div>
+				                                <div class="graph-box">
+				                                	<div class="graph-in"></div>
+				                                </div>
+				                            </div>
+				                        </div>
+				                        <div class="comparison-item comparison-item03 slick-items2" data-idx-id="avg_age">
+				                            <header class="comparison-header">
+				                                <h3>평균나이 <span>단위 : 세(나이)</span></h3>
+				                            </header>
+				                            <div class="comparison-body">
+				                                <div class="flex_wrap">
+				                                    <div class="left">
+				                                        <div class="slider-conbox">
+				                                            <div class="slider-wrap">
+				                                                <div class="flex-box">
+				                                                    <span class="full-left">1위</span>
+				                                                    <div class="slider type-color01">
+				                                                        <div class="bar"></div>
+				                                                        <div class="dot dot01">
+				                                                            <span>50위</span>
+				                                                        </div>
+				                                                    </div>
+				                                                    <span class="full-right">67위</span>
+				                                                </div>
+				                                            </div>
+				                                        </div>
+				                                    </div>
+				                                    <div class="right">
+				                                        <div class="slider-conbox">
+				                                            <div class="slider-wrap">
+				                                                <div class="flex-box">
+				                                                    <span class="full-left">1위</span>
+				                                                    <div class="slider type-color04">
+				                                                        <div class="bar"></div>
+				                                                        <div class="dot dot02">
+				                                                            <span>50위</span>
+				                                                        </div>
+				                                                    </div>
+				                                                    <span class="full-right">67위</span>
+				                                                </div>
+				                                            </div>
+				                                        </div>
+				                                    </div>
+				                                </div>
+				                                <div class="chart-conbox type-color01">
+				                                    <dl class="color-item01">
+				                                        <dt class="mightOverflow">수도권1지역</dt>    
+				                                        <dd>
+				                                            <div class="per-240"></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                    <dl class="color-item03">
+				                                        <dt class="mightOverflow">수도권1지역</dt>    
+				                                        <dd>
+				                                            <div class="per-240"></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                    <dl class="color-item02">
+				                                        <dt>경북1지역</dt>    
+				                                        <dd>
+				                                            <div class="per-120"></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                </div>
+				                                <div class="graph-box">
+				                                	<div class="graph-in"></div>  
+				                                </div>
+				                            </div>
+				                        </div>
+				                        <div class="comparison-item comparison-item03 slick-items2" data-idx-id="old_child_ratio">
+				                            <header class="comparison-header">
+				                                <h3>노령화지수 <span>단위 : 명/100명당</span></h3>
+				                            </header>
+				                            <div class="comparison-body">
+				                                <div class="flex_wrap">
+				                                    <div class="left">
+				                                        <div class="slider-conbox">
+				                                            <div class="slider-wrap">
+				                                                <div class="flex-box">
+				                                                    <span class="full-left">1위</span>
+				                                                    <div class="slider type-color01">
+				                                                        <div class="bar"></div>
+				                                                        <div class="dot dot01">
+				                                                            <span>50위</span>
+				                                                        </div>
+				                                                    </div>
+				                                                    <span class="full-right">67위</span>
+				                                                </div>
+				                                            </div>
+				                                        </div>
+				                                    </div>
+				                                    <div class="right">
+				                                        <div class="slider-conbox">
+				                                            <div class="slider-wrap">
+				                                                <div class="flex-box">
+				                                                    <span class="full-left">1위</span>
+				                                                    <div class="slider type-color04">
+				                                                        <div class="bar"></div>
+				                                                        <div class="dot dot02">
+				                                                            <span>50위</span>
+				                                                        </div>
+				                                                    </div>
+				                                                    <span class="full-right">67위</span>
+				                                                </div>
+				                                            </div>
+				                                        </div>
+				                                    </div>
+				                                </div>
+				                                <div class="chart-conbox type-color01">
+				                                    <dl class="color-item01">
+				                                        <dt class="mightOverflow">수도권1지역</dt>    
+				                                        <dd>
+				                                            <div class="per-240"></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                    <dl class="color-item03">
+				                                        <dt class="mightOverflow">수도권1지역</dt>    
+				                                        <dd>
+				                                            <div class="per-240"></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                    <dl class="color-item02">
+				                                        <dt>경북1지역</dt>    
+				                                        <dd>
+				                                            <div class="per-120"></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                </div>
+				                                <div class="graph-box">
+				                                	<div class="graph-in"></div>  
+				                                </div>
+				                            </div>
+				                        </div>
+				                        <div class="comparison-item comparison-item03 slick-items2" data-idx-id="psn_1_family_per">
+				                            <header class="comparison-header">
+				                                <h3>1인 가구 비율 <span>단위 : %</span></h3>
+				                            </header>
+				                            <div class="comparison-body">
+				                                <div class="flex_wrap">
+				                                    <div class="left">
+				                                        <div class="slider-conbox">
+				                                            <div class="slider-wrap">
+				                                                <div class="flex-box">
+				                                                    <span class="full-left">1위</span>
+				                                                    <div class="slider type-color01">
+				                                                        <div class="bar"></div>
+				                                                        <div class="dot dot01">
+				                                                            <span>50위</span>
+				                                                        </div>
+				                                                    </div>
+				                                                    <span class="full-right">67위</span>
+				                                                </div>
+				                                            </div>
+				                                        </div>
+				                                    </div>
+				                                    <div class="right">
+				                                        <div class="slider-conbox">
+				                                            <div class="slider-wrap">
+				                                                <div class="flex-box">
+				                                                    <span class="full-left">1위</span>
+				                                                    <div class="slider type-color04">
+				                                                        <div class="bar"></div>
+				                                                        <div class="dot dot02">
+				                                                            <span>50위</span>
+				                                                        </div>
+				                                                    </div>
+				                                                    <span class="full-right">67위</span>
+				                                                </div>
+				                                            </div>
+				                                        </div>
+				                                    </div>
+				                                </div>
+				                                <div class="chart-conbox type-color01">
+				                                    <dl class="color-item01">
+				                                        <dt class="mightOverflow">수도권1지역</dt>    
+				                                        <dd>
+				                                            <div class="per-240"></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                    <dl class="color-item03">
+				                                        <dt class="mightOverflow">수도권1지역</dt>    
+				                                        <dd>
+				                                            <div class="per-240"></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                    <dl class="color-item02">
+				                                        <dt>경북1지역</dt>    
+				                                        <dd>
+				                                            <div class="per-120"></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                </div>
+				                                <div class="graph-box">
+				                                	<div class="graph-in"></div>  
+				                                </div>
+				                            </div>
+				                        </div>
+				                        <div class="comparison-item comparison-item03 slick-items2" data-idx-id="apt_per">
+				                            <header class="comparison-header">
+				                                <h3>아파트 비율 <span>단위 : %</span></h3>
+				                            </header>
+				                            <div class="comparison-body">
+				                                <div class="flex_wrap">
+				                                    <div class="left">
+				                                        <div class="slider-conbox">
+				                                            <div class="slider-wrap">
+				                                                <div class="flex-box">
+				                                                    <span class="full-left">1위</span>
+				                                                    <div class="slider type-color01">
+				                                                        <div class="bar"></div>
+				                                                        <div class="dot dot01">
+				                                                            <span>50위</span>
+				                                                        </div>
+				                                                    </div>
+				                                                    <span class="full-right">67위</span>
+				                                                </div>
+				                                            </div>
+				                                        </div>
+				                                    </div>
+				                                    <div class="right">
+				                                        <div class="slider-conbox">
+				                                            <div class="slider-wrap">
+				                                                <div class="flex-box">
+				                                                    <span class="full-left">1위</span>
+				                                                    <div class="slider type-color04">
+				                                                        <div class="bar"></div>
+				                                                        <div class="dot dot02">
+				                                                            <span>50위</span>
+				                                                        </div>
+				                                                    </div>
+				                                                    <span class="full-right">67위</span>
+				                                                </div>
+				                                            </div>
+				                                        </div>
+				                                    </div>
+				                                </div>
+				                                <div class="chart-conbox type-color01">
+				                                    <dl class="color-item01">
+				                                        <dt class="mightOverflow">수도권1지역</dt>    
+				                                        <dd>
+				                                            <div class="per-240"></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                    <dl class="color-item03">
+				                                        <dt class="mightOverflow">수도권1지역</dt>    
+				                                        <dd>
+				                                            <div class="per-240"></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                    <dl class="color-item02">
+				                                        <dt>경북1지역</dt>    
+				                                        <dd>
+				                                            <div class="per-120"></div>
+				                                            <span>6,147,516</span>
+				                                        </dd>
+				                                    </dl>
+				                                </div>
+				                                <div class="graph-box">
+				                                	<div class="graph-in"></div>  
+				                                </div>
+				                            </div>
+				                        </div>		                        	                        
+				                    </div>
+				                    <!-- e:비교권역선택 -->	                    
+			                    </div>
+			                </div>
+						</div>
+			
+						<div id="tab2" class="tab_content">
+							면적
+						</div>
+						<div id="tab3" class="tab_content">
+							인구
+						</div>
+						<div id="tab4" class="tab_content">
+							가구
+						</div>
+						<div id="tab5" class="tab_content">
+							주택
+						</div>
+						<div id="tab6" class="tab_content">
+							사업체
+						</div>
+						<div id="tab7" class="tab_content">
+							종사자
+						</div>
+						<div id="tab8" class="tab_content">
+							인구밀도
+						</div>
+						<div id="tab9" class="tab_content">
+							평균나이
+						</div>
+						<div id="tab10" class="tab_content">
+							노령화지수
+						</div>
+						<div id="tab11" class="tab_content">
+							1인가구비율
+						</div>
+						<div id="tab12" class="tab_content">
+							아파트비율
+						</div>	
+					</div>
+			                
+	                
+	            </div>
+	            <!-- // extend-data -->
+	            <div class="control-foot control-wrap">
+	                <button type="button" class="pl"><img src="/images/urban/btn-foot3.png" alt="확대"></button>
+	                <button type="button" class="mi"><img src="/images/urban/btn-foot2.png" alt="축소"></button>
+	                <button type="button" class="mapType" data-map-type="normal">백지도</button>
+	            </div>
+	            <!-- s:지표순위 검색 popup -->
+	            <!--
+	            <div class="cst-popup">
+	                <div class="pop-title">
+	                    <h3>지표순위 검색</h3>
+	                    <a href="#" class="menu-close"></a>
+	                </div>
+	                <div class="pop-contents">
+	                    <div class="tab-wrap">
+	                        <ul class="tab-menu n6">
+	                            <li><a href="#">인구밀도</a></li>
+	                            <li><a href="#">평균나이</a></li>
+	                            <li><a href="#">노령화지수</a></li>
+	                            <li><a href="#">1인가구비율</a></li>
+	                            <li><a href="#">아파트비율</a></li>
+	                            <li><a href="#">노후건축물비율</a></li>
+	                        </ul>
+	                    </div>
+	                    <div class="tab-con">
+	                        <p>· 67개 도시권역 중</p>
+	                        <div class="graph-conbox">
+	                            <strong>순위</strong>
+	                            <div class="graph-wrap">
+	                                <div class="graph">
+	                                    <div class="bar"></div>
+	                                    <div class="dot">
+	                                        <span>50위</span>
+	                                    </div>
+	                                </div>
+	                                <div class="graph-legend">
+	                                    <span class="full-left">1위</span>
+	                                    <span class="full-right">67위</span>
+	                                </div>
+	                            </div>
+	                        </div>
+	                    </div>
+	                    <div class="tab-con">
+	                        <p>· [평균나이] 67개 도시권역 중</p>
+	                    </div>
+	                    <div class="tab-con">
+	                        <p>· [노령화지수] 67개 도시권역 중</p>
+	                    </div>
+	                    <div class="tab-con">
+	                        <p>· [1인가구비율] 67개 도시권역 중</p>
+	                    </div>
+	                    <div class="tab-con">
+	                        <p>· [아파트비율] 67개 도시권역 중</p>
+	                    </div>
+	                    <div class="tab-con">
+	                        <p>· [노후건축물비율] 67개 도시권역 중</p>
+	                    </div>
+	                </div>
+	            </div>
+	            -->
+	            <!-- // e:지표순위 검색 popup -->
+	            <!-- s:도시 변화 popup -->
+	            <div class="time-legend">
+	            	<!-- SGIS4_220211_도시화_수정_시작 -->
+	            	<div style="margin:10px 8px;">
+	            		<span class="legend-bar-1"></span>
+	            		<span class="legend-font">도시</span>
+	            	</div>
+	            	<div style="margin:10px 8px;">
+	            		<span class="legend-bar-2"></span>
+	            		<span class="legend-font">준도시</span>
+	            	</div>
+	            	<!-- SGIS4_220211_도시화_수정_끝 -->
+	            </div>
+	            <script>
+	            $(document).ready(function(){
+	            	var num = 0;
+	            	$(".multy-view-box").click(function(){                
+		             	num ++;
+	            		if(num == 1){ // 열고         	
+	            			$(".multy-view-box button img").css("width","0px");
+	            			$(".multy-view-box button").html("▶ 연도별 재생");
+		            		$(".check-timeLine").css("display","block");    
+		            		$(".time-graphLine").css("display","none");       	
+		            	}else{ // 닫고       
+		            		 
+	            			$(".multy-view-box button").html('<img src="/images/urban/icon-multyView.png" alt="멀티뷰"> 멀티뷰');    		
+		            		$(".check-timeLine").css("display","none");    
+		            		$(".time-graphLine").css("display","block");       	    	
+		            		num = 0;
+		            	}
+		            });
+	            })
+	            </script>
+	            <div class="multy-view-box"><button type="button" class="multyView"><img src="/images/urban/icon-multyView.png" alt="멀티뷰"> 멀티뷰</button></div>
+	            <div class="cst-pop time-graph-pop">
+	                <div class="time-graph-conbox">
+	                	<div class="check-timeLine" style="display:none;">
+	                		<label for="2000" class="chk_box">
+								<input type="checkbox" id="2000" />
+								<span class="on"></span>
+								2000
+							</label> 
+							<label for="2005" class="chk_box">
+								<input type="checkbox" id="2005"  />
+								<span class="on"></span>
+								2005
+							</label> 
+							<label for="2010" class="chk_box">
+								<input type="checkbox" id="2010"  />
+								<span class="on"></span>
+								2010
+							</label> 
+							<label for="2015" class="chk_box">
+								<input type="checkbox" id="2015"  />
+								<span class="on"></span>
+								2015
+							</label>
+							<label for="2016" class="chk_box">
+								<input type="checkbox" id="2016"  />
+								<span class="on"></span>
+								2016
+							</label> 
+							<label for="2017" class="chk_box">
+								<input type="checkbox" id="2017"  />
+								<span class="on"></span>
+								2017
+							</label> 
+							<label for="2018" class="chk_box">
+								<input type="checkbox" id="2018" />
+								<span class="on"></span>
+								2018
+							</label> 
+							<label for="2019" class="chk_box">
+								<input type="checkbox" id="2019" />
+								<span class="on"></span>
+								2019
+							</label>
+							<label for="2020" class="chk_box">
+								<input type="checkbox" id="2020" />
+								<span class="on"></span>
+								2020
+							</label>
+	                	</div>
+	                	<div class="time-graphLine">
+		                	<button type="button" class="control"></button>
+		                    <div class="time-graph-wrap">
+		                    	<!--  
+		                    	<input id="history_slder" type="text" data-slider-tooltip="hide" />
+		                    	-->
+		                        <div class="time-graph">
+		                            <div class="bar"></div>  
+		                            <ul>
+		                            <!--  
+		                                <li></li>
+		                                <li></li>
+		                                <li></li>
+		                                <li></li>
+		                                <li></li>
+		                                <li></li>
+		                                <li></li>
+		                                <li></li>
+		                            -->
+		                            </ul>
+		                        </div>
+		                        <!--
+		                        <div class="time-graph-legend">
+		                            <ul>
+		                                <li>2000</li>
+		                                <li>2005</li>
+		                                <li>2010</li>
+		                                <li>2015</li>
+		                                <li>2016</li>
+		                                <li>2017</li>
+		                                <li>2018</li>
+		                                <li>2019</li>
+		                                <li>2020</li>
+		                            </ul>
+		                        </div>
+		                        -->
+		                    </div>
+		                    <button id="reverseBtn" type="button" class="reverse"></button>
+		                </div>
+	                    <!-- <a href="javascript:void(0)" id="reverseBtn" class="timeReverseBtn"></a> -->
+	                    <a href="#" class="btn-down"></a>
+	                </div>
+	            </div>
+	            <!-- // e:도시 변화 popup -->
+	        </div>
+	        <!-- SGIS4_도시화 sns_공유 시작 -->
+			<div id="commonSharepopup" class="commonUrbanPopupWrap" > 
+				<div class="commonUrbanPopTit" style="background-color: #363A46;">
+					<h1>SNS 공유</h1>
+					<button type="button" class="commonUrbanPopcloseBtn commonurban_Sns_close" id="commonUrban_Sns_close" title="팝업 닫기"></button> 
+				</div>
+				<div class="commonUrbanPopCon">
+					 <div class="shareWrap">
+						 <div class="shareRow mt10">
+						 	<h4 style="margin-right: 10px; color: #fff;">URL내용 : </h4>
+			              	<input id="shareUrl" type="text" placeholder="http://" readonly="readonly"/>
+						 </div>
+						 <div class="shareRow mt20">
+							 <button type="button" class="kakao" title="카카오 스토리 공유하기">카카오 스토리</button>
+		              		 <button type="button" class="twitter" title="트위터 공유하기">트위터</button>
+		              		 <button type="button" class="face" title="페이스북 공유하기">페이스북</button>
+		              		 <button type="button" class="band" title="밴드 공유하기">네이버 밴드</button>
+						 </div>
+						 <div class="shareRowBtn mt20">
+				              <button type="button" class="urlcopy">URL 복사하기</button>
+				              <button type="button" class="txtClose commonurban_Sns_close">닫기</button>
+			            </div>
+					 </div>
+				</div>
+			</div>
+			<!-- SGIS4_도시화 sns_공유 끝 -->   
+	        <!-- // container -->
+	    </div>
+	    <!-- // wrap -->
+
+	    <div class="modal-bg"></div>
+	    <!-- modal -->
+	      <div class="modal" id="district">
+	        <div class="modal-container">
+	            <div class="modal-header">
+	                <h2>행정구역 선택 </h2>
+	                <button type="button" class="close" title="팝업닫힘"><span class="sr_only">닫기</span></button>
+	            </div>
+	            <div class="modal-body">
+	                <div class="modal-content">
+	                    <div class="green-box">
+
+	                    </div>
+	                </div>
+	                <div class="modal-footer">
+	                    <button type="button" class="btn btn_1">선택</button>
+	                    <button type="button" class="btn btn_2 close" title="팝업닫힘">취소</button>
+	                </div>
+	            </div>
+
+	        </div>
+	    </div>
+
+
+	    <div class="modal" id="densely">
+	        <div class="modal-container">
+	            <div class="modal-header">
+	                <h2>인구밀도 <em>순위선택</em></h2>
+	                <button type="button" class="close" title="팝업닫힘"><span class="sr_only">닫기</span></button>
+	            </div>
+	            <div class="modal-body">
+	                <div class="modal-content">
+	                    <div class="green-box">
+	                        <ol class="rank-list">
+	                            <li>
+	                                <a href="#"><span>1위</span> 목포시_용당1동_용당2동 등</a>
+	                            </li>
+	                            <li>
+	                                <a href="#"><span>2위</span> 목포시_용당1동_용당2동 등</a>
+	                            </li>
+	                            <li>
+	                                <a href="#"><span>3위</span> 목포시_용당1동_용당2동 등</a>
+	                            </li>
+	                            <li>
+	                                <a href="#"><span>4위</span> 목포시_용당1동_용당2동 등</a>
+	                            </li>
+	                            <li>
+	                                <a href="#"><span>5위</span> 목포시_용당1동_용당2동 등</a>
+	                            </li>
+	                            <li>
+	                                <a href="#"><span>6위</span> 목포시_용당1동_용당2동 등</a>
+	                            </li>
+	                            <li>
+	                                <a href="#"><span>7위</span> 목포시_용당1동_용당2동 등</a>
+	                            </li>
+	                            <li>
+	                                <a href="#"><span>8위</span> 목포시_용당1동_용당2동 등</a>
+	                            </li>
+	                        </ol>
+	                    </div>
+	                </div>
+	                <div class="modal-footer">
+	                    <button type="button" class="btn btn_1">선택</button>
+	                    <button type="button" class="btn btn_2 close" title="팝업닫힘">취소</button>
+	                </div>
+	            </div>
+	            
+	        </div>
+	    </div>
+	    <!-- //modal -->
+	    <div class="modal" id="comparison">
+	        <div class="modal-container">
+	            <div class="modal-header">
+	                <h2>비교권역 선택</h2>
+	                <button type="button" class="close" title="팝업닫힘"><span class="sr_only">닫기</span></button>
+	            </div>
+	            <div class="modal-body">
+	                <div class="modal-content">
+	                    <div class="select-green">
+	                        <select id="sidoSelect_comparison_1">
+	                        </select>
+	                        <select id="sggSelect_comparison_1">
+	                        </select>
+	                        <!-- 
+	                        <button type="button" class="active">세종특별자치시</button>
+	                        <button type="button">창원시 마산합포구</button>
+	                         -->
+	                    </div>
+	                    <div class="green-box">
+	                        <ol class="rank-list v2">
+	                        	<!-- 
+	                            <li><a href="#">목포시_용당1동_용당2동 등</a></li>
+	                            <li><a href="#">목포시_용당1동_용당2동 등</a></li>
+	                            <li><a href="#">목포시_용당1동_용당2동 등</a></li>
+	                            <li><a href="#">목포시_용당1동_용당2동 등</a></li>
+	                            <li><a href="#">목포시_용당1동_용당2동 등</a></li>
+	                            <li><a href="#">목포시_용당1동_용당2동 등</a></li>
+	                            <li><a href="#">목포시_용당1동_용당2동 등</a></li>
+	                            <li><a href="#">목포시_용당1동_용당2동 등</a></li>
+	                             -->
+	                        </ol>
+	                    </div>
+	                </div>
+	                <div class="modal-footer">
+	                    <button type="button" class="btn btn_1">선택</button>
+	                    <button type="button" class="btn btn_2 close" title="팝업닫힘">취소</button>
+	                </div>
+	            </div>	            
+	        </div>
+	    </div>
+	    <!-- //modal -->
+		<div id="notice_mini_pop" class="popupWrapper" style="position:relative; float:left; margin-left:670px; margin-top:-490px;  width:602px; height:375px; background: rgba(0,0,0,0); display:none; z-index: 6;">
+			<div>
+				<img src="/img/new/sgis_use_notice_pop.png" usemap="#Map" />
+				<map name="Map">
+					<area shape="rect" coords="565,0,601,36" href="javascript:$urbanMain.ui.informationPopClose();" alt="팝업닫기"  />
+				</map>
+			</div>
+		</div>
+		<!-- 사용자가이드 -->
+		<div class="urbanTuto tuto_1">
+			<button type="button" class="tutoClose">닫기</button>
+		</div>
+		<div class="urbanTuto tuto_2">
+			<button type="button" class="tutoClose">닫기</button>
+		</div>
+		<div class="urbanTuto tuto_3">
+			<button type="button" class="tutoClose">닫기</button>
+		</div>
+	</body>
+</html>	    	

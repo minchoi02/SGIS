@@ -1,0 +1,144 @@
+package kostat.sop.OpenAPI3.search.address;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+
+
+public class AddressDivision implements IAddressDivision {
+	
+	private static String strSido = "";
+	private static String strSigungu = "";
+	private static String strDong = "";
+	private static String strGilRo = "";
+	private static String strRi = "";
+	private static String strGibun = "";
+	//private static Map hashaddress = new HashMap<String, String>;
+	private static Map<String, String> hashaddress = new HashMap<String, String>();
+
+	/**
+	 * @param args
+	 */
+	public AddressDivision(String strInputAddress){
+		//strAddress = "제주도 제주시 도두이동 1654-6";
+		String[] strAddress = strInputAddress.split(" ");
+		
+		Pattern pt = Pattern.co;
+		Matcher.
+		
+		for(int x = 0; x < strAddress.length; x++){
+			
+			if(strAddress[x].matches(RegexPattern.GetSido())&&strSido.equals("")) 
+				strSido = strAddress[x];
+			/*
+			//else if(strAddress[x].matches(RegexPattern.GetSigungu()))// || 
+			else if(strAddress[x].matches(RegexPattern.GetSigungu()))// ||
+					//(strSigungu == "" && x < strAddress.length - 2  
+					//&& (strAddress[x+1].matches(RegexPattern.GetRi()) 
+							//|| strAddress[x+1].matches(RegexPattern.GetDong())))) 
+				//strSigungu = strSigungu.equals("") ? strAddress[x] : strSigungu+" "+strAddress[x];
+				strSigungu = (strSigungu +" "+strAddress[x]).trim();
+			*/
+			else if(strAddress[x].matches(RegexPattern.GetRi())) 
+				strRi = strAddress[x];
+			else if(strAddress[x].matches(RegexPattern.GetGilRo())) 
+				strGilRo = strAddress[x];
+			else if((strAddress[x].matches(RegexPattern.GetDong())) ||
+				    (x < strAddress.length-1 && (strAddress[x+1].matches(RegexPattern.GetGibun()) || strAddress[x+1].matches(RegexPattern.GetGilRo())))) 
+				strDong = strAddress[x];
+			else if(strAddress[x].matches(RegexPattern.GetGibun()))
+				
+				strGibun = strAddress[x];
+			else 
+				strSigungu = (strSigungu +" "+strAddress[x]).trim();
+			;
+			
+			
+		}
+		
+		hashaddress.put("SIDO", strSido);
+		hashaddress.put("SGG", strSigungu);
+		hashaddress.put("EMDONG", strDong);
+		hashaddress.put("RI", strRi);
+		hashaddress.put("ROAD_NM", strGilRo);
+		hashaddress.put("PCL", strGibun);
+	}
+	
+	@Override
+	public String getSido(){
+		return strSido;
+	}
+
+	/**
+	 * Return : 시군구명을 반환
+	 */
+	@Override
+	public String getSigungu(){
+		return strSigungu;
+	}
+
+	/**
+	 * Return : 동명을 반환
+	 */
+	@Override
+	public String getDong(){
+		return strDong;
+	}
+
+	@Override
+	public String getGilRo(){
+		return strGilRo;
+	}
+
+	@Override
+	public String getRi(){
+		return strRi;
+	}
+
+	@Override
+	public String getGibun(){
+		return strGibun;
+	}
+
+	@Override
+	public Map<String, String> getResult() {
+		// TODO Auto-generated method stub
+		return hashaddress;
+	}
+	
+	/*
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		String strTest = "경상남도 고성군 고성읍" ;
+		String pattern = "궁";//^경상";
+		//Matcher.quoteReplacement(strTest);
+		
+		//Address
+		Address("전라남도 고흥군 동강면 대강리 1220");
+
+		//String[] strAddress = "전라남도 고흥군 동강면 대강리 1220".split(" ");
+		//String[] strAddress = "제주도 제주시 도두이동 1654-6".split(" ");
+		//String[] strAddress = "서울특별시 송파구 가락동 37-1".split(" ");
+		//String[] strAddress = "경기도 수원시 팔달구 고등동 6-2".split(" ");
+		//String[] strAddress = "경기도 양평군 강상면 세월리 354-4".split(" ");
+		//String[] strAddress = "전라남도 해남군 북평면 오산리 1016-2".split(" ");
+		// patter 정리
+		// 시도 + 시군구 + 동(또는 리) + 지번
+		// 시도 : 
+		// 시군구 : "수원시 팔달구"와 같이 시군구가 2개로 구성된 부분이 있음
+		// 동 : 동 대신 리가 있을 수 있음. 동에서 
+		// case 1. 서울시, 서울특별시, 서울
+		// case 2. "제주특별자치도"와 "제주시"가 중복됨
+		
+		
+		System.out.println("시도:"+getSido());
+		System.out.println("시군구:"+getSigungu());
+		System.out.println("동:"+getDong());
+		System.out.println("길로:"+getGilRo());
+		System.out.println("리:"+getRi());
+		System.out.println("지번"+getGibun());
+		//System.out.println(Pattern.compile(pattern).matcher(strTest).find());
+	}
+		*/
+
+}

@@ -1,0 +1,3995 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="startupbiz">
+
+	<!-- 창업지원 인구, API_0602 -->	
+	<!-- NaJaeWoong 20160727 cnt추가 -->
+	<select id="pplsummary" parameterType="hashmap" resultType="hashmap">
+		<foreach collection="adm_cd_list" item="adm" separator="UNION ALL">
+			select round(teenage_less_than_sum/total_sum,4)*100 teenage_less_than_per
+				  ,round(teenage_sum/total_sum,4)*100 teenage_per
+				  ,round(twenty_sum/total_sum,4)*100 twenty_per
+				  ,round(thirty_sum/total_sum,4)*100 thirty_per
+				  ,round(forty_sum/total_sum,4)*100 forty_per
+				  ,round(fifty_sum/total_sum,4)*100 fifty_per
+				  ,round(sixty_sum/total_sum,4)*100 sixty_per
+				  ,round(seventy_more_than_sum/total_sum,4)*100 seventy_more_than_per
+				  ,teenage_less_than_sum teenage_less_than_cnt
+				  ,teenage_sum teenage_cnt
+				  ,twenty_sum twenty_cnt
+				  ,thirty_sum thirty_cnt
+				  ,forty_sum forty_cnt
+				  ,fifty_sum fifty_cnt
+				  ,sixty_sum sixty_cnt
+				  ,seventy_more_than_sum seventy_more_than_cnt
+				  ,adm_nm
+				  ,adm_cd
+			from(
+				select 
+					(ppl.agegp_10_lt0_fem_ppltn + ppl.agegp_10_lt0_male_ppltn) teenage_less_than_sum
+					,(ppl.agegp_10_fem_ppltn + ppl.agegp_10_male_ppltn) teenage_sum
+					,(ppl.agegp_20_fem_ppltn + ppl.agegp_20_male_ppltn) twenty_sum
+					,(ppl.agegp_30_fem_ppltn + ppl.agegp_30_male_ppltn) thirty_sum
+					,(ppl.agegp_40_fem_ppltn + ppl.agegp_40_male_ppltn) forty_sum
+					,(ppl.agegp_50_fem_ppltn + ppl.agegp_50_male_ppltn) fifty_sum
+					,(ppl.agegp_60_fem_ppltn + ppl.agegp_60_male_ppltn) sixty_sum
+					,(ppl.agegp_70_mt1_fem_ppltn + ppl.agegp_70_mt1_male_ppltn) seventy_more_than_sum 
+					,CASE WHEN (ppl.agegp_10_lt0_fem_ppltn + ppl.agegp_10_lt0_male_ppltn
+					+ ppl.agegp_10_fem_ppltn + ppl.agegp_10_male_ppltn
+					+ ppl.agegp_20_fem_ppltn + ppl.agegp_20_male_ppltn
+					+ ppl.agegp_30_fem_ppltn + ppl.agegp_30_male_ppltn
+					+ ppl.agegp_40_fem_ppltn + ppl.agegp_40_male_ppltn
+					+ ppl.agegp_50_fem_ppltn + ppl.agegp_50_male_ppltn
+					+ ppl.agegp_60_fem_ppltn + ppl.agegp_60_male_ppltn
+					<!-- 2017. 07. 06 j.h.Seok DB 패치로 인한 수정 -->
+					+ ppl.agegp_70_mt1_fem_ppltn + ppl.agegp_70_mt1_male_ppltn) <![CDATA[<=]]> 0 then 1
+					WHEN (ppl.agegp_10_lt0_fem_ppltn + ppl.agegp_10_lt0_male_ppltn
+					+ ppl.agegp_10_fem_ppltn + ppl.agegp_10_male_ppltn
+					+ ppl.agegp_20_fem_ppltn + ppl.agegp_20_male_ppltn
+					+ ppl.agegp_30_fem_ppltn + ppl.agegp_30_male_ppltn
+					+ ppl.agegp_40_fem_ppltn + ppl.agegp_40_male_ppltn
+					+ ppl.agegp_50_fem_ppltn + ppl.agegp_50_male_ppltn
+					+ ppl.agegp_60_fem_ppltn + ppl.agegp_60_male_ppltn
+					+ ppl.agegp_70_mt1_fem_ppltn + ppl.agegp_70_mt1_male_ppltn) <![CDATA[>]]> 0 then
+					(ppl.agegp_10_lt0_fem_ppltn + ppl.agegp_10_lt0_male_ppltn
+					+ ppl.agegp_10_fem_ppltn + ppl.agegp_10_male_ppltn
+					+ ppl.agegp_20_fem_ppltn + ppl.agegp_20_male_ppltn
+					+ ppl.agegp_30_fem_ppltn + ppl.agegp_30_male_ppltn
+					+ ppl.agegp_40_fem_ppltn + ppl.agegp_40_male_ppltn
+					+ ppl.agegp_50_fem_ppltn + ppl.agegp_50_male_ppltn
+					+ ppl.agegp_60_fem_ppltn + ppl.agegp_60_male_ppltn
+					+ ppl.agegp_70_mt1_fem_ppltn + ppl.agegp_70_mt1_male_ppltn) end total_sum
+				<if test='adm.length() == 7 '>
+					,bord.emdong_nm adm_nm
+					,#{adm} adm_cd
+				from SRV_DT_SEARCHPPLTN ppl
+					,srv_pg_admbord bord
+				where ppl.sido_cd=substr(#{adm},0,2)
+					and ppl.sgg_cd=substr(#{adm},3,3)
+					and ppl.emdong_cd=substr(#{adm},6,2)
+					and bord.base_year = #{year}
+					and ppl.sido_cd=bord.sido_cd
+					and ppl.sgg_cd=bord.sgg_cd
+					and ppl.emdong_cd=bord.emdong_cd
+				</if>
+				<if test='adm.length() == 5 '>
+					,bord.sgg_nm adm_nm
+					,#{adm} adm_cd
+				from SRV_DT_SEARCHPPLTN ppl
+					,srv_pg_sggbord bord
+				where ppl.sido_cd=substr(#{adm},0,2)
+					and ppl.sgg_cd=substr(#{adm},3,3)
+					and ppl.emdong_cd='00'
+					and bord.base_year = #{year}
+					and ppl.sido_cd=bord.sido_cd
+					and ppl.sgg_cd=bord.sgg_cd
+				</if>
+				<if test='adm.length() == 2 '>
+					,bord.sido_nm adm_nm
+					,#{adm} adm_cd
+				from SRV_DT_SEARCHPPLTN ppl
+					,srv_pg_sidobord bord
+				where ppl.sido_cd=substr(#{adm},0,2)
+					and ppl.sgg_cd='000'
+					and ppl.emdong_cd='00'
+					and bord.base_year = #{year}
+					and ppl.sido_cd=bord.sido_cd
+				</if>
+				)
+		</foreach>
+	</select>
+	
+	<!-- 창업지원 거처종류, API_0604 -->
+	<select id="housesummary" parameterType="hashmap" resultType="hashmap">
+		<foreach collection="adm_cd_list" item="adm" separator="UNION ALL">
+			Select 
+				house.apt_per AS apart_per
+				,house.rmhouse_per AS row_house_per
+				,house.officetel_per
+				<!-- 2017. 06. 27 j.h.Seok DB 표준화 작업 -->
+				,house.slh_per as detach_house_per
+				,house.dom_soc_fac_per
+				,house.etc_per
+				,house.apt_cnt AS apart_cnt
+				,house.rmhouse_cnt AS row_house_cnt
+				,house.officetel_cnt
+				<!-- 2017. 06. 27 j.h.Seok DB 표준화 작업 -->
+				,house.slh_cnt as detach_house_cnt
+				,house.dom_soc_fac_cnt
+				,house.etc_cnt
+			<if test='adm.length() == 7 '>
+				,bord.emdong_nm adm_nm
+				,to_char(#{adm}) adm_cd
+			from srv_dt_sumresidtype house
+				,srv_pg_admbord bord
+			where house.sido_cd=substr(#{adm},0,2)
+				and house.sgg_cd=substr(#{adm},3,3)
+				and house.emdong_cd=substr(#{adm},6,2)
+				and bord.base_year = #{year}
+				and house.sido_cd=bord.sido_cd
+				and house.sgg_cd=bord.sgg_cd
+				and house.emdong_cd=bord.emdong_cd
+			</if>
+			<if test='adm.length() == 5 '>
+				,bord.sgg_nm adm_nm
+				,to_char(#{adm}) adm_cd
+			from srv_dt_sumresidtype house
+				,srv_pg_sggbord bord
+			where house.sido_cd=substr(#{adm},0,2)
+				and house.sgg_cd=substr(#{adm},3,3)
+				and house.emdong_cd='00'
+				and bord.base_year = #{year}
+				and house.sido_cd=bord.sido_cd
+				and house.sgg_cd=bord.sgg_cd
+			</if>
+			<if test='adm.length() == 2 '>
+				,bord.sido_nm adm_nm
+				,to_char(#{adm}) adm_cd
+			from srv_dt_sumresidtype house
+				,srv_pg_sidobord bord
+			where house.sido_cd=#{adm}
+				and house.sgg_cd='000'
+				and house.emdong_cd='00'
+				and bord.base_year = #{year}
+				and house.sido_cd=bord.sido_cd
+			</if>
+		</foreach>
+	</select>
+	
+	<!-- 창업지원 외국인비율, API_0605 -->	
+	<select id="foreignsummary" parameterType="hashmap" resultType="hashmap">
+			Select 
+				foreigner.nation_nm
+				,foreigner.per*100 per
+				,foreigner.ppltn
+			<if test='adm_cd.length() == 7 '>
+				,bord.emdong_nm adm_nm
+				,to_char(#{adm_cd}) adm_cd
+			from srv_dt_sumresidforeign foreigner
+				,srv_pg_admbord bord
+			where foreigner.sido_cd=substr(#{adm_cd},0,2)
+				and foreigner.sgg_cd=substr(#{adm_cd},3,3)
+				and foreigner.emdong_cd=substr(#{adm_cd},6,2)
+				and bord.base_year = #{year}
+				and foreigner.sido_cd=bord.sido_cd
+				and foreigner.sgg_cd=bord.sgg_cd
+				and foreigner.emdong_cd=bord.emdong_cd
+			</if>
+			<if test='adm_cd.length() == 5 '>
+				,bord.sgg_nm adm_nm
+				,to_char(#{adm_cd}) adm_cd
+			from srv_dt_sumresidforeign foreigner
+				,srv_pg_sggbord bord
+			where foreigner.sido_cd=substr(#{adm_cd},0,2)
+				and foreigner.sgg_cd=substr(#{adm_cd},3,3)
+				and foreigner.emdong_cd='00'
+				and bord.base_year = #{year}
+				and foreigner.sido_cd=bord.sido_cd
+				and foreigner.sgg_cd=bord.sgg_cd
+			</if>
+			<if test='adm_cd.length() == 2 '>
+				,bord.sido_nm adm_nm
+				,to_char(#{adm_cd}) adm_cd
+			from srv_dt_sumresidforeign foreigner
+				,srv_pg_sidobord bord
+			where foreigner.sido_cd=#{adm_cd}
+				and foreigner.sgg_cd='000'
+				and foreigner.emdong_cd='00'
+				and bord.base_year = #{year}
+				and foreigner.sido_cd=bord.sido_cd
+			</if>
+			order by per desc 
+	</select>
+	
+	<!-- 창업지원 주택점유형태, API_0606 -->
+	<!-- NaJaeWoong 20160727 cnt추가 -->
+	<select id="ocptnsummary" parameterType="hashmap" resultType="hashmap">
+		<foreach collection="adm_cd_list" item="adm" separator="UNION ALL">
+			Select 
+				<!-- 2017. 06. 27 j.h.Seok DB 표준화 작업 -->
+				ocptn.pvt_per as self_per
+				,ocptn.lease_per
+				,ocptn.mrp_per
+				<!-- 2016.10.25 수정 -->
+				<!-- ,ocptn.self_cnt
+				,ocptn.lease_cnt
+				,ocptn.mrp_cnt -->
+			<if test='adm.length() == 7 '>
+				,bord.emdong_nm adm_nm
+				,to_char(#{adm}) adm_cd
+			from srv_dt_occuform ocptn
+				,srv_pg_admbord bord
+			where ocptn.sido_cd=substr(#{adm},0,2)
+				and ocptn.sgg_cd=substr(#{adm},3,3)
+				and ocptn.emdong_cd=substr(#{adm},6,2)
+				and bord.base_year = #{year}
+				and ocptn.sido_cd=bord.sido_cd
+				and ocptn.sgg_cd=bord.sgg_cd
+				and ocptn.emdong_cd=bord.emdong_cd
+			</if>
+			<if test='adm.length() == 5 '>
+				,bord.sgg_nm adm_nm
+				,to_char(#{adm}) adm_cd
+			from srv_dt_occuform ocptn
+				,srv_pg_sggbord bord
+			where ocptn.sido_cd=substr(#{adm},0,2)
+				and ocptn.sgg_cd=substr(#{adm},3,3)
+				and ocptn.emdong_cd='00'
+				and bord.base_year = #{year}
+				and ocptn.sido_cd=bord.sido_cd
+				and ocptn.sgg_cd=bord.sgg_cd
+			</if>
+			<if test='adm.length() == 2 '>
+				,bord.sido_nm adm_nm
+				,to_char(#{adm}) adm_cd
+			from srv_dt_occuform ocptn
+				,srv_pg_sidobord bord
+			where ocptn.sido_cd=#{adm}
+				and ocptn.sgg_cd='000'
+				and ocptn.emdong_cd='00'
+				and bord.base_year = #{year}
+				and ocptn.sido_cd=bord.sido_cd
+			</if>
+		</foreach>
+	</select>
+	
+	<!-- 창업지원 남녀인구비율, API_0603 -->
+	<select id="mfratiosummary" parameterType="hashmap" resultType="hashmap">
+		<foreach collection="adm_cd_list" item="adm" separator="UNION ALL">
+			Select
+				 -- round(f_ppl/(f_ppl+m_ppl),4)*100 f_per
+				 -- , round(m_ppl/(f_ppl+m_ppl),4)*100 m_per
+				 round(f_ppl/(total_ppl),4)*100 f_per
+				 , round(m_ppl/(total_ppl),4)*100 m_per
+				 , f_ppl
+				 , m_ppl
+				 , (f_ppl+m_ppl) total_ppl
+				 , adm_nm
+				 , to_char(#{adm}) adm_cd
+			<if test='adm.length() == 7 '>
+			from 
+				(select ppl.agegp_10_lt0_fem_ppltn 
+						 + ppl.agegp_10_fem_ppltn 
+						 + ppl.agegp_20_fem_ppltn 
+						 + ppl.agegp_30_fem_ppltn 
+						 + ppl.agegp_40_fem_ppltn 
+						 + ppl.agegp_50_fem_ppltn 
+						 + ppl.agegp_60_fem_ppltn 
+						 + ppl.agegp_70_mt1_fem_ppltn f_ppl
+						, ppl.agegp_10_lt0_male_ppltn 
+						 + ppl.agegp_10_male_ppltn 
+						 + ppl.agegp_20_male_ppltn
+						 + ppl.agegp_30_male_ppltn 
+						 + ppl.agegp_40_male_ppltn 
+						 + ppl.agegp_50_male_ppltn 
+						 + ppl.agegp_60_male_ppltn 
+						 + ppl.agegp_70_mt1_male_ppltn m_ppl				
+						, CASE WHEN (ppl.agegp_10_lt0_fem_ppltn 
+									+ ppl.agegp_10_fem_ppltn 
+									+ ppl.agegp_20_fem_ppltn 
+									+ ppl.agegp_30_fem_ppltn 
+									+ ppl.agegp_40_fem_ppltn 
+									+ ppl.agegp_50_fem_ppltn 
+									+ ppl.agegp_60_fem_ppltn 
+									+ ppl.agegp_70_mt1_fem_ppltn
+									+ ppl.agegp_10_lt0_male_ppltn 
+									+ ppl.agegp_10_male_ppltn 
+									+ ppl.agegp_20_male_ppltn
+									+ ppl.agegp_30_male_ppltn 
+									+ ppl.agegp_40_male_ppltn 
+									+ ppl.agegp_50_male_ppltn 
+									+ ppl.agegp_60_male_ppltn 
+									<!-- 2017. 07. 06 j.h.Seok DB 패치로 인한 수정 -->
+									+ ppl.agegp_70_mt1_male_ppltn) <![CDATA[<=]]> 0 then 1
+							   ELSE (ppl.agegp_10_lt0_fem_ppltn 
+									+ ppl.agegp_10_fem_ppltn 
+									+ ppl.agegp_20_fem_ppltn 
+									+ ppl.agegp_30_fem_ppltn 
+									+ ppl.agegp_40_fem_ppltn 
+									+ ppl.agegp_50_fem_ppltn 
+									+ ppl.agegp_60_fem_ppltn 
+									+ ppl.agegp_70_mt1_fem_ppltn
+									+ ppl.agegp_10_lt0_male_ppltn 
+									+ ppl.agegp_10_male_ppltn 
+									+ ppl.agegp_20_male_ppltn
+									+ ppl.agegp_30_male_ppltn 
+									+ ppl.agegp_40_male_ppltn 
+									+ ppl.agegp_50_male_ppltn 
+									+ ppl.agegp_60_male_ppltn 
+									+ ppl.agegp_70_mt1_male_ppltn) END total_ppl
+						,bord.emdong_nm adm_nm
+				from srv_dt_searchppltn ppl
+					,srv_pg_admbord bord
+				where ppl.sido_cd=substr(#{adm},0,2)
+					and ppl.sgg_cd=substr(#{adm},3,3)
+					and ppl.emdong_cd=substr(#{adm},6,2)
+					and bord.base_year = #{year}
+					and ppl.sido_cd=bord.sido_cd
+					and ppl.sgg_cd=bord.sgg_cd
+					and ppl.emdong_cd=bord.emdong_cd)
+			</if>
+			<if test='adm.length() == 5 '>
+			from 
+				(select ppl.agegp_10_lt0_fem_ppltn 
+						 + ppl.agegp_10_fem_ppltn 
+						 + ppl.agegp_20_fem_ppltn 
+						 + ppl.agegp_30_fem_ppltn 
+						 + ppl.agegp_40_fem_ppltn 
+						 + ppl.agegp_50_fem_ppltn 
+						 + ppl.agegp_60_fem_ppltn 
+						 + ppl.agegp_70_mt1_fem_ppltn f_ppl
+						, ppl.agegp_10_lt0_male_ppltn 
+						 + ppl.agegp_10_male_ppltn 
+						 + ppl.agegp_20_male_ppltn
+						 + ppl.agegp_30_male_ppltn 
+						 + ppl.agegp_40_male_ppltn 
+						 + ppl.agegp_50_male_ppltn 
+						 + ppl.agegp_60_male_ppltn 
+						 + ppl.agegp_70_mt1_male_ppltn m_ppl	
+						, CASE WHEN (ppl.agegp_10_lt0_fem_ppltn 
+									+ ppl.agegp_10_fem_ppltn 
+									+ ppl.agegp_20_fem_ppltn 
+									+ ppl.agegp_30_fem_ppltn 
+									+ ppl.agegp_40_fem_ppltn 
+									+ ppl.agegp_50_fem_ppltn 
+									+ ppl.agegp_60_fem_ppltn 
+									+ ppl.agegp_70_mt1_fem_ppltn
+									+ ppl.agegp_10_lt0_male_ppltn 
+									+ ppl.agegp_10_male_ppltn 
+									+ ppl.agegp_20_male_ppltn
+									+ ppl.agegp_30_male_ppltn 
+									+ ppl.agegp_40_male_ppltn 
+									+ ppl.agegp_50_male_ppltn 
+									+ ppl.agegp_60_male_ppltn 
+									<!-- 2017. 07. 06 j.h.Seok DB 패치로 인한 수정 -->
+									+ ppl.agegp_70_mt1_male_ppltn) <![CDATA[<=]]> 0 then 1
+							   ELSE (ppl.agegp_10_lt0_fem_ppltn 
+									+ ppl.agegp_10_fem_ppltn 
+									+ ppl.agegp_20_fem_ppltn 
+									+ ppl.agegp_30_fem_ppltn 
+									+ ppl.agegp_40_fem_ppltn 
+									+ ppl.agegp_50_fem_ppltn 
+									+ ppl.agegp_60_fem_ppltn 
+									+ ppl.agegp_70_mt1_fem_ppltn
+									+ ppl.agegp_10_lt0_male_ppltn 
+									+ ppl.agegp_10_male_ppltn 
+									+ ppl.agegp_20_male_ppltn
+									+ ppl.agegp_30_male_ppltn 
+									+ ppl.agegp_40_male_ppltn 
+									+ ppl.agegp_50_male_ppltn 
+									+ ppl.agegp_60_male_ppltn 
+									+ ppl.agegp_70_mt1_male_ppltn) END total_ppl
+						,bord.sgg_nm adm_nm
+				from srv_dt_searchppltn ppl
+					,srv_pg_sggbord bord
+				where ppl.sido_cd=substr(#{adm},0,2)
+					and ppl.sgg_cd=substr(#{adm},3,3)
+					and ppl.emdong_cd='00'
+					and bord.base_year = #{year}
+					and ppl.sido_cd=bord.sido_cd
+					and ppl.sgg_cd=bord.sgg_cd)
+			</if>
+			<if test='adm.length() == 2 '>
+			from 
+				(select ppl.agegp_10_lt0_fem_ppltn 
+						 + ppl.agegp_10_fem_ppltn 
+						 + ppl.agegp_20_fem_ppltn 
+						 + ppl.agegp_30_fem_ppltn 
+						 + ppl.agegp_40_fem_ppltn 
+						 + ppl.agegp_50_fem_ppltn 
+						 + ppl.agegp_60_fem_ppltn 
+						 + ppl.agegp_70_mt1_fem_ppltn f_ppl
+						, ppl.agegp_10_lt0_male_ppltn 
+						 + ppl.agegp_10_male_ppltn 
+						 + ppl.agegp_20_male_ppltn
+						 + ppl.agegp_30_male_ppltn 
+						 + ppl.agegp_40_male_ppltn 
+						 + ppl.agegp_50_male_ppltn 
+						 + ppl.agegp_60_male_ppltn 
+						 + ppl.agegp_70_mt1_male_ppltn m_ppl	
+						, CASE WHEN (ppl.agegp_10_lt0_fem_ppltn 
+									+ ppl.agegp_10_fem_ppltn 
+									+ ppl.agegp_20_fem_ppltn 
+									+ ppl.agegp_30_fem_ppltn 
+									+ ppl.agegp_40_fem_ppltn 
+									+ ppl.agegp_50_fem_ppltn 
+									+ ppl.agegp_60_fem_ppltn 
+									+ ppl.agegp_70_mt1_fem_ppltn
+									+ ppl.agegp_10_lt0_male_ppltn 
+									+ ppl.agegp_10_male_ppltn 
+									+ ppl.agegp_20_male_ppltn
+									+ ppl.agegp_30_male_ppltn 
+									+ ppl.agegp_40_male_ppltn 
+									+ ppl.agegp_50_male_ppltn 
+									+ ppl.agegp_60_male_ppltn 
+									<!-- 2017. 07. 06 j.h.Seok DB 패치로 인한 수정 -->
+									+ ppl.agegp_70_mt1_male_ppltn) <![CDATA[<=]]> 0 then 1
+							   ELSE (ppl.agegp_10_lt0_fem_ppltn 
+									+ ppl.agegp_10_fem_ppltn 
+									+ ppl.agegp_20_fem_ppltn 
+									+ ppl.agegp_30_fem_ppltn 
+									+ ppl.agegp_40_fem_ppltn 
+									+ ppl.agegp_50_fem_ppltn 
+									+ ppl.agegp_60_fem_ppltn 
+									+ ppl.agegp_70_mt1_fem_ppltn
+									+ ppl.agegp_10_lt0_male_ppltn 
+									+ ppl.agegp_10_male_ppltn 
+									+ ppl.agegp_20_male_ppltn
+									+ ppl.agegp_30_male_ppltn 
+									+ ppl.agegp_40_male_ppltn 
+									+ ppl.agegp_50_male_ppltn 
+									+ ppl.agegp_60_male_ppltn 
+									+ ppl.agegp_70_mt1_male_ppltn) END total_ppl
+						,bord.sido_nm adm_nm
+				from srv_dt_searchppltn ppl
+					,srv_pg_sidobord bord
+				where ppl.sido_cd=#{adm}
+					and ppl.sgg_cd='000'
+					and ppl.emdong_cd='00'
+					and bord.base_year = #{year}
+					and ppl.sido_cd=bord.sido_cd)
+			</if>
+		</foreach>
+	</select>
+	
+	<!-- 창업지원 지역종합, API_0610 -->
+	<select id="regiontotal" parameterType="hashmap" resultType="hashmap">
+		<foreach collection="adm_cd_list" item="adm" separator="UNION ALL">
+			Select 
+				ppl.apt_per					AS APART_PER
+				/* ,ppl.lease_family_per		AS LEASE_FAMILY_PER */
+				/* ,ppl.mrp_family_per			AS MONRENT_FAMILY_PER */
+				,ppl.age_65_mt1_ppltn_per	AS SIXTY_FIVE_MORE_PPLTN_PER
+				,ppl.agegp_20_ppltn_per		AS TWENTY_PPLTN_PER
+				,ppl.resid_ppltn_per		AS RESID_PPLTN_PER
+				,ppl.wrc_ppltn_per			AS JOB_PPLTN_PER
+				,ppl.one_psn_family_per		AS ONE_PERSON_FAMILY_PER
+			<if test='adm.length() == 7 '>
+				,bord.emdong_nm adm_nm
+				,#{adm} adm_cd
+			from srv_dt_regiontotal ppl
+				,srv_pg_admbord bord
+			where ppl.sido_cd=substr(#{adm},0,2)
+				and ppl.sgg_cd=substr(#{adm},3,3)
+				and ppl.emdong_cd=substr(#{adm},6,2)
+				and bord.base_year = #{year}
+				and ppl.sido_cd=bord.sido_cd
+				and ppl.sgg_cd=bord.sgg_cd
+				and ppl.emdong_cd=bord.emdong_cd
+			</if>
+			<if test='adm.length() == 5 '>
+				,bord.sgg_nm adm_nm
+				,#{adm} adm_cd
+			from srv_dt_regiontotal ppl
+				,srv_pg_sggbord bord
+			where ppl.sido_cd=substr(#{adm},0,2)
+				and ppl.sgg_cd=substr(#{adm},3,3)
+				and ppl.emdong_cd='00'
+				and bord.base_year = #{year}
+				and ppl.sido_cd=bord.sido_cd
+				and ppl.sgg_cd=bord.sgg_cd
+			</if>
+			<if test='adm.length() == 2 '>
+				,bord.sido_nm adm_nm
+				,#{adm} adm_cd
+			from srv_dt_regiontotal ppl
+				,srv_pg_sidobord bord
+			where ppl.sido_cd=substr(#{adm},0,2)
+				and ppl.sgg_cd='000'
+				and ppl.emdong_cd='00'
+				and bord.base_year = #{year}
+				and ppl.sido_cd=bord.sido_cd
+			</if>
+		</foreach>
+	</select>
+
+	<!-- 창업지원 사업체분포, API_0607 -->
+	<!-- NaJaeWoong 20160727 corp_cd조건 추가 -->
+	<select id="corpdistsummary" parameterType="hashmap" resultMap="corpdistsummaryMap">
+		<if test='adm.length() == 2 '>
+			select to_char(#{adm_cd}) adm
+				, to_char(#{year}) year
+				, to_char(#{adm}) adm_cd
+				, length(#{adm}) adm_length
+				, length(#{adm_cd}) adm_cd_length
+				, to_char(#{corp_cd}) corp_cd
+				, bord.sido_nm adm_nm
+			from srv_pg_sidobord bord
+			where bord.base_year = #{year}
+			and bord.sido_cd=substr(#{adm},0,2)
+		</if>
+		<if test='adm.length() == 5 '>
+			select to_char(#{adm_cd}) adm
+				, to_char(#{year}) year
+				, to_char(#{adm}) adm_cd
+				, length(#{adm}) adm_length
+				, length(#{adm_cd}) adm_cd_length
+				, to_char(#{corp_cd}) corp_cd
+				, bord.sgg_nm adm_nm
+			from srv_pg_sggbord bord
+			where bord.base_year = #{year}
+			and bord.sido_cd=substr(#{adm},0,2)
+			and bord.sgg_cd = substr(#{adm},3,3)
+		</if>
+		<if test='adm.length() == 7 '>
+			select to_char(#{adm_cd}) adm
+				, to_char(#{year}) year
+				, to_char(#{adm}) adm_cd
+				, length(#{adm}) adm_length
+				, length(#{adm_cd}) adm_cd_length
+				, to_char(#{corp_cd}) corp_cd
+				, bord.emdong_nm adm_nm
+			from srv_pg_admbord bord
+			where bord.base_year = #{year}
+			and bord.sido_cd=substr(#{adm},0,2)
+			and bord.sgg_cd = substr(#{adm},3,3)
+			and bord.emdong_cd=substr(#{adm},6,2)
+		</if>
+	</select>
+	
+	<resultMap id="corpdistsummaryMap" type="kostat.sop.OpenAPI3.api.startupbiz.dto.CorpdistsummaryMap">
+		<result property="adm_cd" column="adm_cd" />
+		<result property="adm_nm" column="adm_nm" />
+		<collection property="theme_list"
+			column="{year=year,adm=adm,adm_cd=adm_cd,adm_length=adm_length,adm_cd_length=adm_cd_length,corp_cd=corp_cd}"
+			ofType="hashmap" javaType="ArrayList" select="corpdistsummaryinfo">
+		</collection>
+	</resultMap>
+	
+	<select id="corpdistsummaryinfo" parameterType="hashmap" resultType="hashmap">
+		select THEME.theme_cd, nvl(DIST.dist_per,0) dist_per, THEME.s_theme_cd_nm
+		from (
+			select theme_cd, s_theme_cd_nm
+			from cmm_cd_theme 
+			where 
+			<if test='corp_cd == null '>			
+				(theme_cd like '10%' or theme_cd like '20%' or theme_cd like '40%' or theme_cd like '50%') 
+			</if>
+			<if test='corp_cd != null '>
+				theme_cd like #{corp_cd}||'%'
+			</if>
+			)THEME
+			LEFT OUTER JOIN (
+							select theme_cd, b_theme_cd_nm, s_theme_cd_nm, sido_cd, sgg_cd, emdong_cd, dist_per
+							from(
+								select A.theme_cd, A.b_theme_cd_nm, A.s_theme_cd_nm, corp.sido_cd, corp.sgg_cd, corp.emdong_cd, corp.dist_per
+								from
+									(select theme_cd, b_theme_cd_nm, s_theme_cd_nm
+									from cmm_cd_theme
+									) A 
+										LEFT OUTER JOIN srv_dt_sumcorpdist corp 
+										ON A.theme_cd = corp.theme_cd 
+								)	
+								where 
+								<if test='adm_length == "2" '>
+									sido_cd = substr(#{adm_cd},0,2)
+									and sgg_cd = '000'
+									and emdong_cd = '00'
+								</if>
+								<if test='adm_length == "5" '>
+									sido_cd=substr(#{adm_cd},0,2)
+									and sgg_cd = substr(#{adm_cd},3,3)
+									and emdong_cd='00'
+								</if>
+								<if test='adm_length == "7" '>
+									sido_cd=substr(#{adm_cd},0,2)
+									and sgg_cd = substr(#{adm_cd},3,3)
+									and emdong_cd=substr(#{adm_cd},6,2)
+								</if>
+			) DIST
+			ON THEME.theme_cd = DIST.theme_cd
+	</select>
+	
+	<!-- 창업지원 사업체업력, API_0608 -->
+	<select id="corpyearsummary" parameterType="hashmap" resultType="hashmap">
+		<foreach collection="adm_cd_list" item="adm" separator="UNION ALL">
+			<if test='adm.length() == 7 '>
+				select bord.emdong_nm adm_nm 
+					 , to_char(#{adm}) adm_cd
+					 , nvl(theme.s_theme_cd_nm,'') theme_nm
+				     , nvl(corp.corp_year,0) corp_year
+				from srv_pg_admbord  bord 
+				    left outer join (select sido_cd,sgg_cd,emdong_cd,corp_year,theme_cd 
+				    				from srv_dt_sumcorpyear where theme_cd=#{theme_cd}) corp
+				        on corp.sido_cd=bord.sido_cd 
+				        and corp.sgg_cd=bord.sgg_cd 
+				        and corp.emdong_cd=bord.emdong_cd
+				    left outer join (select theme_cd,s_theme_cd_nm 
+				    					from cmm_cd_theme where theme_cd=#{theme_cd}) theme
+				        on corp.theme_cd=theme.theme_cd 
+				where
+				bord.base_year = #{year}
+				and bord.sido_cd=substr(#{adm},0,2)
+				and bord.sgg_cd = substr(#{adm},3,3)
+				and bord.emdong_cd = substr(#{adm},6,2)
+			</if>
+			<if test='adm.length() == 5 '>
+				select bord.sgg_nm adm_nm 
+					 , to_char(#{adm}) adm_cd
+					 , nvl(theme.s_theme_cd_nm,'') theme_nm
+				     , nvl(corp.corp_year,0) corp_year
+				from srv_pg_sggbord  bord 
+				    left outer join (select sido_cd,sgg_cd,emdong_cd,corp_year,theme_cd 
+				    				from srv_dt_sumcorpyear where theme_cd=#{theme_cd}) corp
+				        on corp.sido_cd=bord.sido_cd 
+				        and corp.sgg_cd=bord.sgg_cd 
+				        and corp.emdong_cd='00'
+				    left outer join (select theme_cd,s_theme_cd_nm 
+				    					from cmm_cd_theme where theme_cd=#{theme_cd}) theme
+				        on corp.theme_cd=theme.theme_cd 
+				where
+				bord.base_year = #{year}
+				and bord.sido_cd=substr(#{adm},0,2)
+				and bord.sgg_cd = substr(#{adm},3,3)
+			</if>
+			<if test='adm.length() == 2 '>
+				select bord.sido_nm adm_nm
+					 , to_char(#{adm}) adm_cd 
+					 , nvl(theme.s_theme_cd_nm,'') theme_nm
+				     , nvl(corp.corp_year,0) corp_year
+				from srv_pg_sidobord  bord 
+				    left outer join (select sido_cd,sgg_cd,emdong_cd,corp_year,theme_cd 
+				    				from srv_dt_sumcorpyear where theme_cd=#{theme_cd}) corp
+				        on corp.sido_cd=bord.sido_cd 
+				        and corp.sgg_cd='000'
+				        and corp.emdong_cd='00'
+				    left outer join (select theme_cd,s_theme_cd_nm 
+				    					from cmm_cd_theme where theme_cd=#{theme_cd}) theme
+				        on corp.theme_cd=theme.theme_cd 
+				where
+				bord.base_year = #{year}
+				and bord.sido_cd=substr(#{adm},0,2)
+			</if>
+		</foreach>
+	</select>
+	
+	<!-- 창업지원 소상공인 사업체증감, API_0609 -->	
+	<!-- djlee 2019-04-14 수정 시작 -->
+	<!-- mng_s 20200219 김건민 (2018년 사업체 추가  -->
+	<select id="getcorpindecreaseyear" parameterType="hashmap" resultType="String">
+		/** GETCORPINDECREASEYEAR START **/
+		SELECT DATA.* FROM (
+		SELECT DISTINCT REPLACE(YEAR,'9016','2016') AS YEAR
+		FROM SRV_DT_SUMCORP_UPDOWN CORP
+		<where>
+			<if test='adm_cd.length() == 2 '>
+				corp.sido_cd=substr(#{adm_cd},0,2)
+				and corp.sgg_cd = '000'
+				and corp.emdong_cd = '00'
+			</if>
+			<if test='adm_cd.length() == 5 '>
+				corp.sido_cd=substr(#{adm_cd},0,2)
+				and corp.sgg_cd = substr(#{adm_cd},3,3)
+				and corp.emdong_cd = '00'
+			</if>
+			<if test='adm_cd.length() == 7 '>
+					corp.sido_cd=substr(#{adm_cd},0,2)
+				and corp.sgg_cd = substr(#{adm_cd},3,3)
+				and corp.emdong_cd = substr(#{adm_cd},6,2)
+			</if>
+			<if test='census != null and census != ""'>
+				<if test='census == "9"'>
+					AND YEAR NOT IN ('9016', '2017', '2018')
+				</if>
+				<if test='census == "10"'>
+					AND YEAR IN ('9016', '2017', '2018')
+				</if>
+			</if>
+		</where> 
+		) DATA ORDER BY YEAR
+	</select>
+	<!-- mng_e 20200219 김건민 -->
+	<!-- djlee 2019-04-14 수정 끝 -->
+	
+	
+	<select id="corpindecrease" parameterType="hashmap" resultMap="corpindecreaseMap">
+		<if test='adm_cd.length() == 2 '>
+			select to_char(#{adm_cd}) adm_cd
+				, to_char(#{data_year}) year
+				, length(#{adm_cd}) adm_cd_length
+				, bord.sido_nm adm_nm
+			from srv_pg_sidobord bord
+			where bord.base_year = #{year}
+			and bord.sido_cd=substr(#{adm_cd},0,2)
+		</if>
+		<if test='adm_cd.length() == 5 '>
+			select to_char(#{adm_cd}) adm_cd
+				, to_char(#{data_year}) year
+				, length(#{adm_cd}) adm_cd_length
+				, bord.sgg_nm adm_nm
+			from srv_pg_sggbord bord
+			where bord.base_year = #{year}
+			and bord.sido_cd=substr(#{adm_cd},0,2)
+			and bord.sgg_cd = substr(#{adm_cd},3,3)
+		</if>
+		<if test='adm_cd.length() == 7 '>
+			select to_char(#{adm_cd}) adm_cd
+				, to_char(#{data_year}) year
+				, length(#{adm_cd}) adm_cd_length
+				, bord.emdong_nm adm_nm
+			from srv_pg_admbord bord
+			where bord.base_year = #{year}
+			and bord.sido_cd=substr(#{adm_cd},0,2)
+			and bord.sgg_cd = substr(#{adm_cd},3,3)
+			and bord.emdong_cd=substr(#{adm_cd},6,2)
+		</if>
+	</select>
+	
+	<resultMap id="corpindecreaseMap" type="kostat.sop.OpenAPI3.api.startupbiz.dto.CorpindecreaseMap">
+		<result property="year" column="year"/>
+		<result property="adm_cd" column="adm_cd"/>
+		<collection property="theme_list"
+			column="{year=year,adm_cd=adm_cd,adm_cd_length=adm_cd_length}"
+			ofType="hashmap" javaType="ArrayList" select="corpindecreaseinfo">
+		</collection>
+	</resultMap>
+	
+	<select id="corpindecreaseinfo" parameterType="hashmap" resultType="hashmap">
+		select corp.theme_cd
+		     , corp.biz_cnt AS corp_cnt
+		     , theme.s_theme_cd_nm theme_nm
+		from srv_dt_sumcorp_updown corp 
+			, cmm_cd_theme theme
+		<where> 
+		<if test='adm_cd_length == "2" '>
+			corp.sido_cd = substr(#{adm_cd},0,2)
+			and corp.sgg_cd = '000'
+			and corp.emdong_cd = '00'
+		</if>
+		<if test='adm_cd_length == "5" '>
+			corp.sido_cd=substr(#{adm_cd},0,2)
+			and corp.sgg_cd = substr(#{adm_cd},3,3)
+			and corp.emdong_cd='00'
+		</if>
+		<if test='adm_cd_length == "7" '>
+			corp.sido_cd=substr(#{adm_cd},0,2)
+			and corp.sgg_cd = substr(#{adm_cd},3,3)
+			and corp.emdong_cd=substr(#{adm_cd},6,2)
+		</if>
+		   and year = #{year}
+		   and corp.theme_cd = theme.theme_cd
+		</where> 
+	</select>
+	
+	<!-- 창업지원 통계, API_0601 -->
+	<!-- 거주인구 -->
+	<select id="startupbizppl" parameterType="hashmap" resultType="hashmap">
+		select ${ppl_sql} 
+			from SRV_DT_SEARCHPPLTN
+			<where>
+				<if test='adm_cd.length() == 2 '>
+					and sido_cd = substr(#{adm_cd},0,2)
+					and sgg_cd != '000'
+					and emdong_cd = '00'
+				</if>
+				<if test='adm_cd.length() == 5 '>
+					and sido_cd = substr(#{adm_cd},0,2)
+					and sgg_cd = substr(#{adm_cd},3,3)
+					and emdong_cd != '00'
+				</if>
+			</where> 
+			order by pplsum desc
+	</select>
+	
+	<!-- 직장인구 -->
+	<select id="startupbizwoker" parameterType="hashmap" resultType="hashmap">
+		select sum(worker_sum) worker_sum ,sido_cd||sgg_cd
+			<if test='adm_cd.length() == 2 '>
+				||'00'  as adm_cd
+			</if>
+			<if test='adm_cd.length() == 5 '>
+				||emdong_cd adm_cd
+			</if>
+			from srv_pg_corpcensus_${year} corp
+			<if test='adm_cd.length() == 2 '>
+				<where>
+					sido_cd=#{adm_cd}
+				</where>
+				group by sido_cd,sgg_cd
+			</if>
+			<if test='adm_cd.length() == 5 '>
+				<where> 
+					sido_cd=substr(#{adm_cd},0,2)
+					and sgg_cd=substr(#{adm_cd},3,3)
+				</where>
+				group by sido_cd,sgg_cd,emdong_cd
+			</if>
+			order by worker_sum desc
+	</select>
+	
+	<!-- 주택종류 -->
+	<select id="startupbizhouse" parameterType="hashmap" resultType="hashmap">
+		select ${house_sql} 
+			from SRV_DT_SEARCHRESID
+			<where>
+				<if test='adm_cd.length() == 2 '>
+					and sido_cd = substr(#{adm_cd},0,2)
+					and sgg_cd != '000'
+					and emdong_cd = '00'
+				</if>
+				<if test='adm_cd.length() == 5 '>
+					and sido_cd = substr(#{adm_cd},0,2)
+					and sgg_cd = substr(#{adm_cd},3,3)
+					and emdong_cd != '00'
+				</if>
+			</where> 
+			order by housesum desc
+	</select>
+	
+	<!-- 아파트시세 -->
+	<select id="startupbizapartprice" parameterType="hashmap" resultType="hashmap">
+		select round(avg(avg_market_price)) avg_market_price 
+		      ,sido_cd||sgg_cd||emdong_cd as adm_cd
+			from srv_dt_searchapartprice
+			<where>
+				<if test='adm_cd.length() == 2 '>
+					and sido_cd = substr(#{adm_cd},0,2)
+					and sgg_cd != '000'
+					and emdong_cd = '00'
+				</if>
+				<if test='adm_cd.length() == 5 '>
+					and sido_cd = substr(#{adm_cd},0,2)
+					and sgg_cd = substr(#{adm_cd},3,3)
+					and emdong_cd != '00'
+				</if>
+			</where> 
+			group by sido_cd||sgg_cd||emdong_cd
+			order by avg_market_price desc
+	</select>
+	
+	<!-- 업종별 사업장 -->
+	<select id="startupbizcorpcnt" parameterType="hashmap" resultType="hashmap">
+		select 
+			<if test='theme_cd != null '>
+					corp_cnt
+			</if>
+			<if test='theme_cd == null '>
+					sum(corp_cnt) corp_cnt
+			</if>
+				,sido_cd||sgg_cd||emdong_cd adm_cd
+			from SRV_DT_SEARCHCORP
+			<where>
+				<if test='adm_cd.length() == 2 '>
+					and sido_cd = substr(#{adm_cd},0,2)
+					and sgg_cd != '000'
+					and emdong_cd = '00'
+				</if>
+				<if test='adm_cd.length() == 5 '>
+					and sido_cd = substr(#{adm_cd},0,2)
+					and sgg_cd = substr(#{adm_cd},3,3)
+					and emdong_cd != '00'
+				</if>
+				<if test='theme_cd != null '>
+					and theme_cd = #{theme_cd} 
+				</if>
+			</where> 
+			<if test='theme_cd == null '>
+					group by sido_cd||sgg_cd||emdong_cd
+			</if>
+			order by corp_cnt 
+			<if test='corp_cnt == "1" '>
+				desc
+			</if>
+			<if test='corp_cnt == "2" '>
+				asc
+			</if>
+	</select>
+	
+	<!-- 업종별 사업체 증감 -->
+	<select id="startupbizcorprate" parameterType="hashmap" resultType="hashmap">
+		select 
+			<if test='theme_cd != null '>
+					rate_change
+			</if>
+			<if test='theme_cd == null '>
+					avg(rate_change) rate_change
+			</if>
+				,sido_cd||sgg_cd||emdong_cd adm_cd
+			from SRV_DT_SEARCHCORP
+			<where>
+				<if test='adm_cd.length() == 2 '>
+					and sido_cd = substr(#{adm_cd},0,2)
+					and sgg_cd != '000'
+					and emdong_cd = '00'
+				</if>
+				<if test='adm_cd.length() == 5 '>
+					and sido_cd = substr(#{adm_cd},0,2)
+					and sgg_cd = substr(#{adm_cd},3,3)
+					and emdong_cd != '00'
+				</if>
+				<if test='theme_cd != null '>
+					and theme_cd = #{theme_cd} 
+				</if>
+			</where> 
+			<if test='theme_cd == null '>
+					group by sido_cd||sgg_cd||emdong_cd
+			</if>
+			order by rate_change 
+			<if test='rate_change == "1" '>
+				desc
+			</if>
+			<if test='rate_change == "2" '>
+				asc
+			</if>
+	</select>
+	
+	
+	<select id="get_adm_nm" parameterType="hashmap" resultType="hashmap">
+		<foreach collection="adm_cd_list" item="adm" separator="UNION ALL">
+			<if test='adm.length() == 5 '>
+				select to_char(#{adm}) adm_cd
+					, bord.sgg_nm adm_nm
+				from srv_pg_sggbord bord
+				where bord.base_year = #{year}
+				and bord.sido_cd=substr(#{adm},0,2)
+				and bord.sgg_cd = substr(#{adm},3,3)
+			</if>
+			<if test='adm.length() == 7 '>
+				select to_char(#{adm}) adm_cd
+					, bord.emdong_nm adm_nm
+				from srv_pg_admbord bord
+				where bord.base_year = #{year}
+				and bord.sido_cd=substr(#{adm},0,2)
+				and bord.sgg_cd = substr(#{adm},3,3)
+				and bord.emdong_cd=substr(#{adm},6,2)
+			</if>
+		</foreach>
+	</select> 
+	
+	<!-- 시도별 생활업종 정보, API_0611 박길섭 수정-->
+	<select id="sidoTypeOfBusinessInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				INTRO.SIDO_CD             AS SIDO_CD
+				<if test='sido_cd == "00"'>
+				, '전국'                  AS SIDO_NM
+				</if>
+				<if test='sido_cd != "00"'>
+				, SIDO.SIDO_NM            AS SIDO_NM
+				</if>
+				, INTRO.RSTRT_PER         AS RSTRT_PER
+				, INTRO.RSTRT_CORP_CNT + INTRO.SRV_CORP_CNT + INTRO.WHRTLSAL_CORP_CNT + INTRO.LODGEBIZ_CORP_CNT AS TOTAL_CNT
+				, INTRO.RSTRT_CORP_CNT    AS RSTRT_CORP_CNT
+				, INTRO.SRV_PER           AS SRV_PER
+				, INTRO.SRV_CORP_CNT      AS SRV_CORP_CNT
+				, INTRO.WHRTLSAL_PER      AS WHRTLSAL_PER
+				, INTRO.WHRTLSAL_CORP_CNT AS WHRTLSAL_CORP_CNT
+				, INTRO.LODGEBIZ_PER      AS LODGEBIZ_PER
+				, INTRO.LODGEBIZ_CORP_CNT AS LODGEBIZ_CORP_CNT
+				, INTRO.RSTRT_WORKER_PER  AS RSTRT_WORKER_PER
+				, INTRO.RSTRT_WORKER_CNT  AS RSTRT_WORKER_CNT
+				, INTRO.SRV_WORKER_PER 	  AS SRV_WORKER_PER
+				, INTRO.SRV_WORKER_CNT    AS SRV_WORKER_CNT
+				, INTRO.WHRTLSAL_WORKER_PER  AS WHRTLSAL_WORKER_PER
+				, INTRO.WHRTLSAL_WORKER_CNT  AS WHRTLSAL_WORKER_CNT
+				, INTRO.LODGEBIZ_WORKER_PER  AS LODGEBIZ_WORKER_PER
+				, INTRO.LODGEBIZ_WORKER_CNT  AS LODGEBIZ_WORKER_CNT
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		<if test='sido_cd != "00"'>
+		INNER JOIN SRV_PG_SIDOBORD SIDO
+		ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		</if>
+		WHERE
+				 INTRO.SIDO_CD = #{sido_cd}
+				<if test='sido_cd != "00"'>
+				AND SIDO.BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+				</if>
+	</select>
+	<!-- 시도 생활업종 순위, API_0612 -->
+	<select id="sidoTypeOfBusinessRank" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				CORP           . THEME_CD         AS THEME_CD
+				, THEME        . S_THEME_CD_NM    AS THEME_NM
+				, CORP         . CORP_CNT_RANK    AS CORP_CNT_RANK
+				, CORP         . CORP_CNT         AS CORP_CNT
+				, CORPRATE     . CORP_PER_RANK    AS CORP_PER_RANK
+				<if test = 'theme_cd != null'>
+					,ROUND((CORP. CORP_CNT / #{corp_total}) * 100 , 1) AS CORP_PER
+				</if>
+				<if test = 'theme_cd == null'>
+					, CORPRATE     . CORP_PER         AS CORP_PER
+				</if>
+				, CORPCHANGE   . CORP_IRDS_RANK   AS CORP_IRDS_RANK
+				, CORPCHANGE   . CORP_IRDSRATE    AS CORP_IRDSRATE
+				, WORKER       . WORKER_CNT_RANK  AS WORKER_CNT_RANK
+				, WORKER       . WORKER_CNT       AS WORKER_CNT
+				, WORKERRATE   . WORKER_PER_RANK  AS WORKER_PER_RANK
+				, WORKERRATE   . WORKER_PER       AS WORKER_PER
+				, WORKERCHANGE . WORKER_IRDS_RANK AS WORKER_IRDS_RANK
+				, WORKERCHANGE . WORKER_IRDSRATE  AS WORKER_IRDSRATE
+
+		FROM
+				SRV_DT_SIDOLIFEBIZ_CORP CORP
+		INNER JOIN
+					SRV_DT_SIDOLIFEBIZ_CORPRATE CORPRATE
+				ON  CORP.SIDO_CD = CORPRATE.SIDO_CD AND CORP.THEME_CD = CORPRATE.THEME_CD
+		INNER JOIN
+					SRV_DT_SIDOLIFEBIZ_CORPCHANGE CORPCHANGE
+				ON  CORP.SIDO_CD = CORPCHANGE.SIDO_CD AND CORP.THEME_CD = CORPCHANGE.THEME_CD
+		INNER JOIN
+					SRV_DT_SIDOLIFEBIZ_WORKER WORKER
+				ON  CORP.SIDO_CD = WORKER.SIDO_CD AND CORP.THEME_CD = WORKER.THEME_CD
+		INNER JOIN
+					SRV_DT_SIDOLIFEBIZ_WORKERRATE WORKERRATE
+				ON  CORP.SIDO_CD = WORKERRATE.SIDO_CD AND CORP.THEME_CD = WORKERRATE.THEME_CD
+		INNER JOIN
+					SRV_DT_SIDOLIFEBIZ_WORKERCHANGE WORKERCHANGE
+				ON  CORP.SIDO_CD = WORKERCHANGE.SIDO_CD AND CORP.THEME_CD = WORKERCHANGE.THEME_CD
+		INNER JOIN
+					CMM_CD_THEME THEME
+				ON  CORP.THEME_CD = THEME.THEME_CD
+		WHERE
+				CORP.SIDO_CD = #{sido_cd}
+	</select>
+	
+	<!-- 시도코드로 시도명 조회 -->
+	<select id="sidoNameBySidoCode" parameterType="hashmap" resultType="hashmap">
+		<choose>
+			<when test='sido_cd == "00"'>
+				SELECT 
+						'00' AS SIDO_CD
+						, '전국' AS SIDO_NM
+				FROM
+						dual
+			</when>
+			<otherwise>
+				select TOP 1
+						SIDO_CD
+						<!-- 2016. 03. 24 j.h.Seok modify -->
+						, TRIM(SIDO_NM) as SIDO_NM
+				FROM
+						SRV_PG_SIDOBORD
+				WHERE
+						SIDO_CD = #{sido_cd}
+				ORDER BY 
+						BASE_YEAR DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 베이스테마코드로 베이스테마코드명 조회 -->
+	<select id="baseThemeNameBybaseThemeCode" parameterType="hashmap" resultType="hashmap">
+		SELECT TOP 1
+				substring(THEME_CD, 1, 2) AS THEME_CD
+				, B_THEME_CD_NM
+		FROM
+				CMM_CD_THEME
+		WHERE
+				THEME_CD LIKE #{theme_cd} || '%'
+		GROUP BY THEME_CD, B_THEME_CD_NM
+	</select>
+	
+	<!-- 테마코드로 테마코드명 조회 -->
+	<select id="themeNameBythemeCode" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				THEME_CD
+				, B_THEME_CD_NM
+				, S_THEME_CD_NM
+		FROM
+				CMM_CD_THEME
+		where
+				theme_cd = #{theme_cd}
+	</select>
+	
+	<!-- 테마코드와 시코드로 사업체수 조회 -->
+	<select id="corpCountByThemeCode" parameterType="hashmap" resultType="String">
+		SELECT SUM(CORP_CNT)
+		from SRV_DT_SIDOLIFEBIZ_CORP
+		WHERE SIDO_CD = #{sido_cd} AND THEME_CD LIKE #{theme_cd} || '%'
+	</select>
+	<!-- 테마코드와 시코드로 종사자수 조회 박길섭추가 -->
+	<select id="workerCountByThemeCode" parameterType="hashmap" resultType="String">
+		SELECT SUM(WORKER_CNT)
+		from SRV_DT_SIDOLIFEBIZ_WORKER
+		WHERE SIDO_CD = #{sido_cd} AND THEME_CD LIKE #{theme_cd} || '%'
+	</select>
+	
+	<!-- 시도 생활업종 그룹별 속성, API_0613 -->
+	<select id="sidoTypeOfBusinessGroup" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				CORP       . THEME_CD
+				, CORP     . CORP_CNT_RANK
+				, CORP     . CORP_CNT
+				, CORPRATE . CORP_PER_RANK
+                ,ROUND((CORP. CORP_CNT / #{corp_total}) * 100 , 1) AS CORP_PER
+				<!--, CORPRATE . CORP_PER  -->
+				, THEME    . S_THEME_CD_NM
+		FROM
+				SRV_DT_SIDOLIFEBIZ_CORP CORP
+		INNER JOIN
+					SRV_DT_SIDOLIFEBIZ_CORPRATE CORPRATE
+				ON  CORP.SIDO_CD = CORPRATE.SIDO_CD AND CORP.THEME_CD = CORPRATE.THEME_CD
+		INNER JOIN (
+			SELECT
+					THEME_CD
+					, B_THEME_CD_NM
+					, S_THEME_CD_NM
+			FROM
+					CMM_CD_THEME
+			WHERE
+					THEME_CD LIKE #{theme_cd} || '%'
+		) THEME
+				ON  CORP.THEME_CD = THEME.THEME_CD
+		WHERE CORP.SIDO_CD = #{sido_cd}
+	</select>
+	<!-- [START] 지표별 시도 순위, API_0614 -->
+	<select id="sidoIndexOrderEateryAll" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 음식점 비율-순위, 비율*/
+				'percentage' AS TITLE
+				, INTRO.SIDO_CD AS SIDO_CD
+				, TO_FLOAT(INTRO.RSTRT_PER_RANK) AS FIRST_VAL
+				, TO_FLOAT(INTRO.RSTRT_PER) AS SECOND_VAL
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		UNION ALL
+		SELECT /* 음식점 사업체수-순위, 사업체수 */
+				'corporation' AS TITLE
+				, INTRO.SIDO_CD AS SIDO_CD
+				, TO_FLOAT(INTRO.RSTRT_CORP_CNT_RANK) AS FIRST_VAL
+				, TO_FLOAT(INTRO.RSTRT_CORP_CNT) AS SECOND_VAL
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		UNION ALL
+		SELECT /* 음식점 증감율-순위, 증감율 */
+				'rate_change' AS TITLE
+				, INTRO.SIDO_CD AS SIDO_CD
+				, TO_FLOAT(INTRO.RSTRT_IRDSRATE_RANK) AS FIRST_VAL
+				, TO_FLOAT(INTRO.RSTRT_IRDSRATE) AS SECOND_VAL
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		UNION ALL
+		SELECT /* 음식점 종사자비율-순위, 종사자비율 */
+				'worker_percentage' AS TITLE
+				, INTRO.SIDO_CD AS SIDO_CD
+				, TO_FLOAT(INTRO.RSTRT_WORKER_PER_RANK) AS FIRST_VAL
+				, TO_FLOAT(INTRO.RSTRT_WORKER_PER) AS SECOND_VAL
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		UNION ALL
+		SELECT /* 음식점 종사자수-순위, 종사자수 */
+				'worker' AS TITLE
+				, INTRO.SIDO_CD AS SIDO_CD
+				, TO_FLOAT(INTRO.RSTRT_WORKER_CNT_RANK) AS FIRST_VAL
+				, TO_FLOAT(INTRO.RSTRT_WORKER_CNT) AS SECOND_VAL
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		UNION ALL
+		SELECT /* 음식점 종사자증감율-순위, 종사자증감율 */
+				'worker_rate_change' AS TITLE
+				, INTRO.SIDO_CD AS SIDO_CD
+				, TO_FLOAT(INTRO.RSTRT_WORKER_IRDSRATE_RANK) AS FIRST_VAL
+				, TO_FLOAT(INTRO.RSTRT_WORKER_IRDSRATE) AS SECOND_VAL
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+	</select>
+	
+	<!-- [START] 음식점 지표 순위 조회 -->
+	<select id="percentageSidoIndexOrderEatery" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 음식점 비율-순위, 비율 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.RSTRT_PER_RANK AS PER_RANK
+				, INTRO.RSTRT_PER AS PER
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	
+	<select id="corporationSidoIndexOrderEatery" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 음식점 사업체수-순위, 사업체수 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.RSTRT_CORP_CNT_RANK AS CORP_RANK
+				, INTRO.RSTRT_CORP_CNT AS CORP_CNT
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	
+	<select id="rateChangeSidoIndexOrderEatery" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 음식점 증감율-순위, 증감율 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.RSTRT_IRDSRATE_RANK AS RATE_CHANGE_RANK
+				, INTRO.RSTRT_IRDSRATE AS RATE_CHANGE
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	<select id="workerSidoIndexOrderEatery" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 음식점 종사자수-순위, 종사자수 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.RSTRT_WORKER_CNT_RANK AS WORKER_CNT_RANK
+				, INTRO.RSTRT_WORKER_CNT AS WORKER_CNT
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	<select id="workerPecentageSidoIndexOrderEatery" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 음식점 종사자비율-순위, 종사자비율 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.RSTRT_WORKER_PER_RANK AS WORKER_PER_RANK
+				, INTRO.RSTRT_WORKER_PER AS WORKER_PER
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	<select id="workerRateChangeSidoIndexOrderEatery" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 음식점 종사자 증감율-순위, 종사자 증감율 비율 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.RSTRT_WORKER_IRDSRATE_RANK AS WORKER_RATE_CHANGE_RANK
+				, INTRO.RSTRT_WORKER_IRDSRATE AS WORKER_RATE_CHANGE_PER
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	<!-- [END] 음식점 지표 순위 조회 -->
+	
+	<!-- [START] 도소매 지표 순위 조회 -->
+	<select id="percentageSidoIndexOrderWrsale" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 도소매 비율-순위, 비율 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.WHRTLSAL_PER_RANK AS PER_RANK
+				, INTRO.WHRTLSAL_PER AS PER
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	
+	<select id="corporationSidoIndexOrderWrsale" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 도소매 사업체수-순위, 사업체수 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.WHRTLSAL_CORP_CNT_RANK AS CORP_RANK
+				, INTRO.WHRTLSAL_CORP_CNT AS CORP_CNT
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	
+	<select id="rateChangeSidoIndexOrderWrsale" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 도소매 증감율-순위, 증감율 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.WHRTLSAL_IRDSRATE_RANK AS RATE_CHANGE_RANK
+				, INTRO.WHRTLSAL_IRDSRATE AS RATE_CHANGE
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	<select id="workerSidoIndexOrderWrsale" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 도소매 종사자수-순위, 종사자수 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.WHRTLSAL_WORKER_CNT_RANK AS WORKER_CNT_RANK
+				, INTRO.WHRTLSAL_WORKER_CNT AS WORKER_CNT
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	<select id="workerPecentageSidoIndexOrderWrsale" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 도소매 종사자비율-순위, 종사자비율 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.WHRTLSAL_WORKER_PER_RANK AS WORKER_PER_RANK
+				, INTRO.WHRTLSAL_WORKER_PER AS WORKER_PER
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	<select id="workerRateChangeSidoIndexOrderWrsale" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 도소매 종사자비율-순위, 종사자비율 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.WHRTLSAL_WORKER_IRDSRATE_RANK AS WORKER_RATE_CHANGE_RANK
+				, INTRO.WHRTLSAL_WORKER_IRDSRATE AS WORKER_RATE_CHANGE_PER
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	<!-- [END] 도소매 지표 순위 조회 -->
+	<!-- [START] 서비스 지표 순위 조회 -->
+	<select id="percentageSidoIndexOrderService" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 서비스 비율-순위, 비율 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.SRV_PER_RANK AS PER_RANK
+				, INTRO.SRV_PER AS PER
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	
+	<select id="corporationSidoIndexOrderService" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 서비스 사업체수-순위, 사업체수 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.SRV_CORP_CNT_RANK AS CORP_RANK
+				, INTRO.SRV_CORP_CNT AS CORP_CNT
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	
+	<select id="rateChangeSidoIndexOrderService" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 서비스 증감율-순위, 증감율 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.SRV_IRDSRATE_RANK AS RATE_CHANGE_RANK
+				, INTRO.SRV_IRDSRATE AS RATE_CHANGE
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	<select id="workerSidoIndexOrderService" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 서비스 종사자수-순위, 종사자수 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.SRV_WORKER_CNT_RANK AS WORKER_CNT_RANK
+				, INTRO.SRV_WORKER_CNT AS WORKER_CNT
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	<select id="workerPecentageSidoIndexOrderService" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 서비스 종사자비율-순위, 종사자비율 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.SRV_WORKER_PER_RANK AS WORKER_PER_RANK
+				, INTRO.SRV_WORKER_PER AS WORKER_PER
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	<select id="workerRateChangeSidoIndexOrderService" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 서비스 종사자비율-순위, 종사자비율 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.SRV_WORKER_IRDSRATE_RANK AS WORKER_RATE_CHANGE_RANK
+				, INTRO.SRV_WORKER_IRDSRATE AS WORKER_RATE_CHANGE_PER
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	<!-- [END] 서비스 지표 순위 조회 -->
+
+	<!-- [START] 숙박 지표 순위 조회 -->
+	<select id="percentageSidoIndexOrderLodge" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 숙박 비율-순위, 비율 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.LODGEBIZ_PER_RANK AS PER_RANK
+				, INTRO.LODGEBIZ_PER AS PER
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	
+	<select id="corporationSidoIndexOrderLodge" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 숙박 사업체수-순위, 사업체수 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.LODGEBIZ_CORP_CNT_RANK AS CORP_RANK
+				, INTRO.LODGEBIZ_CORP_CNT AS CORP_CNT
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	
+	<select id="rateChangeSidoIndexOrderLodge" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 숙박 증감율-순위, 증감율 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.LODGEBIZ_IRDSRATE_RANK AS RATE_CHANGE_RANK
+				, INTRO.LODGEBIZ_IRDSRATE AS RATE_CHANGE
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	<select id="workerSidoIndexOrderLodge" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 숙박 종사자수-순위, 종사자수 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.LODGEBIZ_WORKER_CNT_RANK AS WORKER_CNT_RANK
+				, INTRO.LODGEBIZ_WORKER_CNT AS WORKER_CNT
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	<select id="workerPecentageSidoIndexOrderLodge" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 숙박 종사자비율-순위, 종사자비율 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.LODGEBIZ_WORKER_PER_RANK AS WORKER_PER_RANK
+				, INTRO.LODGEBIZ_WORKER_PER AS WORKER_PER
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	<select id="workerRateChangeSidoIndexOrderLodge" parameterType="hashmap" resultType="hashmap">
+		SELECT /* 숙박 종사자비율-순위, 종사자비율 */
+				INTRO.SIDO_CD AS SIDO_CD
+				, TRIM(SIDO.SIDO_NM) AS SIDO_NM
+				, INTRO.LODGEBIZ_WORKER_IRDSRATE_RANK AS WORKER_RATE_CHANGE_RANK
+				, INTRO.LODGEBIZ_WORKER_IRDSRATE AS WORKER_RATE_CHANGE_PER
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN
+				SRV_PG_SIDOBORD SIDO
+				ON INTRO.SIDO_CD = SIDO.SIDO_CD
+		<where>
+			<if test = 'sido_cd != null and sido_cd.length() == 2'>
+				AND INTRO.SIDO_CD = #{sido_cd}
+			</if>
+				AND BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		</where>
+	</select>
+	<!-- [END] 숙박 지표 순위 조회 -->
+	<!-- [END] 지표별 시도 순위, API_0614 -->
+	
+	<!-- [START] 전국 시군구 생활업종 업체수, API_0615 -->
+	<select id="sggTypeOfBusinessCorporationCount" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				BIZCATEGORYMAP.THEME_CD   AS THEME_CD
+				, BIZCATEGORYMAP.SIDO_CD  AS SIDO_CD
+				, BIZCATEGORYMAP.SGG_CD   AS SGG_CD
+				, BIZCATEGORYMAP.CORP_CNT AS CORP_CNT
+				<!-- 2017. 06. 27 j.h.Seok DB 표준화 작업 -->
+				, BIZCATEGORYMAP.UPPER_REGION_COMP_CORP_PER as UPREGION_VS_CORP_PER
+				, BIZCATEGORYMAP.CORP_VS_PPLTN_RATE
+				, BIZCATEGORYMAP.CORP_VS_WORKER_RATE
+				, BIZCATEGORYMAP.CORP_VS_FAMILY_RATE
+				, BIZCATEGORYMAP.BIZ_WORKER_CNT
+				, BIZCATEGORYMAP.AVG_WORKER_RATE
+				, SGG.SIDO_NM             AS SIDO_NM
+				, SGG.SGG_NM              AS SGG_NM
+				, SGG.X_COOR              AS X_COOR
+				, SGG.Y_COOR              AS Y_COOR
+				, THEME.S_THEME_CD_NM     AS THEME_CD_NM
+		FROM
+				SRV_DT_BIZCATEGORYMAP_SGG BIZCATEGORYMAP
+				INNER JOIN (
+				SELECT
+						SIDO_CD AS SIDO_CD
+						, SGG_CD AS SGG_CD
+						, TRIM(SIDO_NM) AS SIDO_NM
+						, TRIM(SGG_NM) AS SGG_NM
+						, ROUND(TO_FLOAT(x_coor)) AS X_COOR
+						, ROUND(TO_FLOAT(y_coor)) AS Y_COOR
+				FROM
+						SRV_PG_SGGBORD
+				WHERE BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SGGBORD ORDER BY BASE_YEAR DESC)
+		) SGG
+				ON BIZCATEGORYMAP.SIDO_CD = SGG.SIDO_CD AND BIZCATEGORYMAP.SGG_CD = SGG.SGG_CD
+		INNER JOIN
+					CMM_CD_THEME THEME
+				ON  BIZCATEGORYMAP.THEME_CD = THEME.THEME_CD
+		WHERE
+				BIZCATEGORYMAP.THEME_CD = #{theme_cd}
+	</select>
+	<!-- [END] 전국 시군구 생활업종 업체수, API_0615 -->
+	
+	<!-- [START] 시군구 생활업종 정보, API_0616 -->
+	<!-- 20160926 9월오픈  수정 주석삭제 -->
+	<select id="sggTypeOfBusinessInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				BIZCATEGORYMAP.SIDO_CD AS SIDO_CD
+				, SGGBORD.SIDO_NM AS SIDO_NM
+				, BIZCATEGORYMAP.SGG_CD AS SGG_CD
+				, SGGBORD.SGG_NM AS SGG_NM
+				, BIZCATEGORYMAP.THEME_CD AS THEME_CD
+				, THEME.S_THEME_CD_NM AS THEME_CD_NM
+				, BIZCATEGORYMAP.CORP_CNT
+				<!-- 2017. 06. 27 j.h.Seok DB 표준화 작업 -->
+				, BIZCATEGORYMAP.UPPER_REGION_COMP_CORP_PER as UPREGION_VS_CORP_PER
+				, BIZCATEGORYMAP.CORP_VS_PPLTN_RATE
+				, BIZCATEGORYMAP.CORP_VS_WORKER_RATE
+				, BIZCATEGORYMAP.CORP_VS_FAMILY_RATE
+				, BIZCATEGORYMAP.BIZ_WORKER_CNT
+				, BIZCATEGORYMAP.AVG_WORKER_RATE
+		FROM
+				SRV_DT_BIZCATEGORYMAP_SGG BIZCATEGORYMAP
+		INNER JOIN (
+				SELECT
+						SIDO_CD AS SIDO_CD
+						, SGG_CD AS SGG_CD
+						, TRIM(SIDO_NM) AS SIDO_NM
+						, TRIM(SGG_NM) AS SGG_NM
+				FROM
+						SRV_PG_SGGBORD
+				WHERE BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SGGBORD ORDER BY BASE_YEAR DESC)
+		) SGGBORD
+				ON BIZCATEGORYMAP.SIDO_CD = SGGBORD.SIDO_CD AND BIZCATEGORYMAP.SGG_CD = SGGBORD.SGG_CD
+		INNER JOIN
+					CMM_CD_THEME THEME
+				ON  BIZCATEGORYMAP.THEME_CD = THEME.THEME_CD
+		WHERE
+				BIZCATEGORYMAP.SIDO_CD   = SUBSTR(#{sgg_cd}, 1, 2)
+				AND BIZCATEGORYMAP.SGG_CD   = SUBSTR(#{sgg_cd}, 3, 3)
+				AND BIZCATEGORYMAP.THEME_CD = #{theme_cd}
+	</select>
+	<!-- [END] 시군구 생활업종 정보, API_0616 -->
+	
+	<!-- [START] 생활업종 시군구 순위, API_0617 -->
+	<select id="sggTypeOfBusinessRank" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				BIZCATEGORYMAP.SGG_CD AS SGG_CD
+				, SGGBORD.SGG_NM AS SGG_NM
+				, BIZCATEGORYMAP.CORP_CNT
+				<!-- 2017. 06. 27 j.h.Seok DB 표준화 작업 -->
+				, BIZCATEGORYMAP.UPPER_REGION_COMP_CORP_PER as UPREGION_VS_CORP_PER
+				, BIZCATEGORYMAP.CORP_VS_PPLTN_RATE
+				, BIZCATEGORYMAP.CORP_VS_WORKER_RATE
+				, BIZCATEGORYMAP.CORP_VS_FAMILY_RATE
+				, BIZCATEGORYMAP.BIZ_WORKER_CNT
+				, BIZCATEGORYMAP.AVG_WORKER_RATE
+		FROM
+				SRV_DT_BIZCATEGORYMAP_SGG BIZCATEGORYMAP
+		INNER JOIN (
+				SELECT
+						SIDO_CD AS SIDO_CD
+						, SGG_CD AS SGG_CD
+						, TRIM(SIDO_NM) AS SIDO_NM
+						, TRIM(SGG_NM) AS SGG_NM
+				FROM
+						SRV_PG_SGGBORD
+				WHERE BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SGGBORD ORDER BY BASE_YEAR DESC)
+		) SGGBORD
+				ON BIZCATEGORYMAP.SIDO_CD = SGGBORD.SIDO_CD AND BIZCATEGORYMAP.SGG_CD = SGGBORD.SGG_CD
+		WHERE
+				BIZCATEGORYMAP.SIDO_CD = #{sido_cd}
+				AND BIZCATEGORYMAP.THEME_CD = #{theme_cd}
+	</select>
+	<!-- [END] 생활업종 시군구 순위, API_0617 -->
+		
+	<!-- 창업지원 지역종합비교(사업체수), API_0618 -->
+	<select id="companycount" parameterType="hashmap" resultMap="companycountMap">
+		select to_char(#{adm_cd}) adm_cd
+			, to_char(#{first_adm_cd}) first_adm_cd
+			, to_char(#{second_adm_cd}) second_adm_cd
+			, to_char(#{third_adm_cd}) third_adm_cd
+			, to_char(#{theme_cd}) theme_cd
+			, to_char(#{base_year}) base_year
+			, to_char(#{bnd_year}) bnd_year
+		from dual
+	</select>
+
+	<resultMap id="companycountMap" type="kostat.sop.OpenAPI3.api.startupbiz.dto.CompareregiontotalMap">
+		<association property="selecttype"
+			column="{theme_cd=theme_cd}"
+			javaType="string" select="SelectThemeNm"/>
+		<collection property="resultdata"
+			column="{adm_cd=adm_cd,first_adm_cd=first_adm_cd,second_adm_cd=second_adm_cd,third_adm_cd=third_adm_cd,theme_cd=theme_cd,base_year=base_year,bnd_year=bnd_year}"
+			ofType="hashmap" javaType="ArrayList" select="companycountinfo">
+		</collection>
+	</resultMap>
+
+	<!-- 창업지원 지역종합비교(사업체수), API_0618 -->
+	<select id="companycountinfo" parameterType="hashmap" resultType="hashmap">
+		<if test = 'first_adm_cd.length() == 5'>
+			select to_char(#{adm_cd}) adm_cd, sum(corp_cnt) value, (select sido_nm 
+																	from srv_pg_sidobord
+																	where base_year = #{bnd_year}
+    																	and sido_cd = #{adm_cd}) adm_nm
+			from SRV_DT_CORPTHEMESGG 
+			where base_year = #{base_year}
+   				and sido_cd = substring(#{adm_cd},0,2)
+   				and theme_cd = #{theme_cd}
+			union all			
+			select to_char(#{first_adm_cd}) adm_cd, corp_cnt value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{first_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{first_adm_cd},3,3)) adm_nm
+			from SRV_DT_CORPTHEMESGG 
+			where base_year = #{base_year}
+				and sido_cd = substring(#{first_adm_cd},0,2)
+   				and sgg_cd = substring(#{first_adm_cd},3,3)
+				and theme_cd = #{theme_cd}
+			<if test = 'second_adm_cd != null'>
+				union all
+				select to_char(#{second_adm_cd}) adm_cd, corp_cnt value, (select sgg_nm 
+																		from srv_pg_sggbord 
+																		where base_year = #{bnd_year}
+																			 and sido_cd = substring(#{second_adm_cd},0,2)
+																			 and sgg_cd =  substring(#{second_adm_cd},3,3)) adm_nm
+				from SRV_DT_CORPTHEMESGG 
+				where base_year = #{base_year}
+					and sido_cd = substring(#{second_adm_cd},0,2)
+	   				and sgg_cd = substring(#{second_adm_cd},3,3)
+					and theme_cd = #{theme_cd}
+			</if>
+			<if test = 'third_adm_cd != null'>
+				union all
+				select to_char(#{third_adm_cd}) adm_cd, corp_cnt value, (select sgg_nm 
+																		from srv_pg_sggbord 
+																		where base_year = #{bnd_year}
+																			 and sido_cd = substring(#{third_adm_cd},0,2)
+																			 and sgg_cd =  substring(#{third_adm_cd},3,3)) adm_nm
+				from SRV_DT_CORPTHEMESGG 
+				where base_year = #{base_year}
+					and sido_cd = substring(#{third_adm_cd},0,2)
+	   				and sgg_cd = substring(#{third_adm_cd},3,3)
+					and theme_cd = #{theme_cd}
+			</if>
+		</if>
+		<if test = 'first_adm_cd.length() == 7'>
+			select to_char(#{adm_cd}) adm_cd, corp_cnt value, (select sgg_nm 
+																from srv_pg_sggbord 
+																where base_year = #{bnd_year}
+																	 and sido_cd = substring(#{adm_cd},0,2)
+																	 and sgg_cd =  substring(#{adm_cd},3,3)) adm_nm
+			from SRV_DT_CORPTHEMESGG 
+			where base_year = #{base_year}
+			    and sido_cd = substring(#{adm_cd},0,2)
+			    and sgg_cd = substring(#{adm_cd},3,3)
+			    and theme_cd = #{theme_cd}
+			union all
+			select to_char(#{first_adm_cd}) adm_cd, sum(corp_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{first_adm_cd},0,2)
+																			and sgg_cd =  substring(#{first_adm_cd},3,3)
+																			and emdong_cd = substring(#{first_adm_cd},6,2)) adm_nm
+			from SRV_DT_CORPTHEMEREG  
+			where base_year = #{base_year}
+			    and tot_reg_cd like #{first_adm_cd}||'%'
+			    and theme_cd = #{theme_cd}
+			<if test = 'second_adm_cd != null'>
+				union all
+				select to_char(#{second_adm_cd}) adm_cd, sum(corp_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{second_adm_cd},0,2)
+																			and sgg_cd =  substring(#{second_adm_cd},3,3)
+																			and emdong_cd = substring(#{second_adm_cd},6,2)) adm_nm
+				from SRV_DT_CORPTHEMEREG  
+				where base_year = #{base_year}
+			    	and tot_reg_cd like #{second_adm_cd}||'%'
+			    	and theme_cd = #{theme_cd}
+			</if>
+			<if test = 'third_adm_cd != null'>
+				union all
+				select to_char(#{third_adm_cd}) adm_cd, sum(corp_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{third_adm_cd},0,2)
+																			and sgg_cd =  substring(#{third_adm_cd},3,3)
+																			and emdong_cd = substring(#{third_adm_cd},6,2)) adm_nm
+				from SRV_DT_CORPTHEMEREG  
+				where base_year = #{base_year}
+				    and tot_reg_cd like #{third_adm_cd}||'%'
+				    and theme_cd = #{theme_cd}
+			</if>
+		</if>
+	</select>
+
+	<!-- 창업지원 지역종합비교(사업체 증감), API_0618 -->
+	<select id="companyIncrease" parameterType="hashmap" resultMap="companyincreaseMap">
+		select to_char(#{adm_cd}) adm_cd
+			, to_char(#{first_adm_cd}) first_adm_cd
+			, to_char(#{second_adm_cd}) second_adm_cd
+			, to_char(#{third_adm_cd}) third_adm_cd
+			, to_char(#{theme_cd}) theme_cd
+			, to_char(#{bnd_year}) bnd_year
+		from dual
+	</select>	
+	
+	<resultMap id="companyincreaseMap" type="kostat.sop.OpenAPI3.api.startupbiz.dto.CompareregiontotalMap">
+		<association property="selecttype"
+			column="{theme_cd=theme_cd}"
+			javaType="string" select="SelectThemeNm"/>
+		<collection property="resultdata"
+			column="{adm_cd=adm_cd,first_adm_cd=first_adm_cd,second_adm_cd=second_adm_cd,third_adm_cd=third_adm_cd,theme_cd=theme_cd,bnd_year=bnd_year}"
+			ofType="hashmap" javaType="ArrayList" select="companyincreaseinfo">
+		</collection>
+	</resultMap>
+	
+	<!-- 창업지원 지역종합비교(사업체증감), API_0618 -->
+	<select id="companyincreaseinfo" parameterType="hashmap" resultType="hashmap">
+		<if test = 'first_adm_cd.length() == 5'>
+			select to_char(#{adm_cd}) adm_cd, sum(corp_irds_pct) value, (select sido_nm 
+																	from srv_pg_sidobord
+																	where base_year = #{bnd_year}
+    																	and sido_cd = #{adm_cd}) adm_nm
+			from SRV_DT_SEARCHCORP_SGG 
+			where sido_cd = substring(#{adm_cd},0,2)
+   				and theme_cd = #{theme_cd}
+			union all			
+			select to_char(#{first_adm_cd}) adm_cd, corp_irds_pct value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{first_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{first_adm_cd},3,3)) adm_nm
+			from SRV_DT_SEARCHCORP_SGG 
+			where sido_cd = substring(#{first_adm_cd},0,2)
+   				and sgg_cd = substring(#{first_adm_cd},3,3)
+				and theme_cd = #{theme_cd}
+			<if test = 'second_adm_cd != null'>
+				union all
+				select to_char(#{second_adm_cd}) adm_cd, corp_irds_pct value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{second_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{second_adm_cd},3,3)) adm_nm
+				from SRV_DT_SEARCHCORP_SGG 
+				where sido_cd = substring(#{second_adm_cd},0,2)
+	   				and sgg_cd = substring(#{second_adm_cd},3,3)
+					and theme_cd = #{theme_cd}
+			</if>
+			<if test = 'third_adm_cd != null'>
+				union all
+				select to_char(#{third_adm_cd}) adm_cd, corp_irds_pct value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{third_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{third_adm_cd},3,3)) adm_nm
+				from SRV_DT_SEARCHCORP_SGG 
+				where sido_cd = substring(#{third_adm_cd},0,2)
+	   				and sgg_cd = substring(#{third_adm_cd},3,3)
+					and theme_cd = #{theme_cd}
+			</if>
+		</if>
+		<if test = 'first_adm_cd.length() == 7'>
+			select to_char(#{adm_cd}) adm_cd, corp_irds_pct value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{adm_cd},0,2)
+																		 and sgg_cd =  substring(#{adm_cd},3,3)) adm_nm
+			from SRV_DT_SEARCHCORP_SGG 
+			where sido_cd = substring(#{adm_cd},0,2)
+			    and sgg_cd = substring(#{adm_cd},3,3)
+			    and theme_cd = #{theme_cd}
+			union all
+			select to_char(#{first_adm_cd}) adm_cd, corp_irds_pct value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{first_adm_cd},0,2)
+																			and sgg_cd =  substring(#{first_adm_cd},3,3)
+																			and emdong_cd = substring(#{first_adm_cd},6,2)) adm_nm
+			from SRV_DT_SEARCHCORP_ADM  
+			where sido_cd = substring(#{first_adm_cd},0,2)
+			    and sgg_cd = substring(#{first_adm_cd},3,3)
+			    and emdong_cd = substring(#{first_adm_cd},6,2)
+			    and theme_cd = #{theme_cd}
+			<if test = 'second_adm_cd != null'>
+				union all
+				select to_char(#{second_adm_cd}) adm_cd, corp_irds_pct value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{second_adm_cd},0,2)
+																			and sgg_cd =  substring(#{second_adm_cd},3,3)
+																			and emdong_cd = substring(#{second_adm_cd},6,2)) adm_nm
+				from SRV_DT_SEARCHCORP_ADM  
+				where sido_cd = substring(#{second_adm_cd},0,2)
+				    and sgg_cd = substring(#{second_adm_cd},3,3)
+				    and emdong_cd = substring(#{second_adm_cd},6,2)
+				    and theme_cd = #{theme_cd}
+			</if>
+			<if test = 'third_adm_cd != null'>
+				union all
+				select to_char(#{third_adm_cd}) adm_cd, corp_irds_pct value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{third_adm_cd},0,2)
+																			and sgg_cd =  substring(#{third_adm_cd},3,3)
+																			and emdong_cd = substring(#{third_adm_cd},6,2)) adm_nm
+				from SRV_DT_SEARCHCORP_ADM  
+				where sido_cd = substring(#{third_adm_cd},0,2)
+				    and sgg_cd = substring(#{third_adm_cd},3,3)
+				    and emdong_cd = substring(#{third_adm_cd},6,2)
+				    and theme_cd = #{theme_cd}
+			</if>
+		</if>
+	</select>
+	
+	<!-- 창업지원 지역종합비교(사업체명, 사업체증감 조회), API_0618 -->
+	<select id="SelectThemeNm" parameterType="hashmap" resultType="String">
+		select s_theme_cd_nm 
+		from cmm_cd_theme 
+		where theme_cd = #{theme_cd}
+	</select>
+	
+	<!-- 창업지원 지역종합비교(직장인구), API_0618 -->
+	<select id="jobpeople" parameterType="hashmap" resultMap="jobpeopleMap">
+		select to_char(#{adm_cd}) adm_cd
+			, to_char(#{first_adm_cd}) first_adm_cd
+			, to_char(#{second_adm_cd}) second_adm_cd
+			, to_char(#{third_adm_cd}) third_adm_cd
+			, to_char(#{base_year}) base_year
+			, to_char(#{bnd_year}) bnd_year
+		from dual
+	</select>
+
+	<resultMap id="jobpeopleMap" type="kostat.sop.OpenAPI3.api.startupbiz.dto.CompareregiontotalMap">
+		<collection property="resultdata"
+			column="{adm_cd=adm_cd,first_adm_cd=first_adm_cd,second_adm_cd=second_adm_cd,third_adm_cd=third_adm_cd,base_year=base_year,,bnd_year=bnd_year}"
+			ofType="hashmap" javaType="ArrayList" select="jobpeopleinfo">
+		</collection>
+	</resultMap>
+
+	<!-- 창업지원 지역종합비교(직장인구), API_0618 -->
+	<select id="jobpeopleinfo" parameterType="hashmap" resultType="hashmap">
+		<if test = 'first_adm_cd.length() == 5'>
+			select to_char(#{adm_cd}) adm_cd, sum(employee_cnt) value, (select sido_nm 
+																	from srv_pg_sidobord
+																	where base_year = #{bnd_year}
+    																	and sido_cd = #{adm_cd}) adm_nm
+			from SRV_DT_CORPTHEMESGG 
+			where base_year = #{base_year}
+   				and sido_cd = substring(#{adm_cd},0,2)
+			union all			
+			select to_char(#{first_adm_cd}) adm_cd, sum(employee_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{first_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{first_adm_cd},3,3)) adm_nm
+			from SRV_DT_CORPTHEMESGG 
+			where base_year = #{base_year}
+				and sido_cd = substring(#{first_adm_cd},0,2)
+   				and sgg_cd = substring(#{first_adm_cd},3,3)
+			<if test = 'second_adm_cd != null'>
+				union all
+				select to_char(#{second_adm_cd}) adm_cd, sum(employee_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{second_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{second_adm_cd},3,3)) adm_nm
+				from SRV_DT_CORPTHEMESGG 
+				where base_year = #{base_year}
+					and sido_cd = substring(#{second_adm_cd},0,2)
+	   				and sgg_cd = substring(#{second_adm_cd},3,3)
+			</if>
+			<if test = 'third_adm_cd != null'>
+				union all
+				select to_char(#{third_adm_cd}) adm_cd, sum(employee_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{third_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{third_adm_cd},3,3)) adm_nm
+				from SRV_DT_CORPTHEMESGG 
+				where base_year = #{base_year}
+					and sido_cd = substring(#{third_adm_cd},0,2)
+	   				and sgg_cd = substring(#{third_adm_cd},3,3)
+			</if>
+		</if>
+		<if test = 'first_adm_cd.length() == 7'>
+			select to_char(#{adm_cd}) adm_cd, sum(employee_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{adm_cd},0,2)
+																		 and sgg_cd =  substring(#{adm_cd},3,3)) adm_nm
+			from SRV_DT_CORPTHEMESGG 
+			where base_year = #{base_year}
+			    and sido_cd = substring(#{adm_cd},0,2)
+			    and sgg_cd = substring(#{adm_cd},3,3)
+			union all
+			select to_char(#{first_adm_cd}) adm_cd, sum(employee_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{first_adm_cd},0,2)
+																			and sgg_cd =  substring(#{first_adm_cd},3,3)
+																			and emdong_cd = substring(#{first_adm_cd},6,2)) adm_nm
+			from SRV_DT_CORPTHEMEREG  
+			where base_year = #{base_year}
+			    and tot_reg_cd like #{first_adm_cd}||'%'
+			<if test = 'second_adm_cd != null'>
+				union all
+				select to_char(#{second_adm_cd}) adm_cd, sum(employee_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{second_adm_cd},0,2)
+																			and sgg_cd =  substring(#{second_adm_cd},3,3)
+																			and emdong_cd = substring(#{second_adm_cd},6,2)) adm_nm
+				from SRV_DT_CORPTHEMEREG  
+				where base_year = #{base_year}
+			    	and tot_reg_cd like #{second_adm_cd}||'%'
+			</if>
+			<if test = 'third_adm_cd != null'>
+				union all
+				select to_char(#{third_adm_cd}) adm_cd, sum(employee_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{third_adm_cd},0,2)
+																			and sgg_cd =  substring(#{third_adm_cd},3,3)
+																			and emdong_cd = substring(#{third_adm_cd},6,2)) adm_nm
+				from SRV_DT_CORPTHEMEREG  
+				where base_year = #{base_year}
+				    and tot_reg_cd like #{third_adm_cd}||'%'
+			</if>
+		</if>
+	</select>
+
+	<!-- 창업지원 지역종합비교(거주인구), API_0618 -->
+	<select id="staypeople" parameterType="hashmap" resultMap="staypeopleMap">
+		select to_char(#{adm_cd}) adm_cd
+			, to_char(#{first_adm_cd}) first_adm_cd
+			, to_char(#{second_adm_cd}) second_adm_cd
+			, to_char(#{third_adm_cd}) third_adm_cd
+			, to_char(#{year}) year
+			, to_char(#{bnd_year}) bnd_year
+		from dual
+	</select>
+
+	<resultMap id="staypeopleMap" type="kostat.sop.OpenAPI3.api.startupbiz.dto.CompareregiontotalMap">
+		<collection property="resultdata"
+			column="{adm_cd=adm_cd,first_adm_cd=first_adm_cd,second_adm_cd=second_adm_cd,third_adm_cd=third_adm_cd,year=year,bnd_year=bnd_year}"
+			ofType="hashmap" javaType="ArrayList" select="staypeopleinfo">
+		</collection>
+	</resultMap>
+
+	<!-- 창업지원 지역종합비교(거주인구), API_0618 -->
+	<select id="staypeopleinfo" parameterType="hashmap" resultType="hashmap">
+		<if test = 'first_adm_cd.length() == 5'>
+			select to_char(#{adm_cd}) adm_cd, sum(ppltn_cnt) value, (select sido_nm 
+																	from srv_pg_sidobord
+																	where base_year = #{bnd_year}
+    																	and sido_cd = #{adm_cd}) adm_nm
+			from SRV_DT_POPSGG_${year}
+			where sido_cd = substring(#{adm_cd},0,2)
+			union all			
+			select to_char(#{first_adm_cd}) adm_cd, sum(ppltn_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{first_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{first_adm_cd},3,3)) adm_nm
+			from SRV_DT_POPSGG_${year}
+			where sido_cd = substring(#{first_adm_cd},0,2)
+   				and sgg_cd = substring(#{first_adm_cd},3,3)
+			<if test = 'second_adm_cd != null'>
+				union all
+				select to_char(#{second_adm_cd}) adm_cd, sum(ppltn_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{second_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{second_adm_cd},3,3)) adm_nm
+				from SRV_DT_POPSGG_${year}
+				where sido_cd = substring(#{second_adm_cd},0,2)
+	   				and sgg_cd = substring(#{second_adm_cd},3,3)
+			</if>
+			<if test = 'third_adm_cd != null'>
+				union all
+				select to_char(#{third_adm_cd}) adm_cd, sum(ppltn_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{third_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{third_adm_cd},3,3)) adm_nm
+				from SRV_DT_POPSGG_${year}
+				where sido_cd = substring(#{third_adm_cd},0,2)
+	   				and sgg_cd = substring(#{third_adm_cd},3,3)
+			</if>
+		</if>
+		<if test = 'first_adm_cd.length() == 7'>
+			select to_char(#{adm_cd}) adm_cd, sum(ppltn_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{adm_cd},0,2)
+																		 and sgg_cd =  substring(#{adm_cd},3,3)) adm_nm
+			from SRV_DT_POPSGG_${year}
+			where sido_cd = substring(#{adm_cd},0,2)
+				and sgg_cd = substring(#{adm_cd},3,3)
+			union all
+			select to_char(#{first_adm_cd}) adm_cd, sum(ppltn_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{first_adm_cd},0,2)
+																			and sgg_cd =  substring(#{first_adm_cd},3,3)
+																			and emdong_cd = substring(#{first_adm_cd},6,2)) adm_nm
+			from SRV_DT_POPSREG_${year}
+			where tot_reg_cd like #{first_adm_cd}||'%'
+			<if test = 'second_adm_cd != null'>
+				union all
+				select to_char(#{second_adm_cd}) adm_cd, sum(ppltn_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{second_adm_cd},0,2)
+																			and sgg_cd =  substring(#{second_adm_cd},3,3)
+																			and emdong_cd = substring(#{second_adm_cd},6,2)) adm_nm
+				from SRV_DT_POPSREG_${year} 
+				where tot_reg_cd like #{second_adm_cd}||'%'
+			</if>
+			<if test = 'third_adm_cd != null'>
+				union all
+				select to_char(#{third_adm_cd}) adm_cd, sum(ppltn_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{third_adm_cd},0,2)
+																			and sgg_cd =  substring(#{third_adm_cd},3,3)
+																			and emdong_cd = substring(#{third_adm_cd},6,2)) adm_nm
+				from SRV_DT_POPSREG_${year}   
+				where tot_reg_cd like #{third_adm_cd}||'%'
+			</if>
+		</if>
+	</select>
+	
+	<!-- 창업지원 지역종합비교(성별인구), API_0618 -->
+	<select id="genderpeople" parameterType="hashmap" resultMap="genderpeopleMap">
+		select to_char(#{adm_cd}) adm_cd
+			, to_char(#{first_adm_cd}) first_adm_cd
+			, to_char(#{second_adm_cd}) second_adm_cd
+			, to_char(#{third_adm_cd}) third_adm_cd
+			, to_char(#{ppl_gender_type}) ppl_gender_type
+			, to_char(#{year}) year
+			, to_char(#{bnd_year}) bnd_year
+		from dual
+	</select>
+
+	<resultMap id="genderpeopleMap" type="kostat.sop.OpenAPI3.api.startupbiz.dto.CompareregiontotalMap">
+		<association property="selecttype"
+			column="{ppl_gender_type=ppl_gender_type}"
+			javaType="string" select="SelectGenderNm"/>
+		<collection property="resultdata"
+			column="{adm_cd=adm_cd,first_adm_cd=first_adm_cd,second_adm_cd=second_adm_cd,third_adm_cd=third_adm_cd,ppl_gender_type=ppl_gender_type,year=year,bnd_year=bnd_year}"
+			ofType="hashmap" javaType="ArrayList" select="genderpeopleinfo">
+		</collection>
+	</resultMap>
+
+	<!-- 창업지원 지역종합비교(성별인구), API_0618 -->
+	<select id="genderpeopleinfo" parameterType="hashmap" resultType="hashmap">
+		<if test = 'first_adm_cd.length() == 5'>
+			select to_char(#{adm_cd}) adm_cd, sum(ppltn_cnt) value, (select sido_nm 
+																	from srv_pg_sidobord
+																	where base_year = #{bnd_year}
+    																	and sido_cd = #{adm_cd}) adm_nm
+			from SRV_DT_POPSGG_${year}
+			where sido_cd = substring(#{adm_cd},0,2)
+				and gender = #{ppl_gender_type}
+			union all			
+			select to_char(#{first_adm_cd}) adm_cd, sum(ppltn_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{first_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{first_adm_cd},3,3)) adm_nm
+			from SRV_DT_POPSGG_${year}
+			where sido_cd = substring(#{first_adm_cd},0,2)
+   				and sgg_cd = substring(#{first_adm_cd},3,3)
+   				and gender = #{ppl_gender_type}
+			<if test = 'second_adm_cd != null'>
+				union all
+				select to_char(#{second_adm_cd}) adm_cd, sum(ppltn_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{second_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{second_adm_cd},3,3)) adm_nm
+				from SRV_DT_POPSGG_${year}
+				where sido_cd = substring(#{second_adm_cd},0,2)
+	   				and sgg_cd = substring(#{second_adm_cd},3,3)
+					and gender = #{ppl_gender_type}
+			</if>
+			<if test = 'third_adm_cd != null'>
+				union all
+				select to_char(#{third_adm_cd}) adm_cd, sum(ppltn_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{third_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{third_adm_cd},3,3)) adm_nm
+				from SRV_DT_POPSGG_${year}
+				where sido_cd = substring(#{third_adm_cd},0,2)
+	   				and sgg_cd = substring(#{third_adm_cd},3,3)
+					and gender = #{ppl_gender_type}
+			</if>
+		</if>
+		<if test = 'first_adm_cd.length() == 7'>
+			select to_char(#{adm_cd}) adm_cd, sum(ppltn_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{adm_cd},0,2)
+																		 and sgg_cd =  substring(#{adm_cd},3,3)) adm_nm
+			from SRV_DT_POPSGG_${year}
+			where sido_cd = substring(#{adm_cd},0,2)
+				and sgg_cd = substring(#{adm_cd},3,3)
+				and gender = #{ppl_gender_type}				
+			union all
+			select to_char(#{first_adm_cd}) adm_cd, sum(ppltn_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{first_adm_cd},0,2)
+																			and sgg_cd =  substring(#{first_adm_cd},3,3)
+																			and emdong_cd = substring(#{first_adm_cd},6,2)) adm_nm
+			from SRV_DT_POPSREG_${year}
+			where tot_reg_cd like #{first_adm_cd}||'%'
+				and gender = #{ppl_gender_type}			
+			<if test = 'second_adm_cd != null'>
+				union all
+				select to_char(#{second_adm_cd}) adm_cd, sum(ppltn_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{second_adm_cd},0,2)
+																			and sgg_cd =  substring(#{second_adm_cd},3,3)
+																			and emdong_cd = substring(#{second_adm_cd},6,2)) adm_nm
+				from SRV_DT_POPSREG_${year} 
+				where tot_reg_cd like #{second_adm_cd}||'%'
+					and gender = #{ppl_gender_type}				
+			</if>
+			<if test = 'third_adm_cd != null'>
+				union all
+				select to_char(#{third_adm_cd}) adm_cd, sum(ppltn_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{third_adm_cd},0,2)
+																			and sgg_cd =  substring(#{third_adm_cd},3,3)
+																			and emdong_cd = substring(#{third_adm_cd},6,2)) adm_nm
+				from SRV_DT_POPSREG_${year}   
+				where tot_reg_cd like #{third_adm_cd}||'%'
+					and gender = #{ppl_gender_type}				
+			</if>
+		</if>
+	</select>	
+
+	<!-- 창업지원 지역종합비교(연령별인구), API_0618 -->
+	<select id="agepeople" parameterType="hashmap" resultMap="agepeopleMap">
+		select to_char(#{adm_cd}) adm_cd
+			, to_char(#{first_adm_cd}) first_adm_cd
+			, to_char(#{second_adm_cd}) second_adm_cd
+			, to_char(#{third_adm_cd}) third_adm_cd
+			, to_char(#{ten_under}) ten_under
+			, to_char(#{tens}) tens
+			, to_char(#{twentys}) twentys
+			, to_char(#{thirtys}) thirtys
+			, to_char(#{fortys}) fortys
+			, to_char(#{fiftys}) fiftys
+			, to_char(#{sixtys}) sixtys
+			, to_char(#{seventy_over}) seventy_over
+			, to_char(#{year}) year
+			, to_char(#{ppl_age_type}) ppl_age_type
+			, to_char(#{bnd_year}) bnd_year
+		from dual
+	</select>
+
+	<resultMap id="agepeopleMap" type="kostat.sop.OpenAPI3.api.startupbiz.dto.CompareregiontotalMap">
+		<result property="selecttype" column="ppl_age_type"/>
+		<collection property="resultdata"
+			column="{adm_cd=adm_cd,first_adm_cd=first_adm_cd,second_adm_cd=second_adm_cd,third_adm_cd=third_adm_cd,year=year,ten_under=ten_under,tens=tens,
+					twentys=twentys,thirtys=thirtys,fortys=fortys,fiftys=fiftys,sixtys=sixtys,seventy_over=seventy_over,bnd_year=bnd_year}"
+			ofType="hashmap" javaType="ArrayList" select="agepeopleMap">
+		</collection>
+	</resultMap>
+
+	<!-- 창업지원 지역종합비교(연령별인구), API_0618 -->
+	<select id="agepeopleMap" parameterType="hashmap" resultType="hashmap">
+		<if test = 'first_adm_cd.length() == 5'>
+			select to_char(#{adm_cd}) adm_cd, (ten_under + tens + twentys + thirtys + fortys + fiftys + sixtys + seventy_over) value, (select sido_nm 
+																																	from srv_pg_sidobord
+																																	where base_year = #{bnd_year}
+																    																	and sido_cd = #{adm_cd}) adm_nm
+			from (
+				select 
+				<trim suffixOverrides=",">
+					<if test = 'ten_under == "Y"'>
+						sum(case when age <![CDATA[<]]> '10' then ppltn_cnt end) as ten_under,
+					</if>
+					<if test = 'ten_under == null'>
+						'0' as ten_under,
+					</if>
+					<if test = 'tens == "Y"'>
+						sum(case when age <![CDATA[>=]]> '10' and age <![CDATA[<]]> '20' then ppltn_cnt end) as tens,
+					</if>
+					<if test = 'tens == null'>
+						'0' as tens,
+					</if>
+					<if test = 'twentys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '20' and age <![CDATA[<]]> '30' then ppltn_cnt end) as twentys,
+					</if>
+					<if test = 'twentys == null'>
+						'0' as twentys,
+					</if>
+					<if test = 'thirtys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '30' and age <![CDATA[<]]> '40' then ppltn_cnt end) as thirtys,
+					</if>
+					<if test = 'thirtys == null'>
+						'0' as thirtys,
+					</if>
+					<if test = 'fortys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '40' and age <![CDATA[<]]> '50' then ppltn_cnt end) as fortys,
+					</if>
+					<if test = 'fortys == null'>
+						'0' as fortys,
+					</if>
+					<if test = 'fiftys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '50' and age <![CDATA[<]]> '60' then ppltn_cnt end) as fiftys,
+					</if>
+					<if test = 'fiftys == null'>
+						'0' as fiftys,
+					</if>
+					<if test = 'sixtys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '60' and age <![CDATA[<]]> '70' then ppltn_cnt end) as sixtys,
+					</if>
+					<if test = 'sixtys == null'>
+						'0' as sixtys,
+					</if>
+					<if test = 'seventy_over == "Y"'>
+						sum(case when age <![CDATA[>=]]> '70' then ppltn_cnt end) as seventy_over,
+					</if>
+					<if test = 'seventy_over == null'>
+						'0' as seventy_over,
+					</if>
+				</trim>
+				from SRV_DT_POPSGG_${year}
+				where sido_cd = substring(#{adm_cd},0,2)
+			)
+			union all			
+			select to_char(#{first_adm_cd}) adm_cd, (ten_under + tens + twentys + thirtys + fortys + fiftys + sixtys + seventy_over) value, (select sgg_nm 
+																																			from srv_pg_sggbord 
+																																			where base_year = #{bnd_year}
+																																				 and sido_cd = substring(#{first_adm_cd},0,2)
+																																				 and sgg_cd =  substring(#{first_adm_cd},3,3)) adm_nm
+			from (
+				select 
+				<trim suffixOverrides=",">
+					<if test = 'ten_under == "Y"'>
+						sum(case when age <![CDATA[<]]> '10' then ppltn_cnt end) as ten_under,
+					</if>
+					<if test = 'ten_under == null'>
+						'0' as ten_under,
+					</if>
+					<if test = 'tens == "Y"'>
+						sum(case when age <![CDATA[>=]]> '10' and age <![CDATA[<]]> '20' then ppltn_cnt end) as tens,
+					</if>
+					<if test = 'tens == null'>
+						'0' as tens,
+					</if>
+					<if test = 'twentys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '20' and age <![CDATA[<]]> '30' then ppltn_cnt end) as twentys,
+					</if>
+					<if test = 'twentys == null'>
+						'0' as twentys,
+					</if>
+					<if test = 'thirtys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '30' and age <![CDATA[<]]> '40' then ppltn_cnt end) as thirtys,
+					</if>
+					<if test = 'thirtys == null'>
+						'0' as thirtys,
+					</if>
+					<if test = 'fortys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '40' and age <![CDATA[<]]> '50' then ppltn_cnt end) as fortys,
+					</if>
+					<if test = 'fortys == null'>
+						'0' as fortys,
+					</if>
+					<if test = 'fiftys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '50' and age <![CDATA[<]]> '60' then ppltn_cnt end) as fiftys,
+					</if>
+					<if test = 'fiftys == null'>
+						'0' as fiftys,
+					</if>
+					<if test = 'sixtys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '60' and age <![CDATA[<]]> '70' then ppltn_cnt end) as sixtys,
+					</if>
+					<if test = 'sixtys == null'>
+						'0' as sixtys,
+					</if>
+					<if test = 'seventy_over == "Y"'>
+						sum(case when age <![CDATA[>=]]> '70' then ppltn_cnt end) as seventy_over,
+					</if>
+					<if test = 'seventy_over == null'>
+						'0' as seventy_over,
+					</if>
+				</trim>
+				from SRV_DT_POPSGG_${year}
+				where sido_cd = substring(#{first_adm_cd},0,2)
+	   				and sgg_cd = substring(#{first_adm_cd},3,3)
+	   		)
+			<if test = 'second_adm_cd != null'>
+			union all
+			select to_char(#{second_adm_cd}) adm_cd, (ten_under + tens + twentys + thirtys + fortys + fiftys + sixtys + seventy_over) value, (select sgg_nm 
+																																			from srv_pg_sggbord 
+																																			where base_year = #{bnd_year}
+																																				 and sido_cd = substring(#{second_adm_cd},0,2)
+																																				 and sgg_cd =  substring(#{second_adm_cd},3,3)) adm_nm
+			from (
+				select 
+				<trim suffixOverrides=",">
+					<if test = 'ten_under == "Y"'>
+						sum(case when age <![CDATA[<]]> '10' then ppltn_cnt end) as ten_under,
+					</if>
+					<if test = 'ten_under == null'>
+						'0' as ten_under,
+					</if>
+					<if test = 'tens == "Y"'>
+						sum(case when age <![CDATA[>=]]> '10' and age <![CDATA[<]]> '20' then ppltn_cnt end) as tens,
+					</if>
+					<if test = 'tens == null'>
+						'0' as tens,
+					</if>
+					<if test = 'twentys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '20' and age <![CDATA[<]]> '30' then ppltn_cnt end) as twentys,
+					</if>
+					<if test = 'twentys == null'>
+						'0' as twentys,
+					</if>
+					<if test = 'thirtys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '30' and age <![CDATA[<]]> '40' then ppltn_cnt end) as thirtys,
+					</if>
+					<if test = 'thirtys == null'>
+						'0' as thirtys,
+					</if>
+					<if test = 'fortys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '40' and age <![CDATA[<]]> '50' then ppltn_cnt end) as fortys,
+					</if>
+					<if test = 'fortys == null'>
+						'0' as fortys,
+					</if>
+					<if test = 'fiftys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '50' and age <![CDATA[<]]> '60' then ppltn_cnt end) as fiftys,
+					</if>
+					<if test = 'fiftys == null'>
+						'0' as fiftys,
+					</if>
+					<if test = 'sixtys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '60' and age <![CDATA[<]]> '70' then ppltn_cnt end) as sixtys,
+					</if>
+					<if test = 'sixtys == null'>
+						'0' as sixtys,
+					</if>
+					<if test = 'seventy_over == "Y"'>
+						sum(case when age <![CDATA[>=]]> '70' then ppltn_cnt end) as seventy_over,
+					</if>
+					<if test = 'seventy_over == null'>
+						'0' as seventy_over,
+					</if>
+				</trim>
+				from SRV_DT_POPSGG_${year}
+				where sido_cd = substring(#{second_adm_cd},0,2)
+	   				and sgg_cd = substring(#{second_adm_cd},3,3)
+	   		)
+			</if>
+			<if test = 'third_adm_cd != null'>
+			union all
+			select to_char(#{third_adm_cd}) adm_cd, (ten_under + tens + twentys + thirtys + fortys + fiftys + sixtys + seventy_over) value, (select sgg_nm 
+																																			from srv_pg_sggbord 
+																																			where base_year = #{bnd_year}
+																																				 and sido_cd = substring(#{third_adm_cd},0,2)
+																																				 and sgg_cd =  substring(#{third_adm_cd},3,3)) adm_nm
+			from (
+				select 
+				<trim suffixOverrides=",">
+					<if test = 'ten_under == "Y"'>
+						sum(case when age <![CDATA[<]]> '10' then ppltn_cnt end) as ten_under,
+					</if>
+					<if test = 'ten_under == null'>
+						'0' as ten_under,
+					</if>
+					<if test = 'tens == "Y"'>
+						sum(case when age <![CDATA[>=]]> '10' and age <![CDATA[<]]> '20' then ppltn_cnt end) as tens,
+					</if>
+					<if test = 'tens == null'>
+						'0' as tens,
+					</if>
+					<if test = 'twentys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '20' and age <![CDATA[<]]> '30' then ppltn_cnt end) as twentys,
+					</if>
+					<if test = 'twentys == null'>
+						'0' as twentys,
+					</if>
+					<if test = 'thirtys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '30' and age <![CDATA[<]]> '40' then ppltn_cnt end) as thirtys,
+					</if>
+					<if test = 'thirtys == null'>
+						'0' as thirtys,
+					</if>
+					<if test = 'fortys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '40' and age <![CDATA[<]]> '50' then ppltn_cnt end) as fortys,
+					</if>
+					<if test = 'fortys == null'>
+						'0' as fortys,
+					</if>
+					<if test = 'fiftys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '50' and age <![CDATA[<]]> '60' then ppltn_cnt end) as fiftys,
+					</if>
+					<if test = 'fiftys == null'>
+						'0' as fiftys,
+					</if>
+					<if test = 'sixtys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '60' and age <![CDATA[<]]> '70' then ppltn_cnt end) as sixtys,
+					</if>
+					<if test = 'sixtys == null'>
+						'0' as sixtys,
+					</if>
+					<if test = 'seventy_over == "Y"'>
+						sum(case when age <![CDATA[>=]]> '70' then ppltn_cnt end) as seventy_over,
+					</if>
+					<if test = 'seventy_over == null'>
+						'0' as seventy_over,
+					</if>
+				</trim>
+				from SRV_DT_POPSGG_${year}
+				where sido_cd = substring(#{third_adm_cd},0,2)
+	   				and sgg_cd = substring(#{third_adm_cd},3,3)
+	   		)
+			</if>
+		</if>
+		<if test = 'first_adm_cd.length() == 7'>
+			select to_char(#{adm_cd}) adm_cd, (ten_under + tens + twentys + thirtys + fortys + fiftys + sixtys + seventy_over) value, (select sgg_nm 
+																																	from srv_pg_sggbord 
+																																	where base_year = #{bnd_year}
+																																		 and sido_cd = substring(#{adm_cd},0,2)
+																																		 and sgg_cd =  substring(#{adm_cd},3,3)) adm_nm
+			from (
+				select 
+				<trim suffixOverrides=",">
+					<if test = 'ten_under == "Y"'>
+						sum(case when age <![CDATA[<]]> '10' then ppltn_cnt end) as ten_under,
+					</if>
+					<if test = 'ten_under == null'>
+						'0' as ten_under,
+					</if>
+					<if test = 'tens == "Y"'>
+						sum(case when age <![CDATA[>=]]> '10' and age <![CDATA[<]]> '20' then ppltn_cnt end) as tens,
+					</if>
+					<if test = 'tens == null'>
+						'0' as tens,
+					</if>
+					<if test = 'twentys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '20' and age <![CDATA[<]]> '30' then ppltn_cnt end) as twentys,
+					</if>
+					<if test = 'twentys == null'>
+						'0' as twentys,
+					</if>
+					<if test = 'thirtys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '30' and age <![CDATA[<]]> '40' then ppltn_cnt end) as thirtys,
+					</if>
+					<if test = 'thirtys == null'>
+						'0' as thirtys,
+					</if>
+					<if test = 'fortys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '40' and age <![CDATA[<]]> '50' then ppltn_cnt end) as fortys,
+					</if>
+					<if test = 'fortys == null'>
+						'0' as fortys,
+					</if>
+					<if test = 'fiftys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '50' and age <![CDATA[<]]> '60' then ppltn_cnt end) as fiftys,
+					</if>
+					<if test = 'fiftys == null'>
+						'0' as fiftys,
+					</if>
+					<if test = 'sixtys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '60' and age <![CDATA[<]]> '70' then ppltn_cnt end) as sixtys,
+					</if>
+					<if test = 'sixtys == null'>
+						'0' as sixtys,
+					</if>
+					<if test = 'seventy_over == "Y"'>
+						sum(case when age <![CDATA[>=]]> '70' then ppltn_cnt end) as seventy_over,
+					</if>
+					<if test = 'seventy_over == null'>
+						'0' as seventy_over,
+					</if>
+				</trim>
+				from SRV_DT_POPSGG_${year}
+				where sido_cd = substring(#{adm_cd},0,2)
+					and sgg_cd = substring(#{adm_cd},3,3)
+			)
+			union all
+			select to_char(#{first_adm_cd}) adm_cd, (ten_under + tens + twentys + thirtys + fortys + fiftys + sixtys + seventy_over) value, (select emdong_nm 
+																																			from srv_pg_admbord 
+																																			where base_year = #{bnd_year}
+																																				and sido_cd = substring(#{first_adm_cd},0,2)
+																																				and sgg_cd =  substring(#{first_adm_cd},3,3)
+																																				and emdong_cd = substring(#{first_adm_cd},6,2)) adm_nm
+			from (
+				select 
+				<trim suffixOverrides=",">
+					<if test = 'ten_under == "Y"'>
+						sum(case when age <![CDATA[<]]> '10' then ppltn_cnt end) as ten_under,
+					</if>
+					<if test = 'ten_under == null'>
+						'0' as ten_under,
+					</if>
+					<if test = 'tens == "Y"'>
+						sum(case when age <![CDATA[>=]]> '10' and age <![CDATA[<]]> '20' then ppltn_cnt end) as tens,
+					</if>
+					<if test = 'tens == null'>
+						'0' as tens,
+					</if>
+					<if test = 'twentys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '20' and age <![CDATA[<]]> '30' then ppltn_cnt end) as twentys,
+					</if>
+					<if test = 'twentys == null'>
+						'0' as twentys,
+					</if>
+					<if test = 'thirtys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '30' and age <![CDATA[<]]> '40' then ppltn_cnt end) as thirtys,
+					</if>
+					<if test = 'thirtys == null'>
+						'0' as thirtys,
+					</if>
+					<if test = 'fortys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '40' and age <![CDATA[<]]> '50' then ppltn_cnt end) as fortys,
+					</if>
+					<if test = 'fortys == null'>
+						'0' as fortys,
+					</if>
+					<if test = 'fiftys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '50' and age <![CDATA[<]]> '60' then ppltn_cnt end) as fiftys,
+					</if>
+					<if test = 'fiftys == null'>
+						'0' as fiftys,
+					</if>
+					<if test = 'sixtys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '60' and age <![CDATA[<]]> '70' then ppltn_cnt end) as sixtys,
+					</if>
+					<if test = 'sixtys == null'>
+						'0' as sixtys,
+					</if>
+					<if test = 'seventy_over == "Y"'>
+						sum(case when age <![CDATA[>=]]> '70' then ppltn_cnt end) as seventy_over,
+					</if>
+					<if test = 'seventy_over == null'>
+						'0' as seventy_over,
+					</if>
+				</trim>
+				from SRV_DT_POPSREG_${year}
+				where tot_reg_cd like #{first_adm_cd}||'%'
+			)
+			<if test = 'second_adm_cd != null'>
+			union all
+			select to_char(#{second_adm_cd}) adm_cd, (ten_under + tens + twentys + thirtys + fortys + fiftys + sixtys + seventy_over) value, (select emdong_nm 
+																																			from srv_pg_admbord 
+																																			where base_year = #{bnd_year}
+																																				and sido_cd = substring(#{second_adm_cd},0,2)
+																																				and sgg_cd =  substring(#{second_adm_cd},3,3)
+																																				and emdong_cd = substring(#{second_adm_cd},6,2)) adm_nm
+			from (
+				select 
+				<trim suffixOverrides=",">
+					<if test = 'ten_under == "Y"'>
+						sum(case when age <![CDATA[<]]> '10' then ppltn_cnt end) as ten_under,
+					</if>
+					<if test = 'ten_under == null'>
+						'0' as ten_under,
+					</if>
+					<if test = 'tens == "Y"'>
+						sum(case when age <![CDATA[>=]]> '10' and age <![CDATA[<]]> '20' then ppltn_cnt end) as tens,
+					</if>
+					<if test = 'tens == null'>
+						'0' as tens,
+					</if>
+					<if test = 'twentys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '20' and age <![CDATA[<]]> '30' then ppltn_cnt end) as twentys,
+					</if>
+					<if test = 'twentys == null'>
+						'0' as twentys,
+					</if>
+					<if test = 'thirtys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '30' and age <![CDATA[<]]> '40' then ppltn_cnt end) as thirtys,
+					</if>
+					<if test = 'thirtys == null'>
+						'0' as thirtys,
+					</if>
+					<if test = 'fortys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '40' and age <![CDATA[<]]> '50' then ppltn_cnt end) as fortys,
+					</if>
+					<if test = 'fortys == null'>
+						'0' as fortys,
+					</if>
+					<if test = 'fiftys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '50' and age <![CDATA[<]]> '60' then ppltn_cnt end) as fiftys,
+					</if>
+					<if test = 'fiftys == null'>
+						'0' as fiftys,
+					</if>
+					<if test = 'sixtys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '60' and age <![CDATA[<]]> '70' then ppltn_cnt end) as sixtys,
+					</if>
+					<if test = 'sixtys == null'>
+						'0' as sixtys,
+					</if>
+					<if test = 'seventy_over == "Y"'>
+						sum(case when age <![CDATA[>=]]> '70' then ppltn_cnt end) as seventy_over,
+					</if>
+					<if test = 'seventy_over == null'>
+						'0' as seventy_over,
+					</if>
+				</trim>
+				from SRV_DT_POPSREG_${year} 
+				where tot_reg_cd like #{second_adm_cd}||'%'
+			)
+			</if>
+			<if test = 'third_adm_cd != null'>
+			union all
+			select to_char(#{third_adm_cd}) adm_cd, (ten_under + tens + twentys + thirtys + fortys + fiftys + sixtys + seventy_over) value, (select emdong_nm 
+																																			from srv_pg_admbord 
+																																			where base_year = #{bnd_year}
+																																				and sido_cd = substring(#{third_adm_cd},0,2)
+																																				and sgg_cd =  substring(#{third_adm_cd},3,3)
+																																				and emdong_cd = substring(#{third_adm_cd},6,2)) adm_nm
+			from (
+				select 
+				<trim suffixOverrides=",">
+					<if test = 'ten_under == "Y"'>
+						sum(case when age <![CDATA[<]]> '10' then ppltn_cnt end) as ten_under,
+					</if>
+					<if test = 'ten_under == null'>
+						'0' as ten_under,
+					</if>
+					<if test = 'tens == "Y"'>
+						sum(case when age <![CDATA[>=]]> '10' and age <![CDATA[<]]> '20' then ppltn_cnt end) as tens,
+					</if>
+					<if test = 'tens == null'>
+						'0' as tens,
+					</if>
+					<if test = 'twentys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '20' and age <![CDATA[<]]> '30' then ppltn_cnt end) as twentys,
+					</if>
+					<if test = 'twentys == null'>
+						'0' as twentys,
+					</if>
+					<if test = 'thirtys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '30' and age <![CDATA[<]]> '40' then ppltn_cnt end) as thirtys,
+					</if>
+					<if test = 'thirtys == null'>
+						'0' as thirtys,
+					</if>
+					<if test = 'fortys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '40' and age <![CDATA[<]]> '50' then ppltn_cnt end) as fortys,
+					</if>
+					<if test = 'fortys == null'>
+						'0' as fortys,
+					</if>
+					<if test = 'fiftys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '50' and age <![CDATA[<]]> '60' then ppltn_cnt end) as fiftys,
+					</if>
+					<if test = 'fiftys == null'>
+						'0' as fiftys,
+					</if>
+					<if test = 'sixtys == "Y"'>
+						sum(case when age <![CDATA[>=]]> '60' and age <![CDATA[<]]> '70' then ppltn_cnt end) as sixtys,
+					</if>
+					<if test = 'sixtys == null'>
+						'0' as sixtys,
+					</if>
+					<if test = 'seventy_over == "Y"'>
+						sum(case when age <![CDATA[>=]]> '70' then ppltn_cnt end) as seventy_over,
+					</if>
+					<if test = 'seventy_over == null'>
+						'0' as seventy_over,
+					</if>
+				</trim>
+				from SRV_DT_POPSREG_${year}   
+				where tot_reg_cd like #{third_adm_cd}||'%'
+			)
+			</if>
+		</if>
+	</select>
+
+
+	<!-- 창업지원 지역종합비교(가구유형), API_0618 -->
+	<select id="household" parameterType="hashmap" resultMap="householdMap">
+		select to_char(#{adm_cd}) adm_cd
+			, to_char(#{first_adm_cd}) first_adm_cd
+			, to_char(#{second_adm_cd}) second_adm_cd
+			, to_char(#{third_adm_cd}) third_adm_cd
+			, to_char(#{family_type}) family_type
+			, to_char(#{year}) year
+			, to_char(#{bnd_year}) bnd_year
+		from dual
+	</select>
+
+	<resultMap id="householdMap" type="kostat.sop.OpenAPI3.api.startupbiz.dto.CompareregiontotalMap">
+		<association property="selecttype"
+			column="{family_type=family_type}"
+			javaType="string" select="SelectHouseHoldTypeNm"/>
+		<collection property="resultdata"
+			column="{adm_cd=adm_cd,first_adm_cd=first_adm_cd,second_adm_cd=second_adm_cd,third_adm_cd=third_adm_cd,year=year,family_type=family_type,,bnd_year=bnd_year}"
+			ofType="hashmap" javaType="ArrayList" select="householdinfo">
+		</collection>
+	</resultMap>
+
+	<!-- 창업지원 지역종합비교(가구유형), API_0618 -->
+	<select id="householdinfo" parameterType="hashmap" resultType="hashmap">
+		<if test = 'first_adm_cd.length() == 5'>
+			select to_char(#{adm_cd}) adm_cd, sum(family_cnt) value, (select sido_nm 
+																	from srv_pg_sidobord
+																	where base_year = #{bnd_year}
+    																	and sido_cd = #{adm_cd}) adm_nm
+			from SRV_DT_FAMILYSGG_${year}
+			where sido_cd = substring(#{adm_cd},0,2)
+				and rd_household_type = #{family_type}
+			union all			
+			select to_char(#{first_adm_cd}) adm_cd, sum(family_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{first_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{first_adm_cd},3,3)) adm_nm
+			from SRV_DT_FAMILYSGG_${year}
+			where sido_cd = substring(#{first_adm_cd},0,2)
+   				and sgg_cd = substring(#{first_adm_cd},3,3)
+   				and rd_household_type = #{family_type}
+			<if test = 'second_adm_cd != null'>
+				union all
+				select to_char(#{second_adm_cd}) adm_cd, sum(family_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{second_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{second_adm_cd},3,3)) adm_nm
+				from SRV_DT_FAMILYSGG_${year}
+				where sido_cd = substring(#{second_adm_cd},0,2)
+	   				and sgg_cd = substring(#{second_adm_cd},3,3)
+	   			   	and rd_household_type = #{family_type}
+			</if>
+			<if test = 'third_adm_cd != null'>
+				union all
+				select to_char(#{third_adm_cd}) adm_cd, sum(family_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{third_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{third_adm_cd},3,3)) adm_nm
+				from SRV_DT_FAMILYSGG_${year}
+				where sido_cd = substring(#{third_adm_cd},0,2)
+	   				and sgg_cd = substring(#{third_adm_cd},3,3)
+	   		   		and rd_household_type = #{family_type}
+			</if>
+		</if>
+		<if test = 'first_adm_cd.length() == 7'>
+			select to_char(#{adm_cd}) adm_cd, sum(family_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{adm_cd},0,2)
+																		 and sgg_cd =  substring(#{adm_cd},3,3)) adm_nm
+			from SRV_DT_FAMILYSGG_${year}
+			where sido_cd = substring(#{adm_cd},0,2)
+				and sgg_cd = substring(#{adm_cd},3,3)
+	   		   	and rd_household_type = #{family_type}
+			union all
+			select to_char(#{first_adm_cd}) adm_cd, sum(family_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{first_adm_cd},0,2)
+																			and sgg_cd =  substring(#{first_adm_cd},3,3)
+																			and emdong_cd = substring(#{first_adm_cd},6,2)) adm_nm
+			from SRV_DT_FAMILYREG_${year}
+			where tot_reg_cd like #{first_adm_cd}||'%'
+				and rd_household_type = #{family_type}
+			<if test = 'second_adm_cd != null'>
+				union all
+				select to_char(#{second_adm_cd}) adm_cd, sum(family_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{second_adm_cd},0,2)
+																			and sgg_cd =  substring(#{second_adm_cd},3,3)
+																			and emdong_cd = substring(#{second_adm_cd},6,2)) adm_nm
+				from SRV_DT_FAMILYREG_${year} 
+				where tot_reg_cd like #{second_adm_cd}||'%'
+					and rd_household_type = #{family_type}
+			</if>
+			<if test = 'third_adm_cd != null'>
+				union all
+				select to_char(#{third_adm_cd}) adm_cd, sum(family_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{third_adm_cd},0,2)
+																			and sgg_cd =  substring(#{third_adm_cd},3,3)
+																			and emdong_cd = substring(#{third_adm_cd},6,2)) adm_nm
+				from SRV_DT_FAMILYREG_${year}   
+				where tot_reg_cd like #{third_adm_cd}||'%'
+					and rd_household_type = #{family_type}
+			</if>
+		</if>
+	</select>
+
+	<!-- 창업지원 지역종합비교(점유형태), API_0618 -->
+	<select id="occupytype" parameterType="hashmap" resultMap="occupytypeMap">
+		select to_char(#{adm_cd}) adm_cd
+			, to_char(#{first_adm_cd}) first_adm_cd
+			, to_char(#{second_adm_cd}) second_adm_cd
+			, to_char(#{third_adm_cd}) third_adm_cd
+			, to_char(#{occupy_type}) occupy_type
+			, to_char(#{year}) year
+			, to_char(#{bnd_year}) bnd_year
+		from dual
+	</select>
+
+	<resultMap id="occupytypeMap" type="kostat.sop.OpenAPI3.api.startupbiz.dto.CompareregiontotalMap">
+		<association property="selecttype"
+			column="{occupy_type=occupy_type}"
+			javaType="string" select="SelectOccupyTypeNm"/>
+		<collection property="resultdata"
+			column="{adm_cd=adm_cd,first_adm_cd=first_adm_cd,second_adm_cd=second_adm_cd,third_adm_cd=third_adm_cd,year=year,occupy_type=occupy_type,bnd_year=bnd_year}"
+			ofType="hashmap" javaType="ArrayList" select="occupytypeinfo">
+		</collection>
+	</resultMap>
+
+	<!-- 창업지원 지역종합비교(점유형태), API_0618 -->
+	<select id="occupytypeinfo" parameterType="hashmap" resultType="hashmap">
+		<if test = 'first_adm_cd.length() == 5'>
+			select to_char(#{adm_cd}) adm_cd, sum(family_cnt) value, (select sido_nm 
+																	from srv_pg_sidobord
+																	where base_year = #{bnd_year}
+    																	and sido_cd = #{adm_cd}) adm_nm
+			from SRV_DT_FAMILYSGG_${year}
+			where sido_cd = substring(#{adm_cd},0,2)
+				and rd_ocptn_type = #{occupy_type}
+			union all			
+			select to_char(#{first_adm_cd}) adm_cd, sum(family_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{first_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{first_adm_cd},3,3)) adm_nm
+			from SRV_DT_FAMILYSGG_${year}
+			where sido_cd = substring(#{first_adm_cd},0,2)
+   				and sgg_cd = substring(#{first_adm_cd},3,3)
+   				and rd_ocptn_type = #{occupy_type}
+			<if test = 'second_adm_cd != null'>
+				union all
+				select to_char(#{second_adm_cd}) adm_cd, sum(family_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{second_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{second_adm_cd},3,3)) adm_nm
+				from SRV_DT_FAMILYSGG_${year}
+				where sido_cd = substring(#{second_adm_cd},0,2)
+	   				and sgg_cd = substring(#{second_adm_cd},3,3)
+	   			   	and rd_ocptn_type = #{occupy_type}
+			</if>
+			<if test = 'third_adm_cd != null'>
+				union all
+				select to_char(#{third_adm_cd}) adm_cd, sum(family_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{third_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{third_adm_cd},3,3)) adm_nm
+				from SRV_DT_FAMILYSGG_${year}
+				where sido_cd = substring(#{third_adm_cd},0,2)
+	   				and sgg_cd = substring(#{third_adm_cd},3,3)
+	   		   		and rd_ocptn_type = #{occupy_type}
+			</if>
+		</if>
+		<if test = 'first_adm_cd.length() == 7'>
+			select to_char(#{adm_cd}) adm_cd, sum(family_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{adm_cd},0,2)
+																		 and sgg_cd =  substring(#{adm_cd},3,3)) adm_nm
+			from SRV_DT_FAMILYSGG_${year}
+			where sido_cd = substring(#{adm_cd},0,2)
+				and sgg_cd = substring(#{adm_cd},3,3)
+	   		   	and rd_ocptn_type = #{occupy_type}
+			union all
+			select to_char(#{first_adm_cd}) adm_cd, sum(family_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{first_adm_cd},0,2)
+																			and sgg_cd =  substring(#{first_adm_cd},3,3)
+																			and emdong_cd = substring(#{first_adm_cd},6,2)) adm_nm
+			from SRV_DT_FAMILYSGG_${year}
+			where tot_reg_cd like #{first_adm_cd}||'%'
+				and rd_ocptn_type = #{occupy_type}
+			<if test = 'second_adm_cd != null'>
+				union all
+				select to_char(#{second_adm_cd}) adm_cd, sum(family_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{second_adm_cd},0,2)
+																			and sgg_cd =  substring(#{second_adm_cd},3,3)
+																			and emdong_cd = substring(#{second_adm_cd},6,2)) adm_nm
+				from SRV_DT_FAMILYSGG_${year}
+				where tot_reg_cd like #{second_adm_cd}||'%'
+					and rd_ocptn_type = #{occupy_type}
+			</if>
+			<if test = 'third_adm_cd != null'>
+				union all
+				select to_char(#{third_adm_cd}) adm_cd, sum(family_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{third_adm_cd},0,2)
+																			and sgg_cd =  substring(#{third_adm_cd},3,3)
+																			and emdong_cd = substring(#{third_adm_cd},6,2)) adm_nm
+				from SRV_DT_FAMILYSGG_${year}
+				where tot_reg_cd like #{third_adm_cd}||'%'
+					and rd_ocptn_type = #{occupy_type}
+			</if>
+		</if>
+	</select>
+
+	<!-- 창업지원 지역종합비교(거주주택), API_0618 -->
+	<select id="housetype" parameterType="hashmap" resultMap="housetypeMap">
+		select to_char(#{adm_cd}) adm_cd
+			, to_char(#{first_adm_cd}) first_adm_cd
+			, to_char(#{second_adm_cd}) second_adm_cd
+			, to_char(#{third_adm_cd}) third_adm_cd
+			, to_char(#{house_type}) house_type
+			, to_char(#{year}) year
+			, to_char(#{bnd_year}) bnd_year
+		from dual
+	</select>
+
+	<resultMap id="housetypeMap" type="kostat.sop.OpenAPI3.api.startupbiz.dto.CompareregiontotalMap">
+		<association property="selecttype"
+			column="{house_type=house_type}"
+			javaType="string" select="SelectHouseTypeNm"/>
+		<collection property="resultdata"
+			column="{adm_cd=adm_cd,first_adm_cd=first_adm_cd,second_adm_cd=second_adm_cd,third_adm_cd=third_adm_cd,year=year,house_type=house_type,bnd_year=bnd_year}"
+			ofType="hashmap" javaType="ArrayList" select="housetypeinfo">
+		</collection>
+	</resultMap>
+	
+	<!-- 창업지원 지역종합비교(거주주택), API_0618 -->
+	<select id="housetypeinfo" parameterType="hashmap" resultType="hashmap">
+		<if test = 'first_adm_cd.length() == 5'>
+			select to_char(#{adm_cd}) adm_cd, sum(resid_cnt) value, (select sido_nm 
+																	from srv_pg_sidobord
+																	where base_year = #{bnd_year}
+    																	and sido_cd = #{adm_cd}) adm_nm
+			from SRV_DT_HOUSESGG_${year}
+			where sido_cd = substring(#{adm_cd},0,2)
+   		   		<if test = 'house_type != 06'>
+					and rd_resid_1_type = #{house_type}
+					and house_yn = 'Y'
+				</if>
+				<if test = 'house_type == 06'>
+					and rd_resid_1_type in ('06','07','08','09','10')
+					and house_yn = 'N'
+				</if>
+			union all			
+			select to_char(#{first_adm_cd}) adm_cd, sum(resid_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{first_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{first_adm_cd},3,3)) adm_nm
+			from SRV_DT_HOUSESGG_${year}
+			where sido_cd = substring(#{first_adm_cd},0,2)
+   				and sgg_cd = substring(#{first_adm_cd},3,3)
+   		   		<if test = 'house_type != 06'>
+					and rd_resid_1_type = #{house_type}
+					and house_yn = 'Y'
+				</if>
+				<if test = 'house_type == 06'>
+					and rd_resid_1_type in ('06','07','08','09','10')
+					and house_yn = 'N'
+				</if>
+			<if test = 'second_adm_cd != null'>
+				union all
+				select to_char(#{second_adm_cd}) adm_cd, sum(resid_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{second_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{second_adm_cd},3,3)) adm_nm
+				from SRV_DT_HOUSESGG_${year}
+				where sido_cd = substring(#{second_adm_cd},0,2)
+	   				and sgg_cd = substring(#{second_adm_cd},3,3)
+	   		   		<if test = 'house_type != 06'>
+						and rd_resid_1_type = #{house_type}
+						and house_yn = 'Y'
+					</if>
+					<if test = 'house_type == 06'>
+						and rd_resid_1_type in ('06','07','08','09','10')
+						and house_yn = 'N'
+					</if>
+			</if>
+			<if test = 'third_adm_cd != null'>
+				union all
+				select to_char(#{third_adm_cd}) adm_cd, sum(resid_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{third_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{third_adm_cd},3,3)) adm_nm
+				from SRV_DT_HOUSESGG_${year}
+				where sido_cd = substring(#{third_adm_cd},0,2)
+	   				and sgg_cd = substring(#{third_adm_cd},3,3)
+	   		   		<if test = 'house_type != 06'>
+						and rd_resid_1_type = #{house_type}
+						and house_yn = 'Y'
+					</if>
+					<if test = 'house_type == 06'>
+						and rd_resid_1_type in ('06','07','08','09','10')
+						and house_yn = 'N'
+					</if>
+			</if>
+		</if>
+		<if test = 'first_adm_cd.length() == 7'>
+			select to_char(#{adm_cd}) adm_cd, sum(resid_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{adm_cd},0,2)
+																		 and sgg_cd =  substring(#{adm_cd},3,3)) adm_nm
+			from SRV_DT_HOUSESGG_${year}
+			where sido_cd = substring(#{adm_cd},0,2)
+				and sgg_cd = substring(#{adm_cd},3,3)
+   		   		<if test = 'house_type != 06'>
+					and rd_resid_1_type = #{house_type}
+					and house_yn = 'Y'
+				</if>
+				<if test = 'house_type == 06'>
+					and rd_resid_1_type in ('06','07','08','09','10')
+					and house_yn = 'N'
+				</if>
+			union all
+			select to_char(#{first_adm_cd}) adm_cd, sum(resid_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{first_adm_cd},0,2)
+																			and sgg_cd =  substring(#{first_adm_cd},3,3)
+																			and emdong_cd = substring(#{first_adm_cd},6,2)) adm_nm
+			from SRV_DT_HOUSEREG_${year}
+			where tot_reg_cd like #{first_adm_cd}||'%'
+   		   		<if test = 'house_type != 06'>
+					and rd_resid_1_type = #{house_type}
+					and house_yn = 'Y'
+				</if>
+				<if test = 'house_type == 06'>
+					and rd_resid_1_type in ('06','07','08','09','10')
+					and house_yn = 'N'
+				</if>
+			<if test = 'second_adm_cd != null'>
+				union all
+				select to_char(#{second_adm_cd}) adm_cd, sum(resid_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{second_adm_cd},0,2)
+																			and sgg_cd =  substring(#{second_adm_cd},3,3)
+																			and emdong_cd = substring(#{second_adm_cd},6,2)) adm_nm
+				from SRV_DT_HOUSEREG_${year} 
+				where tot_reg_cd like #{second_adm_cd}||'%'
+   			   		<if test = 'house_type != 06'>
+						and rd_resid_1_type = #{house_type}
+						and house_yn = 'Y'
+					</if>
+					<if test = 'house_type == 06'>
+						and rd_resid_1_type in ('06','07','08','09','10')
+						and house_yn = 'N'
+					</if>
+			</if>
+			<if test = 'third_adm_cd != null'>
+				union all
+				select to_char(#{third_adm_cd}) adm_cd, sum(resid_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{third_adm_cd},0,2)
+																			and sgg_cd =  substring(#{third_adm_cd},3,3)
+																			and emdong_cd = substring(#{third_adm_cd},6,2)) adm_nm
+				from SRV_DT_HOUSEREG_${year}   
+				where tot_reg_cd like #{third_adm_cd}||'%'
+	   		   		<if test = 'house_type != 06'>
+						and rd_resid_1_type = #{house_type}
+						and house_yn = 'Y'
+					</if>
+					<if test = 'house_type == 06'>
+						and rd_resid_1_type in ('06','07','08','09','10')
+						and house_yn = 'N'
+					</if>
+			</if>
+		</if>
+	</select>
+
+	<!-- 창업지원 지역종합비교(노후주택), API_0618 -->
+	<select id="oldhouse" parameterType="hashmap" resultMap="oldhouseMap">
+		select to_char(#{adm_cd}) adm_cd
+			, to_char(#{first_adm_cd}) first_adm_cd
+			, to_char(#{second_adm_cd}) second_adm_cd
+			, to_char(#{third_adm_cd}) third_adm_cd
+			, to_char(#{house_type}) house_type
+			, to_char(#{year}) year
+			, to_char(#{bnd_year}) bnd_year
+		from dual
+	</select>
+
+	<resultMap id="oldhouseMap" type="kostat.sop.OpenAPI3.api.startupbiz.dto.CompareregiontotalMap">
+		<association property="selecttype"
+			column="{house_type=house_type}"
+			javaType="string" select="SelectHouseTypeNm"/>
+		<collection property="resultdata"
+			column="{adm_cd=adm_cd,first_adm_cd=first_adm_cd,second_adm_cd=second_adm_cd,third_adm_cd=third_adm_cd,year=year,house_type=house_type,bnd_year=bnd_year}"
+			ofType="hashmap" javaType="ArrayList" select="oldhouseinfo">
+		</collection>
+	</resultMap>
+	
+	<!-- 창업지원 지역종합비교(노후주택), API_0618 -->
+	<select id="oldhouseinfo" parameterType="hashmap" resultType="hashmap">
+		<if test = 'first_adm_cd.length() == 5'>
+			select to_char(#{adm_cd}) adm_cd, sum(resid_cnt) value, (select sido_nm 
+																	from srv_pg_sidobord
+																	where base_year = #{bnd_year}
+    																	and sido_cd = #{adm_cd}) adm_nm
+			from SRV_DT_HOUSESGG_${year}
+			where sido_cd = substring(#{adm_cd},0,2)
+				and house_use_prid_cd in ('09','10','11','12')
+   		   		<if test = 'house_type != 06'>
+					and rd_resid_1_type = #{house_type}
+					and house_yn = 'Y'
+				</if>
+				<if test = 'house_type == 06'>
+					and rd_resid_1_type in ('06','07','08','09','10')
+					and house_yn = 'N'
+				</if>
+			union all			
+			select to_char(#{first_adm_cd}) adm_cd, sum(resid_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{first_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{first_adm_cd},3,3)) adm_nm
+			from SRV_DT_HOUSESGG_${year}
+			where sido_cd = substring(#{first_adm_cd},0,2)
+   				and sgg_cd = substring(#{first_adm_cd},3,3)
+   				and house_use_prid_cd in ('09','10','11','12')
+   		   		<if test = 'house_type != 06'>
+					and rd_resid_1_type = #{house_type}
+					and house_yn = 'Y'
+				</if>
+				<if test = 'house_type == 06'>
+					and rd_resid_1_type in ('06','07','08','09','10')
+					and house_yn = 'N'
+				</if>
+			<if test = 'second_adm_cd != null'>
+				union all
+				select to_char(#{second_adm_cd}) adm_cd, sum(resid_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{second_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{second_adm_cd},3,3)) adm_nm
+				from SRV_DT_HOUSESGG_${year}
+				where sido_cd = substring(#{second_adm_cd},0,2)
+	   				and sgg_cd = substring(#{second_adm_cd},3,3)
+	   				and house_use_prid_cd in ('09','10','11','12')
+	   		   		<if test = 'house_type != 06'>
+						and rd_resid_1_type = #{house_type}
+						and house_yn = 'Y'
+					</if>
+					<if test = 'house_type == 06'>
+						and rd_resid_1_type in ('06','07','08','09','10')
+						and house_yn = 'N'
+					</if>
+			</if>
+			<if test = 'third_adm_cd != null'>
+				union all
+				select to_char(#{third_adm_cd}) adm_cd, sum(resid_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{third_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{third_adm_cd},3,3)) adm_nm
+				from SRV_DT_HOUSESGG_${year}
+				where sido_cd = substring(#{third_adm_cd},0,2)
+	   				and sgg_cd = substring(#{third_adm_cd},3,3)
+	   				and house_use_prid_cd in ('09','10','11','12')
+	   		   		<if test = 'house_type != 06'>
+						and rd_resid_1_type = #{house_type}
+						and house_yn = 'Y'
+					</if>
+					<if test = 'house_type == 06'>
+						and rd_resid_1_type in ('06','07','08','09','10')
+						and house_yn = 'N'
+					</if>
+			</if>
+		</if>
+		<if test = 'first_adm_cd.length() == 7'>
+			select to_char(#{adm_cd}) adm_cd, sum(resid_cnt) value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{adm_cd},0,2)
+																		 and sgg_cd =  substring(#{adm_cd},3,3)) adm_nm
+			from SRV_DT_HOUSESGG_${year}
+			where sido_cd = substring(#{adm_cd},0,2)
+				and sgg_cd = substring(#{adm_cd},3,3)
+				and house_use_prid_cd in ('09','10','11','12')
+   		   		<if test = 'house_type != 06'>
+					and rd_resid_1_type = #{house_type}
+					and house_yn = 'Y'
+				</if>
+				<if test = 'house_type == 06'>
+					and rd_resid_1_type in ('06','07','08','09','10')
+					and house_yn = 'N'
+				</if>
+			union all
+			select to_char(#{first_adm_cd}) adm_cd, sum(resid_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{first_adm_cd},0,2)
+																			and sgg_cd =  substring(#{first_adm_cd},3,3)
+																			and emdong_cd = substring(#{first_adm_cd},6,2)) adm_nm
+			from SRV_DT_HOUSEREG_${year}
+			where tot_reg_cd like #{first_adm_cd}||'%'
+				and house_use_prid_cd in ('09','10','11','12')
+   		   		<if test = 'house_type != 06'>
+					and rd_resid_1_type = #{house_type}
+					and house_yn = 'Y'
+				</if>
+				<if test = 'house_type == 06'>
+					and rd_resid_1_type in ('06','07','08','09','10')
+					and house_yn = 'N'
+				</if>
+			<if test = 'second_adm_cd != null'>
+				union all
+				select to_char(#{second_adm_cd}) adm_cd, sum(resid_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{second_adm_cd},0,2)
+																			and sgg_cd =  substring(#{second_adm_cd},3,3)
+																			and emdong_cd = substring(#{second_adm_cd},6,2)) adm_nm
+				from SRV_DT_HOUSEREG_${year} 
+				where tot_reg_cd like #{second_adm_cd}||'%'
+					and house_use_prid_cd in ('09','10','11','12')
+   			   		<if test = 'house_type != 06'>
+						and rd_resid_1_type = #{house_type}
+						and house_yn = 'Y'
+					</if>
+					<if test = 'house_type == 06'>
+						and rd_resid_1_type in ('06','07','08','09','10')
+						and house_yn = 'N'
+					</if>
+			</if>
+			<if test = 'third_adm_cd != null'>
+				union all
+				select to_char(#{third_adm_cd}) adm_cd, sum(resid_cnt) value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{third_adm_cd},0,2)
+																			and sgg_cd =  substring(#{third_adm_cd},3,3)
+																			and emdong_cd = substring(#{third_adm_cd},6,2)) adm_nm
+				from SRV_DT_HOUSEREG_${year}   
+				where tot_reg_cd like #{third_adm_cd}||'%'
+					and house_use_prid_cd in ('09','10','11','12')
+	   		   		<if test = 'house_type != 06'>
+						and rd_resid_1_type = #{house_type}
+						and house_yn = 'Y'
+					</if>
+					<if test = 'house_type == 06'>
+						and rd_resid_1_type in ('06','07','08','09','10')
+						and house_yn = 'N'
+					</if>
+			</if>
+		</if>
+	</select>
+
+	<!-- 창업지원 지역종합비교(아파트시세), API_0618 -->
+	<select id="apartprice" parameterType="hashmap" resultMap="apartpriceMap">
+		select to_char(#{adm_cd}) adm_cd
+			, to_char(#{first_adm_cd}) first_adm_cd
+			, to_char(#{second_adm_cd}) second_adm_cd
+			, to_char(#{third_adm_cd}) third_adm_cd
+			, to_char(#{bnd_year}) bnd_year
+		from dual
+	</select>
+
+	<resultMap id="apartpriceMap" type="kostat.sop.OpenAPI3.api.startupbiz.dto.CompareregiontotalMap">
+		<collection property="resultdata"
+			column="{adm_cd=adm_cd,first_adm_cd=first_adm_cd,second_adm_cd=second_adm_cd,third_adm_cd=third_adm_cd,bnd_year=bnd_year}"
+			ofType="hashmap" javaType="ArrayList" select="apartpriceinfo">
+		</collection>
+	</resultMap>
+
+	<!-- 창업지원 지역종합비교(아파트시세), API_0618 -->
+	<select id="apartpriceinfo" parameterType="hashmap" resultType="hashmap">
+		<if test = 'first_adm_cd.length() == 5'>
+			select to_char(#{adm_cd}) adm_cd, apt_avg_price value, (select sido_nm 
+																	from srv_pg_sidobord
+																	where base_year = #{bnd_year}
+    																	and sido_cd = #{adm_cd}) adm_nm
+			
+			from SRV_DT_HOUSEVOLUMEPRICE 
+			where sido_cd = substring(#{adm_cd},0,2)
+   				and sgg_cd = '000'
+   				and emdong_cd = '00' 
+   				and ym = (select max(ym) 
+   						from SRV_DT_HOUSEVOLUMEPRICE )
+			union all			
+			select to_char(#{first_adm_cd}) adm_cd, apt_avg_price value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{first_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{first_adm_cd},3,3)) adm_nm
+			from SRV_DT_HOUSEVOLUMEPRICE 
+			where sido_cd = substring(#{first_adm_cd},0,2)
+   				and sgg_cd = substring(#{first_adm_cd},3,3)
+   				and emdong_cd = '00' 
+   				and ym = (select max(ym) 
+   						from SRV_DT_HOUSEVOLUMEPRICE )
+			<if test = 'second_adm_cd != null'>
+				union all
+				select to_char(#{second_adm_cd}) adm_cd, apt_avg_price value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{second_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{second_adm_cd},3,3)) adm_nm
+				from SRV_DT_HOUSEVOLUMEPRICE 
+				where sido_cd = substring(#{second_adm_cd},0,2)
+	   				and sgg_cd = substring(#{second_adm_cd},3,3)
+	   				and emdong_cd = '00' 
+	   				and ym = (select max(ym) 
+	   						from SRV_DT_HOUSEVOLUMEPRICE )
+			</if>
+			<if test = 'third_adm_cd != null'>
+				union all
+				select to_char(#{third_adm_cd}) adm_cd, apt_avg_price value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{third_adm_cd},0,2)
+																		 and sgg_cd =  substring(#{third_adm_cd},3,3)) adm_nm
+				from SRV_DT_HOUSEVOLUMEPRICE 
+				where sido_cd = substring(#{third_adm_cd},0,2)
+	   				and sgg_cd = substring(#{third_adm_cd},3,3)
+	   				and emdong_cd = '00' 
+	   				and ym = (select max(ym) 
+	   						from SRV_DT_HOUSEVOLUMEPRICE )
+			</if>
+		</if>
+		<if test = 'first_adm_cd.length() == 7'>
+			select to_char(#{adm_cd}) adm_cd, apt_avg_price value, (select sgg_nm 
+																	from srv_pg_sggbord 
+																	where base_year = #{bnd_year}
+																		 and sido_cd = substring(#{adm_cd},0,2)
+																		 and sgg_cd =  substring(#{adm_cd},3,3)) adm_nm
+			from SRV_DT_HOUSEVOLUMEPRICE 
+			where sido_cd = substring(#{adm_cd},0,2)
+   				and sgg_cd = substring(#{adm_cd},3,3)
+   				and emdong_cd = '00' 
+   				and ym = (select max(ym) 
+   						from SRV_DT_HOUSEVOLUMEPRICE )
+			union all
+			select to_char(#{first_adm_cd}) adm_cd, apt_avg_price value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{first_adm_cd},0,2)
+																			and sgg_cd =  substring(#{first_adm_cd},3,3)
+																			and emdong_cd = substring(#{first_adm_cd},6,2)) adm_nm
+			from SRV_DT_HOUSEVOLUMEPRICE 
+			where sido_cd = substring(#{first_adm_cd},0,2)
+   				and sgg_cd = substring(#{first_adm_cd},3,3)
+   				and emdong_cd = substring(#{first_adm_cd},6,2)
+   			 	and tot_reg_cd = '0000000000000'
+   				and ym = (select max(ym) 
+   						from SRV_DT_HOUSEVOLUMEPRICE )
+			<if test = 'second_adm_cd != null'>
+				union all
+				select to_char(#{second_adm_cd}) adm_cd, apt_avg_price value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{second_adm_cd},0,2)
+																			and sgg_cd =  substring(#{second_adm_cd},3,3)
+																			and emdong_cd = substring(#{second_adm_cd},6,2)) adm_nm
+				from SRV_DT_HOUSEVOLUMEPRICE 
+				where sido_cd = substring(#{second_adm_cd},0,2)
+	   				and sgg_cd = substring(#{second_adm_cd},3,3)
+	   				and emdong_cd = substring(#{second_adm_cd},6,2)
+	   			 	and tot_reg_cd = '0000000000000'
+	   				and ym = (select max(ym) 
+	   						from SRV_DT_HOUSEVOLUMEPRICE )
+			</if>
+			<if test = 'third_adm_cd != null'>
+				union all
+				select to_char(#{third_adm_cd}) adm_cd, apt_avg_price value, (select emdong_nm 
+																		from srv_pg_admbord 
+																		where base_year = #{bnd_year}
+																			and sido_cd = substring(#{third_adm_cd},0,2)
+																			and sgg_cd =  substring(#{third_adm_cd},3,3)
+																			and emdong_cd = substring(#{third_adm_cd},6,2)) adm_nm
+				from SRV_DT_HOUSEVOLUMEPRICE 
+				where sido_cd = substring(#{third_adm_cd},0,2)
+	   				and sgg_cd = substring(#{third_adm_cd},3,3)
+	   				and emdong_cd = substring(#{third_adm_cd},6,2)
+	   			 	and tot_reg_cd = '0000000000000'
+	   				and ym = (select max(ym) 
+	   						from SRV_DT_HOUSEVOLUMEPRICE )
+			</if>
+		</if>
+	</select>
+
+	<select id="SelectHouseTypeNm" parameterType="hashmap" resultType="String">
+        select decode(cd_value_2, '06', '주택이외의 거처', cd_content) as cd_content 
+        from cmm_cd_two 
+        where cd_nm = '주택유형' 
+            and cd_value_2 = #{house_type}
+	</select>
+
+	<select id="SelectOccupyTypeNm" parameterType="hashmap" resultType="String">
+		select cd_content 
+		from cmm_cd_one 
+		where cd_nm = '점유형태' 
+			and cd_value_1 = #{occupy_type}
+	</select>
+
+	<select id="SelectHouseHoldTypeNm" parameterType="hashmap" resultType="String">
+		select cd_content
+		from cmm_cd_two 
+		where cd_nm ='세대유형' 
+			and cd_value_2 = #{family_type}
+	</select>
+
+	<select id="SelectGenderNm" parameterType="hashmap" resultType="String">
+		select cd_content
+		from cmm_cd_one
+		where cd_nm ='성별' 
+			and cd_value_1 = #{ppl_gender_type}
+	</select>
+	
+	<select id="SelectMaxBaseyear" parameterType="hashmap" resultType="String">
+		select max(base_year) base_year from srv_dt_corpthemesgg
+	</select>
+	<!--박길섭-->
+	<!-- 시도별 생활업종 정보:맵에 파이차트를 그리기위한 쿼리, API_0619 -->
+	<select id="sidoTypeOfBusinessChartInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				INTRO.SIDO_CD             AS SIDO_CD
+				, SIDO.SIDO_NM            AS SIDO_NM
+				, INTRO.RSTRT_PER         AS RSTRT_PER
+				, INTRO.RSTRT_CORP_CNT + INTRO.SRV_CORP_CNT + INTRO.WHRTLSAL_CORP_CNT + INTRO.LODGEBIZ_CORP_CNT AS TOTAL_CNT
+				, INTRO.RSTRT_CORP_CNT    AS RSTRT_CORP_CNT
+				, INTRO.SRV_PER           AS SRV_PER
+				, INTRO.SRV_CORP_CNT      AS SRV_CORP_CNT
+				, INTRO.WHRTLSAL_PER      AS WHRTLSAL_PER
+				, INTRO.WHRTLSAL_CORP_CNT AS WHRTLSAL_CORP_CNT
+				, INTRO.LODGEBIZ_PER      AS LODGEBIZ_PER
+				, INTRO.LODGEBIZ_CORP_CNT AS LODGEBIZ_CORP_CNT
+				
+				
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN 
+				SRV_PG_SIDOBORD SIDO
+		ON 		INTRO.SIDO_CD = SIDO.SIDO_CD
+		WHERE	SIDO.BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+				AND INTRO.BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_DT_SIDOLIFEBIZ_INTRO ORDER BY BASE_YEAR DESC)
+	</select>
+	<!--박길섭-->
+	<!-- 시도별 생활업종 종사자정보:맵에 파이차트를 그리기위한 쿼리, API_0620 -->
+	<select id="sidoTypeOfWorkerInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				INTRO.SIDO_CD             AS SIDO_CD
+				, SIDO.SIDO_NM            AS SIDO_NM
+				, INTRO.RSTRT_WORKER_PER  AS RSTRT_WORKER_PER
+				, INTRO.RSTRT_WORKER_CNT  AS RSTRT_WORKER_CNT
+				, INTRO.SRV_WORKER_PER 	  AS SRV_WORKER_PER
+				, INTRO.SRV_WORKER_CNT    AS SRV_WORKER_CNT
+				, INTRO.WHRTLSAL_WORKER_PER  AS WHRTLSAL_WORKER_PER
+				, INTRO.WHRTLSAL_WORKER_CNT  AS WHRTLSAL_WORKER_CNT
+				, INTRO.LODGEBIZ_WORKER_PER  AS LODGEBIZ_WORKER_PER
+				, INTRO.LODGEBIZ_WORKER_CNT  AS LODGEBIZ_WORKER_CNT
+				, INTRO.RSTRT_WORKER_CNT + INTRO.SRV_WORKER_CNT + INTRO.WHRTLSAL_WORKER_CNT + INTRO.LODGEBIZ_WORKER_CNT AS TOTAL_WORKER_CNT
+				
+		FROM
+				SRV_DT_SIDOLIFEBIZ_INTRO INTRO
+		INNER JOIN 
+				SRV_PG_SIDOBORD SIDO
+		ON 		INTRO.SIDO_CD = SIDO.SIDO_CD
+		WHERE	SIDO.BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+				AND INTRO.BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_DT_SIDOLIFEBIZ_INTRO ORDER BY BASE_YEAR DESC)
+	</select>
+	<!-- 시도 생활업종 종사자 그룹별 속성 박길섭 추가, API_0621 -->
+	<select id="sidoTypeOfWorkerGroup" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				WORKER      . THEME_CD
+				, WORKER     . WORKER_CNT_RANK
+				, WORKER     . WORKER_CNT
+				, WORKERRATE . WORKER_PER_RANK
+                ,ROUND((WORKER. WORKER_CNT / #{worker_total}) * 100 , 1) AS WORKER_PER
+				<!--, WORKERRATE . WORKER_PER  -->
+				, THEME    . S_THEME_CD_NM
+		FROM
+				SRV_DT_SIDOLIFEBIZ_WORKER WORKER
+		INNER JOIN
+					SRV_DT_SIDOLIFEBIZ_WORKERRATE WORKERRATE
+				ON  WORKER.SIDO_CD = WORKERRATE.SIDO_CD AND WORKER.THEME_CD = WORKERRATE.THEME_CD
+		INNER JOIN (
+			SELECT
+					THEME_CD
+					, B_THEME_CD_NM
+					, S_THEME_CD_NM
+			FROM
+					CMM_CD_THEME
+			WHERE
+					THEME_CD LIKE #{theme_cd} || '%'
+		) THEME
+				ON  WORKER.THEME_CD = THEME.THEME_CD
+		WHERE WORKER.SIDO_CD = #{sido_cd} AND WORKER.BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_DT_SIDOLIFEBIZ_WORKER ORDER BY BASE_YEAR DESC)
+		AND WORKERRATE.BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_DT_SIDOLIFEBIZ_WORKERRATE ORDER BY BASE_YEAR DESC)
+	</select>
+	<!-- 시도 사업체,종사자 입지계수 속성  박길섭 추가, API_0622 -->
+	<select id="sidoTypeOfLq" parameterType="hashmap" resultType="hashmap">
+		select
+			sido.sido_nm
+			,lq.sido_cd,lq.theme_cd
+			,lq.country_comp_corp_lq as corp_lq
+			,lq.country_comp_worker_lq as worker_lq
+		from 
+			SRV_DT_LIFEBIZ_LQ_REGIONTOTAL lq 
+		inner join 
+			SRV_PG_SIDOBORD sido 
+			on lq.sido_cd=sido.sido_cd and lq.sgg_cd=000 and lq.sido_cd=#{sido_cd} and lq.theme_cd like '%000' 
+				and lq.base_year=(SELECT TOP 1 BASE_YEAR FROM SRV_DT_LIFEBIZ_LQ_REGIONTOTAL ORDER BY BASE_YEAR DESC)
+				and SIDO.BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+		group by sido.sido_nm,lq.theme_cd,lq.country_comp_corp_lq,lq.country_comp_worker_lq,lq.sido_cd,lq.theme_cd
+		order by  lq.theme_cd  ASC
+	</select>
+	<!-- 시군구 사업체,종사자 입지계수 속성  박길섭 추가, API_0623 -->
+	<select id="sggTypeOfLq" parameterType="hashmap" resultType="hashmap">
+		select
+			sido_cd
+			,sgg_cd
+			,theme_cd
+			<if test="region.equals('country')">
+			,country_comp_corp_lq as corp_lq
+			,country_comp_worker_lq as worker_lq
+			</if>
+			<if test="region.equals('sido')">
+			,sido_comp_corp_lq as corp_lq
+			,sido_comp_worker_lq as worker_lq
+			</if>
+			from SRV_DT_LIFEBIZ_LQ_REGIONTOTAL 
+		where sido_cd=#{sido_cd} and sgg_cd=#{sgg_cd} and theme_cd like '%000' 
+				and base_year=(SELECT TOP 1 BASE_YEAR FROM SRV_DT_LIFEBIZ_LQ_REGIONTOTAL ORDER BY BASE_YEAR DESC)
+		order by 
+			theme_cd asc
+	</select>	
+	<!-- 시군구 사업체,종사자 수 및 백분율 속성  박길섭 추가, API_0624 -->
+	<select id="sggTypeOfBusinessWorker" parameterType="hashmap" resultType="hashmap">
+		select sum(case when theme_cd like '10%' then corp_cnt end) as SRV_CORP_CNT,
+			sum(case when theme_cd like '20%' then corp_cnt end) as WHRTLSAL_CORP_CNT,
+			sum(case when theme_cd like '40%' then corp_cnt end) as LODGEBIZ_CORP_CNT,
+			sum(case when theme_cd like '50%' then corp_cnt end) as RSTRT_CORP_CNT,
+			sum(case when theme_cd like '10%' then biz_worker_cnt end) as SRV_WORKER_CNT,
+			sum(case when theme_cd like '20%' then biz_worker_cnt end) as WHRTLSAL_WORKER_CNT,
+			sum(case when theme_cd like '40%' then biz_worker_cnt end) as LODGEBIZ_WORKER_CNT,
+			sum(case when theme_cd like '50%' then biz_worker_cnt end) as RSTRT_WORKER_CNT,
+			round(1. * sum(case when theme_cd like '10%' then corp_cnt end) /(sum(case when theme_cd like '10%' then corp_cnt end)+sum(case when theme_cd like '20%' then corp_cnt end)+sum(case when theme_cd like '40%' then corp_cnt end)+sum(case when theme_cd like '50%' then corp_cnt end))*100,1)as SRV_PER
+			,round(1. * sum(case when theme_cd like '20%' then corp_cnt end) /(sum(case when theme_cd like '10%' then corp_cnt end)+sum(case when theme_cd like '20%' then corp_cnt end)+sum(case when theme_cd like '40%' then corp_cnt end)+sum(case when theme_cd like '50%' then corp_cnt end))*100,1)as WHRTLSAL_PER
+			,round(1. * sum(case when theme_cd like '40%' then corp_cnt end) /(sum(case when theme_cd like '10%' then corp_cnt end)+sum(case when theme_cd like '20%' then corp_cnt end)+sum(case when theme_cd like '40%' then corp_cnt end)+sum(case when theme_cd like '50%' then corp_cnt end))*100,1)as LODGEBIZ_PER
+			,round(1. * sum(case when theme_cd like '50%' then corp_cnt end) /(sum(case when theme_cd like '10%' then corp_cnt end)+sum(case when theme_cd like '20%' then corp_cnt end)+sum(case when theme_cd like '40%' then corp_cnt end)+sum(case when theme_cd like '50%' then corp_cnt end))*100,1)as RSTRT_PER
+			,round(1. * sum(case when theme_cd like '10%' then biz_worker_cnt  end) /(sum(case when theme_cd like '10%' then biz_worker_cnt  end)+sum(case when theme_cd like '20%' then biz_worker_cnt  end)+sum(case when theme_cd like '40%' then biz_worker_cnt  end)+sum(case when theme_cd like '50%' then biz_worker_cnt  end))*100,1) as SRV_WORKER_PER
+			,round(1. * sum(case when theme_cd like '20%' then biz_worker_cnt  end) /(sum(case when theme_cd like '10%' then biz_worker_cnt  end)+sum(case when theme_cd like '20%' then biz_worker_cnt  end)+sum(case when theme_cd like '40%' then biz_worker_cnt  end)+sum(case when theme_cd like '50%' then biz_worker_cnt  end))*100,1) as WHRTLSAL_WORKER_PER
+			,round(1. * sum(case when theme_cd like '40%' then biz_worker_cnt  end) /(sum(case when theme_cd like '10%' then biz_worker_cnt  end)+sum(case when theme_cd like '20%' then biz_worker_cnt  end)+sum(case when theme_cd like '40%' then biz_worker_cnt  end)+sum(case when theme_cd like '50%' then biz_worker_cnt  end))*100,1) as LODGEBIZ_WORKER_PER
+			,round(1. * sum(case when theme_cd like '50%' then biz_worker_cnt  end) /(sum(case when theme_cd like '10%' then biz_worker_cnt  end)+sum(case when theme_cd like '20%' then biz_worker_cnt  end)+sum(case when theme_cd like '40%' then biz_worker_cnt  end)+sum(case when theme_cd like '50%' then biz_worker_cnt  end))*100,1) as RSTRT_WORKER_PER
+			from SRV_DT_BIZCATEGORYMAP_SGG  where sido_cd=#{sido_cd} and sgg_cd=#{sgg_cd} 
+			AND BASE_YEAR=(SELECT TOP 1 BASE_YEAR FROM SRV_DT_BIZCATEGORYMAP_SGG ORDER BY BASE_YEAR DESC)
+	</select>
+	<!-- 시군구 사업체,종사자 음식점,도소매,서비스,숙박업 평균보기  박길섭 추가, API_0625 -->
+	<select id="sggTypeOfAverage" parameterType="hashmap" resultType="hashmap">
+		SELECT 	CORP.THEME_CD,
+				CORP.CORP_CNT,
+				WORKER.WORKER_CNT, 
+				THEME.S_THEME_CD_NM AS NAME,
+				ROUND((CORP.CORP_CNT / #{corp_total}) * 100 , 1) AS CORP_PER,
+				ROUND((WORKER.WORKER_CNT /#{worker_total} ) * 100 , 1) AS WORKER_PER 
+		FROM SRV_DT_SIDOLIFEBIZ_CORP CORP 
+		INNER JOIN SRV_DT_SIDOLIFEBIZ_WORKER worker on CORP.SIDO_CD=WORKER.SIDO_CD and CORP.THEME_CD=WORKER.THEME_CD
+		INNER JOIN (
+			SELECT
+					THEME_CD
+					, B_THEME_CD_NM
+					, S_THEME_CD_NM
+			FROM
+					CMM_CD_THEME
+			WHERE
+					THEME_CD LIKE #{theme_cd} || '%'
+		) THEME
+				ON  WORKER.THEME_CD = THEME.THEME_CD
+		WHERE WORKER.SIDO_CD = #{sido_cd}
+				AND CORP.BASE_YEAR=(SELECT TOP 1 BASE_YEAR FROM SRV_DT_SIDOLIFEBIZ_CORP ORDER BY BASE_YEAR DESC)
+				AND WORKER.BASE_YEAR=(SELECT TOP 1 BASE_YEAR FROM SRV_DT_SIDOLIFEBIZ_WORKER ORDER BY BASE_YEAR DESC)
+		ORDER BY CORP.CORP_CNT DESC
+	</select>
+	<!-- 시군구 사업체,종사자 음식점,도소매,서비스,숙박업 상세보기  박길섭 추가, API_0626 -->
+	<select id="sggTypeOfLifeDetail" parameterType="hashmap" resultType="hashmap">
+		SELECT 	
+				SGG.SIDO_CD,
+				SGG.SGG_CD,
+				SGG.THEME_CD,
+				SGG.CORP_CNT,
+				SGG.BIZ_WORKER_CNT AS WORKER_CNT, 
+				THEME.S_THEME_CD_NM AS NAME,
+				ROUND(1.*(SGG.CORP_CNT /#{corp_total}) * 100 , 1) AS CORP_PER,
+				ROUND(1.*(SGG.BIZ_WORKER_CNT /#{worker_total}) * 100 , 1) AS WORKER_PER      
+		FROM  
+			SRV_DT_BIZCATEGORYMAP_SGG SGG 
+		INNER JOIN 
+			CMM_CD_THEME THEME 
+		ON  
+			SGG.THEME_CD = THEME.THEME_CD AND SGG.BASE_YEAR=(SELECT TOP 1 BASE_YEAR FROM SRV_DT_BIZCATEGORYMAP_SGG ORDER BY BASE_YEAR DESC)
+		WHERE SIDO_CD=#{sido_cd} AND SGG_CD=#{sgg_cd} AND SGG.THEME_CD LIKE #{theme_cd} || '%' ORDER BY SGG.CORP_CNT DESC
+	</select>
+	<select id="totalCorpCnt" parameterType="hashmap" resultType="String">
+		SELECT SUM(CORP_CNT) AS TOTAL_CORP_CNT FROM SRV_DT_BIZCATEGORYMAP_SGG WHERE SIDO_CD=#{sido_cd} AND SGG_CD=#{sgg_cd} AND THEME_CD LIKE #{theme_cd} || '%'
+		AND BASE_YEAR=(SELECT TOP 1 BASE_YEAR FROM SRV_DT_BIZCATEGORYMAP_SGG ORDER BY BASE_YEAR DESC)
+	</select>
+	<select id="totalWorkerCnt" parameterType="hashmap" resultType="String">
+		SELECT SUM(BIZ_WORKER_CNT) AS TOTAL_WORKER_CNT FROM SRV_DT_BIZCATEGORYMAP_SGG WHERE SIDO_CD=#{sido_cd} AND SGG_CD=#{sgg_cd} AND THEME_CD LIKE #{theme_cd} || '%'
+		AND BASE_YEAR=(SELECT TOP 1 BASE_YEAR FROM SRV_DT_BIZCATEGORYMAP_SGG ORDER BY BASE_YEAR DESC)
+	</select>
+	<!--2019-04-11 박길섭 시작-->
+	<!--업종별 입지계수 지도 - 전국대비 시도 입지계수  박길섭 추가, API_0627 -->
+	<select id = "lqMapTypeOfCountrySidoLq" parameterType="hashmap" resultType="hashmap">
+		SELECT 		
+			SIDO.SIDO_NM,
+			LQ.SIDO_CD,
+			LQ.THEME_CD,
+			LQ.COUNTRY_COMP_CORP_LQ CORP_LQ,
+			LQ.COUNTRY_COMP_WORKER_LQ WORKER_LQ,
+			LQ.CORP_CNT,
+			LQ.CORP_PER,
+			LQ.WORKER_CNT,
+			LQ.WORKER_PER
+		FROM 
+			SRV_DT_LIFEBIZ_LQ_REGIONTOTAL LQ,(SELECT SIDO_NM,SIDO_CD FROM SRV_PG_SIDOBORD WHERE BASE_YEAR=#{year}) SIDO 
+		WHERE 
+			LQ.BASE_YEAR=#{census_year} 
+	 	AND 
+			LQ.THEME_CD=#{theme_cd}
+	  	AND 
+	  		LQ.SGG_CD='000' 
+	  	AND 
+			LQ.SIDO_CD=SIDO.SIDO_CD
+		ORDER BY
+	  		LQ.SIDO_CD ASC
+	</select>
+	<!--2019-04-11 박길섭 끝-->
+	
+	<!--2019-04-11 박길섭 시작-->
+	<!--업종별 입지계수 지도 - 전국 및 시도 대비 시군구 입지계수  박길섭 추가, API_0628 -->
+	<select id = "lqMapTypeOfCountrySidoSggLq" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			SGG.SGG_NM
+			,SGG.SIDO_CD
+			,SGG.SGG_CD
+			,LQ.CORP_CNT
+			,LQ.CORP_PER
+			,LQ.WORKER_CNT
+			,LQ.WORKER_PER
+		<if test="region.equals('country')"> 
+			,LQ.COUNTRY_COMP_CORP_LQ AS CORP_LQ
+			,LQ.COUNTRY_COMP_WORKER_LQ AS WORKER_LQ
+		</if>
+		<if test="region.equals('sido')">
+			,LQ.SIDO_COMP_CORP_LQ AS CORP_LQ
+			,LQ.SIDO_COMP_WORKER_LQ AS WORKER_LQ
+		</if>
+			,LQ.THEME_CD
+		FROM 
+			SRV_DT_LIFEBIZ_LQ_REGIONTOTAL LQ,(SELECT SGG_NM, SIDO_CD, SGG_CD FROM SRV_PG_SGGBORD WHERE SIDO_CD=#{sido_cd} AND BASE_YEAR=#{year})SGG
+		WHERE 
+			LQ.SIDO_CD=#{sido_cd} 
+		AND 
+			LQ.THEME_CD=#{theme_cd}
+		AND
+			LQ.BASE_YEAR=#{census_year}
+		AND	
+			LQ.SIDO_CD=SGG.SIDO_CD 
+		AND 
+			LQ.SGG_CD=SGG.SGG_CD 
+		ORDER BY 
+			LQ.SGG_CD ASC
+	</select>
+	<!--2019-04-15 박길섭 끝-->
+	<!-- 시코드로 종사자수 조회 박길섭추가 -->
+	<select id="workerCountBySidoCode" parameterType="hashmap" resultType="String">
+		SELECT SUM(WORKER_CNT)
+		from SRV_DT_SIDOLIFEBIZ_WORKER
+		WHERE SIDO_CD = #{sido_cd} AND BASE_YEAR=(SELECT TOP 1 BASE_YEAR FROM SRV_DT_SIDOLIFEBIZ_WORKER ORDER BY BASE_YEAR DESC)
+	</select>
+	<!-- 테마코드와 시코드로 종사자수 조회 박길섭추가 -->
+	<select id="workerCount" parameterType="hashmap" resultType="String">
+		SELECT SUM(WORKER_CNT)
+		from SRV_DT_SIDOLIFEBIZ_WORKER
+		WHERE SIDO_CD = #{sido_cd} AND THEME_CD LIKE #{the} || '%'
+		AND BASE_YEAR=(SELECT TOP 1 BASE_YEAR FROM SRV_DT_SIDOLIFEBIZ_WORKER ORDER BY BASE_YEAR DESC)
+	</select>
+	<!--2019-04-12 박길섭 시작-->
+	<!--시군구 막대차트  박길섭 추가, API_0629 -->
+	<select id = "sggTypeOfBarChart" parameterType="hashmap" resultType="hashmap">
+		SELECT
+         	SGG.SIDO_NM,
+         	SGG.SGG_NM,
+         	SGG.X_COOR,
+         	SGG.y_COOR,
+         	LIFEBIZ.SIDO_CD,
+         	LIFEBIZ.SGG_CD,
+         	LIFEBIZ.THEME_CD,
+         	TO_NUMBER(LIFEBIZ.CORP_CNT) AS CORP_CNT,
+         	LIFEBIZ.CORP_CNT_RANK AS CORP_CNT_RANK,
+         	TO_NUMBER(LIFEBIZ.UPPER_REGION_COMP_CORP_PER) AS CORP_PER,
+         	LIFEBIZ.UPPER_REGION_COMP_CORP_PER_RANK AS CORP_PER_CNT_RANK,
+         	TO_NUMBER(LIFEBIZ.CORP_VS_PPLTN_RATE) AS RESID_PPLTN_CNT,
+         	LIFEBIZ.CORP_VS_PPLTN_RATE_RANK AS RESID_PPLTN_CNT_RANK,
+         	TO_NUMBER(LIFEBIZ.CORP_VS_WORKER_RATE) AS WORK_POPULATION_CNT,
+         	LIFEBIZ.CORP_VS_WORKER_RATE_RANK AS WORK_POPULATION_CNT_RANK,
+         	TO_NUMBER(LIFEBIZ.CORP_VS_FAMILY_RATE) AS HOUSEHOLDS_CNT,
+         	LIFEBIZ.CORP_VS_FAMILY_RATE_RANK AS HOUSEHOLDS_CNT_RANK,
+         	TO_NUMBER(LIFEBIZ.WORKER_CNT) AS WORKER_CNT,
+         	LIFEBIZ.WORKER_CNT_RANK AS WORKER_CNT_RANK,
+         	TO_NUMBER(LIFEBIZ.AVG_WORKER_CNT) AS AVG_WORKER_CNT,
+         	LIFEBIZ.AVG_WORKER_CNT_RANK AS AVG_WORKER_CNT_RANK
+		FROM
+   			(SELECT 
+      			BASE_YEAR, SIDO_CD, SIDO_NM, SGG_CD, SGG_NM, X_COOR, Y_COOR 
+   			FROM 
+      			SRV_PG_SGGBORD 
+   		WHERE 
+      		BASE_YEAR = (SELECT MAX(BASE_YEAR) FROM SRV_PG_SGGBORD)) AS SGG,
+   			(SELECT 
+       			CORPCNT.BASE_YEAR AS BASE_YEAR,
+       			CORPCNT.SIDO_CD AS SIDO_CD,
+       			CORPCNT.SGG_CD AS SGG_CD,
+       			CORPCNT.THEME_CD AS THEME_CD,
+       			CORPCNT.CORP_CNT_RANK AS CORP_CNT_RANK,
+       			CORPCNT.CORP_CNT AS CORP_CNT,
+       			CORPPER.UPPER_REGION_COMP_CORP_PER_RANK AS UPPER_REGION_COMP_CORP_PER_RANK,
+       			CORPPER.UPPER_REGION_COMP_CORP_PER AS UPPER_REGION_COMP_CORP_PER,
+       			PPLTNRATE.CORP_VS_PPLTN_RATE_RANK AS CORP_VS_PPLTN_RATE_RANK,
+       			PPLTNRATE.CORP_VS_PPLTN_RATE AS CORP_VS_PPLTN_RATE,
+       			WORKERRATE.CORP_VS_WORKER_RATE_RANK AS CORP_VS_WORKER_RATE_RANK,
+       			WORKERRATE.CORP_VS_WORKER_RATE AS CORP_VS_WORKER_RATE,
+       			FAMILYRATE.CORP_VS_FAMILY_RATE_RANK AS CORP_VS_FAMILY_RATE_RANK,
+       			FAMILYRATE.CORP_VS_FAMILY_RATE AS CORP_VS_FAMILY_RATE,
+       			WORKERCNT.WORKER_CNT_RANK AS WORKER_CNT_RANK,
+       			WORKERCNT.WORKER_CNT AS WORKER_CNT,
+       			AVGWORKER.AVG_WORKER_CNT_RANK AS AVG_WORKER_CNT_RANK,
+       			AVGWORKER.AVG_WORKER_CNT AS AVG_WORKER_CNT
+		FROM
+         		SRV_DT_LIFEBIZ_CORPCNT_SGG CORPCNT,
+         		SRV_DT_LIFEBIZ_CORPPER_SGG CORPPER,
+         		SRV_DT_LIFEBIZ_PPLTNRATE_SGG PPLTNRATE,
+         		SRV_DT_LIFEBIZ_WORKERRATE_SGG WORKERRATE,
+         		SRV_DT_LIFEBIZ_FAMILYRATE_SGG FAMILYRATE,
+        		SRV_DT_LIFEBIZ_WORKERCNT_SGG WORKERCNT,
+				SRV_DT_LIFEBIZ_AVGWORKER_SGG AVGWORKER
+   		WHERE
+         		CORPCNT.SIDO_CD = CORPPER.SIDO_CD 
+         		AND CORPPER.SIDO_CD = PPLTNRATE.SIDO_CD 
+         		AND PPLTNRATE.SIDO_CD = WORKERRATE.SIDO_CD 
+         		AND WORKERRATE.SIDO_CD = WORKERRATE.SIDO_CD 
+         		AND WORKERRATE.SIDO_CD = FAMILYRATE.SIDO_CD 
+         		AND FAMILYRATE.SIDO_CD = WORKERCNT.SIDO_CD 
+         		AND WORKERCNT.SIDO_CD = AVGWORKER.SIDO_CD
+         		AND AVGWORKER.SIDO_CD = CORPCNT.SIDO_CD 
+				AND CORPCNT.SGG_CD = CORPPER.SGG_CD 
+         		AND CORPPER.SGG_CD = PPLTNRATE.SGG_CD 
+         		AND PPLTNRATE.SGG_CD = WORKERRATE.SGG_CD 
+         		AND WORKERRATE.SGG_CD = WORKERRATE.SGG_CD 
+         		AND WORKERRATE.SGG_CD = FAMILYRATE.SGG_CD 
+         		AND FAMILYRATE.SGG_CD = WORKERCNT.SGG_CD 
+				AND WORKERCNT.SGG_CD = AVGWORKER.SGG_CD
+         		AND AVGWORKER.SGG_CD = CORPCNT.SGG_CD
+         		AND CORPCNT.THEME_CD = CORPPER.THEME_CD       
+         		AND CORPPER.THEME_CD = PPLTNRATE.THEME_CD 
+         		AND PPLTNRATE.THEME_CD = WORKERRATE.THEME_CD 
+         		AND WORKERRATE.THEME_CD = WORKERRATE.THEME_CD 
+         		AND WORKERRATE.THEME_CD = FAMILYRATE.THEME_CD 
+				AND FAMILYRATE.THEME_CD = WORKERCNT.THEME_CD 
+         		AND WORKERCNT.THEME_CD = AVGWORKER.THEME_CD
+         	    AND AVGWORKER.THEME_CD = CORPCNT.THEME_CD) AS LIFEBIZ
+		WHERE 
+				SGG.SIDO_CD = LIFEBIZ.SIDO_CD 
+      			AND SGG.SGG_CD = LIFEBIZ.SGG_CD
+      	<if test="chart_or_map.equals('barchart')">		
+      			AND LIFEBIZ.SIDO_CD = #{sido_cd}
+      	</if>
+      			AND LIFEBIZ.THEME_CD LIKE #{theme_cd}||'%'
+	</select>
+	<!--2019-04-12 박길섭 끝-->
+	<!--2019-04-15 박길섭 시작-->
+	<!-- mng_s 20200219 김건민 -->
+		<!--연도별 입지계수 차트  박길섭 추가, API_0630 -->
+	<select id = "lqChartOfYear" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				decode(BASE_YEAR, '9016' ,'2016', base_year ) as BASE_YEAR,
+				COUNTRY_COMP_CORP_LQ,
+				COUNTRY_COMP_WORKER_LQ,
+				SIDO_COMP_CORP_LQ,
+				SIDO_COMP_WORKER_LQ,
+				SIDO_CD 
+		FROM 
+			SRV_DT_LIFEBIZ_LQ_REGIONTOTAL 
+		WHERE 
+			SIDO_CD=#{sido_cd} AND SGG_CD=#{sgg_cd} AND THEME_CD=#{theme_cd}
+		<if test="censusCheck.equals('censusNine')">		 
+			AND BASE_YEAR BETWEEN '2006' AND '2016'
+		</if>	
+		<if test="censusCheck.equals('censusTen')">		
+			AND BASE_YEAR IN('9016', '2017', '2018')
+		</if>	
+		<if test="censusCheck.equals('censusNine')">		
+		ORDER BY TO_NUMBER(BASE_YEAR) ASC
+		</if>
+		<if test="censusCheck.equals('censusTen')">		
+		ORDER BY BASE_YEAR asc
+		</if>
+	</select>
+	<!-- mng_e 20200219 김건민 -->
+	<!--2019-04-15 박길섭 끝-->
+		
+</mapper>

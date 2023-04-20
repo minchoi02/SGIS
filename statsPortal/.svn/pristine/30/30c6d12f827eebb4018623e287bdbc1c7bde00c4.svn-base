@@ -1,0 +1,1046 @@
+let selectBtn = "";
+
+(function(W, D) {
+	W.$interactiveMapBtn = W.$interactiveMapBtn || {};
+	
+	
+	window.global_that = null; //20년수정반영(백지도추가)
+	
+	$(document).ready(function() {
+		//20년수정반영 시작
+		var timer = null;
+		
+		
+		$('#companySearchInput').keyup(function(){
+			var obj = $(this);
+			setTimeout(function() {
+				getCompanyInfoList(obj);
+			}, 50);
+			
+		});
+		
+		//$('#companySearChBtn2').hide();
+	});
+	
+	sbrActiveMapBtnInfo = {
+			btnInfo	: function(map, delegate) {
+				var that = this;
+				global_that = this; //20년수정반영 
+				this.map = map;
+				this.id = null;
+				this.poiObj = null;
+				this.setObj = null;
+				this.mapObj = null;
+				
+				//mng_s 20200311 이진호
+				//zoomtype 변경버튼 생성 
+				this.zoomBtnObj=null;
+				//mng_e 20200311 이진호
+				
+				this.year = companyDataYear;//dataYear; 2016.09.02 9월 서비스
+				this.bndYear = bndYear;
+				this.pageNum = "";
+				this.center = null;
+				this.mapBounds = null;
+				this.themeCd = "";
+				this.class_cd = "";
+				this.resultcount = "500";
+				this.isOpenPOI = false;
+				this.selectedPoiTitle = "";
+				this.companyTree = null;
+				this.curSelectedCompanyNode = null;
+				this.baseTileLayer = null;
+				this.targetTileLayer = null;
+				this.delegate = (delegate != undefined) ? delegate : null;
+				this.isShow = false; //9월 서비스
+				this.markerGroup = [];
+				this.btnMode = "left";
+				this.selectBtnInfo = "";
+				
+				
+				/**
+				 * 
+				 * @name         : initialize
+				 * @description  : 초기화한다.
+				 * @date         : 2015. 10. 06. 
+				 * @author	     : 권차욱
+				 * @history 	 :
+				 */
+				this.createUI = function(options) {
+					
+					var currentdate = new Date();
+					this.id = makeStamp(currentdate);
+					
+					if (options != null) {
+						if (options.sbrBottomControl != undefined && options.sbrBottomControl) {
+							this.createSbrBottomControl("left");
+						}
+						
+						if (options.intrSettingControl != undefined && options.intrSettingControl) {
+							this.createSettingBtn("intr");
+						}else if (options.bizSettingControl != undefined && options.bizSettingControl) {
+							this.createSettingBtn("biz");
+						}else if (options.techSettingControl != undefined && options.techSettingControl) {
+							this.createSettingBtn("tech");
+						}
+
+					
+					}else {
+						//this.createMapTypeBtn();
+						//this.createZoomControl();
+						//this.createZoomTypeBtn();
+					}
+					
+					this.eventHandler();
+				},
+				/**
+				 * 
+				 * @name         : addMeasureList
+				 * @description  : 측정정보를 생성한다.
+				 * @date         : 2015. 10. 06. 
+				 * @author	     : 권차욱
+				 * @history 	 :
+				 */
+				this.addMeasureList = function() {
+					var html = "";
+					html +=	"<ul>";
+					html +=		"<li><a name='distance' class='ico_side_kuri'><span>거리</span></a></li>";
+					html +=		"<li><a name='munjuk' class='ico_side_munjuk'><span>면적</span></a></li>";
+					html +=		"<li><a name='clear' class='ico_side_haejae'><span>측정<br />해제</span></a></li>";
+					html +=	"</ul>";
+					$("#set_" + that.id).find(".ico_side_map").parent().append(html);
+
+					var drawControl = new Draw.Control.Manager();
+					drawControl.addControl(new Draw.Control.Measure(this.map.gMap));
+					drawControl.addControl(new Draw.Control.Overlay(this.map.gMap));
+					this.map.gMap.addControl(drawControl); 
+					this.map.drawControl = drawControl;
+				},
+				
+				/**
+				 * 
+				 * @name         : createSbrZoomControl
+				 * @description  : 기업통계등록부 Zomm 컨트롤
+				 * @date         : 2015. 10. 06. 
+				 * @author	     : 권차욱
+				 * @history 	 :
+				 */
+				this.createSbrBottomControl = function(type) {// used
+					
+					var zoomUI = sop.control({position: 'bottomright'});
+					var mapId = this.map.id;
+					zoomUI.onAdd = function (map) {// used
+						
+					    this._div = sop.DomUtil.create('div', 'info');
+					    sop.DomEvent.disableClickPropagation(this._div);
+					    this.update();
+					    $(this._div).attr("id", 'sbrBottomDiv_' +that.id);
+					    that.zoomObj = this._div;
+					    return this._div;
+					};
+					
+					zoomUI.update = function (props) {// used
+						
+						var bizValueList1 = [];
+						var bizValueList2 = [];
+						
+						var bizNameList1 = [];
+						var bizNameList2 = [];
+						
+						
+						$('.valueBiz1').each(function(){
+							bizValueList1.push($(this).val());
+						});
+						
+						$('.valueBiz2').each(function(){
+							bizValueList2.push($(this).val());
+						});
+						
+						$('.nameBiz1').each(function(){
+							bizNameList1.push($(this).val());
+						});
+						
+						$('.nameBiz2').each(function(){
+							bizNameList2.push($(this).val());
+						});
+						
+						var html = "";
+						
+						
+						html += "<div class=\"naviWrapper\">";
+						html += " <div class=\"naviContainer\">";
+						if(mapId == 0){
+							html += "  <ul class=\"naviContent rBtn\">";
+							html += "     <li id=\"areaSearchBtn\" ><i class=\"area\"></i>면적측정</li>";
+							html += "     <li id=\"companySearChBtn\"><i class=\"search\"></i>기업검색</li>";
+							html += "     <li id=\"companySearChBtn2\" ><i class=\"location\"></i>기업위치</li>";
+							html += "  </ul>";
+							
+							html += "  <ul class=\"naviContent rBtn\">";
+							html += "     <li id=\"settliteMapBtn\"><i class=\"iconSbr setlMap\"></i>위성지도</li>";
+							html += "     <li id=\"normalMapBtn\"><i class=\"iconSbr normalMap\"></i>일반지도</li>";
+							html += "     <li id=\"whiteMapBtn\"><i class=\"iconSbr whiteMap\"></i>백지도</li>";
+							html += "     <li><i class=\"iconSbr measure\" onclick='alert(\"준비중 입니다.\");return false;'></i>지적도</li>";
+							html += "  </ul>";
+						}
+						html += "  <ul class=\"naviContent\">";
+						html += "     <li><i class=\"iconSbr plus\"></i>확대</li>";
+						html += "     <li><i class=\"iconSbr minus\"></i>축소</li>";
+						html += "  </ul>";
+						
+						html += "  <div class=\"naviPopup area\" id=\"divAreaPopup\" data-content=\"area\">";
+						html += "   <div class=\"container\">";
+						
+						html += "    <div class=\"hintType2\">";
+						html += "      <p>면적을 설정하면 면적에 포함되는 읍면동의 기업통계를 볼 수 있습니다.</p>";
+						html += "    </div>";
+						
+						html += "    <div class=\"itemWrap\">";
+						html += "     <p class=\"title\">면적 방법 선택</p>";
+						
+						html += "     <ul class=\"items\">";
+						
+						html += "      <li id=\"multiSelectBtn\" >";
+						html += "       <div><div class=\"indi\"></div></div>";
+						html += "       <p>개별선택</p>";
+						html += "      </li>";
+						
+						html += "      <li id=\"circleSelectBtn\">";
+						html += "       <div><div class=\"circle\"></div></div>";
+						html += "       <p>원</p>";
+						html += "      </li>";
+						
+						html += "      <li id=\"regSelectBtn\">";
+						html += "       <div><div class=\"reg\"></div></div>";
+						html += "       <p>사각</p>";
+						html += "      </li>";
+						
+						html += "      <li id=\"polySelectBtn\">";
+						html += "       <div><div class=\"poly\"></div></div>";
+						html += "       <p>다각</p>";
+						html += "      </li>";
+						
+						html += "     </ul>";
+						html += "    </div>";
+						
+						html += "   </div>";
+						html += "  </div>";
+						
+						
+						html += '<div class="naviPopup search" id="companyPopup" data-content="search">';
+						html += '<div class="container">';
+						html += '    <div class="searchHeader">';
+						html += '        <div class="selectWrap">';
+		                            
+						html += '            <div class="selectBox search">';
+						html += '                <div class="optionContainer shadow" id="testId">';
+		                html += '					<div class="option"  onclick="setAreaSido(this)">'
+                        html += '						<input type="radio" class="radio" id="conSido1"  value="">';
+                        html += '						<label for="conSido1">전국</label>';
+                        html += '					</div>';
+                        
+                        html += '					<div class="option"  onclick="setAreaSido(this)">'
+                        html += '						<input type="radio" class="radio" id="conSido2"  value="11" >';
+                        html += '						<label for="conSido2">서울</label>';
+                        html += '					</div>';
+                        
+                        html += '					<div class="option"  onclick="setAreaSido(this)">'
+                        html += '						<input type="radio" class="radio" id="conSido3"  value="21">';
+                        html += '						<label for="conSido3">부산</label>';
+                        html += '					</div>';
+                        
+                        html += '					<div class="option"  onclick="setAreaSido(this)">'
+                        html += '						<input type="radio" class="radio" id="conSido4"  value="22">';
+                        html += '						<label for="conSido4">대구</label>';
+                        html += '					</div>';
+                        
+                        html += '					<div class="option"  onclick="setAreaSido(this)">'
+                        html += '						<input type="radio" class="radio" id="conSido5"  value="23">';
+                        html += '						<label for="conSido5">인천</label>';
+                        html += '					</div>';
+                        
+                        html += '					<div class="option"  onclick="setAreaSido(this)">'
+                        html += '						<input type="radio" class="radio" id="conSido6"  value="24">';
+                        html += '						<label for="conSido6">광주</label>';
+                        html += '					</div>';
+                        
+                        html += '					<div class="option"  onclick="setAreaSido(this)">'
+                        html += '						<input type="radio" class="radio" id="conSido7"  value="25">';
+                        html += '						<label for="conSido7">대전</label>';
+                        html += '					</div>';
+                        
+                        html += '					<div class="option"  onclick="setAreaSido(this)">'
+                        html += '						<input type="radio" class="radio" id="conSido8"  value="26">';
+                        html += '						<label for="conSido8">울산</label>';
+                        html += '					</div>';
+                        
+                        html += '					<div class="option"  onclick="setAreaSido(this)">'
+                        html += '						<input type="radio" class="radio" id="conSido9"  value="29">';
+                        html += '						<label for="conSido9">세종</label>';
+                        html += '					</div>';
+                        
+                        html += '					<div class="option" onclick="setAreaSido(this)">'
+                        html += '						<input type="radio" class="radio" id="conSido10"  value="31">';
+                        html += '						<label for="conSido10">경기도</label>';
+                        html += '					</div>';
+                        
+                        html += '					<div class="option" onclick="setAreaSido(this)">'
+                        html += '						<input type="radio" class="radio" id="conSido11"  value="32" >';
+                        html += '						<label for="conSido11">강원도</label>';
+                        html += '					</div>';
+                        
+                        html += '					<div class="option" onclick="setAreaSido(this)">'
+                        html += '						<input type="radio" class="radio" id="conSido12"  value="33" >';
+                        html += '						<label for="conSido12">충청북도</label>';
+                        html += '					</div>';
+                        
+                        html += '					<div class="option" onclick="setAreaSido(this)">'
+                        html += '						<input type="radio" class="radio" id="conSido13"  value="34" >';
+                        html += '						<label for="conSido13">충청남도</label>';
+                        html += '					</div>';
+                        
+                        html += '					<div class="option" onclick="setAreaSido(this)">'
+                        html += '						<input type="radio" class="radio" id="conSido14"  value="35" >';
+                        html += '						<label for="conSido14">전라북도</label>';
+                        html += '					</div>';
+                        
+                        html += '					<div class="option" onclick="setAreaSido(this)">'
+                        html += '						<input type="radio" class="radio" id="conSido15"  value="36" >';
+                        html += '						<label for="conSido15">전라남도</label>';
+                        html += '					</div>';
+                        
+                        html += '					<div class="option" onclick="setAreaSido(this)">'
+                        html += '						<input type="radio" class="radio" id="conSido16"  value="37" >';
+                        html += '						<label for="conSido16">경상북도</label>';
+                        html += '					</div>';
+                        
+                        html += '					<div class="option" onclick="setAreaSido(this)">'
+                        html += '						<input type="radio" class="radio" id="conSido17"  value="38">';
+                        html += '						<label for="conSido17">경산남도</label>';
+                        html += '					</div>';
+                        
+                        html += '					<div class="option" onclick="setAreaSido(this)">'
+                        html += '						<input type="radio" class="radio" id="conSido18"  value="39" >';
+                        html += '						<label for="conSido18">제주</label>';
+                        html += '					</div>';
+
+                        
+                        html += '                </div>';
+                        html += '             <div class="selected"><span class="text" id="sidoSreachLable">전국</span></div>';
+                        html += '            </div>';
+                        html += '        </div>';
+                        html += '        <div class="searchWrap">';
+                        html += '            <div class="searchBox">';
+                        html += '                <button type="button" class="icon_search">검색</button>';
+                        html += '                <div class="inputBox">';
+                        html += '                    <label for="companySearchInput">기업명을 입력해주세요.</label>';
+                        html += '                    <input type="text" id="companySearchInput" name="" id="">';
+                        html += '                </div>';
+		                                
+                        html += '                <button type="button" class="icon_cancel" onclick="searchInputInit();">검색</button>';
+
+                        html += '            </div>';
+                        html += '        </div>';
+                        html += '    </div>';
+                        html += '    <div class="hintType2 mb10">';
+                        html += '        <p>찾으시는 기업명을 두글자 이상 입력하시면 해당 기업의 본사와 자사 위치 정보를 확인할 수 있습니다.</p>';
+                        html += '    </div>';
+
+                        html += '    <ul class="searchResult scroll" id="companySrearUl">';
+                      
+                        html += '    </ul>';
+                        html += '</div>';
+                        html += '</div>';
+                        
+                        
+                        html += '<div class="naviPopup location" id="companyPopup1" data-content="location">';
+						html += '<div class="container">';
+						
+						html += '	<div class="hintType2 mb10">';
+						html += '		<p>업종별 기업(본사) 위치를 지도에서 확인할 수 있습니다.</p>';
+						html += '	</div>';
+						
+						
+						
+						
+						html += '<div class="title">';
+						html += '<p>업종 선택</p>';
+						html += '<button class="btnLine">초기화</button>';
+						html += '</div>';
+						
+						
+						html += '<ul class="locationResult scroll">';
+						
+						// item template
+						html +=  `<li>
+									<div class="item">
+										<div class="parent accTarget">
+	                            			<i class="accTarget"></i>
+	                            			<span class="accTarget">대분류명</span>
+	                            			<div class="marker"><i class="icon_marker"></i></div>
+										</div>
+										<ul class="child">
+				                    		<li>
+				                    			<i class="radio active"></i><span class="title">중분류명</span><span>[code]</span>
+				                    			<div class="marker"><i class="icon_marker"></i></div>
+				                    		</li>                                    
+				                			<li>
+				                				<i class="radio"></i><span class="title">중분류명0</span><span>[code]</span>
+				                				<div class="marker"><i class="icon_marker"></i></div>
+				                			</li>
+				                			<li>
+				                				<i class="radio"></i><span class="title">중분류명1</span><span>[code]</span>
+				                				<div class="marker"><i class="icon_marker"></i></div>
+				                			</li>
+				                			<li>
+				                				<i class="radio"></i><span class="title">중분류명2</span><span>[code]</span>
+				                				<div class="marker"><i class="icon_marker"></i></div>
+				                			</li>
+				                			<li>
+				                				<i class="radio"></i><span class="title">중분류명3</span><span>[code]</span>
+				                				<div class="marker"><i class="icon_marker"></i></div>
+				                			</li>
+				                			<li>
+				                				<i class="radio"></i><span class="title">중분류명4</span><span>[code]</span>
+				                				<div class="marker"><i class="icon_marker"></i></div>
+				                			</li>
+				                		</ul>
+									</div>
+								</li>`;
+						
+						html +=  `<li>
+							<div class="item">
+								<div class="parent accTarget">
+                        			<i class="accTarget"></i>
+                        			<span class="accTarget">대분류명</span>
+                        			<div class="marker"><i class="icon_marker"></i></div>
+								</div>
+								<ul class="child">
+		                    		<li>
+		                    			<i class="radio active"></i><span class="title">중분류명</span><span>[code]</span>
+		                    			<div class="marker"><i class="icon_marker"></i></div>
+		                    		</li>                                    
+		                			<li>
+		                				<i class="radio"></i><span class="title">중분류명0</span><span>[code]</span>
+		                				<div class="marker"><i class="icon_marker"></i></div>
+		                			</li>
+		                			<li>
+		                				<i class="radio"></i><span class="title">중분류명1</span><span>[code]</span>
+		                				<div class="marker"><i class="icon_marker"></i></div>
+		                			</li>
+		                			<li>
+		                				<i class="radio"></i><span class="title">중분류명2</span><span>[code]</span>
+		                				<div class="marker"><i class="icon_marker"></i></div>
+		                			</li>
+		                			<li>
+		                				<i class="radio"></i><span class="title">중분류명3</span><span>[code]</span>
+		                				<div class="marker"><i class="icon_marker"></i></div>
+		                			</li>
+		                			<li>
+		                				<i class="radio"></i><span class="title">중분류명4</span><span>[code]</span>
+		                				<div class="marker"><i class="icon_marker"></i></div>
+		                			</li>
+		                		</ul>
+							</div>
+						</li>`;
+						
+						
+						html +=  `<li>
+							<div class="item">
+								<div class="parent accTarget">
+                        			<i class="accTarget"></i>
+                        			<span class="accTarget">대분류명</span>
+                        			<div class="marker"><i class="icon_marker"></i></div>
+								</div>
+								<ul class="child">
+		                    		<li>
+		                    			<i class="radio active"></i><span class="title">중분류명</span><span>[code]</span>
+		                    			<div class="marker"><i class="icon_marker"></i></div>
+		                    		</li>                                    
+		                			<li>
+		                				<i class="radio"></i><span class="title">중분류명0</span><span>[code]</span>
+		                				<div class="marker"><i class="icon_marker"></i></div>
+		                			</li>
+		                			<li>
+		                				<i class="radio"></i><span class="title">중분류명1</span><span>[code]</span>
+		                				<div class="marker"><i class="icon_marker"></i></div>
+		                			</li>
+		                			<li>
+		                				<i class="radio"></i><span class="title">중분류명2</span><span>[code]</span>
+		                				<div class="marker"><i class="icon_marker"></i></div>
+		                			</li>
+		                			<li>
+		                				<i class="radio"></i><span class="title">중분류명3</span><span>[code]</span>
+		                				<div class="marker"><i class="icon_marker"></i></div>
+		                			</li>
+		                			<li>
+		                				<i class="radio"></i><span class="title">중분류명4</span><span>[code]</span>
+		                				<div class="marker"><i class="icon_marker"></i></div>
+		                			</li>
+		                		</ul>
+							</div>
+						</li>`;
+						
+						
+						html += '</ul>';               
+						
+                        html += '</div>';
+                        html += '</div>';
+                        
+						
+				            
+						html += " </div>";                
+						html += "</div>";
+						this._div.innerHTML = html;
+						
+						 
+					};
+					zoomUI.addTo(this.map.gMap);
+				},
+				
+				/**
+				 * 
+				 * @name         : createSettingBtn
+				 * @description  : 인터랙티브맵의 설정버튼을 생성한다.
+				 * @date         : 2015. 10. 06. 
+				 * @author	     : 권차욱
+				 * @history 	 :
+				 */
+				this.createSettingBtn = function(type) {
+					var setUI = sop.control({position: 'topright'});
+					/*setUI.onAdd = function (map) {
+					    this._div = sop.DomUtil.create('div', 'info');
+					    sop.DomEvent.disableClickPropagation(this._div);
+					    this.update();
+					    $(this._div).attr("id", 'set_' +that.id);
+					    that.setObj = this._div;
+					    return this._div;
+					};*/
+					
+					var html = "";
+					html +=	"<ul>";
+					html +=		"<li><a name='each' class='ico_side_gae'><span>개별클릭</span></a></li>";
+					html +=		"<li><a name='circle' class='ico_side_won'><span>원</span></a></li>";
+					html +=		"<li><a name='rectangle' class='ico_side_sakak'><span>사각</span></a></li>";
+					html +=		"<li><a name='multi' class='ico_side_dakak'><span>다각</span></a></li>";
+					html +=		"<li><a name='clearSelected' class='ico_side_haejae'><span>선택<br />해제</span></a></li>";
+					html +=	"</ul>";
+					$("#set_" + that.id).find(".ico_side_Select").parent().append(html);
+					
+					this.addMeasureList();
+				},
+				
+				
+				/**
+				 * 
+				 * @name         : addBoundaryLevelList
+				 * @description  : 경계레벨설정정보를 생성한다.
+				 * @date         : 2015. 10. 06. 
+				 * @author	     : 권차욱
+				 * @history 	 :
+				 */
+				this.addBoundaryLevelList = function() {
+					var html = "";
+					html +=	"<ul>"
+					html +=		"<li><a name='level_0' class='ico_side_lv0'><span>0레벨</span></a></li>";
+					html +=		"<li><a name='level_1' class='ico_side_lv1'><span>1레벨</span></a></li>";
+					html +=		"<li><a name='level_2' class='ico_side_lv2'><span>2레벨</span></a></li>";
+					html +=	"</ul>";
+					$("#set_" + that.id).find(".ico_side_lv").parent().append(html);
+				},
+				
+				/**
+				 * 
+				 * @name         : eventHandler
+				 * @description  : 이벤트 핸들러
+				 * @date         : 2015. 10. 06. 
+				 * @author	     : 권차욱
+				 * @history 	 :
+				 */
+				this.eventHandler = function() {
+					
+					//zoom-in
+					$("#sbrBottomDiv_" + that.id).find(".iconSbr.plus").click(function() {
+						if (!that.map.isFixedBound) {
+							that.map.gMap.zoomIn(1);
+						} 
+						if (that.delegate != undefined && 
+							that.delegate.callbackFunc != undefined &&
+							that.delegate.callbackFunc.didMapZoomIn != undefined) {
+							that.delegate.callbackFunc.didMapZoomIn(that.map);
+						}
+					});
+					
+					$("#sbrBottomDiv_" + that.id).find(".iconSbr.minus").click(function() {	
+						if (!that.map.isFixedBound) {
+							that.map.gMap.zoomOut(1);
+						} 
+						if (that.delegate != undefined && 
+								that.delegate.callbackFunc != undefined &&
+								that.delegate.callbackFunc.didMapZoomOut != undefined) {
+								that.delegate.callbackFunc.didMapZoomOut(that.map);
+						}
+					});
+					
+					
+					$("#circleSelectBtn").click(function(){
+						this.selectBtnInfo = "circle";
+						selectBtn = "circle";
+						selectArea(selectBtn);
+					});
+					
+					$("#regSelectBtn").click(function(){
+						this.selectBtnInfo = "rectangle";
+						selectBtn = "rectangle";
+						selectArea(selectBtn);
+					});
+					
+					$("#polySelectBtn").click(function(){
+						this.selectBtnInfo = "polygon";
+						selectBtn = "polygon";
+						selectArea(selectBtn);
+					});
+					
+					$("#multiSelectBtn").click(function(){
+						this.selectBtnInfo = "select";
+						selectBtn = "select";
+						selectArea(selectBtn);
+					});
+					
+					
+					
+					$('#whiteMapBtn').click(function(){
+						
+						if(!that.baseTileLayer){
+							 that.baseTileLayer = map.gMap.statisticTileLayer;
+						 }
+						 that.map.mapMode = sop.mapMode = "white";	 // 2019년반영 시작 djlee
+						 that.targetTileLayer 	= that.baseTileLayer;
+						 that.baseTileLayer 	= that.createWhiteTileLayer();
+						 zoomMargin 			= that.baseTileLayer.options.minZoom - that.targetTileLayer.options.minZoom;
+						 that.createTileLayer(that.map.gMap, sop.CRS.UTMK, that.baseTileLayer, that.targetTileLayer, zoomMargin);// 20200511 수정 (type 파라미터 삭제  - 위성지도 / 일반 지도 전환시 중심점 위치가 전혀 엉뚱한 곳으로 전환됨 )
+						
+					});
+					
+					$('#settliteMapBtn').click(function(){
+						
+						that.map.mapMode = sop.mapMode = "settlite"; //20년수정반영
+						crs = that.createSatelliteCRS();
+						that.baseTileLayer = that.createSatelliteTileLayer();
+						that.targetTileLayer = that.map.gMap.statisticTileLayer;
+						zoomMargin = that.baseTileLayer.options.minZoom - that.targetTileLayer.options.minZoom;
+						that.createTileLayer(that.map.gMap, crs, that.baseTileLayer, that.targetTileLayer, zoomMargin);// 20200511 수정 (type 파라미터 삭제 - 위성지도 / 일반 지도 전환시 중심점 위치가 전혀 엉뚱한 곳으로 전환됨 )
+						
+					});
+					
+					$('#normalMapBtn').click(function(){
+						
+						//20년수정반영 시작
+					 	if(!that.baseTileLayer){
+							 that.baseTileLayer = map.gMap.statisticTileLayer;
+						 }
+						 //20년수정반영 끝
+						that.map.mapMode =  sop.mapMode = "normal"; // 20년수정반영
+						that.targetTileLayer = that.baseTileLayer;
+						that.baseTileLayer = map.gMap.statisticTileLayer;
+						zoomMargin = that.baseTileLayer.options.minZoom - that.targetTileLayer.options.minZoom;
+						that.createTileLayer(that.map.gMap, sop.CRS.UTMK, that.baseTileLayer, that.targetTileLayer, zoomMargin);// 20200511 수정 (type 파라미터 삭제 - 위성지도 / 일반 지도 전환시 중심점 위치가 전혀 엉뚱한 곳으로 전환됨 )
+						
+					});
+					
+				},
+				
+				//20년수정반영 시작
+				/**
+				 * 
+				 * @name         : createWhiteTileLayer
+				 * @description  : 백지도 타일레이어 생성
+				 * @date         : 2019. 8. 26. 
+				 * @author	     : 이동진
+				 * @history 	 :
+				 */
+				this.createWhiteTileLayer = function() {
+					var url = "https://sgisapi.kostat.go.kr/tiles/wbmap/L{z}/{y}/{x}.png";
+					var options = {
+							errorTileUrl: 'https://sgisapi.kostat.go.kr/tiles/missing.png',
+							maxZoom: 13,
+							minZoom: 0,
+							zoomReverse: false,
+							continuousWorld: false,
+							tms: false
+					};
+					var layer = new sop.TileLayer(url, options);
+					
+					layer.fillZero = function (strB, strLen) {
+						return '00000000'.substr(0, strLen - (strB + '').length) + strB;
+					}
+					
+					layer.getTileUrl =  function (coords) {
+						var y = this.options.tms ? this._tileNumBounds.max.y - coords.y : coords.y;
+						return sop.Util.template(this._url, sop.extend({
+							x: 'C' + this.fillZero(coords.x.toString(16), 8),
+							y: 'R' + this.fillZero(y.toString(16), 8),
+							z: this.fillZero(this._getZoomForUrl().toString(10), 2)
+						}, this.options));
+					}
+					return layer;
+				},
+				/**
+				 * 
+				 * @name         : createTileLayer
+				 * @description  : 타일레이어 토글버튼 생성
+				 * @date         : 2015. 10. 15. 
+				 * @author	     : 권차욱
+				 * @history 	 :
+				 */
+				this.createTileLayer = function(map, crs, baseLayer, targetLayer, zoomMargin) { //20200511 수정 (type 파라미터 삭제 - 위성지도 / 일반 지도 전환시 중심점 위치가 전혀 엉뚱한 곳으로 전환됨 )
+					if(arguments.length < 5) {
+						throw new Error('Fail check arguments length. current = ' + arguments.length);
+					}
+		
+					if(map.hasLayer(baseLayer)){
+						return;
+					}
+					var center = map.getCenter();
+					var zoom = that.map.zoom;
+					map.removeLayer(targetLayer);
+					map.options.crs = crs;
+					baseLayer.addTo(map);
+					// 20200511 수정 시작 (주석처리 - 위성지도 / 일반 지도 전환시 중심점 위치가 전혀 엉뚱한 곳으로 전환됨 )
+					/*
+					that.map.setMapMaxExpnsnLevel(type);
+						
+					if(type == "settlite")
+					{
+						zoom = zoom + 6;
+					}
+					*/
+					// 20200511 수정 끝 (주석처리 - 위성지도 / 일반 지도 전환시 중심점 위치가 전혀 엉뚱한 곳으로 전환됨 )
+					that.map.setFixedBoundLevel(that.map.isFixedBound);// 20200511 수정 (소스추가 - 위성지도 / 일반 지도 전환시 중심점 위치가 전혀 엉뚱한 곳으로 전환됨 )
+					that.map.mapMove([center.x, center.y], zoom);
+				},
+				
+				/**
+				 * 
+				 * @name         : createSatelliteTileLayer
+				 * @description  : 위성 타일레이어 생성
+				 * @date         : 2015. 10. 15. 
+				 * @author	     : 권차욱
+				 * @history 	 :
+				 */
+				this.createSatelliteTileLayer = function() {
+					
+					//var satTileURL = "http://xdworld.vworld.kr:8080/2d/Satellite/201301/{z}/{x}/{y}.jpeg";
+					
+					//mng_s 20210506 이진호, 위성지도 URL 변경
+					//var satTileURL = "https://xdworld.vworld.kr/2d/Satellite/201301/{z}/{x}/{y}.jpeg";
+					var satTileURL = "https://xdworld.vworld.kr/2d/Satellite/service/{z}/{x}/{y}.jpeg";
+					//mng_e 20210506 이진호
+					
+					var satTileOptions = {
+						maxZoom: 19,
+						minZoom: 6
+					};
+					var satTileLayer = new sop.TileLayer(satTileURL, satTileOptions);
+					return satTileLayer;
+				},/**
+				 * 
+				 * @name         : createSatelliteCRS
+				 * @description  : 위성지도에 사용하는 좌표체계 생성
+				 * @date         : 2015. 10. 15. 
+				 * @author	     : 권차욱
+				 * @history 	 :
+				 */
+				this.createSatelliteCRS = function() {
+					srvLogWrite("C0", "06", "07", "00", "", "");		//위성지도보기
+					var code = 'EPSG:900913';
+					var def = '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +no_defs';
+					var options = {
+						resolutions: [
+							156543.0339,
+							78271.51695,
+							39135.758475,
+							19567.8792375,
+							9783.93961875,
+							4891.969809375,
+							2445.9849046875,
+							1222.99245234375,
+							611.496226171875,
+							305.7481130859375,
+							152.87405654296876,
+							76.43702827148438,
+							38.21851413574219,
+							19.109257067871095,
+							9.554628533935547,
+							4.777314266967774,
+							2.388657133483887,
+							1.1943285667419434,
+							0.5971642833709717,
+							0.29858214168548586,
+							0.14929107084274293
+						],
+						origin: [-20037508.34, 20037508.34]
+					};
+
+					// 새로 정의한 CRS 객체 생성.
+					var crs = new sop.CRS.Proj(code, def, options);
+
+					// projection 영역 설정.
+					crs.projection.bounds = sop.bounds(
+							[13232210.28055642, 3584827.864295762],
+							[15238748.249933105, 5575460.5658249445]
+					);
+
+					return crs;
+				},
+				
+				/**
+				 * 
+				 * @name         : changeZoomLevelTitle
+				 * @description  : 줌 종료시, 해당레벨의 단계를 표시한다.
+				 * @date         : 2015. 10. 07. 
+				 * @author	     : 권차욱
+				 * @history 	 :
+				 */
+				this.changeZoomLevelTitle = function(title) {
+					//$("#zoom_" + that.id).find(".rightQuick.rq04").text(title);
+				};
+				
+			}
+	}
+	
+
+	
+	
+	
+}(window, document));
+
+
+function getCompanyInfoList(obj){
+	$.ajax({
+		type:"GET",
+		url: "/view/sbrStats/sbrComPanyInfoList",
+		data: {"comNm": $(obj).val(),"year":$('#searchYear').val()},
+		dataType:"json",
+		async: false,
+		success:function(res){
+			//companySrearUl
+
+			$('#companySrearUl').html("");
+			
+			res.forEach(function(item,index){
+				  html = "";
+				  
+				  html += '        <li>';
+	              html += '            <div class="content">';
+	              html += '                <div class="head">';
+	              html += '                    <span class="title">'+item.biz_nm+'</span>';
+	              html += '                    <span class="desc"></span>';
+	              html += '                </div>';
+	              html += '                <p class="location">'+item.addr+'</p>';
+	              html += '            </div>';
+	              html += '            <div class="marker" onclick="moveCompany(\''+item.apint+'\')">';
+	              html += '                <i class="icon_marker"></i>';
+	              html += '            </div>';
+	              html += '        </li>';
+	              
+	              $('#companySrearUl').append(html);
+				
+			});
+			  
+		}
+	});
+}
+
+function moveCompany(point){
+	
+	point = point.split(" ");
+	x_coor = point[0].replace("POINT(","");
+	y_coor = point[1].replace(")","");
+	
+	$sbrActiveMap.ui.mapList[0].moveMap(x_coor,y_coor);
+	
+	if(sMap.map.cmMaker != null )sMap.map.cmMaker.remove();
+		
+	$sbrActiveMap.ui.searchMarkerClear();
+	$sbrActiveMap.ui.searchMarkerMake(x_coor,y_coor);
+	
+}
+
+
+function setAreaSido(obj){
+	$('#testId').removeClass('active');
+	$('#sidoSreachLable').html($(obj).find('label').text());
+}
+
+
+function setRightbtnMode(number){
+	
+	
+	if(number ==1 ){
+		$('.rBtn').show();
+		$('#companySearChBtn').hide();
+		$('#companySearChBtn2').show();
+		
+	}else if(number ==2){
+		$('.rBtn').show();
+		$('#companySearChBtn').show();
+		$('#companySearChBtn2').hide();
+		
+	}else if(number ==3){
+		$('.rBtn').hide();
+	}
+	
+}
+
+
+function selectAreaInfo(){
+	$('#areaPopupDiv').hide();
+	var map  = $sbrActiveMap.ui.mapList[0];
+	if(map.zoom <7){
+		map.setZoomMap(7);	
+	}
+}
+
+function selectAreaOpenPopup(){
+	
+	
+	var map  = $sbrActiveMap.ui.mapList[0];
+	if(map.zoom <7){
+		$('#areaPopupDiv').show();	
+	}else{
+		selectAreaInfo();
+	}
+}
+
+function selectArea(mode){
+	console.log(mode);
+	resetToast();
+	$('#areaSearchBtn').click();
+	var map  = $sbrActiveMap.ui.mapList[0];
+	if(mode == "circle"){
+		
+		setArearMode(map,1);
+		map.setBoundSelectedMoode("circle");
+		map.selectedBoundList = [];
+		$("#mapRgn_"+(map.id+1)).find(".draw-circle-sub-out").click();
+		clsoseRank();
+		$("#toast2").slideToggle();
+		//setTimeout(function(){$("#toast2").slideToggle(300)},5000);
+		
+	}else if(mode == "rectangle"){
+		
+		setArearMode(map,1);
+		map.setBoundSelectedMoode("rectangle");
+		map.selectedBoundList = [];
+		$("#mapRgn_"+(map.id+1)).find(".draw-rectangle-sub-out").click();
+		clsoseRank();
+		$("#toast3").slideToggle(300);
+		//setTimeout(function(){$("#toast3").slideToggle(300)},5000);
+		
+	}else if(mode == "polygon"){
+		
+		setArearMode(map,1);
+		map.setBoundSelectedMoode("polygon");
+		map.selectedBoundList = [];
+		$("#mapRgn_"+(map.id+1)).find(".draw-polygon-sub-out").click();
+		clsoseRank();
+		$("#toast4").slideToggle(300);
+		//setTimeout(function(){$("#toast4").slideToggle(300)},5000);
+		
+	}else if(mode == "select"){
+		
+		setArearMode(map,2);
+		map.addPolygonGeoJson($sbrActiveMap.ui.polygonData,"selectMode");
+		clsoseRank();
+		$("#toast1").slideToggle(300);
+		//setTimeout(function(){$("#toast1").slideToggle(300)},5000);
+		
+	}
+
+}
+
+function setToast(){
+	$(".toast").show();
+	$("#toast1").slideToggle();
+	setTimeout(function(){$("#toast1").slideToggle(300)},5000);
+}
+
+
+
+function setArearMode(map,mode){
+	if(mode == 1){
+		 if(map.zoom <7) map.setZoomMap(7);
+		 setAreaInfoMode(true);
+		 map.gMap.scrollWheelZoom.disable();
+		 map.gMap.dragging.disable();
+	}else if(mode == 2){
+		setLastCode("99999999");
+		if(map.zoom <7) map.setZoomMap(7);
+		setAreaInfoMode(false);
+		map.gMap.scrollWheelZoom.disable();
+		map.gMap.dragging.disable();
+		map.isOneSelectArea = true;
+	}else{
+		setLastCode("99999999");
+		setAreaInfoMode(false);
+		map.gMap.scrollWheelZoom.enable();
+		map.gMap.dragging.enable();
+		map.isOneSelectArea = false;
+	}
+	
+}
+
+
+function selectBizCode(code1, code2){
+	
+	this.mapBounds = $sbrActiveMap.ui.mapList[0].gMap.getBounds();
+	
+	var area = "";
+	area = 'RECTANGLE(';
+	area += this.mapBounds._southWest.x + ' ' + this.mapBounds._southWest.y + ',';
+	area += this.mapBounds._northEast.x + ' ' + this.mapBounds._northEast.y;
+	area += ')';
+	
+	
+	var param = {
+			"bnd_year"    : 2022,
+			"year" 	      : 2020,
+			"area_type"   : "1",
+			"area"		  : area,
+			"class_code"  : code1,
+			"class_deg"	  : code2,
+			"resultcount" : 500,
+			"pagenum"	  : 0
+		};
+	
+	
+	$.ajax({
+		type:"GET",
+		url: "",
+		data: param,
+		dataType:"json",
+		async: false,
+		success:function(res){}
+		
+	});
+		
+		/*sopOpenApiCompanySearchObj.request({
+			method : "GET",
+			async : false,
+			url : openApiPath + "/OpenAPI3/stats/companysearch.json",
+			options : {
+				url : "/OpenAPI3/stats/companysearch.json",
+				target : this,
+				param : param,
+				btntype: "poi",
+				title : that.selectedPoiTitle,
+				map : that.map
+			}
+		});*/
+}
+
+
+
+
+

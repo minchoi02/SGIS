@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="region">
+	
+	<!-- 시도 조회 -->
+	<select id="getSidoList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+						sido_cd
+					,	sido_nm
+					,	x_coor
+					,	y_coor
+		FROM	kostat.BND_SIDO_PG
+		ORDER BY sido_cd  ASC
+	</select>
+
+	<!-- 시군구 조회 -->
+	<select id="getSggList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+						sido_cd
+					,	sgg_cd
+					,	sgg_nm
+					,	x_coor
+					,	y_coor
+		FROM		kostat.BND_SIGUNGU_PG
+		WHERE  	sido_cd = #{sido_cd}
+		ORDER BY sgg_nm  ASC
+	</select>
+
+	<!-- 읍면동 조회 -->
+	<select id="getAdmList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+						sido_cd
+					,	sgg_cd
+					,	emdong_cd
+					,	emdong_nm
+					,	x_coor
+					,	y_coor
+		FROM		kostat.BND_ADM_DONG_PG
+		WHERE     	sido_cd = #{sido_cd}
+		AND     		sgg_cd = #{sgg_cd}
+		ORDER BY emdong_nm  ASC
+	</select>
+	
+	<!-- 시도경계 조회 -->
+	<select id="getSidoBoundaryInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT
+						ST_AsGeoJSON(geom) as geojson
+					,   sido_cd as adm_cd
+					,   sido_nm as adm_nm
+					,	x_coor as  x
+					,	y_coor as y
+		FROM		kostat.BND_SIDO_PG
+		WHERE		sido_cd = #{sido_cd}			
+	</select>
+	
+	<!-- 시군구경계 조회 -->
+	<select id="getSggBoundaryInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT
+						ST_AsGeoJSON(geom) as geojson
+					,   sido_cd || sgg_cd as adm_cd
+					,   sido_nm || sgg_nm as adm_nm
+					,	sgg_nm
+					,	x_coor as  x
+					,	y_coor as y
+		FROM		kostat.BND_SIGUNGU_PG
+		WHERE		sido_cd = #{sido_cd}
+		<if test="low_search == 0">
+			AND		sgg_cd = #{sgg_cd}
+		</if>
+	</select>
+	
+	<!-- 읍면동경계 조회 -->
+	<select id="getDongBoundaryInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT
+						ST_AsGeoJSON(geom) as geojson
+					,   sido_cd || sgg_cd || emdong_cd as adm_cd
+					,	emdong_nm as adm_nm
+					,	x_coor as  x
+					,	y_coor as y
+		FROM		kostat.BND_ADM_DONG_PG
+		WHERE		sido_cd = #{sido_cd}
+		AND			sgg_cd = #{sgg_cd}
+		<if test="low_search == 0">
+			AND		emdong_cd = #{dong_cd}	
+		</if>
+	</select>
+	
+	<!-- 집계구경계 조회 -->
+	<select id="getTotaloaBoundaryInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT
+						ST_AsGeoJSON(geom) as geojson
+					,   tot_oa_cd as adm_cd
+					,	emd_nm as adm_nm
+					,	x_coor as  x
+					,	y_coor as y
+		FROM		kostat.BND_TOTAL_OA_PG
+		WHERE		sido_cd = #{sido_cd}
+		AND			sgg_cd = #{sgg_cd}
+		AND			emdong_cd = #{dong_cd}	
+	</select>
+</mapper>

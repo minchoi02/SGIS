@@ -1,0 +1,29 @@
+package kostat.lbdms.ServiceAPI.controller.service;
+
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+
+public interface TimeSeriesService {
+
+	/**
+	 * 시계열 프로그램 목록 정보를 조회한다.
+	 * @param mapParameter
+	 * @exception Exception
+	 */
+	public List selectTsInfoList(Map mapParameter) throws SQLException;
+
+	/**
+	 * 신규 시계열 작업을 등록한다.
+	 * @param mapParameter
+	 * @exception Exception
+	 */
+	public void createTmInfo(Map mapParameter) throws SQLException;
+
+
+	public Map selectTsInfoDetail(Map mapParameter)throws SQLException;
+
+
+    public void deleteTs(Map mapParameter) throws SQLException;
+
+}

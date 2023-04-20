@@ -1,0 +1,1699 @@
+<%
+/**************************************************************************************************************************
+* Program Name  : 지역변화분석지도 JSP  
+* File Name     : statsMain.jsp
+* Comment       : 
+* History       : (주)아이티밴드, 조재호 2022-10-17
+*
+**************************************************************************************************************************/
+%>
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<!DOCTYPE html>
+<html lang="ko" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <title>지역변화분석지도</title>
+  <link rel="stylesheet" href="/css/lvs/reset.css">
+  <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.js"></script>
+
+  <!-- highchart CDN -->
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <script src="https://code.highcharts.com/modules/funnel.js"></script>
+  <script src="https://code.highcharts.com/modules/exporting.js"></script>
+  <script src="https://code.highcharts.com/modules/export-data.js"></script>
+  <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+  <!-- 고경남 추가 -->
+  <link rel="stylesheet" href="/css/lvs/component.css">
+
+
+
+<script>
+$(document).ready(function(){
+
+//    	$(".tabs li:first a").click(function () {
+//       if(!$(this).hasClass("active")){
+//         $(this).addClass("active");
+//         $(".extend_data_wrap").animate({
+//           right: "0px",
+//         });
+//         $(".control_foot").animate({
+//           right: "810px",
+//         });
+
+//       }else {
+//         $(this).removeClass("active");
+//         $(".extend_data_wrap").animate({
+//           right: "-810px",
+//         });
+//         $(".control_foot").animate({
+//           right: "0px",
+//         });
+//       }
+//       $('.extend_data_header > h2').text('데이터 보드');
+//       $('.data_player').hide();
+//       $('.extend_data_01').hide();
+//       $('.extend_data_02').show();
+//  });
+
+
+// --------------------1-----------------------------
+  $('.slick_slider').slick({
+    dots: true,
+    speed: 300,
+    prevArrow:".arrows > .prev_arrow",
+    nextArrow:".arrows > .next_arrow",
+    autoplay: true,
+    autoplaySpeed: 2000
+
+  });
+$(".tab_content").hide();
+
+$(".tab_container").each(function () {
+  $(this).children(".tabs li:first").addClass("active");
+});
+$(".tabs li a").click(function () {
+  $(this).parent().siblings("li").removeClass("active");
+  $(this).parent().addClass("active");
+  $(this).parent().parent().parent().parent().find(".tab_content").hide();
+  var activeTab = $(this).attr("rel");
+   $("#" + activeTab).fadeIn();
+ });
+  //------------------------2----------------------------
+  $(".tab_content2").hide();
+
+  $(".tab_container2").each(function () {
+    $(this).children(".tabs2 li:first").addClass("active");
+    $(this).children(".tab_content2").first().show();
+  });
+  $(".tabs2 li a").click(function () {
+    $(this).parent().siblings("li").removeClass("active");
+    $(this).parent().addClass("active");
+    $(this).parent().parent().parent().parent().find(".tab_content2").hide();
+    var activeTab = $(this).attr("rel");
+     $("#" + activeTab).fadeIn(10);
+  });
+// -------------------------3--------------------------------
+$(".tab_content3").hide();
+
+$(".tab_container3").each(function () {
+  $(this).children(".slide_tab li:first").addClass("active");
+  $(this).children(".tab_content3").first().show();
+});
+$(".slide_tab li a").click(function () {
+
+  $(this).parent().siblings("li").removeClass("active");
+  $(this).parent().addClass("active");
+  $(this).parent().parent().parent().parent().find(".tab_content3").hide();
+  var activeTab = $(this).attr("rel");
+   $("#" + activeTab).fadeIn(10);
+});
+// -------------------------4--------------------------------
+
+$(".tab_content4").hide();
+
+$(".tab_container4").each(function () {
+  $(this).children(".tabs4 li:first").addClass("active");
+  $(this).children(".tab_content4").first().show();
+});
+$(".tabs4 li a").click(function () {
+
+  $(this).parent().siblings("li").removeClass("active");
+  $(this).parent().addClass("active");
+  $(this).parent().parent().parent().parent().find(".tab_content4").hide();
+  var activeTab = $(this).attr("rel");
+   $("#" + activeTab).fadeIn(10);
+});
+// -----------------------------------------------------------------
+
+
+  $(".map_data").click(function(){
+    if(!$(this).hasClass("active")){
+      $(this).addClass("active");
+    }else {
+      $(this).removeClass("active");
+    }
+  });
+
+  $(".gnb li").click(function(){
+    $(".gnb li").removeClass("active");
+    if(!$(this).hasClass("active")){
+      $(this).addClass("active");
+
+    }else {
+      $(this).removeClass("active");
+    }
+  });
+//
+//   $(".btn_data_close").click(function(){
+//     $(".extend_data_wrap").animate({
+//       right: "-810px",
+//     });
+//     $(".control_foot").animate({
+//       right: "0px",
+//     });
+//     $("#btn_extend").removeClass("active");
+//   });
+
+   $('.location_more').click(function(){
+     if(!$(this).hasClass("active")){
+     $(this).addClass("active");
+
+     }else{
+     $(this).removeClass("active");
+     }
+     $('.location_more_box').toggle();
+   });
+
+   $('#btn_close').click(function(){
+     $('.location_more_box').hide();
+     $('.location_more').removeClass("active");
+   });
+
+   $('.gnb li').click(function(){
+     $('.tab_container').show();
+   });
+  //--------------------------------팝업 --------------------------------------
+  var openBtn = document.querySelectorAll(".layerOpen");
+  var closeBtn = document.querySelectorAll(".layerClose");
+  var layerID;
+
+  for(var i=0; i<openBtn.length; i++){
+      openBtn[i].addEventListener("click", function(){
+          layerID = this.getAttribute('href');
+          document.querySelector(layerID).classList.add('active');
+      });
+  }
+  for(var j=0; j<openBtn.length; j++){
+      closeBtn[j].addEventListener('click', function(){
+          this.parentNode.parentNode.parentNode.classList.remove('active');
+      });
+  }
+
+  $(".tab_content5").hide();
+
+  $(".tab_container5").each(function () {
+    $(this).children(".tabs5 li:first").addClass("active");
+    $(this).children(".tab_content5").first().show();
+  });
+  $(".tabs5 li a").click(function () {
+
+    $(this).parent().siblings("li").removeClass("active");
+    $(this).parent().addClass("active");
+    $(this).parent().parent().parent().parent().find(".tab_content5").hide();
+    var activeTab = $(this).attr("rel");
+     $("#" + activeTab).fadeIn(10);
+  });
+
+
+});
+
+</script>
+</head>
+
+<body>
+<style>
+#wrap { width:100%; min-width: 1600px; position:relative; height: 100vh; background-color: #ddd;  }
+.mapWrapper { width:100%; min-width: 1600px; position:relative; height: 100vh;background: url( "/images/lvs/img/map01.png") center center no-repeat; }
+.header { width:320px; height:100vh; position:fixed; left:0px; top:0px; z-index:10; }
+.container{ width:calc(100% - 320px); height:100vh; position:fixed; right:0px; top:0px; z-index:10;padding: 10px;}
+/* -----------------------------------header------------------------------------------- */
+.logo_box{width: 100%; height: 200px; background: url("/images/lvs/img/logo-bcakground.png") center center no-repeat; padding:10px 20px 20px 20px;}
+.logo_box .logo{ display:block;width:100%;height: 100px;}
+.logo_box h1{ display:block;width:100%;padding-top:50px; font-size:20px; font-weight:bold; color:#fff;}
+.menu{padding: 25px 15px;background: #fff;}
+.menu .btn_extend_open{width: 100%;background: #05A8F5;color: #fff;padding:14px 20px;text-align:left;margin-bottom:20px; border-radius: 2px;font-size:17px; font-weight:bold;}
+.btn_extend_open img{float: right;}
+
+.gnb{display: flex;justify-content: space-between;}
+.gnb li{font-size: 12px; color: #444; text-align: center;}
+.gnb li a{display:block;width:100%;}
+.gnb li div{width: 45px; height: 45px;border: 1px solid #ccc; border-radius:50%;margin-left: 5px;padding: 9px;margin-bottom: 10px;}
+.gnb li .round_box1{background: url("/images/lvs/icon/gnb_icon_1.png") center center no-repeat;}
+.gnb li .round_box2{background: url("/images/lvs/icon/gnb_icon_2.png") center center no-repeat;}
+.gnb li .round_box3{background: url("/images/lvs/icon/gnb_icon_3.png") center center no-repeat;}
+.gnb li .round_box4{background: url("/images/lvs/icon/gnb_icon_4.png") center center no-repeat;}
+.gnb li .round_box5{background: url("/images/lvs/icon/gnb_icon_5.png") center center no-repeat;}
+
+.gnb li.active .round_box1{background: url("/images/lvs/icon/gnb_icon_color_1.png") center center no-repeat;}
+.gnb li.active .round_box2{background: url("/images/lvs/icon/gnb_icon_color_2.png") center center no-repeat;}
+.gnb li.active .round_box3{background: url("/images/lvs/icon/gnb_icon_color_3.png") center center no-repeat;}
+.gnb li.active .round_box4{background: url("/images/lvs/icon/gnb_icon_color_4.png") center center no-repeat;}
+.gnb li.active .round_box5{background: url("/images/lvs/icon/gnb_icon_color_5.png") center center no-repeat;}
+.gnb li.active a span { color:#2A62FF;}
+.gnb li.active div {border:1px solid #2A62FF;}
+
+/* ------tab1--------------- */
+.tab_container{width: 100%;padding: 0 15px 20px 15px;background: #fff;display: none;}
+.tabs{height: 35px;margin-bottom: 15px;}
+.tabs li {width: 145px; height:35px;border:1px solid #ccc;float:left;line-height: 35px;text-align:center;}
+.tabs li:first-child { border-radius:2px 0 0 2px;  }
+.tabs li:last-child { border-radius: 0 2px 2px 0; }
+.tabs li.active {background-color:#2A62FF;border: 1px solid #2A62FF;}
+.tabs li.active a {color: #fff;}
+.tabs li a {font-size: 14px;color: #0B0E11;display: block;font-weight:bold;}
+
+.tab_content{width: 100%;height:517px;overflow: auto;overflow-x: hidden;}
+.tab_content::-webkit-scrollbar {width: 3px;border-radius: 10px;}
+.tab_content::-webkit-scrollbar-thumb{height:10%;background: rgba(102, 102, 102, 0.5);border-radius: 10px;}
+.tab_content::-webkit-scrollbar-track {background: #ccc;}
+/* --------------------- */
+/* --------------------- */
+.checkbox_list {display:flex; justify-content: space-between;align-items: center;cursor: pointer; margin-bottom: 14px;}
+.checkbox_list .list_text{color:#666; }
+.checkbox_list .list_text input{margin-right: 8px; border-radius: 0.5px; width: 14px; height: 14px;}
+.checkbox_list .tooltip{width: 18px;height: 18px;background:#999;margin-right:5px;background: url("/images/lvs/icon/icon-tooltip.png") center center no-repeat;cursor: pointer;}
+
+/*  2022년 10월 17일------------------------------------*/
+.tooltip_layer {width: 300px; min-height: 90px;padding: 12px;border: 1px solid #444;background: #fff; border-radius:2px;}
+.tooltip_layer h5{font-weight:bold;color:#2A62FF;margin-bottom: 10px;}
+.tooltip_layer span:first-child{padding-right: 10px; border-right: 1px solid #ccc;}
+.tooltip_layer span:last-child{padding-left: 10px; }
+/* ------------------------------------------------------------- */
+
+/* --------------------------container----------------------------------------------------------------- */
+.control_top{width: 100%;height:auto;display:flex;justify-content: space-between;}
+.localinfo div{float:left;  border-radius: 2px;padding:12px 11px;border:1px solid #444;}
+.localinfo .county::before{content: ""; width: 10px;height: 13px;background: url("/images/lvs/icon/icon-location.png") center left no-repeat;padding-right: 15px;}
+.localinfo div:not(:last-child){margin-right:5px;}
+.localinfo div:not(.selected_data){background:#fff;color:#444;}
+.selected_data{background:#FC821C;font-weight:bold; color:#fff;}
+.btn_data_open{padding:12px 11px;border:1px solid #444;background: #FC821C;color:#fff;font-weight:bold;border-radius: 2px;}
+.btn_data_open:hover{background:#FF7A00;}
+
+.extend_data_wrap{min-width: 800px;height:calc(100% - 20px);background:#EDF1F4;border:1px solid #444; position:fixed; right:0px; top:0px; z-index:10;margin:10px;}
+/* .extend_data_wrap.active{position: absolute; right: -812px} */
+.extend_data_header{height: 44px;background: #fff;padding: 0 15px;line-height: 44px;display: flex;justify-content: space-between;}
+.extend_data_header h2{font-size: 18px; font-weight: bold;color:#2A62FF;}
+
+.extend_panel{display: flex;align-items: center;}
+.extend_panel a{margin:0 10px;}
+.extend_panel a.active{color: #2A62FF;}
+.extend_panel button{background: #fff;}
+.extend_panel .btn_download{padding-right: 15px;}
+.extend_panel > span{width: 1px;height: 13px;background: #ccc;}
+
+.location_more_box{min-width: 400px; height: 135px;background: #EDF1F4;position: absolute;top:50px;right: 30px;border: 1px solid #666666;color: #444;box-shadow: 2px 5px 10px #dedede;display: none; z-index: 99;}
+.location_more_box .heading{ background: #fff;height: 45px; padding: 0 20px;font-size: 16px;}
+.location_more_box .heading button{float: right;height: 100%;padding:0 12px;background: url("/images/lvs/icon/icon-close.png") center center no-repeat;}
+.location_more_box .content{ padding: 0 20px; color: #666;}
+.location_more_box .content strong{width: 60px;height: 14px; padding-left: 15px;background: url("/images/lvs/icon/icon-location.png")center left no-repeat;}
+.location_more_box .content div{display: flex;height: 30px;justify-content: space-between;align-items:center;}
+.location_more_box .content select{width: 140px;height: 30px;}
+.location_more_box .content button{padding: 0 20px;line-height: 30px;background: #2A62FF;color:#fff; font-weight: bold;border-radius: 2px;}
+.location_more.active{color:#2A62FF;}
+
+.extend_data_01{width: 100%;height: auto;padding: 22px 0px 15px 0px;display: none;}
+.extend_data_01 .main{width: 100%; height: 208px;padding: 0px 30px; margin-bottom: 10px;}
+.extend_data_01 .main .main_wrap{height: 100%;display: flex;color:#666;}
+.extend_data_01 .main .main_wrap > li:nth-child(1){flex: 1;background: #fff;margin-right: 10px;padding: 15px 20px;}
+.extend_data_01 .main .main_wrap > li:nth-child(2){flex: 2;background: #fff;padding: 15px 20px;}
+
+.extend_data_01 .main dl h5{font-weight:bold; margin-bottom: 15px;color:#666;}
+.extend_data_01 .main dl h4{font-size: 30px; font-weight:bold; color:#2A62FF; margin-bottom: 15px;}
+.extend_data_01 .main dl h4::before{background: url("/images/lvs/icon/icon-main-img.png") center center no-repeat;content: "";width: 30px;height: 30px;display: inline-block;margin-right: 10px;}
+
+.main dl div{margin-bottom: 10px;}
+.main dl div > span:nth-child(2), .main dl div > span:nth-child(4){font-weight:bold; margin-right: 20px;color: #444;}
+.main dl dd:nth-child(2){width: 100%;line-height: 40px;background: #EDF1F4;text-align: center;margin-top: 24px;}
+.main dl dd:nth-child(2) span:nth-child(2){font-size: 18px;font-weight:bold;}
+
+.extend_data_02{width: 100%;height: 903px;padding: 10px; display: block;background: #EDF1F4;}
+.extend_data_02 .main{width: 780px; height: 100%;}
+
+/* -----------------------tab2------------------- */
+.tab_container2{height: 100%;}
+.tab_container2 > span{float:left;}
+.tab_container2 .tab_content2 {width: 432px;height:140px;box-sizing:border-box;clear: both;}
+.tabs2 {width: auto;height: auto;float: right;margin-bottom: 10px;}
+.tabs2 li {width: 26px;height: 26px;border:1px solid #E2E2E2;float:left;border-radius: 2px;}
+.tabs2 li:first-child {margin-right:5px;background: url("/images/lvs/icon/icon-reports-grey.png") center center no-repeat; }
+.tabs2 li:last-child { background: url("/images/lvs/icon/icon-page-grey.png") center center no-repeat;}
+.tabs2 li a {display: block;width: 100%; height: 100%;display: block;}
+.tabs2 li:first-child.active{background: url("/images/lvs/icon/icon-reports.png") center center no-repeat;border: 1px solid #00B271;}
+.tabs2 li:last-child.active{background: url("/images/lvs/icon/icon-page.png") center center no-repeat;border: 1px solid #00B271;}
+.tabs2 li.active a {color: #000;}
+
+.tab_content input[type="radio"] {vertical-align: middle;appearance: none;border: 1px solid #ccc;border-radius: 0;width: 14px;height: 14px;}
+.tab_content input[type="radio"]:checked {background: url("/images/lvs/icon/icon-check.png") center center no-repeat;border: 0;}
+.tab_content input[type="radio"]:checked+label {font-weight:bold;}
+.tab_content input[type="radio"]:checked+label::before {content: ''; position: fixed;background: url("/images/lvs/icon/icon-check.png") center center no-repeat;}
+
+.tab_content2:last-child{background: #EDF1F4;padding: 15px; word-break:break-all;overflow: scroll;overflow-x: hidden;}
+.tab_content2:last-child::-webkit-scrollbar {width: 5px;}
+.tab_content2:last-child::-webkit-scrollbar-thumb{height: 30%;background: rgba(102, 102, 102, 0.5);border-radius: 10px;}
+.tab_content2:last-child::-webkit-scrollbar-track {background: #ccc;}
+.tab_content2:last-child p{margin-bottom: 20px;}
+.tab_content2:last-child span{font-weight:bold;color:#FF5F5F;}
+
+/* --------------------slider----------------- */
+.slick_wrap{ width: 798px;height: 650px;padding: 0 30px;}
+.arrows > div{width: 20px; height: 10px;position: absolute;z-index: 999999px;}
+.arrows > .prev_arrow{top:60%;left: 5px;}
+.arrows > .next_arrow{top:60%;right: 0px;}
+.slick_slider{height: 622px; position: relative;}
+.slick_slider .slider{width: 100%;height: 622px;background: #fff; }
+.slick_slider .slider > ul{display:flex;flex-wrap: wrap;}
+
+.slider_item{width: 367px;height: 208px;padding: 20px;position: relative;background: #fff;}
+.slider_item .item_heading {margin-bottom: 40px;}
+.slider_item .item_heading h5{float: left;font-weight: bold;color: #666;color: #444;}
+.slider_item .item_heading img{display: inline;margin-left: 5px;cursor:pointer;}
+.slider_item .item_heading span{float: right;}
+
+.slider_item .tab_item h5{float: left;font-weight: bold;color: #666;color: #444;}
+.slider_item .tab_item img{display: inline;margin-left: 5px;cursor:pointer;}
+.slider_item .tab_item .new{display:inline;font-size: 10px;padding: 2px;background:#FC821C;border: 1px solid #FFA822;border-radius: 3px;color: #fff;}
+
+.slider_item:nth-child(2n){border-left: 1px solid rgba(204, 204, 204, 0.3);border-bottom: 1px solid rgba(204, 204, 204, 0.3);color: #666;}
+.slider_item:nth-child(2n-1){border-bottom: 1px solid rgba(204, 204, 204, 0.3);color: #666;}
+
+.slider_item .item_content li:first-child{width: 120px;float: left;border-right: 1.5px dashed #ccc;}
+.slider_item .item_content li > div p{font-size: 17px; font-weight: bold;margin-top: 7px;color: #0B0E11;}
+.slider_item .item_content li .last_year{margin-top: 32px;}
+.slider_item .item_content li .last_year p{color:#204EE3;}
+.slider_item .item_content li:nth-child(2){width: 160px;float: right;}
+.slider_item .item_content li:nth-child(2) div{margin-bottom: 5px;}
+.slider_item .item_content li:nth-child(2) strong{color:#444;margin-left: 36px;}
+.slider_item .item_content li:nth-child(2) div .cr01::before{content: "";width: 10px;height: 10px;display: inline-block;background: #05A8F5;margin-right:5px;}
+.slider_item .item_content li:nth-child(2) div .cr02::before{content: "";width: 10px;height: 10px;display: inline-block;background: #FF5F5F;margin-right:5px;}
+/* -----------------------tab3--------------------- */
+.tab_container3{width: 100%;}
+.tab_container3 > span{display: block;width: 100%;text-align: right;float: left;}
+.slide_tab{height: 20px;margin-bottom: 10px;float: right;}
+.slide_tab li {width: 45px; border:1px solid #ccc;float:left;line-height: 20px;text-align:center;}
+.slide_tab li:first-child { border-radius:2px 0 0 2px;  }
+.slide_tab li:last-child { border-radius: 0 2px 2px 0; }
+.slide_tab li.active {background-color:#3ECF9A;border: 1px solid #00B271;}
+.slide_tab li.active a {color: #fff;}
+.slide_tab li a {font-size: 12px;color: #666;display: block;font-weight:bold;}
+/* -------------------------------------------------------------------------------------- */
+.extend_data_02 .main_sec01{width: 100%; height: 420px;display: flex;flex-wrap: wrap;gap:10px; margin-bottom: 20px;align-items: flex-start;}
+.extend_data_02 .main_sec01 .content{width: 187px;height: auto;background:#fff;padding: 18px;}
+.extend_data_02 .main_sec01 .content h5{display: inline-block;color: #0B0E11; font-weight: bold;}
+.extend_data_02 .main_sec01 .content p{font-size: 22px; font-weight: bold;color:#2A62FF;margin-top: 10px;}
+.extend_data_02 .main_sec01 .content .chart_box {display: inline-flex;margin-top: 5px;align-items: flex-end;margin-bottom: 10px;}
+.extend_data_02 .main_sec01 .content .chart_box li:nth-child(1) img{margin-top: auto;}
+.extend_data_02 .main_sec01 .content .chart_box li .chart{width: 100px; height: 77px;margin-left: 20px;border: 1px solid #999;}
+.extend_data_02 .main_sec01 .base_year{padding-top: 10px;border-top: 1px solid #ccc;color:#666;}
+.extend_data_02 .main_sec01 .base_year span:nth-child(2){float: right;}
+
+.extend_data_02 .main_sec02 {width: 100%;padding:18px 25px; background: #FFF;}
+.extend_data_02 .main_sec02 h5 {width: 100%;clear: both; font-weight: bold; color:#0B0E11;padding-bottom: 26px;}
+.extend_data_02 .main_sec02 .btn_other_area{padding: 5px 8px;background: #3ECF9A; border: 1px solid #00B271;font-weight:bold;color:#fff;}
+.extend_data_02 .main_sec02 .btn_other_area:hover{background: #00B271;font-weight:bold;color:#fff;}
+.tab_container4 .tab_content4{height:335px;border: 1px solid #999; }
+/* -----------------------tab4--------------------- */
+.tab_container4{width: 100%;}
+.tabs4{height: 24px;margin-bottom: 10px;}
+.tabs4 li {padding-right: 10px;border-right: 1px solid #ccc;line-height: 14px;text-align:center;float: left;color: #444;}
+.tabs4 li:not(:nth-child(1)) {padding-left: 10px;}
+.tabs4 li:last-child {border-right: 0;}
+.tabs4 li.active a {color:#2A62FF;font-weight:bold;}
+.tabs4 .btn_other_area{float: right; margin-left: 10px;border-radius: 2px;}
+/* -------------------------------------------------------------------------------------- */
+.control_foot {width:58px;height:auto;position:fixed;  bottom: 0px; z-index:10;margin:10px;display: block;}
+.control_foot button{ width: 100%;display: block; border-radius: 2px;font-size:14px;background:#fff;border-radius: 2px;}
+.control_foot button:not(.control_btn_wrap button){margin-bottom:5px;padding:15px 0px;border:1px solid #444;}
+.control_btn_wrap{border: 1px solid #444; display: flex;flex-direction: column;}
+.control_btn_wrap button{flex: 1 1 40px;}
+.control_foot button:not(.control_btn_wrap button):hover{background:#FC821C;font-weight:bold; color:#fff;}
+
+.map_data.active { background:#FC821C; color:#fff; font-weight: bold;}
+/* ----------------------pop-up----------------------------------------- */
+.popup_layer{width:100%; min-width: 1600px;height: 100vh; position:fixed;top:0px;right:0;z-index:999;;background:rgba(0,0,0,0.5);}
+.pop_cont{width:920px;height: 620px;background: #fff;position:fixed;top:50%;right:50%;transform:translate(50%, -50%);}
+.pop_cont .heading{ background: #fff;height: 45px; padding: 0 20px;font-size: 16px;}
+.pop_cont .heading button{float: right;height: 100%;padding:0 12px;background: url("/images/lvs/icon/icon-close.png") center center no-repeat;}
+.pop_cont .content{ padding: 0 20px; color: #666;}
+/* --------------------------------------------------------------- */
+.br{border: 1px solid #ccc;}
+/* ---------------------------------팝업----------------------------- */
+.popup_layer.active {display: block;}
+.popup_layer{position: fixed;width: 100%;height: 100%;top: 0;left: 0;right: 0;z-index: 1100;display: none;}
+.popup_layer .layerBox {position: relative;top: 50%;left: 50%;transform: translate(-50%, -50%);z-index: 10;}
+.popup_layer .popup_bg {width:100%; min-width: 1600px;height: 100vh; position:fixed;top:0px;right:0;z-index:9;;background:rgba(0,0,0,0.5);}
+
+.popup_home {width:400px;height: 280px;background: #fff; border-radius: 2px;}
+.popup_home .info_text{width: 300px;height: 220px;margin: 0 auto;display: flex;flex-direction: column;align-items: center;    justify-content: center;}
+.popup_home .info_text p{color:#444;font-size: 15px; margin-top: 10px;}
+.popup_home .info_text strong{color:#204EE3;font-weight: bold;}
+.popup_home .popup_btn a{width: 200px;float: left;border-top: 1px solid #ccc;line-height: 58px;text-align: center;font-weight: bold;color:#444;font-size: 15px;}
+.popup_home .popup_btn a:nth-child(1){border-right:1px solid #ccc;}
+
+.popup_extend{width:960px;height: 620px;background: #fff; border-radius: 2px;}
+.popup_extend .heading{width: 100%;line-height: 50px;background: #EDF1F4; padding-left:20px;font-size: 16px;font-weight: bold;color:#444}
+.popup_extend .heading button{float: right;height: 50px;padding:25px;background: url("/images/lvs/icon/icon-close.png") center center no-repeat;}
+
+.popup_extend .content{padding:20px; color: #666;}
+.popup_extend h4{padding-left: 10px; border-left: 3px solid #2A62FF;font-size: 17px;color: #0B0E11;font-weight: bold;margin-bottom: 15px;}
+.tabs5{height: 18px;margin-bottom: 15px;}
+.tabs5 li {padding-right: 10px;border-right: 1px solid #ccc;line-height: 14px;text-align:center;float: left;color: #444;}
+.tabs5 li:not(:nth-child(1)) {padding-left: 10px;}
+.tabs5 li:last-child {border-right: 0;}
+.tabs5 li.active a {color:#2A62FF;font-weight:bold;}
+
+.tab_content5:nth-child(2) .area_map{width: 715px; height: 100%;background:url("/images/lvs/img/popup-map.png") center center no-repeat; }
+.tab_content5{width: 100%;height: 470px;position: relative;}
+.tab_content5 .sop_control{width: 196px; height: 217px;background:url("/images/lvs/img/sop_control.png") center center no-repeat;position: absolute;z-index: 999; bottom: 0; right: 0;}
+
+.tab_content5 ul{width: 715px; height: 100%;}
+.tab_content5 ul li{width: 230px;height: auto;float: left;color: #0B0E11;}
+.tab_content5 ul li:not(:last-child){margin-right: 10px;}
+.tab_content5 form{display: inline;}
+.tab_content5 select{width: 105px; height: 24px;border: 1px solid #ccc;border-radius: 2px;}
+.tab_content5 .area_map{width: 100%;height: 430px;background: #666;margin-top: 15px;background:url("/images/lvs/img/map-04-1.png") center center no-repeat;}
+.tab_content5 li:nth-child(2) .area_map{width: 100%;height: 430px;background: #666;margin-top: 15px;background:url("/images/lvs/img/map-04-2.png") center center no-repeat;}
+.tab_content5 li:nth-child(3) .area_map{width: 100%;height: 430px;background: #666;margin-top: 15px;background:url("/images/lvs/img/map-04-3.png") center center no-repeat;}
+
+
+</style>
+
+<div id="wrap">
+  <div class="header">
+    <div class="logo_box">
+      <a rel="" href="#popup01" class="layerOpen logo">
+        <img src="/images/lvs/img/logo.png" alt="">
+      </a>
+      <h1>지역변화 분석지도</h1>
+    </div>
+    <div class="menu">
+      <button type="button" name="button" class="btn_extend_open" id="btn_extend" onclick="toggleExtendBoard(this)" data-attr="boardType1">
+        우리동네 상황판
+        <img src="images\lvs\icon\nav-arrow-right.png" alt="">
+      </button>
+      <ul class="gnb">
+        <li>
+          <a href="#">
+            <div class="round_box1">
+
+            </div>
+            <span>인구·가구</span>
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <div class="round_box2">
+
+            </div>
+            <span>주거·교통</span>
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <div class="round_box3">
+            </div>
+            <span>복지·문화</span>
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <div class="round_box4">
+
+            </div>
+            <span>노동·경제</span>
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <div class="round_box5">
+
+            </div>
+            <span>안전·환경</span>
+          </a>
+        </li>
+      </ul>
+
+    </div>
+    <div class="tab_container">
+      <!--탭 메뉴 영역 -->
+      <div class="tabs">
+        <ul>
+          <li class="active" id="btn_databorad"><a href="javascript:void(0)" rel="tab1" onclick="toggleExtendBoard(this)" data-attr="boardType2">추천 지표 보기</a></li>
+          <li><a href="#" rel="tab2">모든 지표 보기</a></li>
+        </ul>
+      </div>
+
+      <div id="tab2" class="tab_content">
+
+        <script>
+            // 단순 반복 checkbox Append
+            for(i=0; i<20; i++) {
+                let html = "";
+                html += '<div class="checkbox_list">'
+                html += '<div class="list_text">'
+                html += '<input type="radio" name="radioDummy" id="radioDummy'+i+'" value="">'
+                html += '<label for="radioDummy'+i+'">다문화가구 현황</label>'
+                html += '</div>'
+                html += '<div class="tooltip"></div>'
+                html += '</div>'
+
+                $("#tab2").append(html)
+
+            }
+        </script>
+
+        <!--  html 샘플
+        <div class="checkbox_list">
+          <div class="list_text">
+            <input type="checkbox" name="" value="">
+            <label for="">다문화가구 현황012</label>
+          </div>
+          <div class="tooltip"></div>
+        </div> -->
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="control_top">
+      <div class="localinfo">
+        <div class="province">
+          <!-- <img src="" alt=""> -->
+          <span>대전광역시</span>
+        </div>
+        <div class="county">
+          <span>서구</span>
+        </div>
+
+        <div class="selected_data">
+          <span>총인구</span>
+        </div>
+      </div>
+      <button class="btn_data_open" type="button" name="button">데이터보드</button>
+    </div>
+    <div class="extend_data_wrap" id="extendBoard">
+      <div class="extend_data_header" data-attr="header">
+        <h2>우리동네 상황판</h2>
+        <div class="extend_panel">
+          <button class="data_player" type="button" name="button">
+            <img src="/images/lvs/icon/icon-play-btn.png" alt="">
+          </button>
+            <a href="#" class="location_more">다른 지역 선택</a>
+            <span></span>
+            <a href="#">이용가이드</a>
+          <button class="btn_download" type="button" name="button">
+            <img src="/images/lvs/icon/icon-import.png" alt="">
+          </button>
+          <button class="btn_data_close" type="button" name="button" onclick="closeExtendBoard()">
+            <img src="/images/lvs/icon/icon-close.png" alt="">
+          </button>
+          <div class="location_more_box">
+            <div class="heading">
+              <span>다른지역 선택하기</span>
+              <button id="btn_close" type="button" name="button"></button>
+            </div>
+            <div class="content">
+                <strong>내위치</strong>
+                <span>대전광역시 서구 대덕대로 242번길 15</span>
+              <div >
+              <form>
+                <select name="location_select">
+                  <option value="" selected="selected">시/도</option>
+                  <option value="충청북도">세종특별자치도</option>
+                  <option value="대전광역시">대전광역시</option>
+                </select>
+                <select name="location_select">
+                  <option value="" selected="selected">시/군/구</option>
+                  <option value="청주시">세종특별자치시</option>
+                  <option value="서구">서구</option>
+                </select>
+              </form>
+              <button type="button" name="button">검색</button>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="extend_data_01" data-attr="boardType1">
+        <div class="main">
+          <ul class="main_wrap">
+            <li class="main_sec01">
+              <dl>
+                <dd>
+                  <h5>2021년</h5>
+                  <h4>1,451,305</h4>
+                  <div>
+                    <span>남자</span>
+                    <span>230,382</span>
+                    <span>여자</span>
+                    <span>239,923</span>
+                  </div>
+                  <p>(단위:명)</p>
+                </dd>
+                <dd>
+                  <span>2021년</span>
+                  <span>1,458,415</span>
+                </dd>
+              </dl>
+            </li>
+            <li class="main_sec02">
+              <!-- ---------------------------------------->
+              <div class="tab_container2">
+                <!--탭 메뉴 영역 -->
+                <span>(단위:명)</span>
+                <div class="tabs2">
+                  <ul>
+                    <li class="active"><a href="#" rel="tab2_1"></a></li>
+                    <li><a href="#" rel="tab2_2"></a></li>
+                  </ul>
+                </div>
+                <div id="tab2_1" class="tab_content2">
+                  <!-- 고경남 차트 추가 -->
+                  <div id="tab_content2_chart" style="width: 100%; height:100%"></div>
+                </div>
+                <div id="tab2_2" class="tab_content2">
+                  <p>총 인구 증가가 가장 큰 지역은
+                    <span class="local_txt">
+                      <대전광역시 유성구 (3,100명)>
+                    </span> 순입니다.
+                  </p>
+                  <p>총 인구 감소가 가장 큰 지역은
+                    <span class="local_txt">
+                      <대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)>
+                    </span> 순입니다.
+                  </p>
+                  <p>총 인구 감소가 가장 큰 지역은
+                    <span class="local_txt">
+                      <대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)>
+                    </span> 순입니다.
+                  </p>
+                  <p>총 인구 감소가 가장 큰 지역은
+                    <span class="local_txt">
+                      <대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)>
+                    </span> 순입니다.
+                  </p>
+                  <p>총 인구 감소가 가장 큰 지역은
+                    <span class="local_txt">
+                      <대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)>
+                    </span> 순입니다.
+                  </p>
+                  <p>총 인구 감소가 가장 큰 지역은
+                    <span class="local_txt">
+                      <대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)>
+                    </span> 순입니다.
+                  </p>
+                  <p>총 인구 감소가 가장 큰 지역은
+                    <span class="local_txt">
+                      <대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)>
+                    </span> 순입니다.
+                  </p>
+
+                </div>
+              </div>
+              <!-- ---------------------------------------->
+            </li>
+          </ul>
+        </div>
+        <div class="slick_wrap" style="height:300px">
+          <div class="arrows">
+            <div class="prev_arrow">
+              <img src="images\lvs\icon\icon-arrow-left.png" alt="">
+            </div>
+            <div class="next_arrow">
+              <img src="images\lvs\icon\icon-arrow-right.png" alt="">
+            </div>
+          </div>
+          <div class="slick_slider">
+            <div class="slider">
+              <ul>
+                <li class="slider_item">
+                  <div class="item_heading">
+                    <h5>총인구</h5>
+                    <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                    <span>(단위:명)</span>
+                  </div>
+                  <div class="item_content">
+                    <ul>
+                      <li>
+                        <div class="this_year">
+                          <h6>2021년</h6>
+                          <p>471,258</p>
+                        </div>
+                        <div class="last_year">
+                          <h6>2022년</h6>
+                          <p>469,426</p>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="chart">
+
+                        </div>
+                        <div>
+                          <span class="cr01">남자</span>
+                          <strong>230,978</strong>
+                        </div>
+                        <div>
+                          <span class="cr02">여자</span>
+                          <strong>230,978</strong>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </li>
+                <li class="slider_item">
+                  <div class="item_heading">
+                    <h5>총가구 수</h5>
+                    <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                    <span>(단위:명)</span>
+                  </div>
+                  <div class="item_content">
+                    <ul>
+                      <li>
+                        <div class="this_year">
+                          <h6>2021년</h6>
+                          <p>196,870</p>
+                        </div>
+                        <div class="last_year">
+                          <h6>2022년</h6>
+                          <p>203,296</p>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="chart">
+
+                        </div>
+                        <div>
+                          <span class="cr01">남자</span>
+                          <strong>230,978</strong>
+                        </div>
+                        <div>
+                          <span class="cr02">여자</span>
+                          <strong>230,978</strong>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </li>
+                <li class="slider_item">
+                  <div class="item_heading">
+                    <h5>총 주택 수</h5>
+                    <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                    <span>(단위:명)</span>
+                  </div>
+                  <div class="item_content">
+                    <ul>
+                      <li>
+                        <div class="this_year">
+                          <h6>2021년</h6>
+                          <p>144,587</p>
+                        </div>
+                        <div class="last_year">
+                          <h6>2022년</h6>
+                          <p>147,010</p>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="chart">
+
+                        </div>
+                        <div>
+                          <span class="cr01">남자</span>
+                          <strong>230,978</strong>
+                        </div>
+                        <div>
+                          <span class="cr02">여자</span>
+                          <strong>230,978</strong>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </li>
+                <li class="slider_item">
+                  <div class="item_heading">
+                    <h5>1인가구</h5>
+                    <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                    <span>(단위:명)</span>
+                  </div>
+                  <div class="item_content">
+                    <ul>
+                      <li>
+                        <div class="this_year">
+                          <h6>2021년</h6>
+                          <p>64,932</p>
+                        </div>
+                        <div class="last_year">
+                          <h6>2022년</h6>
+                          <p>71,702</p>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="chart">
+
+                        </div>
+
+                      </li>
+                    </ul>
+                  </div>
+                </li>
+                <li class="slider_item">
+                  <div class="item_heading">
+                    <h5>사업체 수</h5>
+                    <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                    <span>(단위:명)</span>
+                  </div>
+                  <div class="item_content">
+                    <ul>
+                      <li>
+                        <div class="this_year">
+                          <h6>2021년</h6>
+                          <p>31,724</p>
+                        </div>
+                        <div class="last_year">
+                          <h6>2022년</h6>
+                          <p>32,420</p>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="chart">
+
+                        </div>
+                        <div>
+                          <span class="cr01">남자</span>
+                          <strong>230,978</strong>
+                        </div>
+                        <div>
+                          <span class="cr02">여자</span>
+                          <strong>230,978</strong>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </li>
+                <li class="slider_item">
+                  <div class="item_heading">
+                    <h5>종사자 수 </h5>
+                    <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                    <span>(단위:명)</span>
+                  </div>
+                  <div class="item_content">
+                    <ul>
+                      <li>
+                        <div class="this_year">
+                          <h6>2021년</h6>
+                          <p>183,461</p>
+                        </div>
+                        <div class="last_year">
+                          <h6>2022년</h6>
+                          <p>188,504</p>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="chart">
+
+                        </div>
+                        <div>
+                          <span class="cr01">남자</span>
+                          <strong>230,978</strong>
+                        </div>
+                        <div>
+                          <span class="cr02">여자</span>
+                          <strong>188,504</strong>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="slider">
+              <ul>
+                <li class="slider_item">
+                  <div class="tab_item">
+                    <h5>출생아 수</h5>
+                    <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                    <div class="new">NEW</div>
+                    <div class="slide_tab">
+                      <ul>
+                        <li class="active"><a href="#" rel="slide_tab1">잠정</a></li>
+                        <li><a href="#" rel="slide_tab2">확정</a></li>
+                      </ul>
+                    </div>
+                    <div class="tab_container3">
+                      <span>(단위:명)</span>
+                      <!--탭 메뉴 영역 -->
+                      <div id="slide_tab1" class="tab_content3">
+                        <div class="item_content">
+                          <ul>
+                            <li>
+                              <div class="this_year">
+                                <h6>2021년</h6>
+                                <p>471,258</p>
+                              </div>
+                              <div class="last_year">
+                                <h6>2022년</h6>
+                                <p>469,426</p>
+                              </div>
+                            </li>
+                            <li>
+                              <div class="chart">
+
+                              </div>
+                              <div>
+                                <span class="cr01">남자</span>
+                                <strong>230,978</strong>
+                              </div>
+                              <div>
+                                <span class="cr02">여자</span>
+                                <strong>230,978</strong>
+                              </div>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div id="slide_tab2" class="tab_content3">
+                        확정
+                      </div>
+                    </div>
+                  </div>
+                </li>
+                <li class="slider_item">
+                  <div class="tab_item">
+                    <h5>사망자 수</h5>
+                    <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                    <div class="new">NEW</div>
+                    <div class="slide_tab">
+                      <ul>
+                        <li class="active"><a href="#" rel="slide_tab3">잠정</a></li>
+                        <li><a href="#" rel="slide_tab4">확정</a></li>
+                      </ul>
+                    </div>
+
+                    <div class="tab_container3">
+                      <!--탭 메뉴 영역 -->
+                      <span>(단위:명)</span>
+                      <div id="slide_tab3" class="tab_content3">
+                        <div class="item_content">
+                          <ul>
+                            <li>
+                              <div class="this_year">
+                                <h6>2021년</h6>
+                                <p>12,970</p>
+                              </div>
+                              <div class="last_year">
+                                <h6>2022년</h6>
+                                <p>12,290</p>
+                              </div>
+                            </li>
+                            <li>
+                              <div class="chart">
+
+                              </div>
+                              <div>
+                                <span class="cr01">남자</span>
+                                <strong>230,978</strong>
+                              </div>
+                              <div>
+                                <span class="cr02">여자</span>
+                                <strong>230,978</strong>
+                              </div>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div id="slide_tab4" class="tab_content3">
+                        확정
+                      </div>
+                    </div>
+
+                  </div>
+
+                </li>
+
+                <li class="slider_item">
+                  <div class="item_heading">
+                    <h5>신혼부부 수</h5>
+                    <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                    <span>(단위:명)</span>
+                  </div>
+                  <div class="item_content">
+                    <ul>
+                      <li>
+                        <div class="this_year">
+                          <h6>2021년</h6>
+                          <p>2,856</p>
+                        </div>
+                        <div class="last_year">
+                          <h6>2022년</h6>
+                          <p>2,580</p>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="chart">
+
+                        </div>
+                        <div>
+                          <span class="cr01">남자</span>
+                          <strong>230,978</strong>
+                        </div>
+                        <div>
+                          <span class="cr02">여자</span>
+                          <strong>230,978</strong>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </li>
+                <li class="slider_item">
+                  <div class="item_heading">
+                    <h5>전입인구 수</h5>
+                    <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                    <span>(단위:명)</span>
+                  </div>
+                  <div class="item_content">
+                    <ul>
+                      <li>
+                        <div class="this_year">
+                          <h6>2021년</h6>
+                          <p>2,856</p>
+                        </div>
+                        <div class="last_year">
+                          <h6>2022년</h6>
+                          <p>2,580</p>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="chart">
+
+                        </div>
+                        <div>
+                          <span class="cr01">남자</span>
+                          <strong>230,978</strong>
+                        </div>
+                        <div>
+                          <span class="cr02">여자</span>
+                          <strong>230,978</strong>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </li>
+                <li class="slider_item">
+                  <div class="item_heading">
+                    <h5>전출인구 수 </h5>
+                    <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                    <span>(단위:명)</span>
+                  </div>
+                  <div class="item_content">
+                    <ul>
+                      <li>
+                        <div class="this_year">
+                          <h6>2021년</h6>
+                          <p>2,856</p>
+                        </div>
+                        <div class="last_year">
+                          <h6>2022년</h6>
+                          <p>2,580</p>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="chart">
+
+                        </div>
+                        <div>
+                          <span class="cr01">남자</span>
+                          <strong>230,978</strong>
+                        </div>
+                        <div>
+                          <span class="cr02">여자</span>
+                          <strong>230,978</strong>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </li>
+                <li class="slider_item">
+                  <div class="item_heading">
+                    <h5>노령인구 수 (64세이상 ) </h5>
+                    <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                    <span>(단위:명)</span>
+                  </div>
+                  <div class="item_content">
+                    <ul>
+                      <li>
+                        <div class="this_year">
+                          <h6>2021년</h6>
+                          <p>2,856</p>
+                        </div>
+                        <div class="last_year">
+                          <h6>2022년</h6>
+                          <p>2,580</p>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="chart">
+
+                        </div>
+                        <div>
+                          <span class="cr01">남자</span>
+                          <strong>230,978</strong>
+                        </div>
+                        <div>
+                          <span class="cr02">여자</span>
+                          <strong>230,978</strong>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </li>
+
+              </ul>
+            </div>
+            <div class="slider">
+              <ul>
+                <li class="slider_item">
+                  <div class="item_heading">
+                    <h5>총인구</h5>
+                    <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                    <span>(단위:명)</span>
+                  </div>
+                  <div class="item_content">
+                    <ul>
+                      <li>
+                        <div class="this_year">
+                          <h6>2021년</h6>
+                          <p>471,258</p>
+                        </div>
+                        <div class="last_year">
+                          <h6>2022년</h6>
+                          <p>469,426</p>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="chart">
+
+                        </div>
+                        <div>
+                          <span class="cr01">남자</span>
+                          <strong>230,978</strong>
+                        </div>
+                        <div>
+                          <span class="cr02">여자</span>
+                          <strong>230,978</strong>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </li>
+                <li class="slider_item">
+                  <div class="item_heading">
+                    <h5>총가구 수</h5>
+                    <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                    <span>(단위:명)</span>
+                  </div>
+                  <div class="item_content">
+                    <ul>
+                      <li>
+                        <div class="this_year">
+                          <h6>2021년</h6>
+                          <p>196,870</p>
+                        </div>
+                        <div class="last_year">
+                          <h6>2022년</h6>
+                          <p>203,296</p>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="chart">
+
+                        </div>
+                        <div>
+                          <span class="cr01">남자</span>
+                          <strong>230,978</strong>
+                        </div>
+                        <div>
+                          <span class="cr02">여자</span>
+                          <strong>230,978</strong>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </li>
+                <li class="slider_item">
+                  <div class="item_heading">
+                    <h5>총 주택 수</h5>
+                    <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                    <span>(단위:명)</span>
+                  </div>
+                  <div class="item_content">
+                    <ul>
+                      <li>
+                        <div class="this_year">
+                          <h6>2021년</h6>
+                          <p>144,587</p>
+                        </div>
+                        <div class="last_year">
+                          <h6>2022년</h6>
+                          <p>147,010</p>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="chart">
+
+                        </div>
+                        <div>
+                          <span class="cr01">남자</span>
+                          <strong>230,978</strong>
+                        </div>
+                        <div>
+                          <span class="cr02">여자</span>
+                          <strong>230,978</strong>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </li>
+                <li class="slider_item">
+                  <div class="item_heading">
+                    <h5>1인가구</h5>
+                    <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                    <span>(단위:명)</span>
+                  </div>
+                  <div class="item_content">
+                    <ul>
+                      <li>
+                        <div class="this_year">
+                          <h6>2021년</h6>
+                          <p>64,932</p>
+                        </div>
+                        <div class="last_year">
+                          <h6>2022년</h6>
+                          <p>71,702</p>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="chart">
+
+                        </div>
+
+                      </li>
+                    </ul>
+                  </div>
+                </li>
+                <li class="slider_item">
+                  <div class="item_heading">
+                    <h5>사업체 수</h5>
+                    <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                    <span>(단위:명)</span>
+                  </div>
+                  <div class="item_content">
+                    <ul>
+                      <li>
+                        <div class="this_year">
+                          <h6>2021년</h6>
+                          <p>31,724</p>
+                        </div>
+                        <div class="last_year">
+                          <h6>2022년</h6>
+                          <p>32,420</p>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="chart">
+
+                        </div>
+                        <div>
+                          <span class="cr01">남자</span>
+                          <strong>230,978</strong>
+                        </div>
+                        <div>
+                          <span class="cr02">여자</span>
+                          <strong>230,978</strong>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </li>
+                <li class="slider_item">
+                  <div class="item_heading">
+                    <h5>종사자 수 </h5>
+                    <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                    <span>(단위:명)</span>
+                  </div>
+                  <div class="item_content">
+                    <ul>
+                      <li>
+                        <div class="this_year">
+                          <h6>2021년</h6>
+                          <p>183,461</p>
+                        </div>
+                        <div class="last_year">
+                          <h6>2022년</h6>
+                          <p>188,504</p>
+                        </div>
+                      </li>
+                      <li>
+                        <div class="chart">
+
+                        </div>
+                        <div>
+                          <span class="cr01">남자</span>
+                          <strong>230,978</strong>
+                        </div>
+                        <div>
+                          <span class="cr02">여자</span>
+                          <strong>188,504</strong>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </li>
+
+              </ul>
+            </div>
+            <div class="slider"></div>
+            <div class="slider"></div>
+            <div class="slider"></div>
+          </div>
+
+        </div>
+      </div>
+      <div class="extend_data_02" data-attr="boardType2">
+        <div class="main">
+          <ul class="main_wrap">
+            <li class="main_sec01">
+              <div class="content">
+                <h5>1인 가구 변화</h5>
+                <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                <p>71,702</p>
+                <ul class="chart_box">
+                  <li>
+                    <img class="family_base" src="/images/lvs/icon/icon-img01.png" alt="">
+                    <!-- <img class="pop_base" src="" alt=""> -->
+                  </li>
+                  <li>
+                    <div class="chart">
+                      차트
+                    </div>
+                  </li>
+                </ul>
+                <div class="base_year">
+                  <span>기준 2022-06</span>
+                  <span>(단위:명)</span>
+                </div>
+              </div>
+              <div class="content">
+                <h5>65세 이상 1인 가구</h5>
+                <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                <p>11,361</p>
+                <ul class="chart_box">
+                  <li>
+                    <img class="family_base" src="/images/lvs/icon/icon-img01.png" alt="">
+                    <!-- <img class="pop_base" src="" alt=""> -->
+                  </li>
+                  <li>
+                    <div class="chart">
+                      차트
+                    </div>
+                  </li>
+                </ul>
+                <div class="base_year">
+                  <span>기준 2022-06</span>
+                  <span>(단위:명)</span>
+                </div>
+              </div>
+              <div class="content">
+                <h5>15세 미만 인구</h5>
+                <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                <p>61,329</p>
+                <ul class="chart_box">
+                  <li>
+                    <img class="family_base" src="/images/lvs/icon/icon-img01.png" alt="">
+                    <!-- <img class="pop_base" src="" alt=""> -->
+                  </li>
+                  <li>
+                    <div class="chart">
+                      차트
+                    </div>
+                  </li>
+                </ul>
+                <div class="base_year">
+                  <span>기준 2022-06</span>
+                  <span>(단위:명)</span>
+                </div>
+              </div>
+              <div class="content">
+                <h5>65세 이상  인구</h5>
+                <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                <p>60,138</p>
+                <ul class="chart_box">
+                  <li>
+                    <img class="family_base" src="/images/lvs/icon/icon-img01.png" alt="">
+                    <!-- <img class="pop_base" src="" alt=""> -->
+                  </li>
+                  <li>
+                    <div class="chart">
+                      차트
+                    </div>
+                  </li>
+                </ul>
+                <div class="base_year">
+                  <span>기준 2022-06</span>
+                  <span>(단위:명)</span>
+                </div>
+              </div>
+              <div class="content">
+                <h5>총 인구</h5>
+                <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                <p>469,426</p>
+                <ul class="chart_box">
+                  <li>
+                    <img class="family_base" src="/images/lvs/icon/icon-img01.png" alt="">
+                    <!-- <img class="pop_base" src="" alt=""> -->
+                  </li>
+                  <li>
+                    <div class="chart">
+                      차트
+                    </div>
+                  </li>
+                </ul>
+                <div class="base_year">
+                  <span>기준 2022-06</span>
+                  <span>(단위:명)</span>
+                </div>
+              </div>
+              <div class="content">
+                <h5>남자 인구</h5>
+                <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                <p>228,780</p>
+                <ul class="chart_box">
+                  <li>
+                    <img class="family_base" src="/images/lvs/icon/icon-img01.png" alt="">
+                    <!-- <img class="pop_base" src="" alt=""> -->
+                  </li>
+                  <li>
+                    <div class="chart">
+                      차트
+                    </div>
+                  </li>
+                </ul>
+                <div class="base_year">
+                  <span>기준 2022-06</span>
+                  <span>(단위:명)</span>
+                </div>
+              </div>
+              <div class="content">
+                <h5>여자 인구</h5>
+                <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                <p>240,646</p>
+                <ul class="chart_box">
+                  <li>
+                    <img class="family_base" src="/images/lvs/icon/icon-img01.png" alt="">
+                    <!-- <img class="pop_base" src="" alt=""> -->
+                  </li>
+                  <li>
+                    <div class="chart">
+                      차트
+                    </div>
+                  </li>
+                </ul>
+                <div class="base_year">
+                  <span>기준 2022-06</span>
+                  <span>(단위:명)</span>
+                </div>
+              </div>
+              <div class="content">
+                <h5>가구</h5>
+                <img src="/images/lvs/icon/icon-tooltip.png" alt="">
+                <p>203,296</p>
+                <ul class="chart_box">
+                  <li>
+                    <img class="family_base" src="/images/lvs/icon/icon-img01.png" alt="">
+                    <!-- <img class="pop_base" src="" alt=""> -->
+                  </li>
+                  <li>
+                    <div class="chart">
+                      차트
+                    </div>
+                  </li>
+                </ul>
+                <div class="base_year">
+                  <span>기준 2022-06</span>
+                  <span>(단위:명)</span>
+                </div>
+              </div>
+            </li>
+            <li class="main_sec02">
+              <div class="tab_container4">
+                <!--탭 메뉴 영역 -->
+                <div class="tabs4">
+                  <ul>
+                    <li class="active"><a href="#" rel="tab4_1">변화 그래프</a></li>
+                    <li><a href="#" rel="tab4_2">변화 지도</a></li>
+                    <li><a href="#" rel="tab4_3">읍면동 순위</a></li>
+                    <li><a href="#" rel="tab4_4">타 지자체 비교</a></li>
+                  </ul>
+                  <a href="#popup02" class="btn_other_area layerOpen">소지역보기</a>
+                </div>
+                <h5>대전광역시 서구</h5>
+                <div id="tab4_1" class="tab_content4">
+                  차트1
+                </div>
+                <div id="tab4_2" class="tab_content4">
+                  차트2
+                </div>
+                <div id="tab4_3" class="tab_content4">
+                  차트3
+                </div>
+                <div id="tab4_4" class="tab_content4">
+                  차트4
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="control_foot">
+
+      <button class="map_data" type="button" name="button">데이터</button>
+      <div class="control_btn_wrap">
+        <button class="pl" type="button" name="button">
+          <img src="/images/lvs/icon/icon-zoom-in.png" alt="">
+        </button>
+        <button class="dot" type="button" name="button">
+          <img src="/images/lvs/icon/dot.png" alt="">
+          <!-- 시군구 -->
+        </button>
+        <button class="mi" type="button" name="button">
+          <img src="/images/lvs/icon/icon-zoom-out.png" alt="">
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="mapWrapper">지도영역</div>
+  <!--팝업-------------------------->
+  <div id="popup01" class="popup_layer">
+    <div class="layerBox popup_home">
+      <div class="info_text">
+        <img src="images\lvs\icon\icon-popup.png" alt="">
+        <p>현재 화면에서 벗어나</p>
+        <p><strong>[우리동네 상황판(메인)]</strong>화면으로</p>
+        <p>이동하시겠습니까?</p>
+      </div>
+      <div class="popup_btn">
+        <a href="#">예</a>
+        <a href="#" class="layerClose">아니요</a>
+      </div>
+    </div>
+    <div class="popup_bg"></div>
+  </div>
+
+  <div id="popup02" class="popup_layer ">
+    <div class="layerBox popup_extend">
+      <div class="heading">
+        <span>다른지역 선택하기</span>
+        <button id="btn_close" class="layerClose" type="button" name="button"></button>
+      </div>
+      <div class="content">
+        <h4>가장동</h4>
+        <div class="tab_container5">
+          <div class="tabs5">
+            <ul>
+              <li class="active"><a href="#" rel="tab5_1">집계구 보기</a></li>
+              <li><a href="#" rel="tab5_2">변화 지도</a></li>
+              <li><a href="#" rel="tab5_3">변화 그래프</a></li>
+            </ul>
+          </div>
+          <div id="tab5_1" class="tab_content5 background_map">
+            <div class="area_map"></div>
+            <div class="sop_control"></div>
+          </div>
+          <div id="tab5_2" class="tab_content5">
+            <ul>
+              <li>
+                <span>가장동</span>
+                <form>
+                  <select name="year">
+                    <option value="none" selected>선택</option>
+                    <option value="2019">2019</option>
+                    <option value="2020">2020</option>
+                    <option value="2021">2021</option>
+                    <option value="2022">2022</option>
+                  </select>
+                </form>
+                <div class="area_map"></div>
+              </li>
+              <li>
+                <span>가장동</span>
+                <form>
+                  <select name="year">
+                    <option value="none" selected>선택</option>
+                    <option value="2019">2019</option>
+                    <option value="2020">2020</option>
+                    <option value="2021">2021</option>
+                    <option value="2022">2022</option>
+                  </select>
+                </form>
+                <div class="area_map"></div>
+              </li>
+              <li>
+                <span>가장동</span>
+                <form>
+                  <select name="year">
+                    <option value="none" selected>선택</option>
+                    <option value="2019">2019</option>
+                    <option value="2020">2020</option>
+                    <option value="2021">2021</option>
+                    <option value="2022">2022</option>
+                  </select>
+                </form>
+                <div class="area_map"></div>
+              </li>
+            </ul>
+            <div class="sop_control"></div>
+          </div>
+          <div id="tab5_3" class="tab_content5 br">
+            <div class="chart">차트</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="popup_bg"></div>
+  </div>
+    <!---------------------------->
+<!--2022년 10월 17일---------------------------------------------->
+  <div class="tooltip_layer" id="tipLayer">
+   <h5>지표명</h5>
+   <p>지표에 대한 정의가 들어갈 공간입니다.</p>
+   <span>시도</span><span>2015~2021</span>
+   <p>*이 지표는 시도 현황판에서만 활성화 되는 메뉴입니다.</p>
+  </div>
+<!------------------------------------------------------------------------->
+
+
+</div>
+
+<script async="defer" src="/js/lvs/func.js"></script>
+  <script async="defer" src="/js/lvs/chartConfig.js"></script>
+
+</body>
+
+</html>

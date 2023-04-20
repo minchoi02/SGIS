@@ -1,0 +1,118 @@
+package kostat.sop.ServiceAPI.sbr.mapper;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import egovframework.rte.psl.dataaccess.EgovAbstractMapper;
+import kostat.sop.ServiceAPI.sbr.vo.SbrVo;
+
+/**
+ *  2022년 SGIS고도화 4차 
+ *  @Description 기업생태분석지도
+ *  @author ParkSangeon
+ */
+@Repository( "SbrStatsMapper" )
+public class SbrStatsMapper extends EgovAbstractMapper
+{
+	
+	public List<Map<String, Object>> selectCensusBigThemeInfo() {
+		return selectList("SbrStatsXsql.selectCensusBigThemeInfo");
+	}
+	
+	public List<Map<String, Object>> selectCensusSmallThemeInfo(String b_theme_cd) {
+		HashMap<String, Object> parameter = new HashMap<>();
+		parameter.put("b_theme_cd", b_theme_cd);
+		return selectList("SbrStatsXsql.selectCensusSmallThemeInfo",parameter);
+	}
+
+	public String selectTestData() {
+		return selectOne("SbrStatsXsql.selectTestData");
+	}
+
+	public List<Map<String, Object>> selectCodeList(SbrVo sbrVo) {
+		return selectList("SbrStatsXsql.selectCodeList",sbrVo);
+	}
+
+	public List<String> selectCompanyCountByAll() {
+//		Map<String, String> resultMap = new HashMap<>();
+		return selectList("SbrStatsXsql.selectCompanyCount", null);
+	}
+	
+	public Map<String, Object> selectActiveCompanyCount(SbrVo sbrVo) {
+		return selectOne("SbrStatsXsql.activeCompanyCount", sbrVo);
+	}
+
+	public List<Map<String, String>> selectOpenCloseCompanyCount() {
+		return selectList("SbrStatsXsql.opneCloseCompanyCount");
+	}
+
+	public List selectBizCodeList() {
+		return selectList("SbrStatsXsql.selectBizeCodeList");
+	}
+
+	public Map<String, Object> selectAreaInfo(SbrVo sbrVo) {
+		return selectOne("SbrStatsXsql.selectAreaInfo",sbrVo);
+	}
+
+	public List selectRanklistInfo(SbrVo sbrVo) {
+		return selectList("SbrStatsXsql.selectRankListInfo",sbrVo);
+	}
+
+	public List selectSbrMapList(SbrVo sbrVo) {
+		return selectList("SbrStatsXsql.selectSbrMapList",sbrVo);
+	}
+
+	public List<?> selectSbrCompanyInfoList(SbrVo sbrVo) {
+		return selectList("SbrStatsXsql.selectSbrCompanyInfoList",sbrVo);
+	}
+
+	public List<Map<String, String>> selectSbrGrowthList(SbrVo sbrVo) {
+		return selectList("SbrStatsXsql.selectSbrGrowthList",sbrVo);
+	}
+
+	public Map<String, String> selectSbrAvgData(SbrVo sbrVo) {
+		return selectOne("SbrStatsXsql.selectSbrAvgData",sbrVo);
+	}
+
+	public Map<String, String> selectCompanyAnalysis(SbrVo sbrVo) {
+		return selectOne("SbrStatsXsql.selectCompanyAnalysis",sbrVo);
+	}
+
+	public List<Map<String, String>> selectCompanyMainList(SbrVo sbrVo) {
+		return selectList("SbrStatsXsql.selectCompanyMainList",sbrVo);
+	}
+
+	public List<Map<String, String>> selectAreaDataList(SbrVo sbrVo) {
+		System.out.println("오냐");
+		return selectList("SbrStatsXsql.selectAreaDataList",sbrVo);
+	}
+
+	public List selectLeftDataList(SbrVo sbrVo) {
+		return selectList("SbrStatsXsql.selectLeftDataList",sbrVo);
+	}
+
+	public List innersearchpopulationForBorough(SbrVo sbrVo) {
+		// TODO Auto-generated method stub
+		return selectList("SbrStatsXsql.innersearchpopulationForBorough",sbrVo);
+	}
+
+	public List<Map<String, String>> selectRegionSignalDataList(SbrVo sbrVo) {
+		// TODO Auto-generated method stub
+		return selectList("SbrStatsXsql.selectLeftDataList", sbrVo);
+//		return null;
+	}
+
+	public List selectSbrAreaData(SbrVo sbrVo) {
+		// TODO Auto-generated method stub
+		return selectList("SbrStatsXsql.selectSbrAreaData",sbrVo);
+	}
+
+	public List selectRanklistInfo2(SbrVo sbrVo) {
+		return selectList("SbrStatsXsql.selectRankListInfo2",sbrVo);
+	}
+
+
+}

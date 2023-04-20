@@ -1,0 +1,466 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ststistics">
+   <select id="getStstisticsUSKwrdRecmdserviceListTotal"  parameterType="java.util.HashMap" resultType="int">
+		/** getStstisticsUSKwrdRecmdserviceListTotal start ... **/
+		SELECT 
+				COUNT(SLCTN_KWRD)
+			FROM (
+				SELECT
+ 					SLCTN_KWRD
+ 					, SUM(CASE WHEN RECMD_SRV_MENU_NM = '대화형 통계지도' THEN 1 ELSE 0 END) AS EM_CNT
+ 					, SUM(CASE WHEN RECMD_SRV_MENU_NM = '살고싶은 우리동네' THEN 1 ELSE 0 END) AS LVBOT_CNT
+ 					, SUM(CASE WHEN RECMD_SRV_MENU_NM = '업종통계지도: 기술업종통계지도' THEN 1 ELSE 0 END) AS TECHBIZ_CNT
+ 					, SUM(CASE WHEN RECMD_SRV_MENU_NM = '업종통계지도: 생활업종통계지도' THEN 1 ELSE 0 END) AS LVLHBIZ_CNT
+					, SUM(CASE WHEN RECMD_SRV_MENU_NM = '일자리 맵' THEN 1 ELSE 0 END) AS WM_CNT
+					, SUM(CASE WHEN RECMD_SRV_MENU_NM = '정책통계지도' THEN 1 ELSE 0 END) AS PSM_CNT
+					, SUM(CASE WHEN RECMD_SRV_MENU_NM = '통계주제도' THEN 1 ELSE 0 END) AS TM_CNT
+					, COUNT(SLCTN_KWRD) AS temp
+				FROM (
+					SELECT 
+						SLCTN_KWRD
+						, RECMD_SRV_MENU_NM
+					FROM (
+							SELECT 
+   								T1.SLCTN_KWRD
+								, T3.STAT_DATA_ID AS RECMD_SRV_ID
+								, T2.STAT_DATA_NM AS RECMD_SRV_NM
+								, T2.MENU_NM AS RECMD_SRV_MENU_NM
+								, T3.USE_TS
+							FROM SRV_DT_CTLG_SLCTN_KWRD_LIST T1
+							LEFT OUTER JOIN SRV_DT_CTLG_RECMD_SRV_LIST T3 ON T3.SLCTN_KWRD_SEQ = T1.SEQ
+							LEFT OUTER JOIN SRV_DT_CTLG_DATA_LIST T2 ON T2.STAT_DATA_ID = T3.STAT_DATA_ID
+							WHERE
+								1=1
+							<if test='word != null and word !=""'>
+								AND SLCTN_KWRD LIKE '%'|| #{word} || '%'
+							</if>
+							<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+								AND TO_CHAR(T3.USE_TS, 'YYYY-MM-DD') BETWEEN #{startDate} AND #{endDate}
+							</if>
+				)
+			)
+			GROUP BY SLCTN_KWRD
+		)
+   </select>
+	
+   <select id="getStstisticsUSKwrdMaptypeListTotal"  parameterType="java.util.HashMap" resultType="int">
+		/** getStstisticsUSKwrdMaptypeListTotal start ... **/
+		SELECT 
+			COUNT(SLCTN_KWRD)
+		FROM (
+			SELECT
+				SLCTN_KWRD
+				, SUM(CASE WHEN AREA_BORD_TYPE = 01 THEN 1 ELSE 0 END) AS JEONGUG_CNT
+				, SUM(CASE WHEN AREA_BORD_TYPE = 02 THEN 1 ELSE 0 END) AS SIDO_CNT
+				, SUM(CASE WHEN AREA_BORD_TYPE = 03 THEN 1 ELSE 0 END) AS SIGUNGU_CNT
+				, SUM(CASE WHEN AREA_BORD_TYPE = 04 THEN 1 ELSE 0 END) AS EUPMYEONDONG_CNT
+				, SUM(CASE WHEN AREA_BORD_TYPE = 05 THEN 1 ELSE 0 END) AS GYEOGJA_CNT
+				, SUM(CASE WHEN MAP_TYPE = 01 THEN 1 ELSE 0 END) AS COLOR_CNT
+				, SUM(CASE WHEN MAP_TYPE = 02 THEN 1 ELSE 0 END) AS BUBBLE_CNT
+				, SUM(CASE WHEN MAP_TYPE = 03 THEN 1 ELSE 0 END) AS HEAT_CNT
+				, SUM(CASE WHEN MAP_TYPE = 04 THEN 1 ELSE 0 END) AS POI_CNT
+				, COUNT(SLCTN_KWRD) AS TEMP
+			FROM (
+					SELECT 
+						T2.SLCTN_KWRD
+						, T1.AREA_BORD_TYPE
+						, T1.MAP_TYPE
+						, T1.USE_TS
+					FROM SRV_DT_CTLG_MAP_SRV_LIST T1
+					LEFT OUTER JOIN SRV_DT_CTLG_SLCTN_KWRD_LIST T2
+					ON T1.SLCTN_KWRD_SEQ = T2.SEQ
+					WHERE
+						1=1
+					<if test='word != null and word !=""'>
+						AND SLCTN_KWRD LIKE '%'|| #{word} || '%'
+					</if>
+					<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+						AND TO_CHAR(T1.USE_TS, 'YYYY-MM-DD') BETWEEN #{startDate} AND #{endDate}
+					</if>
+			)
+			GROUP BY SLCTN_KWRD
+		)
+   </select>
+	
+   <select id="getStstisticsUSKwrdRecmdLifecycleListTotal"  parameterType="java.util.HashMap" resultType="int">
+		/** getStstisticsUSKwrdRecmdLifecycleListTotal start ... **/
+		SELECT COUNT(SLCTN_KWRD) FROM  (
+			SELECT 
+				SLCTN_KWRD
+ 				, SUM(CASE WHEN (LFE_CYCLE_1_ID = 'LFECYCLE_INFANT_CHILD' OR LFE_CYCLE_2_ID = 'LFECYCLE_INFANT_CHILD') THEN 1 ELSE 0 END) AS INFANT_CHILD_CNT
+ 				, SUM(CASE WHEN (LFE_CYCLE_1_ID = 'LFECYCLE_YNGBGS' OR LFE_CYCLE_2_ID = 'LFECYCLE_YNGBGS') THEN 1 ELSE 0 END) AS YNGBGS_CNT
+ 				, SUM(CASE WHEN (LFE_CYCLE_1_ID = 'LFECYCLE_YGMN' OR LFE_CYCLE_2_ID = 'LFECYCLE_YGMN') THEN 1 ELSE 0 END) AS YGMN_CNT
+ 				, SUM(CASE WHEN (LFE_CYCLE_1_ID = 'LFECYCLE_ADULT' OR LFE_CYCLE_2_ID = 'LFECYCLE_ADULT') THEN 1 ELSE 0 END) AS ADULT_CNT
+ 				, SUM(CASE WHEN (LFE_CYCLE_1_ID = 'LFECYCLE_ODSN' OR LFE_CYCLE_2_ID = 'LFECYCLE_ODSN') THEN 1 ELSE 0 END) AS ODSN_CNT
+ 				, SUM(CASE WHEN (LFE_CYCLE_1_ID = 'LFECYCLE_PREGNAN_CHLDBRTH_CHLDCR_FEMALE' OR LFE_CYCLE_2_ID = 'LFECYCLE_PREGNAN_CHLDBRTH_CHLDCR_FEMALE') THEN 1 ELSE 0 END) AS PCCF_CNT
+ 				, SUM(CASE WHEN (LFE_CYCLE_1_ID = 'LFECYCLE_PSN_1_FAMILY' OR LFE_CYCLE_2_ID = 'LFECYCLE_PSN_1_FAMILY') THEN 1 ELSE 0 END) AS FAMILY1_CNT
+ 				, COUNT(SLCTN_KWRD) AS TEMP
+			FROM(
+					SELECT 
+						USE_TS
+						,SLCTN_KWRD
+						,LFE_CYCLE_1_ID
+						,LFE_CYCLE_2_ID
+					FROM SRV_DT_CTLG_SLCTN_KWRD_LIST
+					WHERE
+						1=1
+					<if test='word != null and word !=""'>
+						AND SLCTN_KWRD LIKE '%'|| #{word} || '%'
+					</if>
+					<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+						AND TO_CHAR(USE_TS, 'YYYY-MM-DD') BETWEEN #{startDate} AND #{endDate}
+					</if>
+			)
+			GROUP BY SLCTN_KWRD
+			)
+   </select>
+	
+   <select id="getStstisticsUSKwrdRecmdInterestsListTotal"  parameterType="java.util.HashMap" resultType="int">
+		/** getStstisticsUSKwrdRecmdInterestsListTotal start ... **/
+		SELECT COUNT(SLCTN_KWRD) FROM (
+		SELECT 
+				SLCTN_KWRD
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_FD' OR STAT_DSTNC_2_ID = 'DSTNC_FD') THEN 1 ELSE 0 END) AS FD_CNT
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_HOUSE' OR STAT_DSTNC_2_ID = 'DSTNC_HOUSE') THEN 1 ELSE 0 END) AS HOUSE_CNT
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_JOB' OR STAT_DSTNC_2_ID = 'DSTNC_JOB') THEN 1 ELSE 0 END) AS JOB_CNT
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_TRNSPORT' OR STAT_DSTNC_2_ID = 'DSTNC_TRNSPORT') THEN 1 ELSE 0 END) AS TRNSPORT_CNT
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_PLY' OR STAT_DSTNC_2_ID = 'DSTNC_PLY') THEN 1 ELSE 0 END) AS EDU_CNT
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_EDU' OR STAT_DSTNC_2_ID = 'DSTNC_EDU') THEN 1 ELSE 0 END) AS PLY_CNT
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_HEALTH' OR STAT_DSTNC_2_ID = 'DSTNC_HEALTH') THEN 1 ELSE 0 END) AS HEALTH_CNT
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_SAFE' OR STAT_DSTNC_2_ID = 'DSTNC_SAFE') THEN 1 ELSE 0 END) AS SAFE_CNT
+ 				, COUNT(SLCTN_KWRD) AS TEMP
+			FROM(
+					SELECT 
+						USE_TS
+						,SLCTN_KWRD
+						,STAT_DSTNC_1_ID
+						,STAT_DSTNC_2_ID
+					FROM SRV_DT_CTLG_SLCTN_KWRD_LIST
+					WHERE
+						1=1
+					<if test='word != null and word !=""'>
+						AND SLCTN_KWRD LIKE '%'|| #{word} || '%'
+					</if>
+					<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+						AND TO_CHAR(USE_TS, 'YYYY-MM-DD') BETWEEN #{startDate} AND #{endDate}
+					</if>
+			)
+			GROUP BY SLCTN_KWRD
+		)
+	</select>
+	
+   <select id="getStstisticsUSKwrdRecmdserviceList" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+			<include refid="ststisticsCmmn.pageHeader" />
+			SELECT 
+				ROW_NUMBER() OVER(ORDER BY SLCTN_KWRD <include refid="srv_search_Nm_sort"/>) AS RNUM
+				,SLCTN_KWRD
+				,EM_CNT
+				,LVBOT_CNT
+				,TECHBIZ_CNT
+				,LVLHBIZ_CNT
+				,WM_CNT
+				,PSM_CNT
+				,TM_CNT
+			FROM (
+				SELECT
+ 					SLCTN_KWRD
+ 					, SUM(CASE WHEN RECMD_SRV_MENU_NM = '대화형 통계지도' THEN 1 ELSE 0 END) AS EM_CNT
+ 					, SUM(CASE WHEN RECMD_SRV_MENU_NM = '살고싶은 우리동네' THEN 1 ELSE 0 END) AS LVBOT_CNT
+ 					, SUM(CASE WHEN RECMD_SRV_MENU_NM = '업종통계지도: 기술업종통계지도' THEN 1 ELSE 0 END) AS TECHBIZ_CNT
+ 					, SUM(CASE WHEN RECMD_SRV_MENU_NM = '업종통계지도: 생활업종통계지도' THEN 1 ELSE 0 END) AS LVLHBIZ_CNT
+					, SUM(CASE WHEN RECMD_SRV_MENU_NM = '일자리 맵' THEN 1 ELSE 0 END) AS WM_CNT
+					, SUM(CASE WHEN RECMD_SRV_MENU_NM = '정책통계지도' THEN 1 ELSE 0 END) AS PSM_CNT
+					, SUM(CASE WHEN RECMD_SRV_MENU_NM = '통계주제도' THEN 1 ELSE 0 END) AS TM_CNT
+					, COUNT(SLCTN_KWRD) AS temp
+				FROM (
+					SELECT 
+						SLCTN_KWRD
+						, RECMD_SRV_MENU_NM
+					FROM (
+							SELECT 
+   								T1.SLCTN_KWRD
+								, T3.STAT_DATA_ID AS RECMD_SRV_ID
+								, T2.STAT_DATA_NM AS RECMD_SRV_NM
+								, T2.MENU_NM AS RECMD_SRV_MENU_NM
+								, T3.USE_TS
+							FROM SRV_DT_CTLG_SLCTN_KWRD_LIST T1
+							LEFT OUTER JOIN SRV_DT_CTLG_RECMD_SRV_LIST T3 ON T3.SLCTN_KWRD_SEQ = T1.SEQ
+							LEFT OUTER JOIN SRV_DT_CTLG_DATA_LIST T2 ON T2.STAT_DATA_ID = T3.STAT_DATA_ID
+							WHERE
+								1=1
+							<if test='word != null and word !=""'>
+								AND SLCTN_KWRD LIKE '%'|| #{word} || '%'
+							</if>
+							<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+								AND TO_CHAR(T3.USE_TS, 'YYYY-MM-DD') BETWEEN #{startDate} AND #{endDate}
+							</if>
+				)
+			)
+			GROUP BY SLCTN_KWRD
+		)
+		ORDER BY RNUM
+       		<include refid="ststisticsCmmn.pageFotter" />
+   </select>
+   
+   <select id="getStstisticsUSKwrdMaptypeList" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+       		<include refid="ststisticsCmmn.pageHeader" />
+			SELECT 
+				ROW_NUMBER() OVER(ORDER BY SLCTN_KWRD <include refid="map_search_Nm_sort"/>) AS RNUM
+				, SLCTN_KWRD
+				, JEONGUG_CNT
+				, SIDO_CNT
+				, SIGUNGU_CNT
+				, EUPMYEONDONG_CNT
+				, GYEOGJA_CNT
+				, COLOR_CNT
+				, BUBBLE_CNT
+				, HEAT_CNT
+				, POI_CNT
+			FROM (
+			SELECT
+				SLCTN_KWRD
+				, SUM(CASE WHEN AREA_BORD_TYPE = 01 THEN 1 ELSE 0 END) AS JEONGUG_CNT
+				, SUM(CASE WHEN AREA_BORD_TYPE = 02 THEN 1 ELSE 0 END) AS SIDO_CNT
+				, SUM(CASE WHEN AREA_BORD_TYPE = 03 THEN 1 ELSE 0 END) AS SIGUNGU_CNT
+				, SUM(CASE WHEN AREA_BORD_TYPE = 04 THEN 1 ELSE 0 END) AS EUPMYEONDONG_CNT
+				, SUM(CASE WHEN AREA_BORD_TYPE = 05 THEN 1 ELSE 0 END) AS GYEOGJA_CNT
+				, SUM(CASE WHEN MAP_TYPE = 01 THEN 1 ELSE 0 END) AS COLOR_CNT
+				, SUM(CASE WHEN MAP_TYPE = 02 THEN 1 ELSE 0 END) AS BUBBLE_CNT
+				, SUM(CASE WHEN MAP_TYPE = 03 THEN 1 ELSE 0 END) AS HEAT_CNT
+				, SUM(CASE WHEN MAP_TYPE = 04 THEN 1 ELSE 0 END) AS POI_CNT
+				, COUNT(SLCTN_KWRD) AS TEMP
+			FROM (
+					SELECT 
+						T2.SLCTN_KWRD
+						, T1.AREA_BORD_TYPE
+						, T1.MAP_TYPE
+						, T1.USE_TS
+					FROM SRV_DT_CTLG_MAP_SRV_LIST T1
+					LEFT OUTER JOIN SRV_DT_CTLG_SLCTN_KWRD_LIST T2
+					ON T1.SLCTN_KWRD_SEQ = T2.SEQ
+					WHERE
+						1=1
+					<if test='word != null and word !=""'>
+						AND SLCTN_KWRD LIKE '%'|| #{word} || '%'
+					</if>
+					<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+						AND TO_CHAR(T1.USE_TS, 'YYYY-MM-DD') BETWEEN #{startDate} AND #{endDate}
+					</if>
+			)
+			GROUP BY SLCTN_KWRD
+			)
+			ORDER BY RNUM
+       			<include refid="ststisticsCmmn.pageFotter" />
+   </select>
+   
+   <select id="getStstisticsUSKwrdLifecycleList" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+       		<include refid="ststisticsCmmn.pageHeader" />
+			select 
+				ROW_NUMBER() OVER(ORDER BY SLCTN_KWRD <include refid="lif_search_Nm_sort"/>) AS RNUM
+				,SLCTN_KWRD
+				,INFANT_CHILD_CNT
+				,YNGBGS_CNT
+				,YGMN_CNT
+				,ADULT_CNT
+				,ODSN_CNT
+				,PCCF_CNT
+				,FAMILY1_CNT
+			from (
+			SELECT 
+				SLCTN_KWRD
+ 				, SUM(CASE WHEN (LFE_CYCLE_1_ID = 'LFECYCLE_INFANT_CHILD' OR LFE_CYCLE_2_ID = 'LFECYCLE_INFANT_CHILD') THEN 1 ELSE 0 END) AS INFANT_CHILD_CNT
+ 				, SUM(CASE WHEN (LFE_CYCLE_1_ID = 'LFECYCLE_YNGBGS' OR LFE_CYCLE_2_ID = 'LFECYCLE_YNGBGS') THEN 1 ELSE 0 END) AS YNGBGS_CNT
+ 				, SUM(CASE WHEN (LFE_CYCLE_1_ID = 'LFECYCLE_YGMN' OR LFE_CYCLE_2_ID = 'LFECYCLE_YGMN') THEN 1 ELSE 0 END) AS YGMN_CNT
+ 				, SUM(CASE WHEN (LFE_CYCLE_1_ID = 'LFECYCLE_ADULT' OR LFE_CYCLE_2_ID = 'LFECYCLE_ADULT') THEN 1 ELSE 0 END) AS ADULT_CNT
+ 				, SUM(CASE WHEN (LFE_CYCLE_1_ID = 'LFECYCLE_ODSN' OR LFE_CYCLE_2_ID = 'LFECYCLE_ODSN') THEN 1 ELSE 0 END) AS ODSN_CNT
+ 				, SUM(CASE WHEN (LFE_CYCLE_1_ID = 'LFECYCLE_PREGNAN_CHLDBRTH_CHLDCR_FEMALE' OR LFE_CYCLE_2_ID = 'LFECYCLE_PREGNAN_CHLDBRTH_CHLDCR_FEMALE') THEN 1 ELSE 0 END) AS PCCF_CNT
+ 				, SUM(CASE WHEN (LFE_CYCLE_1_ID = 'LFECYCLE_PSN_1_FAMILY' OR LFE_CYCLE_2_ID = 'LFECYCLE_PSN_1_FAMILY') THEN 1 ELSE 0 END) AS FAMILY1_CNT
+ 				, COUNT(SLCTN_KWRD) AS TEMP
+			FROM(
+					SELECT 
+						USE_TS
+						,SLCTN_KWRD
+						,LFE_CYCLE_1_ID
+						,LFE_CYCLE_2_ID
+					FROM SRV_DT_CTLG_SLCTN_KWRD_LIST
+					WHERE
+						1=1
+					<if test='word != null and word !=""'>
+						AND SLCTN_KWRD LIKE '%'|| #{word} || '%'
+					</if>
+					<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+						AND TO_CHAR(USE_TS, 'YYYY-MM-DD') BETWEEN #{startDate} AND #{endDate}
+					</if>
+			)
+			GROUP BY SLCTN_KWRD
+			)
+			ORDER BY RNUM
+       			<include refid="ststisticsCmmn.pageFotter" />
+   </select>
+   
+   <select id="getStstisticsUSKwrdInterestsList" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+			<include refid="ststisticsCmmn.pageHeader" />
+			SELECT 
+				ROW_NUMBER() OVER(ORDER BY SLCTN_KWRD <include refid="its_search_Nm_sort"/>) AS RNUM
+				,SLCTN_KWRD
+				,FD_CNT
+				,HOUSE_CNT
+				,JOB_CNT
+				,TRNSPORT_CNT
+				,EDU_CNT
+				,PLY_CNT
+				,HEALTH_CNT
+				,SAFE_CNT
+			FROM (
+			SELECT 
+				SLCTN_KWRD
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_FD' OR STAT_DSTNC_2_ID = 'DSTNC_FD') THEN 1 ELSE 0 END) AS FD_CNT
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_HOUSE' OR STAT_DSTNC_2_ID = 'DSTNC_HOUSE') THEN 1 ELSE 0 END) AS HOUSE_CNT
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_JOB' OR STAT_DSTNC_2_ID = 'DSTNC_JOB') THEN 1 ELSE 0 END) AS JOB_CNT
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_TRNSPORT' OR STAT_DSTNC_2_ID = 'DSTNC_TRNSPORT') THEN 1 ELSE 0 END) AS TRNSPORT_CNT
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_PLY' OR STAT_DSTNC_2_ID = 'DSTNC_PLY') THEN 1 ELSE 0 END) AS EDU_CNT
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_EDU' OR STAT_DSTNC_2_ID = 'DSTNC_EDU') THEN 1 ELSE 0 END) AS PLY_CNT
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_HEALTH' OR STAT_DSTNC_2_ID = 'DSTNC_HEALTH') THEN 1 ELSE 0 END) AS HEALTH_CNT
+ 				, SUM(CASE WHEN (STAT_DSTNC_1_ID = 'DSTNC_SAFE' OR STAT_DSTNC_2_ID = 'DSTNC_SAFE') THEN 1 ELSE 0 END) AS SAFE_CNT
+ 				, COUNT(SLCTN_KWRD) AS TEMP
+			FROM(
+					SELECT 
+						USE_TS
+						,SLCTN_KWRD
+						,STAT_DSTNC_1_ID
+						,STAT_DSTNC_2_ID
+					FROM SRV_DT_CTLG_SLCTN_KWRD_LIST
+					WHERE 
+						1=1
+					<if test='word != null and word !=""'>
+						AND SLCTN_KWRD LIKE '%'|| #{word} || '%'
+					</if>
+					<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+						AND TO_CHAR(USE_TS, 'YYYY-MM-DD') BETWEEN #{startDate} AND #{endDate}
+					</if>
+			)
+			GROUP BY SLCTN_KWRD
+			)
+			ORDER BY RNUM
+       		<include refid="ststisticsCmmn.pageFotter" />
+   </select>
+   
+      <select id="getStstisticsUSKwrdRecmdserviceDetail" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+         <!--    <include refid="ststisticsCmmn.pageHeader" />-->
+			SELECT 
+				ROW_NUMBER() OVER(ORDER BY TEMP DESC) AS RNUM
+				,SERVICE_NM
+				,SERVICE_CNT
+			FROM(
+				SELECT 
+					SLCTN_KWRD
+					, SERVICE_NM
+					, COUNT(SERVICE_NM) AS SERVICE_CNT
+					, COUNT(SLCTN_KWRD) AS TEMP
+				FROM(
+						SELECT 
+							SLCTN_KWRD
+							, MENU_NM ||' > '|| SRV_NM ||' > '|| STAT_DATA_SRV_NM AS SERVICE_NM
+						FROM (
+							SELECT 
+								T1.SLCTN_KWRD
+								, T3.STAT_DATA_ID
+								, T2.STAT_DATA_NM
+								, T2.MENU_NM
+								, T2.SRV_NM
+								, T2.STAT_DATA_SRV_NM
+								, T3.USE_TS
+							FROM SRV_DT_CTLG_SLCTN_KWRD_LIST T1
+							LEFT OUTER JOIN SRV_DT_CTLG_RECMD_SRV_LIST T3 ON T3.SLCTN_KWRD_SEQ = T1.SEQ
+							LEFT OUTER JOIN SRV_DT_CTLG_DATA_LIST T2 ON T2.STAT_DATA_ID = T3.STAT_DATA_ID
+							WHERE 
+								1=1
+							<if test='word != null and word !=""'>
+								AND SLCTN_KWRD LIKE '%'|| #{word} || '%'
+							</if>
+							<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+								AND TO_CHAR(T3.USE_TS, 'YYYY-MM-DD') BETWEEN #{startDate} AND #{endDate}
+							</if>
+						)
+				)
+				GROUP BY SLCTN_KWRD, SERVICE_NM
+			)
+			ORDER BY RNUM
+		<!--  <include refid="ststisticsCmmn.pageFotter" />-->
+	</select>
+   		
+   <select id="getStstisticsUSKwrdRecmdserviceDetailTotal"  parameterType="java.util.HashMap" resultType="int">
+		SELECT 
+			COUNT(SLCTN_KWRD)
+		FROM(
+				SELECT 
+					SLCTN_KWRD
+					, MENU_NM ||' > '|| SRV_NM ||' > '|| STAT_DATA_SRV_NM AS SERVICE_NM
+				FROM (
+					SELECT 
+						T1.SLCTN_KWRD
+						, T3.STAT_DATA_ID
+						, T2.STAT_DATA_NM
+						, T2.MENU_NM
+						, T2.SRV_NM
+						, T2.STAT_DATA_SRV_NM
+						, T3.USE_TS
+					FROM SRV_DT_CTLG_SLCTN_KWRD_LIST T1
+					LEFT OUTER JOIN SRV_DT_CTLG_RECMD_SRV_LIST T3 ON T3.SLCTN_KWRD_SEQ = T1.SEQ
+					LEFT OUTER JOIN SRV_DT_CTLG_DATA_LIST T2 ON T2.STAT_DATA_ID = T3.STAT_DATA_ID
+					WHERE 
+						1=1
+					<if test='word != null and word !=""'>
+						AND SLCTN_KWRD LIKE '%'|| #{word} || '%'
+					</if>
+					<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+						AND TO_CHAR(T3.USE_TS, 'YYYY-MM-DD') BETWEEN #{startDate} AND #{endDate}
+					</if>
+				)
+		)
+   </select>
+   
+   <!-- 20201127 2020년 SGIS고도화 3차 시작 -->
+	<sql id="srv_search_Nm_sort">
+		<if test='serviceSearchNmSort != null and serviceSearchNmSort !="" '>
+			<if test='serviceSearchNmSort == "asc"'>
+				asc
+			</if>
+			<if test='serviceSearchNmSort == "desc"'>
+				desc
+			</if>
+		</if>
+	</sql>
+	<sql id="map_search_Nm_sort">
+		<if test='mapSearchNmSort != null and mapSearchNmSort !="" '>
+			<if test='mapSearchNmSort == "asc"'>
+				asc
+			</if>
+			<if test='mapSearchNmSort == "desc"'>
+				desc
+			</if>
+		</if>
+	</sql>
+	<sql id="lif_search_Nm_sort">
+		<if test='lifSearchNmSort != null and lifSearchNmSort !="" '>
+			<if test='lifSearchNmSort == "asc"'>
+				asc
+			</if>
+			<if test='lifSearchNmSort == "desc"'>
+				desc
+			</if>
+		</if>
+	</sql>
+	<sql id="its_search_Nm_sort">
+		<if test='interestsSearchNmSort != null and interestsSearchNmSort !="" '>
+			<if test='interestsSearchNmSort == "asc"'>
+				asc
+			</if>
+			<if test='interestsSearchNmSort == "desc"'>
+				desc
+			</if>
+		</if>
+	</sql>
+	<!-- 20201127 2020년 SGIS고도화 3차 끝 -->
+</mapper>

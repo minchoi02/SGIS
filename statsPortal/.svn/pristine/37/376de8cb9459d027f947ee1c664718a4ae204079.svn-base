@@ -1,0 +1,553 @@
+ //지역변화분석지도 주요변수리스트
+ //페이지 전체변수
+
+//개발테스트
+////////////////////////////////
+//1.오픈api패스
+ //const openApiPath   = "//sgisapi.kostat.go.kr/OpenAPI3" ;
+//2. sgis api 패스 
+ //const sgis4thApiPath = "//sgis.kostat.go.kr/ServiceAPI"; 
+//3. kosis api 패스 
+ //const kosisApiPath = "//analysis.kostat.go.kr"; 
+
+
+ 
+ // 지역변화 맵정보  
+ const mapInfo ={
+		    map: null,
+		    secure_mode: false,
+		    x:990196.5800601951,
+		    y:1817512.448125631,
+		    x2:997978,
+		    y2:1809645,
+            level: 4,		    
+		    options : {
+                ollehTileLayer: false,
+                scale: false, // 축척 컨트롤
+                panControl: false, // 지도 이동 컨트롤
+                zoom: false,
+                zoomSliderControl: false, //줌 컨트롤
+                measureControl: false, // 측정 컨트롤 (면적, 길이)
+                zoomAnimation: true,
+                statisticTileLayer: true,
+                attributionControl: false // 지도속성 컨트롤
+            }, 
+            
+            data:  { 
+            	population: null,  // 총조사 주요지표
+            },
+
+            dataKind:'tot_ppltn',   //선택된 지표  data_kind  지표의 종류랑 혼동말자...
+            boardType:'board1',
+            board2Kind: 'ppltn_fmly',  //dokadoka
+            
+            mode: 'hide',  // 데이터표시여부
+            boardSize: 'large', //보드크기
+            consumer_key: '590a2718c58d41d9ae3b',
+            consumer_secret: 'ab7fe94f9fb64336abd3',
+            failCnt: 0,
+            accessToken: null,
+            base_year: '2021',   // 경계기준년도   // 모든 경계는 최신경계는 개발쪽 데이터가 7자리로 되어 있어, 이전경계를 사용함.            
+            this_year: '2020',    // 조회년도
+            last_year:'2019',     //비교년도
+            year_list: ['2000','2005','2010','2015','2016','2017','2018','2019','2020'],    //조회년도
+            sido_cd: '25',
+            sgg_cd:'030',
+            emdong_cd: '',
+            cur_item_no: 0, // 현재 선택된 아이템            
+            sido_nm: '대전광역시',
+            sgg_nm: '서구',
+            emdong_nm: '',
+            
+            region_cd: '25030',            
+            view_cd: 'sgg',  //
+            
+            legendColor: ["#f51d05"],
+            borderColor: ["#000000"],            
+
+            oriArea: null,   //현재 경계:의 오리지널 레이어
+            sopArea: null,
+            addrObj: null,  //현재주소정보
+            sidoObj: {},  //시도정보
+            sggObj: {}, //시군구정보
+            emdongObj: {}, //읍면동정보
+            
+            board2_sggObj:{}, //타지역비교하기 시군구정보
+            board2_emdongObj:{}, //타지역비교하기 읍면동정보
+            
+            intervalId: null, // 지도로딩 여부체크
+		    colorPl :  ['#05A8F5','#FF5F5F','#3ECF9A','#E0E0E0','#FC821C'], //차트 칼라
+            sido_stat_cnt:28,
+            sgg_stat_cnt:28,
+            emdong_stat_cnt:8,
+            
+            /*
+            chartType: {
+            	'tot_ppltn':'donut','tot_family':'line','tot_house':'pie','tot_one_family':'map','corp_cnt':'pie',
+            	'employee_cnt':'pie','newbaby_cnt':'line','dead_cnt':'donut','newlyweds_cnt':'column',
+            	'population_in_cnt':'column','old_age_cnt':'pie','marrige_cnt':'line','divorce_cnt':'line',
+            	'old_oneman_cnt':'pie','old_oneman_rt':'donut','apart_cnt':'line','house_own_rt':'line',
+            	'employ_rt':'donut','unemploy_rt':'donut','employ_cnt':'pie','walker_accdt_cnt':'line',
+            	'traffic_accdt_cnt':'line','fire_accdt_cnt':'line','car_own_rt':'line',
+            	'green_area_rt':'line','water_supply_rt':'line','life_waste_cnt':'line' 
+            },
+            */
+            
+            chartType: {
+            	'tot_ppltn':'donut','tot_family':'line','tot_house':'line','tot_one_family':'map','corp_cnt':'line',
+            	'employee_cnt':'line','newbaby_cnt':'line','dead_cnt':'donut','newlyweds_cnt':'column',
+            	'population_in_cnt':'column','old_age_cnt':'pie','marrige_cnt':'line','divorce_cnt':'line',
+            	'old_oneman_cnt':'pie','old_oneman_rt':'donut','apart_cnt':'line','house_own_rt':'line',
+            	'employ_rt':'donut','unemploy_rt':'donut','employ_cnt':'pie','walker_accdt_cnt':'line',
+            	'traffic_accdt_cnt':'line','fire_accdt_cnt':'line','car_own_rt':'line',
+            	'green_area_rt':'line','water_supply_rt':'line','life_waste_cnt':'line' 
+            },
+            
+            
+            // tot_ppltn: pie
+            
+            /*
+            data_kind:{
+            	sido:["tot_ppltn","tot_family","tot_house","tot_one_family","corp_cnt","employee_cnt","newbaby_cnt","dead_cnt","newlyweds_cnt","population_in_cnt","population_out_cnt","old_age_cnt","marrige_cnt","divorce_cnt","old_oneman_cnt","old_oneman_rt","apart_cnt","house_own_rt",'employ_rt','unemploy_rt','employ_cnt','walker_accdt_cnt','traffic_accdt_cnt','fire_accdt_cnt ','car_own_rt','green_area_rt','water_supply_rt','life_waste_cnt'],
+            	sgg:["tot_ppltn","tot_family","tot_house","tot_one_family","corp_cnt","employee_cnt","newbaby_cnt","dead_cnt","newlyweds_cnt","population_in_cnt","population_out_cnt", "old_age_cnt","marrige_cnt","divorce_cnt","old_oneman_cnt","old_oneman_rt","apart_cnt","house_own_rt",'employ_rt','unemploy_rt','employ_cnt','walker_accdt_cnt','traffic_accdt_cnt','fire_accdt_cnt ','car_own_rt','green_area_rt','water_supply_rt','life_waste_cnt'],
+            	emdong:["tot_ppltn","tot_family","tot_house","tot_one_family","corp_cnt","employee_cnt","old_age_cnt","divorce_cnt","old_oneman_cnt","old_oneman_rt","apart_cnt","house_own_rt",'walker_accdt_cnt']
+            },
+            */
+            
+            //  총인구 tot_ppltn , 총 tot_family가구수  , 총주택수  tot_house
+            data_comments:{
+            	tot_ppltn:{name:"총인구",disc:"지표설명"},
+            	tot_family:{name:"총가구",disc:"지표설명"},
+            	tot_house:{name:"총주택",disc:"지표설명"},
+            	corp_cnt:{name:"총가구",disc:"지표설명"},
+            	employee_cnt:{name:"총주택",disc:"지표설명"},            	
+            	
+            } ,
+            //우리동네상황판 지표
+            data_kind:{
+            	sido:["tot_ppltn","tot_family", "tot_house","corp_cnt","employee_cnt","tot_ppltn","tot_family", "tot_house","corp_cnt","employee_cnt","tot_ppltn","tot_family", "tot_house","corp_cnt","employee_cnt"],
+            	sgg:["tot_ppltn","tot_family", "tot_house","corp_cnt","employee_cnt","tot_ppltn","tot_family", "tot_house","corp_cnt","employee_cnt","tot_ppltn","tot_family", "tot_house","corp_cnt","employee_cnt"],
+            	emdong:["tot_ppltn","tot_family", "tot_house","corp_cnt","employee_cnt","tot_ppltn","tot_family", "tot_house","corp_cnt","employee_cnt","tot_ppltn","tot_family", "tot_house","corp_cnt","employee_cnt"],
+            },
+            
+            /*
+		            남녀 구분 값이 있는 지표 총 인구, 1인 가구, 종사자 수 			출생아 수, 노령인구 수 			독거노인 가구 수 			취업자 수 		
+             */
+		   //data_kind2_list: " tot_ppltn, tot_one_family,  employee_cnt,  newbaby_cnt, old_age_cnt, old_oneman_cnt, employ_cnt  ",   //차트유형이 복잡한놈들
+            data_kind2_list: " tot_ppltn, tot_one_family,    newbaby_cnt, old_age_cnt, old_oneman_cnt, employ_cnt ",   //차트유형이 복잡한놈들
+            
+            //todo
+		   
+            /*  
+                            인구가구  :  지표 총인구,남자인구,여자인구,가구(가구), 1인 가구 변화,65세 이상 1인가구 변화,15세 미만 유소년 인구 변화,65세 이상 고령자 인구 변화,
+                           가구교통 :  
+             	복지문화
+             	노동경제
+             	안전환경
+			*/
+            
+            /*
+            data_kind_rec:{
+          	  ppltn_fmly:["tot_ppltn","tot_man","tot_woman","cnt_fmly", "old_fmly_cnt","old_15_under_cnt", "old_man_cnt"],
+          	  house_trffy:["tot_ppltn","tot_man","tot_woman","cnt_fmly", "old_fmly_cnt","old_15_under_cnt", "old_man_cnt"],  // todo
+          	  wlfr_cltr:["tot_ppltn","tot_man","tot_woman","cnt_fmly", "old_fmly_cnt","old_15_under_cnt", "old_man_cnt"],
+          	  lbr_ecnmc:["tot_ppltn","tot_man","tot_woman","cnt_fmly", "old_fmly_cnt","old_15_under_cnt", "old_man_cnt"],
+          	  sfty_envmnt:["tot_ppltn","tot_man","tot_woman","cnt_fmly", "old_fmly_cnt","old_15_under_cnt", "old_man_cnt"],          	  
+            } ,
+            */
+            //추천지표
+            data_kind_rec:{
+            	  ppltn_fmly:["tot_ppltn","tot_ppltn","tot_ppltn"],
+            	  house_trffy:["tot_ppltn","tot_ppltn","tot_ppltn","tot_ppltn"],
+            	  wlfr_cltr:["tot_ppltn","tot_ppltn","tot_ppltn","tot_ppltn","tot_ppltn"],
+            	  lbr_ecnmc:["tot_ppltn"],
+            	  sfty_envmnt:["tot_ppltn"],          	  
+              } ,
+              
+             board2_data_kind_rec:['ppltn_fmly','house_trffy','wlfr_cltr','lbr_ecnmc','sfty_envmnt'],
+             /*
+                              모든지표 보기
+                         	    aggri_ppltn:{name:"귀농/귀촌/귀어 인구 현황", level:"sido", type:"A", yearList:"2005~2020", reference:{"A","C"} } ,
+                        	    onehouse_varis:{name:"1인 가구 변화", level:"emdong", type:"A", yearList:"2005~2020", reference:{"A","B"} } ,
+                                data_kind_all:  {
+                            	    mlti_house:{name:"다문화가구 현황", level:"sgg", levelName:"시군구", type:"A", yearList:"2005~2020", reference:["A","C"]}  ,
+                             	    aggri_ppltn:{name:"귀농/귀촌/귀어 인구 현황", level:"sido",  levelName:"시도", type:"A", yearList:"2005~2020", reference:["A","C"]} ,
+                            	    onehouse_varis:{name:"1인 가구 변화", level:"emdong",  levelName:"읍면동", type:"A", yearList:"2005~2020", reference:["A","B"]}             	    
+                              },            
+                              dummy: null
+                        	    
+                                               
+             */
+             /*
+             data_kind_all:  {
+            	    mlti_cltr:{name:"다문화가구 현황", use_yes:'yes', level:"sgg", levelName:"시군구", type:"A", yearList:"2015~2021", reference:["A","C"], baseYear:"2020", site:"통계청 「인구주택총조사」", unit:"수(가구)"},
+            	    aggri_ppltn:{name:"귀농/귀촌/귀어 인구 현황", use_yes:'yes',level:"sido", levelName:"시군구", type:"A", yearList:"2005~2020", reference:["A","C"], baseYear:"2020", site:"통계청, 인구주택총조사 (2020년)", unit:"가구"},
+            	    onehouse_varis:{name:"1인 가구 변화", use_yes:'yes',level:"sido", levelName:"시군구", type:"A", yearList:"2005~2020", reference:["A","C"], baseYear:"2020", site:"통계청, 인구주택총조사 (2020년)", unit:"가구"},
+            	    tot_ppltn:{name:"총인구", use_yes:'yes',level:"reg", levelName:"집계구", type:"B", yearList:"2005~2020", reference:["A","B","C"], baseYear:"2020", site:"통계청, 인구주택총조사 (2020년)", unit:"명"},
+            	    mlti_house:{name:"다세대주택", use_yes:'yes',level:"reg", levelName:"집계구", type:"C", yearList:"2005~2020", reference:["A","B","C"], baseYear:"2020", site:"통계청, 인구주택총조사 (2020년)", unit:"개"},            	    
+            	    trffc_cltr:{name:"교통문화지수", use_yes:'yes',level:"sgg", levelName:"시군구", type:"D", yearList:"2005~2020", reference:["A","B","C"], baseYear:"2020", site:"대화형통계지도>e지방지표", unit:"건"},            	    
+              },
+              */    
+             //모든지표
+             data_kind_all:  {
+                oneman_house:{name:"1인 가구 변화", use_yes:'yes', level:"emdong", levelName:"읍면동", type:"A", yearList:"2000~2021", reference:["A","C"], baseYear:"2021", site:"통계청 「인구주택총조사」", unit:"수(가구)"},
+           	    old_oneman:{name:"65세 이상 1인가구 변화", use_yes:'yes',level:"emdong", levelName:"읍면동", type:"A", yearList:"2021", reference:["A"], baseYear:"2021", site:"통계청, 「인구주택총조사」", unit:"가구"},
+           	    ppltn_reg:{name:"주민등록 인구 현황", use_yes:'yes',level:"emdong", levelName:"읍면동", type:"A", yearList:"2021", reference:["A"], baseYear:"2021", site:"통계청, 「인구주택총조사」", unit:"명"},
+           	    ppltn_increase:{name:"인구 자연증가 현황", use_yes:'yes',level:"emdong", levelName:"읍면동", type:"A", yearList:"2021", reference:["A"], baseYear:"2021", site:"통계청, 「인구주택총조사」", unit:"명"},
+           	    ppltn_movement:{name:"인구 이동 현황", use_yes:'yes',level:"emdong", levelName:"읍면동", type:"A", yearList:"2021", reference:["A"], baseYear:"2021", site:"통계청, 「인구주택총조사」", unit:"명"},
+           	    old_age_cnt:{name:"65세 이상 고령자 인구 변화", use_yes:'yes',level:"emdong", levelName:"읍면동", type:"A", yearList:"2021", reference:["A"], baseYear:"2021", site:"통계청, 「인구주택총조사」", unit:"명"},
+           	    ppltn_foreigner:{name:"외국인 주민 현황", use_yes:'yes',level:"emdong", levelName:"읍면동", type:"A", yearList:"2021", reference:["A"], baseYear:"2021", site:"통계청, 「인구주택총조사」", unit:"명"},
+           	    pptln_youngman:{name:"15세 미만 유소년 인구 변화", use_yes:'yes',level:"emdong", levelName:"읍면동", type:"A", yearList:"2021", reference:["A"], baseYear:"2021", site:"통계청, 「인구주택총조사」", unit:"명"},
+           	    back_farm:{name:"귀농/귀촌/귀어 인구현황 ", use_yes:'yes',level:"emdong", levelName:"읍면동", type:"A", yearList:"2021", reference:["A"], baseYear:"2021", site:"통계청, 「인구주택총조사」", unit:"명"},
+           	    tot_ppltn:{name:"총 인구", use_yes:'yes',level:"sido", levelName:"집계구", type:"B", yearList:"2005~2020", reference:["A","C"], baseYear:"2020", site:"통계청, 「인구주택총조사」", unit:"수(명)"},
+           	    ppltn_density:{name:"인구밀도", use_yes:'yes',level:"reg", levelName:"집계구", type:"B", yearList:"2000~2020", reference:["A","B","C"], baseYear:"2020", site:"통계청, 「인구주택총조사」", unit:"수(명/㎢)"},
+           	    avg_age:{name:"평균나이", use_yes:'yes',level:"reg", levelName:"집계구", type:"B", yearList:"2000~2020", reference:["A","B","C"], baseYear:"2020", site:"통계청, 「인구주택총조사」", unit:"세"},            	    
+           	    tot_man:{name:"남자인구", use_yes:'yes',level:"emdong", levelName:"읍면동", type:"C", yearList:"2005~2020", reference:["A","B","C"], baseYear:"2020", site:"통계청, 「인구주택총조사」", unit:"수(명)"},
+           	    tot_woman:{name:"여자인구", use_yes:'yes',level:"emdong", levelName:"읍면동", type:"C", yearList:"2005~2020", reference:["A","B","C"], baseYear:"2020", site:"통계청, 「인구주택총조사」", unit:"수(명)"},
+           	    apart_cnt:{name:"아파트", use_yes:'yes',level:"emdong", levelName:"읍면동", type:"C", yearList:"2005~2020", reference:["A","B","C"], baseYear:"2020", site:"통계청, 「인구주택총조사」", unit:"수(호)"},            	    
+              },
+              
+              dummy: null
+	} ;
+     
+     
+    const mapInfoArea = {
+    		'25': null,
+    		'25030': null 
+    }
+    
+    /*    
+    let data = [{ "gubun": "주거교통", "title": "주택(호)", "totalCount": 469426, "baseYear": "2022-06", "unit": "명", "category": ["대전", "서구","둔산동"], "chartData": [456789, 451263,1211] },
+        { "gubun": "주거교통", "title": "단독주택", "totalCount": 469426, "baseYear": "2022-06", "unit": "명", "category": ["대전", "서구"], "chartData": [456789, 521463] },
+        { "gubun": "주거교통", "title": "아파트현황", "totalCount": 469426, "baseYear": "2022-06", "unit": "명", "category": ["대전", "서구"], "chartData": [456789, 632541] },
+        { "gubun": "주거교통", "title": "1인당 자동차 등록대수", "totalCount": 469426, "baseYear": "2022-06", "unit": "명", "category": ["대전", "서구"], "chartData": [456789, 325416] }
+        ]
+      */
+
+      
+      
+      
+   //   주거·교통	복지·문화	노동·경제	안전·환경
+      
+    //추천지표  
+    const mapInfoRecData = {
+    		"25030": {
+    			  "ppltn_fmly" : {
+    				  "tot_ppltn" : {
+    					  name:"총인구",
+    					  unit:"명",
+    					  base_year: "2020-06",
+    					  this_val:432422,
+    					  category:["대전", "서구", "둔산동"],
+    					  title:"총인구",
+    					  chartData: [456789,321263,333223],
+ 			              yearData:{
+ 			            	   title:"총인구",
+ 			            	   category:["2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"],
+			            	   data : [300, 300,300,200,300,200,200,200,400,300,300,230],
+			               },
+ 			              yearDataUp:{
+ 			            	   title:"총인구",
+ 			            	   category:["2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"],
+			            	   data : [300, 300,300,200,300,200,200,200,400,300,300,230],
+			               },
+			               
+    				   },
+			               
+     				  "tot_man" : {
+     					  name:"남자수",
+     					  unit:"명",
+     					  base_year: "2020-06",
+     					  this_val:432422,
+     					  title:["대전", "서구","둔산동"],
+     					  chartData: [456789, 451263,1211],
+  			              yearData:{
+			            	   title:"남자수",
+ 			            	   category:["2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"],
+ 			            	   data: [100, 300,300,200,300,200,200,200,400,300,300,300],
+ 			               }
+    				  },
+    			  }
+    		}
+    } ;
+      
+    
+    
+    /*
+     *             	
+                 oneman_house:{name:"1인 가구 변화", use_yes:'yes', level:"emdong", levelName:"읍면동", type:"A", yearList:"2000~2021", reference:["A","C"], baseYear:"2021", site:"통계청 「인구주택총조사」", unit:"수(가구)"},
+           	    old_oneman:{name:"65세 이상 1인가구 변화", use_yes:'yes',level:"emdong", levelName:"읍면동", type:"A", yearList:"2021", reference:["A"], baseYear:"2021", site:"통계청, 「인구주택총조사」", unit:"가구"},
+           	    tot_ppltn:{name:"총 인구", use_yes:'yes',level:"sido", levelName:"집계구", type:"B", yearList:"2005~2020", reference:["A","C"], baseYear:"2020", site:"통계청, 「인구주택총조사」", unit:"수(명)"},
+           	    ppltn_density:{name:"인구밀도", use_yes:'yes',level:"reg", levelName:"집계구", type:"B", yearList:"2000~2020", reference:["A","B","C"], baseYear:"2020", site:"통계청, 「인구주택총조사」", unit:"수(명/㎢)"},
+           	    avg_age:{name:"평균나이", use_yes:'yes',level:"reg", levelName:"집계구", type:"B", yearList:"2000~2020", reference:["A","B","C"], baseYear:"2020", site:"통계청, 「인구주택총조사」", unit:"개"},            	    
+           	    tot_man:{name:"남자인구", use_yes:'yes',level:"emdong", levelName:"읍면동", type:"C", yearList:"2005~2020", reference:["A","B","C"], baseYear:"2020", site:"통계청, 「인구주택총조사」", unit:"수(명)"},
+           	    tot_woman:{name:"여자인구", use_yes:'yes',level:"emdong", levelName:"읍면동", type:"C", yearList:"2005~2020", reference:["A","B","C"], baseYear:"2020", site:"통계청, 「인구주택총조사」", unit:"수(명)"},
+           	    apart_cnt:{name:"아파트", use_yes:'yes',level:"emdong", levelName:"읍면동", type:"C", yearList:"2005~2020", reference:["A","B","C"], baseYear:"2020", site:"통계청, 「인구주택총조사」", unit:"수(명)"},            	    
+
+     */
+    
+    //우리동네상환판
+    const mapInfoData = {
+    		'25': {
+		   		     "tot_ppltn" :{  
+		   		    	 name:"총 인구",
+			             thisYear:'2022년',
+			             thisYearVal:365123,
+			             thisYearKey1:'남', 
+			             thisYearVal1:230978,
+			             thisYearKey2:'여', 
+			             thisYearVal2:205875,
+			             lastYear:'2021년', 
+			             lastYearVal:112548, 
+			             yearData:{
+			            	   year:["2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"],
+			            	   title1_data: [100,100,100,100,100,100,100,100,100,100,100,100],
+			            	   title2_data: [200,200,200,200,200,200,200,200,200,300,300,300],
+			            	   tot_data: [300, 300,300,200,300,200,200,200,400,300,300,300],
+			            	   title1: '남자',			            	   
+			            	   title2: '여자',
+			            	 },
+			              "unit": "명",	
+			              "larger": "<대전광역시 유성구 (3,100명)>,<대전광역시 서구 (2,100명)>",
+			              "larger2": "<대전광역시 유성구 (3,100명)>,<대전광역시 서구 (2,100명)>",    		    	              
+			              "smaller": "<대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)>",
+			              "smaller2": "<대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)>",    		    	              
+			              'area' : null
+		                },
+		                
+			    		"tot_family" :{  name:"총 가구",
+				             thisYear:'2022년',
+				             thisYearVal:365123,
+				             thisYearKey1:'남', 
+				             thisYearVal1:230978,
+				             thisYearKey2:'여', 
+				             thisYearVal2:205875,
+				             lastYear:'2021년', 
+				             lastYearVal:112548, 
+				             yearData:{
+				            	   year:["2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"],
+				            	   title1: '남자',
+				            	   title1_data: [100, 100,100,100,100,100,100,100,100,100,100,100],
+				            	   title2: '여자',
+				            	   title2_data: [200, 200,200,200,200,200,200,200,200,300,300,300],
+				            	   tot_data: [300, 300,300,200,300,200,200,200,400,300,300,300], 
+				            	 },
+				              "unit": "명",	
+				              "larger": "<대전광역시 유성구 (3,100명)>,<대전광역시 서구 (2,100명)>",
+				              "larger2": "<대전광역시 유성구 (3,100명)>,<대전광역시 서구 (2,100명)>",    		    	              
+				              "smaller": "<대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)> aaaaa",
+				              "smaller2": "<대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)> aaaaa",    		    	              
+			                },
+			                
+			 
+							 "gagu" :{},    		     
+							 "house" :{},
+							 "1gagu" :{},
+							 "corp" :{},
+							 "employee" :{},    		     
+    		},
+    		
+    		'25030': 
+    		   {
+    		     "tot_ppltn" :{  name:"총 인구",
+    		    	             thisYear:'2022년',
+    		    	             thisYearVal:365123,
+    		    	             thisYearKey1:'남', 
+    		    	             thisYearVal1:230978,
+    		    	             thisYearKey2:'여', 
+    		    	             thisYearVal2:205875,
+    		    	             lastYear:'2021년', 
+    		    	             lastYearVal:112548, 
+    		    	             yearData:{
+    		    	            	   year:["2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"],
+    		    	            	   title1: '남자',
+    		    	            	   title1_data: [100, 100,100,100,100,100,100,100,100,100,100,100],
+    		    	            	   title2: '여자',
+    		    	            	   title2_data: [200, 200,200,200,200,200,200,200,200,300,300,300],
+    		    	            	   tot_data: [300, 300,300,200,300,200,200,200,400,300,300,300], 
+    		    	            	 },
+    		    	              "unit": "명",	
+    		    	              "larger": "<대전광역시 유성구 (3,100명)>,<대전광역시 서구 (2,100명)>",
+    		    	              "larger2": "<대전광역시 유성구 (3.23%)>,<대전광역시 서구 (2,12%)>",    		    	              
+    		    	              "smaller": "<대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)> ",
+    		    	              "smaller2": "<대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)> ",    		    	              
+    		    	              'area' : null
+    		                    },
+    		                    
+       		     "tot_family" :{  name:"총 가구수",
+    		    	             thisYear:'2022년',
+    		    	             thisYearVal:365123,
+    		    	             thisYearKey1:'남', 
+    		    	             thisYearVal1:230978,
+    		    	             thisYearKey2:'여', 
+    		    	             thisYearVal2:205875,
+    		    	             lastYear:'2021년', 
+    		    	             lastYearVal:112548, 
+    		    	             yearData:{
+    		    	            	   year:["2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"],
+    		    	            	   title1: '남자',
+    		    	            	   title1_data: [100, 100,100,100,100,100,100,100,100,100,100,100],
+    		    	            	   title2: '여자',
+    		    	            	   title2_data: [200, 200,200,200,200,200,200,200,200,300,300,300],
+    		    	            	   tot_data: [300, 300,300,200,300,200,200,200,400,300,300,300], 
+    		    	            	 },
+    		    	              "unit": "명",	
+    		    	              "larger": "<대전광역시 유성구 (3,100명)>,<대전광역시 서구 (2,100명)>",
+    		    	              "larger2": "<대전광역시 유성구 (3,100명)>,<대전광역시 서구 (2,100명)>",    		    	              
+    		    	              "smaller": "<대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)> aaaaa",
+    		    	              "smaller2": "<대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)> aaaaa",    		    	              
+    		                    },
+    		                    
+    		     
+    		       "tot_house" :{  name:"총 주택수",
+        		    	             thisYear:'2022년',
+        		    	             thisYearVal:365123,
+        		    	             thisYearKey1:'남', 
+        		    	             thisYearVal1:230978,
+        		    	             thisYearKey2:'여', 
+        		    	             thisYearVal2:205875,
+        		    	             lastYear:'2021년', 
+        		    	             lastYearVal:112548, 
+        		    	             yearData:{
+        		    	            	   year:["2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"],
+        		    	            	   title1: '남자',
+        		    	            	   title1_data: [100, 100,100,100,100,100,100,100,100,100,100,100],
+        		    	            	   title2: '여자',
+        		    	            	   title2_data: [200, 200,200,200,200,200,200,200,200,300,300,300],
+        		    	            	   tot_data: [300, 300,300,200,300,200,200,200,400,300,300,300], 
+        		    	            	 },
+        		    	              "unit": "명",	
+        		    	              "larger": "<대전광역시 유성구 (3,100명)>,<대전광역시 서구 (2,100명)>",
+        		    	              "larger2": "<대전광역시 유성구 (3,100명)>,<대전광역시 서구 (2,100명)>",    		    	              
+        		    	              "smaller": "<대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)> aaaaa",
+        		    	              "smaller2": "<대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)> aaaaa",    		    	              
+        		                    },
+    		     "house" :{},
+    		     "1gagu" :{},
+    		     "corp" :{},
+    		     "employee" :{},    		     
+    		   },
+    } ;
+    
+
+
+     const mapInfoAllData = {
+        	            '25030': {
+               		   		     "oneman_house" :{"category":[2000,2005,2010,2015,2016,2017,2018,2019,2020],"title":"다문화가구", "data":[1234,2314,2214,3142,1124,3254,4512,2152,1254]},
+               		   		     "old_oneman" :{"category":[2000,2005,2010,2015,2016,2017,2018,2019,2020],"title":"다문화가구", "data":[1234,2314,2214,3142,1124,3254,4512,2152,1254]},               		   		     
+               		   		     "tot_ppltn":{"category":[2000,2005,2010,2015,2016,2017,2018,2019,2020],
+               		   		                       "title":"귀농/귀촌/귀어 인구 현황", 
+               		   		                       "data":[1234,2314,2214,3142,1124,3254,4512,2152,1254],
+               		   		                       "table_data":[{"spaceName":"둔산동","spaceId":"2501068020201","spaceRank":"1","value":289,"rate":"6.1"},
+               													 {"spaceName":"내동","spaceId":"2501068010003","spaceRank":"2","value":244,"rate":"5.1"},
+               													 {"spaceName":"도안동","spaceId":"2501068020102","spaceRank":"3","value":238,"rate":"5.0"},
+               													 {"spaceName":"홍도동_4","spaceId":"2501068020101","spaceRank":"4","value":231,"rate":"4.9"},
+               													 {"spaceName":"홍도동_5","spaceId":"2501068020401","spaceRank":"5","value":225,"rate":"4.7"},
+               													 {"spaceName":"홍도동_6","spaceId":"2501068020010","spaceRank":"6","value":222,"rate":"4.7"},
+               													 {"spaceName":"홍도동_7","spaceId":"2501068020012","spaceRank":"7","value":220,"rate":"4.6"},
+               													 {"spaceName":"홍도동_8","spaceId":"2501068010201","spaceRank":"8","value":209,"rate":"4.4"},
+               													 {"spaceName":"홍도동_9","spaceId":"2501068020004","spaceRank":"9","value":209,"rate":"4.4"},
+               													 {"spaceName":"홍도동_10","spaceId":"2501068020801","spaceRank":"10","value":187,"rate":"3.9"}
+             										            ],
+            	        							"table_data2":[{ "title": "전국", "data": 70.5 },{ "title": "대전광역시", "data": 60.5 },{ "title": "대전광역시 서구", "data": 45.5 },{ "title": "대전광역시 서구 둔산동", "data": 30.5 }]             										            
+               		   		                     },
+             		   		     "ppltn_density":{"category":["둔산동","내동",2010,2015,2016,2017,2018,2019,2020],
+                 		   		                       "title":"귀농/귀촌/귀어 인구 현황", 
+                 		   		                       "data":[1234,2314,2214,3142,1124,3254,4512,2152,1254],
+                 		   		                       "table_data":[{"spaceName":"둔산동","spaceId":"2501068020201","spaceRank":"1","value":289,"rate":"6.1"},
+                 													 {"spaceName":"내동","spaceId":"2501068010003","spaceRank":"2","value":244,"rate":"5.1"},
+                 													 {"spaceName":"도안동","spaceId":"2501068020102","spaceRank":"3","value":238,"rate":"5.0"},
+                 													 {"spaceName":"홍도동_4","spaceId":"2501068020101","spaceRank":"4","value":231,"rate":"4.9"},
+                 													 {"spaceName":"홍도동_5","spaceId":"2501068020401","spaceRank":"5","value":225,"rate":"4.7"},
+                 													 {"spaceName":"홍도동_6","spaceId":"2501068020010","spaceRank":"6","value":222,"rate":"4.7"},
+                 													 {"spaceName":"홍도동_7","spaceId":"2501068020012","spaceRank":"7","value":220,"rate":"4.6"},
+                 													 {"spaceName":"홍도동_8","spaceId":"2501068010201","spaceRank":"8","value":209,"rate":"4.4"},
+                 													 {"spaceName":"홍도동_9","spaceId":"2501068020004","spaceRank":"9","value":209,"rate":"4.4"},
+                 													 {"spaceName":"홍도동_10","spaceId":"2501068020801","spaceRank":"10","value":187,"rate":"3.9"}
+               										            ],
+              	        							"table_data2":[{ "title": "전국", "data": 70.5 },{ "title": "대전광역시", "data": 60.5 },{ "title": "대전광역시 서구", "data": 45.5 },{ "title": "대전광역시 서구 둔산동", "data": 30.5 }]             										            
+                 		   		                     },
+                 		   		                     
+             		   		     "tot_man":{"category":[2000,2005,2010,2015,2016,2017,2018,2019,2020],
+                   		   		                       "title":"귀농/귀촌/귀어 인구 현황", 
+                   		   		                       "data":[1234,2314,2214,3142,1124,3254,4512,2152,1254],
+                   		   		                       "table_data":[{"spaceName":"둔산동","spaceId":"2501068020201","spaceRank":"1","value":289,"rate":"6.1"},
+                   													 {"spaceName":"내동","spaceId":"2501068010003","spaceRank":"2","value":244,"rate":"5.1"},
+                   													 {"spaceName":"도안동","spaceId":"2501068020102","spaceRank":"3","value":238,"rate":"5.0"},
+                   													 {"spaceName":"홍도동_4","spaceId":"2501068020101","spaceRank":"4","value":231,"rate":"4.9"},
+                   													 {"spaceName":"홍도동_5","spaceId":"2501068020401","spaceRank":"5","value":225,"rate":"4.7"},
+                   													 {"spaceName":"홍도동_6","spaceId":"2501068020010","spaceRank":"6","value":222,"rate":"4.7"},
+                   													 {"spaceName":"홍도동_7","spaceId":"2501068020012","spaceRank":"7","value":220,"rate":"4.6"},
+                   													 {"spaceName":"홍도동_8","spaceId":"2501068010201","spaceRank":"8","value":209,"rate":"4.4"},
+                   													 {"spaceName":"홍도동_9","spaceId":"2501068020004","spaceRank":"9","value":209,"rate":"4.4"},
+                   													 {"spaceName":"홍도동_10","spaceId":"2501068020801","spaceRank":"10","value":187,"rate":"3.9"}
+                 										            ],
+                	        							"table_data2":[{ "title": "전국", "data": 70.5 },{ "title": "대전광역시", "data": 60.5 },{ "title": "대전광역시 서구", "data": 45.5 },{ "title": "대전광역시 서구 둔산동", "data": 30.5 }]             										            
+                   		   		                     },
+                   		   		                     
+                   		   		                     
+             		   		     "tot_woman":{"category":[2000,2005,2010,2015,2016,2017,2018,2019,2020],
+                     		   		                       "title":"귀농/귀촌/귀어 인구 현황", 
+                     		   		                       "data":[1234,2314,2214,3142,1124,3254,4512,2152,1254],
+                     		   		                       "table_data":[{"spaceName":"둔산동","spaceId":"2501068020201","spaceRank":"1","value":289,"rate":"6.1"},
+                     													 {"spaceName":"내동","spaceId":"2501068010003","spaceRank":"2","value":244,"rate":"5.1"},
+                     													 {"spaceName":"도안동","spaceId":"2501068020102","spaceRank":"3","value":238,"rate":"5.0"},
+                     													 {"spaceName":"홍도동_4","spaceId":"2501068020101","spaceRank":"4","value":231,"rate":"4.9"},
+                     													 {"spaceName":"홍도동_5","spaceId":"2501068020401","spaceRank":"5","value":225,"rate":"4.7"},
+                     													 {"spaceName":"홍도동_6","spaceId":"2501068020010","spaceRank":"6","value":222,"rate":"4.7"},
+                     													 {"spaceName":"홍도동_7","spaceId":"2501068020012","spaceRank":"7","value":220,"rate":"4.6"},
+                     													 {"spaceName":"홍도동_8","spaceId":"2501068010201","spaceRank":"8","value":209,"rate":"4.4"},
+                     													 {"spaceName":"홍도동_9","spaceId":"2501068020004","spaceRank":"9","value":209,"rate":"4.4"},
+                     													 {"spaceName":"홍도동_10","spaceId":"2501068020801","spaceRank":"10","value":187,"rate":"3.9"}
+                   										            ],
+                  	        							"table_data2":[{ "title": "전국", "data": 70.5 },{ "title": "대전광역시", "data": 60.5 },{ "title": "대전광역시 서구", "data": 45.5 },{ "title": "대전광역시 서구 둔산동", "data": 30.5 }]             										            
+                     		   		                     },
+                   		   		                     
+                     	             		   		     "tot_woman":{"category":[2000,2005,2010,2015,2016,2017,2018,2019,2020],
+                       		   		                       "title":"귀농/귀촌/귀어 인구 현황", 
+                       		   		                       "data":[1234,2314,2214,3142,1124,3254,4512,2152,1254],
+                       		   		                       "table_data":[{"spaceName":"둔산동","spaceId":"2501068020201","spaceRank":"1","value":289,"rate":"6.1"},
+                       													 {"spaceName":"내동","spaceId":"2501068010003","spaceRank":"2","value":244,"rate":"5.1"},
+                       													 {"spaceName":"도안동","spaceId":"2501068020102","spaceRank":"3","value":238,"rate":"5.0"},
+                       													 {"spaceName":"홍도동_4","spaceId":"2501068020101","spaceRank":"4","value":231,"rate":"4.9"},
+                       													 {"spaceName":"홍도동_5","spaceId":"2501068020401","spaceRank":"5","value":225,"rate":"4.7"},
+                       													 {"spaceName":"홍도동_6","spaceId":"2501068020010","spaceRank":"6","value":222,"rate":"4.7"},
+                       													 {"spaceName":"홍도동_7","spaceId":"2501068020012","spaceRank":"7","value":220,"rate":"4.6"},
+                       													 {"spaceName":"홍도동_8","spaceId":"2501068010201","spaceRank":"8","value":209,"rate":"4.4"},
+                       													 {"spaceName":"홍도동_9","spaceId":"2501068020004","spaceRank":"9","value":209,"rate":"4.4"},
+                       													 {"spaceName":"홍도동_10","spaceId":"2501068020801","spaceRank":"10","value":187,"rate":"3.9"}
+                     										            ],
+                    	        							"table_data2":[{ "title": "전국", "data": 70.5 },{ "title": "대전광역시", "data": 60.5 },{ "title": "대전광역시 서구", "data": 45.5 },{ "title": "대전광역시 서구 둔산동", "data": 30.5 }]             										            
+                       		   		                     },
+                 		   		                     
+               		   		                     
+                   		   		                     
+                   	               "apart_cnt":{"category":["둔산동","내동","도안동","홍도동"],
+                     		   		                       "title":"아파트", 
+                     		   		                       "data":[1234,2314,2214,1233],
+                     		   		                       "table_data":[{"spaceName":"둔산동","spaceId":"2501068020201","spaceRank":"1","value":289,"rate":"6.1"},
+                     													 {"spaceName":"내동","spaceId":"2501068010003","spaceRank":"2","value":244,"rate":"5.1"},
+                     													 {"spaceName":"도안동","spaceId":"2501068020102","spaceRank":"3","value":238,"rate":"5.0"},
+                     													 {"spaceName":"홍도동_4","spaceId":"2501068020101","spaceRank":"4","value":231,"rate":"4.9"},
+                     													 {"spaceName":"홍도동_5","spaceId":"2501068020401","spaceRank":"5","value":225,"rate":"4.7"},
+                     													 {"spaceName":"홍도동_6","spaceId":"2501068020010","spaceRank":"6","value":222,"rate":"4.7"},
+                     													 {"spaceName":"홍도동_7","spaceId":"2501068020012","spaceRank":"7","value":220,"rate":"4.6"},
+                     													 {"spaceName":"홍도동_8","spaceId":"2501068010201","spaceRank":"8","value":209,"rate":"4.4"},
+                     													 {"spaceName":"홍도동_9","spaceId":"2501068020004","spaceRank":"9","value":209,"rate":"4.4"},
+                     													 {"spaceName":"홍도동_10","spaceId":"2501068020801","spaceRank":"10","value":187,"rate":"3.9"}
+                   										            ],
+                  	        							"table_data2":[{ "title": "전국", "data": 70.5 },{ "title": "대전광역시", "data": 60.5 },{ "title": "대전광역시 서구", "data": 45.5 },{ "title": "대전광역시 서구 둔산동", "data": 30.5 }]             										            
+                     		   		                     },
+               		   		                     
+                            },                
+               		   		     
+    } ;
+    
+    
+    
+/*
+ * https://sgis.kostat.go.kr/ServiceAPI/thematicMap/GetThemaMapData.json?
+ */    
+    
+    
+    

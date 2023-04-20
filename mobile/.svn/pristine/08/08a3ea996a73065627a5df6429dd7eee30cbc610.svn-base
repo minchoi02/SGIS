@@ -1,0 +1,1072 @@
+@charset "utf-8";
+/*Notosans*/
+/*font*/
+/* 2020.09.21[신예리] 속도문제로 인해  폰트 주석 처리 START
+@font-face {font-family:"NotoSansCJKkr-Regular"; font-style:normal; font-weight:400; src: url(../font/NotoSansCJKkr-Regular.otf) format('otf');}
+@font-face {font-family:"NotoSansCJKkr-Bold"; font-style:bold; font-weight:700; src: url(../font/NotoSansCJKkr-Bold.otf) format('otf');} 
+
+@font-face {font-family: 'Noto Sans KR'; font-style: normal; font-weight: 100; src: url(../font/NotoSansKR-Thin.woff2) format('woff2'), url(../font/NotoSansKR-Thin.woff) format('woff'), url(../font/NotoSansKR-Thin.otf) format('opentype');}
+@font-face {font-family: 'Noto Sans KR'; font-style: normal; font-weight: 300; src: url(../font/NotoSansKR-Light.woff2) format('woff2'), url(../font/NotoSansKR-Light.woff) format('woff'), url(../font/NotoSansKR-Light.otf) format('opentype');}
+@font-face {font-family: 'Noto Sans KR'; font-style: normal; font-weight: 400; src: url(../font/NotoSansKR-Regular.woff2) format('woff2'), url(../font/NotoSansKR-Regular.woff) format('woff'), url(../font/NotoSansKR-Regular.otf) format('opentype');}
+@font-face {font-family: 'Noto Sans KR'; font-style: normal; font-weight: 500; src: url(../font/NotoSansKR-Medium.woff2) format('woff2'), url(../font/NotoSansKR-Medium.woff) format('woff'), url(../font/NotoSansKR-Medium.otf) format('opentype'); }
+@font-face {font-family: 'Noto Sans KR'; font-style: normal; font-weight: 700; src: url(../font/NotoSansKR-Bold.woff2) format('woff2'), url(../font/NotoSansKR-Bold.woff) format('woff'), url(../font/NotoSansKR-Bold.otf) format('opentype');}
+@font-face {font-family: 'Noto Sans KR'; font-style: normal; font-weight: 900; src: url(../font/NotoSansKR-Black.woff2) format('woff2'), url(../font/NotoSansKR-Black.woff) format('woff'), url(../font/NotoSansKR-Black.otf) format('opentype'); } 
+*/
+
+/* 한글폰트만 */
+@font-face {font-family: 'Noto Sans KR'; font-style: normal; font-weight: 400; src: url(../font/NotoSansKR-Regular.woff2) format('woff2'), url(../font/NotoSansKR-Regular.woff) format('woff'), url(../font/NotoSansKR-Regular.otf) format('opentype'); unicode-range: U+1100,U+11FF;}
+@font-face {font-family: 'Noto Sans KR'; font-style: normal; font-weight: 700; src: url(../font/NotoSansKR-Bold.woff2) format('woff2'), url(../font/NotoSansKR-Bold.woff) format('woff'), url(../font/NotoSansKR-Bold.otf) format('opentype'); unicode-range: U+1100,U+11FF;}
+/* 2020.09.21[신예리] 속도문제로 인해  폰트 주석 처리 END */
+
+body{-webkit-text-size-adjust: 100%; font-family: "Noto Sans KR", sans-serif !important; margin:0;}
+
+.bb{border-bottom: 1px solid #E1E1E2 !important;}
+.bt{border-top: 1px solid #E1E1E2 !important;}
+.pt10 {padding-top: 10px;}
+.Wrap > .sub_Wrap {width:100%; position:fixed; z-index:200; top:0; left:0; overflow:hidden; height:60px; }
+.mlr15 {margin: 0 15px;}
+.m16 {margin:16px;}
+.m10 {margin: 10px;}
+
+.flex {flex: 1 auto;}
+#mapWrap {width: 100%; background-size: 100% auto; position: fixed; top: 41px;/*height: calc(100% - 180px);*/ height: 100%; overflow:hidden; background: url(../images/sub/map00.png) no-repeat;}
+/* #mapWrap img {width: 100%; height: auto;} */
+.resultWrap {position: fixed; bottom: 0; width: 100%; z-index:30;}
+#dataWrap {display: flex; flex-direction: row; align-items: flex-end;}
+.result_list {top:105px !important; left:10px; position: fixed; height: 450px; width: calc(100% - 20px); box-sizing:border-box; z-index:858; border:1px solid #757678; background-color:#fff; padding:10px; } /*2022-11-02 가로폭 수정*/
+.result_list > .tit_top { justify-content:space-between; align-items:center; }
+.result_list > .tit_top .tit {color: #353B48; font-size: 1.3em; font-weight: 700; }
+.result_list > .tit {color: #353B48; font-size: 1.3em; font-weight: 700;}
+/* .currenPosition {display: block; padding: 0px 16px; background-color: white; position: relative; z-index: 999; bottom: 0; }
+.currenPosition > .tit {color: #353B48; font-size: 1.3em; font-weight: 700;} */
+.Btnarea { width: 100%; background-color: white; border-top: 3px solid #112B48;  } /*08.26 신예리 수정*/
+.swiperBtn {width: 100%; margin:0 auto; position:relative; overflow:hidden; text-align:center; font-size:14px; color:#112B48; padding:15px 0;} /*2020.09.14[신예리] 버튼 띄워지는 문제 수정*/
+.swiperBtn h2 { font-size:14px; }
+
+/*swiper Btn 추가 - 08.25 신예리*/
+.swiperBtn.close {width: 100%; background: url(../images/common/common_toggle_close.png) no-repeat center; height: 30px; background-size: 35px; margin-top: -7px;}/*2020.09.14[신예리] 버튼 띄워지는 문제 수정*/
+
+.gridheader {display: flex; flex-direction: row; border-top: 1px solid #ddd; padding: 5px 0; align-items: center;}
+.gridheader > p {color: #000; font-size: 14px; font-weight: 700; display: flex; align-items:flex-start; }
+.gridheader > p > span {padding-left: 3px; color: #4B5158; font-size: 14.5px; font-weight: 700; display: flex; align-items:flex-start; }
+.cap {font-size: 14.5px; margin-left: auto; margin-right: -20px;}
+.cap02 { font-size: 13px;font-weight: bold;}
+.gridWrap {/*display: flex; flex-direction: column; justify-content:center;*/ display: block; overflow-y: auto; margin-top:0px;}
+.gridheader_con {box-sizing: border-box; margin:5px 0 0 0; padding:5px; border-radius: 1px; border: 1px solid #E4E4E4; }	/* 2020.09.11[한광희] 목록 사이즈 수정 */
+/*.gridheader_con.on, .gridheader_con:hover {box-sizing: border-box; border: 2px solid #2FBFDE;}*/
+.gridheader_con.on {box-sizing: border-box; border: 1px solid #2277F2;}
+.gridheader_con.on .gridrow > h2 { color:#2277F2; }
+
+
+.gridheader_con02 {box-sizing: border-box; margin: 5px 0 4px 0; padding: .5em 1.2em; border-radius: 7px; border: 1px solid #E1E1E2; box-shadow: 0px 0px 4px rgba(0,0,0,0.2);}
+.gridheader_con02.on, .gridheader_con02:hover {box-sizing: border-box; border: 2px solid #2FBFDE;}
+
+.gridheader_conThematic {box-sizing: border-box; margin:5px auto; padding:10px; border-radius: 5px; border: 1px solid #E4E4E4; display: inline-block; position: relative; width: 100%;} /*2020.09.09[신예리] 목록 크기 및 여백 줄임*/
+.gridheader_conThematic.on {box-sizing: border-box; border: 1px solid #2277F2;}
+.gridheader_conThematic.on .gridrow_left>h2>a { color:#2277F2; }
+
+
+.gridrow {margin: 0; display: flex; flex-direction: row; align-items: center;}
+ /*2022-11-02 수정*/
+.gridrow_left {position:relative; float: left; width: 100%;} /*2020.09.08[신예리] padding값 삭제*/ /*2022.11.02 width 수정*/
+.gridrow_left>h2>a{ width:100%; color: #3D3D3D; font-size: 12px; font-weight: 700; display: flex; align-items: flex-start; font-family: 'Noto Sans KR'; white-space: pre-line;} /*2020.09.08[신예리] 지표명 하단 여백 삭제*/ /*2022.11.02 width 수정*/
+.gridrow_left span { padding-right:5px;}
+.gridrow_left span:after { content:","; }
+.gridrow_left span:last-child::after { content:""; }
+
+.gridrow_left>h2 { display:flex; justify-content:space-between; align-items:center; }
+.gridrow_left>.gridrow_list { display:flex; justify-content:flex-start; align-items:center;}
+
+
+.gridrow_right > span {height: 18px; display: block; text-align: right; margin:26px 0 3px 0; white-space: nowrap;} /*2020.09.08[신예리] 통계수치 위치 조정 및 속성 추가*/
+.gridrow_right {height: 60px;float: right;position: absolute; right: 30px; width: 25%; padding: 5px 0; text-align: right; display: block; bottom: 20px;}	/* 2020.09.15[한광희] 코로나 추가로 css 수정 */
+.gridrowSub {display: flex; width: 100%; align-items: center;}
+.gridrow > h2 {color: #3D3D3D; font-size: 14px; font-weight: 700; display: flex; align-items: flex-start; font-family: 'Noto Sans KR'; white-space: pre-line; width: 100%;} /*2020.09.10 [신예리] font 이름 수정*/
+.gridrow > h2 > a {color: #4B5158; font-size: 15px; display: flex; align-items: flex-start; font-family: 'Noto Sans KR'; white-space: pre-line;}		/* 2020.09.21[한광희] 폰트 수정 */
+.gridrow_txt {margin: 5px 0; width:100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Noto Sans KR';}	/* 2020.09.21[한광희] 폰트 수정 */
+.gridrow_txt > p {color: #6B6B6B; font-size: 12px; overflow: hidden; text-overflow: ellipsis; word-wrap: break-word;}
+.gridrow > a.databoardBtn {font-size: 12px; color:#676767; padding:5px 15px; width: 110px;  background: url('../images/sub/arrow_right.png') white no-repeat 90% 50%; background-size: 6px; border: 1px solid #E1E1E2; margin-left: auto; border-radius: 40px; font-weight: 700;}
+li > a.databoardBtn {font-size: 13px; color:#676767; padding: .4em 2em; width: 70px; background: url('../images/sub/arrow_right.png') white no-repeat 90% 50%; background-size: 6px; border: 1px solid #E1E1E2; margin-left: auto; border-radius: 40px; font-weight: 700;}
+a.databoardBtn {font-size: 13px; color:#676767; padding: .4em 2em .4em 1em; background: url('../images/sub/arrow_right.png') white no-repeat 90% 50%; background-size: 6px; border: 1px solid #E1E1E2; margin-left: auto; border-radius: 40px; font-weight: 700;}
+.dataResult {color:#989898; font-size: 13px; margin-left: auto;}
+.dataspan {color:#989898; font-size: 13px; margin-left: 5px;}
+
+.databoardDdrop {background: url(../images/select_arrow.png) no-repeat center; width: 20px; height: 20px; border-radius: 25px; border: 1px solid #E1E1E2; background-size: 11px; padding: 3px; margin-left: 7px;}
+.databoardDdrop.on {background: url(../images/select_arrow_up.png) no-repeat center; width: 20px; height: 20px; border-radius: 25px; border: 1px solid #E1E1E2; background-size: 11px; padding: 3px; margin-left: 7px;}
+ 
+select { -webkit-appearance: none; /* 네이티브 외형 감추기 */ -moz-appearance: none; appearance: none; background: no-repeat 95% 50%; /* 화살표 모양의 이미지 */ }
+select::-ms-expand { display: none; } /* IE 10, 11의 네이티브 화살표 숨기기 */
+
+.selectbox select { width: 80px; padding: .5em; /* 여백으로 높이 설정 */ font-family: inherit; background: url('../images/sub/select_arrow.png') no-repeat 90% 50%; background-size:10px; border: 0; border: 1px solid #E0E0E0; border-radius:1px;  -webkit-appearance: none; -moz-appearance: none; appearance: none;  float:right; text-indent:10px; box-sizing:border-box; padding:5px; color:#444444; font-size:12px;}
+.selectbox { position: relative; width: auto; height: auto; line-height: 25px; margin-left: auto; border: 0; z-index: 1; }
+.selectbox label { /* position: absolute; */ top: 0px; left: 5px; height: 0px; line-height: 0px; color: #999; z-index: -1; background: white; padding: 0 5px;}
+/* .selectbox select { width: 100%; height: 40px; line-height: 40px; font-family: inherit; border: 0; opacity: 0; filter:alpha(opacity=0); -webkit-appearance: none; -moz-appearance: none; appearance: none; } */
+
+
+.swiper-container {margin:0 auto; position: relative; overflow: hidden; list-style: none; z-index: 999; top: 0px; background-color:#F7F7F7; border-bottom:1px solid #757678; box-sizing:border-box; height:40px; padding:10px;}
+.swiper-slide {box-shadow: 0 2px 3px rgba(0,0,0,0.2);letter-spacing: -0.5px; font-size: 1.2em; font-weight: 700; white-space: nowrap; flex-shrink: 0; width: 100%; height: 100%; position: relative; height: 35px; background-color: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; border-radius: 35px; transition-property: transform; transform: translate3d(0px, 0, 0);}
+.swiper-slide.on /* .swiper-slide:active, .swiper-slide:focus */ {color: white; background-color: #9092A1;}
+.swiper-wrapper { margin-bottom: 5px; align-items: flex-start; transition-property: transform, height; position: relative; width: 100%; height: 45px; z-index: 1; display: flex; transform: translate3d(0px, 0, 0); transition-property: transform; box-sizing: content-box;}
+.swiper-slide.on > a {color: white; background-color: #9092A1;}
+
+/*map 선택 데이터 타이틀*/
+/*2020.09.14[신예리] map 지표명 하단 화살표 추가(말풍선 디자인) 수정 START*/
+.map_tit {/* position: relative; */ height: 40px; margin-top: 16px; z-index: 999; margin-left: 16px;}
+.map_tit > span.maptit01 {background-color: white; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid #437BB4; padding: 5px; position: absolute; font-weight: 700;font-size: 13px; max-width: 86%;}
+.map_tit>span.maptit01::before {
+	content: "";
+    position: absolute;
+    bottom: -14px;
+    display: block; 
+    background: url('../images/common/maptit01_arrow.png') no-repeat center;
+    width: 20px;
+    height: 20px;
+    background-size: 11px;
+}
+
+ 
+/*내주변통계지도 선택된 타이틀-왼쪽 탭 메뉴 하단*/
+.map_tit > span.maptit03 {background-color: white; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid #D67C89; padding: 5px; position: absolute; font-weight: 700;font-size: 13px; max-width: 86%;}
+.map_tit>span.maptit03::before {
+	content: "";
+    position: absolute;
+    bottom: -14px;
+    display: block;
+    background: url(../images/common/maptit03_arrow.png) no-repeat center;
+    width: 20px;
+    height: 20px;
+    background-size: 11px;
+}
+ 
+
+/*통계주제도 선택된 타이틀-왼쪽 탭 메뉴 하단*/
+.map_tit > span.maptit04 {background-color: white; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid #7F85C1; padding: 5px; position: absolute; font-weight: 700;font-size: 13px; max-width: 86%;}
+.map_tit>span.maptit04::before {
+	content: "";
+    position: absolute;
+    bottom: -14px;
+    display: block; 
+    background: url('../images/common/maptit04_arrow.png') no-repeat center;
+    width: 20px;
+    height: 20px;
+    background-size: 11px;
+}
+ 
+
+/*살고싶은우리동네 선택된 타이틀-왼쪽 탭 메뉴 하단*/
+.map_tit > span.maptit05 {background-color: white; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid #E3AE6E; padding: 5px; position: absolute; font-weight: 700;font-size: 13px; max-width: 86%;}
+
+.map_tit>span.maptit05::before {
+	content: "";
+    position: absolute;
+    bottom: -14px;
+    display: block; 
+    background: url('../images/common/maptit05_arrow.png') no-repeat center;
+    width: 20px;
+    height: 20px;
+    background-size: 11px;
+}
+
+ 
+/*2020.09.14[신예리] map 지표명 하단 화살표 추가(말풍선 디자인) END*/
+
+/*map button*/
+.poiBtn {width: 35px; height: 40px; position: relative; margin-top: 15px; z-index: 999; margin-left: 16px; background: url(../images/sub/icon_info_off.png) no-repeat center; } /*생활환경종합정보*/
+.poiBtn.on, .poiBtn:focus, .poiBtn:active {background: url(../images/sub/icon_info_on.png) no-repeat center;}
+.areaBtn {width: 35px; height: 40px; position: relative; margin-top: 15px; z-index: 999; margin-left: 16px; background: url(../images/sub/selArea2.png) no-repeat center; } /*지도 위치 설정*/
+
+.databtnWrap { 
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    position: absolute; 
+    right: 16px;
+    bottom: 10px; /*2020.09.03 [신예리] 현재 위치 표출 영역 끝부분 맞춤*/
+} 
+
+/*통계주제도 맵 설정 부분 추가 START - 0721 신예리*/
+/*웹접근성 문제로 인한 txt 추가 START*/
+.MapsettingBtn {width: 35px;
+	height: 35px;
+	background-color:#fff; box-sizing:border-box; border:1px solid #757678; text-align:center; font-size:11px; line-height:10px;
+	z-index: 999;}
+.MapsettingBtn.on { } 
+.MapsettingArea { left: calc(50% - 170px); position: absolute; width: 150px; bottom: 69%; z-index: 10000;}
+.MapsettingBox {background: white; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.4); padding: 10px;}
+.MapsettingBox > span {font-size: 13px; font-weight: 600; margin: 5px 0; color:#353B48; margin-left: 5px; line-height: 35px; }
+.statsSelectClose {text-indent: -999px; background: url(../images/common/pop_close.png) no-repeat center; width: 20px; height: 35px; background-size: 13px; float: right; background-position: 0 9px;} /*2020.09.08[신예리] 통계주제도 통계 선택 툴팁 닫기 버튼 추가*/
+.ColorRangeClose {text-indent: -999px; background: url(../images/common/pop_close_w.png) no-repeat center; width: 30px; height: 35px; background-size: 13px; float: right; margin-left: 5px;} /*2020.09.08[신예리] 범례 툴팁 닫기 버튼 추가*/
+.ColorRangeClose02 {text-indent: -999px; background: url(../images/common/pop_close_w.png) no-repeat center; width: 30px; height: 30px; background-size: 13px; float: right; position: absolute; right: 0; top: 0;} /*2020.09.08[신예리] 범례 툴팁 닫기 버튼 추가*/
+/*웹접근성 문제로 인한 txt 추가 END*/
+
+.labeltitle {font-size: 13px; font-weight: 600; margin: 5px 0; color:#353B48; margin-left: 5px; line-height: 25px;}
+.StatsToggleArea {display: flex; flex-direction: row; align-items: center; width: 100%; margin-bottom: 5px; line-height: 20px;}
+.StatsToggleArea > ul {border: 1px solid #E1E1E2; border-radius: 50px; display: flex; flex-direction: row; width: 100%; align-items: center; margin:0; padding: 0;}
+.StatsToggleArea > ul li {flex: 1 auto; justify-content: center; align-items: center; text-align: center; padding:5px 10px; white-space: nowrap;} /*2020.09.03 [신예리] 통계 선택 글자 떨어지는 부분 수정*/
+ /*2022-11-02 수정*/
+.StatsToggleArea > ul li.on {background-color: white; border: 1px solid #2277F2; color: #2277F2; border-radius: 50px; padding:5px 10px; white-space: nowrap;} /*2020.09.03 [신예리] 통계 선택 글자 떨어지는 부분 수정*/ /* 2022-11-02 color 수정 */
+.StatsToggleArea > ul li a {color:#596070; font-size: 12px; font-weight: 500;} /* 2022-11-02 font-size 수정 */
+.StatsToggleArea > ul li a.on {color:#2277F2; font-size: 12px; font-weight: 500;} /* 2022-11-02 color font-size 수정 */
+/*통계주제도 맵 설정 부분 추가 END - 0721 신예리*/
+
+.showDataBoardBtn {width: 40px; height: 40px; margin-top: 10px; position: relative; z-index: 999; background: url(../images/sub/showDataBoardBtn.png) no-repeat center;}
+.showDataBoardBtn.on, .showDataBoardBtn:focus, .showDataBoardBtn:active  {background: url(../images/sub/showDataBoardBtn_on.png) no-repeat center;}
+
+/*2020.09.11[신예리] 웹접근성 문제로 인한 css 수정 START*/
+.dataPoiBtn {width: 35px;
+	height: 35px;
+	background-color:#fff; box-sizing:border-box; border:1px solid #757678; text-align:center; font-size:11px; line-height:10px;
+	z-index: 999;
+}
+/* .dataPoiBtn.on { border:1px solid #2277F2; color:#2277F2; } */ 
+
+
+
+.databtn01 {width: 35px;
+	height: 35px;
+	background-color:#fff; box-sizing:border-box; border:1px solid #757678; text-align:center; font-size:11px; line-height:10px;
+	z-index: 999;
+}
+/* .databtn01.on { border:1px solid #2277F2; color:#2277F2; } */
+
+
+.databtn02 {width: 35px;
+	height: 35px;
+	background-color:#fff; box-sizing:border-box; border:1px solid #757678; text-align:center; font-size:11px; line-height:10px;
+	z-index: 999;
+}
+/* .databtn02.on { border:1px solid #2277F2; color:#2277F2; } */
+
+
+.databtn03 {width: 35px;
+	height: 35px;
+	background-color:#fff; box-sizing:border-box; border:1px solid #757678; text-align:center; font-size:11px; line-height:10px;
+	z-index: 999;
+}
+/* .databtn03.on { border:1px solid #2277F2; color:#2277F2; }
+ */
+
+/*관심지역 설정 버튼*/
+.databtn04 {width: 30px;
+	height: 30px;
+	float:left; margin-left:3px;
+	background-color:#fff; box-sizing:border-box; border:1px solid #757678; text-align:center; font-size:11px;
+}
+
+.gisinfoWrap {flex:1 auto; height: 40px; width: 20%;border-radius: 40px; align-items: center; background: url(../images/sub/marker_label.png) white no-repeat; position: relative; z-index: 999;display: flex; flex-direction: row; left: 16px; background-position: 15px; background-size: 12px; margin-bottom: 15px;}
+.gisinfoWrap > p {color: #777C82; font-size: 1.18em; padding-left: 40px; font-weight: 400; align-items: flex-start;}
+.gisinfoWrap > button {background: url(../images/sub/gis.png) white no-repeat center; width: 50px; height: 35px; background-size: 30px; margin-left: auto; border-radius: 40px;}
+
+/*데이터 보드*/
+.swiper-slide.tabDataboard {color:#989898; background-color: white; border-bottom: 3px solid #F2F2F3; box-shadow: 0 0 0 rgba(0,0,0,0);  border-radius: 0; flex: 1 auto;}
+.swiper-slide.tabDataboard p {padding-left: 30px;} 
+.swiper-slide.tabDataboard a {color: inherit;} 
+.swiper-slide.tabDataboard:nth-child(1){background: url('../images/sub/graph_d.png') no-repeat 25px 50%; border-bottom: 3px solid #F2F2F3; box-shadow: 0 0 0 rgba(0,0,0,0);  border-radius: 0; }
+.swiper-slide.tabDataboard:nth-child(2){background: url('../images/sub/table_d.png') no-repeat 35px 50%; border-bottom: 3px solid #F2F2F3; box-shadow: 0 0 0 rgba(0,0,0,0);  border-radius: 0;}
+.swiper-slide.tabDataboard:nth-child(3){background: url('../images/sub/info_d.png') no-repeat 20px 50%; border-bottom: 3px solid #F2F2F3; box-shadow: 0 0 0 rgba(0,0,0,0);  border-radius: 0;}
+.swiper-slide.Con {font-family: inherit; padding-top: .8em; height: auto; display: flex; flex-direction: column;box-shadow: 0 0 0 rgba(0,0,0,0); background-color: white; border-radius: 0; width: 100% !important; margin-bottom: 105px;}	/* 2020.09.11[한광희] 이전버튼 추가로 수정 */
+ 
+.gallery-top {height: 100%; width: 100%;}
+.gallery-tab { height: 20%; box-sizing: border-box; padding: 10px 0;}
+.gallery-thumbs .swiper-slide { width: 25%; height: 100%; opacity: 0.4;}
+.gallery-thumbs .swiper-slide-thumb-active:nth-child(1) { opacity: 1;border-bottom: 3px solid #22A6C1; color:#22A6C1; background: url('../images/sub/graph_s.png') no-repeat 25px 50%;}
+.gallery-thumbs .swiper-slide-thumb-active:nth-child(2) { opacity: 1;border-bottom: 3px solid #22A6C1; color:#22A6C1; background: url('../images/sub/table_s.png') no-repeat no-repeat 35px 50%;}
+.gallery-thumbs .swiper-slide-thumb-active:nth-child(3) { opacity: 1;border-bottom: 3px solid #22A6C1; color:#22A6C1; background: url('../images/sub/info_s.png') no-repeat no-repeat 20px 50%;}
+ 
+.swiper-tab {width: 100%; height: 40px; background-color: red;}
+
+/*내주변통계 데이터 보드 Tab 2개 영역 css*/
+
+.swiper-slide.tabDataboard02 {color:#989898; background-color: white; border-bottom: 3px solid #F2F2F3; box-shadow: 0 0 0 rgba(0,0,0,0);  border-radius: 0; flex: 1 auto;}
+.swiper-slide.tabDataboard02 p {padding-left: 30px;} 
+.swiper-slide.tabDataboard02 a {color: inherit;} 
+
+.swiper-slide.tabDataboard02:nth-child(1){background: url('../images/sub/graph_d.png') no-repeat 55px 50%; border-bottom: 3px solid #F2F2F3; box-shadow: 0 0 0 rgba(0,0,0,0);  border-radius: 0; }
+.swiper-slide.tabDataboard02:nth-child(2){background: url('../images/sub/table_d.png') no-repeat 65px 50%; border-bottom: 3px solid #F2F2F3; box-shadow: 0 0 0 rgba(0,0,0,0);  border-radius: 0;}
+
+.gallery-thumbs02 .swiper-slide { width: 25%; height: 100%; opacity: 0.4;}
+.gallery-thumbs02 .swiper-slide-thumb-active:nth-child(1) { opacity: 1;border-bottom: 3px solid #22A6C1; color:#22A6C1; background: url('../images/sub/graph_s.png') no-repeat 55px 50%;}
+.gallery-thumbs02 .swiper-slide-thumb-active:nth-child(2) { opacity: 1;border-bottom: 3px solid #22A6C1; color:#22A6C1; background: url('../images/sub/table_s.png') no-repeat no-repeat 65px 50%;}
+
+/*내주변 통계 체크박스*/
+ 
+.selectcheck-container {
+	display: flex;
+	position: relative;
+	padding-left: 35px;
+	margin-bottom: 20px;
+	cursor: pointer; 
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	margin-left: 10px;
+	border-radius: 5px;
+	user-select: none;
+	border-radius: 5px;
+}
+
+.selectcheck-container input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+ 
+.selectcheckmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  background-color: #fff;
+  border: 1px solid #E1E1E2;
+  border-radius: 1px;
+  
+}
+ 
+.selectcheck-container:hover input ~ .selectcheckmark {
+  background-color: #fff;
+  border: 1px solid #E1E1E2;
+  border-radius: 1px;
+}
+ 
+.selectcheck-container input:checked ~ .selectcheckmark {
+  background-color: #2277F2;
+    border-radius: 1px;
+}
+ 
+.selectcheckmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+ 
+.selectcheck-container input:checked ~ .selectcheckmark:after {
+  display: block;
+}
+ 
+.selectcheck-container .selectcheckmark:after {
+ 	left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 9px;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+
+/*my통계로 데이터보드 상단 Tab*/
+.tabDataboard {
+	position: relative;
+    box-sizing: border-box;  
+    display: flex;
+    align-items: center;
+    margin: 0 auto;
+    justify-content: center;
+    flex-direction: row;
+    background-color: white; 
+    height: 40px;
+}
+
+/*my통계로 Maptooltip*/
+
+.sop-tooltip {
+	background: rgb(235, 235, 235); 
+    background: rgba(255, 255, 255, 1); 
+    border-color: rgba(255,255,255,0);
+    border-radius: 10px;
+    border-style: solid;
+    border-width: 4px;
+    color: #111;
+    display: block; 
+    font: 12px/20px "Helvetica Neue", Arial, Helvetica, sans-serif;
+    font-weight: bold;
+    padding: 1px 6px;
+    position: absolute;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    pointer-events: none;
+    box-shadow: 0px 2px 5px rgba(0,0,0,0.2);
+    white-space: nowrap;
+    z-index: 6;
+}
+ 
+
+.tb_wrap { position:relative; width:95%; margin:15px auto 0 auto; padding-top:43px;}
+.tb_box { max-height:90%; overflow-y:scroll; border-bottom:1px solid #dedede; margin-bottom: 45px;} /*2020.09.09[신예리] 이전 버튼 추가로 인한 영역 css 수정*/
+.tb { border-collapse:collapse; border-spacing:0; width:100%;}
+.tb tr { border-bottom:1px solid #dedede;}
+.tb tr:last-child { border-bottom:0;}
+.tb th {font-family: inherit; text-align:center; font-weight: 500; line-height: 40px;}
+.tb td {font-family: inherit; text-align:center; font-weight: 400; line-height: 40px;}
+
+.cell1 { width:15%;}
+.cell2 { width:35%;}
+.cell3 { width:15%;}
+.cell4 { width:15%;}
+.cell5 { width:20%;}
+/* td.cell5 { padding-left:10px; text-align:left;} 2020.09.28[한광희] 내주변통계 수정 */
+.cell6 { width:10%;}
+.fixed_top { display:inline-table; position:absolute; top:0; width:100%; background-color:#112B48; color: white;}
+.fixed_top th { border-top:1px solid #dedede; border-bottom:1px solid #dedede;}
+/* .tb tr.end { color:#999;} */
+
+#currentMapDataBoard_dataTable th { font-size:14px; }
+#currentMapDataBoard_dataTable td { font-size:13px; }
+
+.conTit{width: 100%;display: flex; align-items: flex-start; justify-content: flex-start;}
+.conTit > h5 {margin: 0; padding: 0 16px; font-size: 15px; color:#353B48; white-space: pre-line; font-weight: 700;}
+.conTit > span {font-weight: 400; margin-left: auto; margin-right: 16px; color:#353B48;}
+
+.bd-bt {border-bottom: 3px solid #33BEDB;min-height: 10px; width: 93%; margin: 5px auto;}
+
+.conWrap{width: 100%; align-items: center; display: flex; flex-direction: column; justify-content:center; padding-bottom: 50px;}
+.conWrap > .subtit{color: #777C82; font-size: .95em;}
+/* .conWrap > .num { background: linear-gradient(to right, #fbcac9, #8ca6ce); -webkit-background-clip: text; -webkit-text-fill-color: transparent;} */
+.conWrap > .num { color: #33C1D2; font-size: 2em; font-weight: 700;}
+.conWrap > .num span{ color: #33C1D2; font-size: .7em; padding-left: 5px; font-weight: 500;}
+.conWrap > .conWrap_row {display: flex; align-items: flex-start;justify-content: flex-start; padding: .5em 0 1em 0; width: 93%; border-bottom: 1px solid #dedede;}
+.conWrap > .conWrap_row p {font-weight: 500; color: #4b5158; white-space: nowrap; font-size: 14px;}
+.conWrap_txt {color: #7B7C7F; font-weight: 500; margin-left: 15px; white-space: pre-line; font-size: 14px;}
+.conWrap_flowBox {margin:10px 0 0 0; display: flex; flex-direction: row; padding: .8em; border-radius: 5px; border:1px solid #dedede; white-space: pre-line; word-break: keep-all;}
+.conWrap_flow {color: #7B7C7F; font-weight: 500; font-size: 13.5px; }
+.conWrap_flow > a {color: #7B7C7F; font-weight: 500; }
+.graphArea {width: 90%; margin: 15px auto; min-height: 350px;}
+.graphArea > img {width: 100%;}
+
+.mapBtnWrap {width: 100%; display: flex; align-items: center; justify-content: center; height: 45px; padding-bottom: 35px;}	/*2020.09.09[신예리] 이전 버튼 추가로 인한 영역 css 수정*/
+.mapBtnWrap > a { width: 100%; height: 45px; color: white; align-items: center; display: flex; justify-content: center; font-size: 1.1em; background-color: #2FBFDE; }	/*2020.09.09[신예리] 이전 버튼 추가로 인한 영역 css 수정*/
+.mapBtnWrap > a.on, .mapBtnWrap > a:hover  { background-color: #19ABCB;}
+
+/*내주변통계*/
+.swiper-slide.gridWrap02 {
+	display: block;
+   /*  overflow-y: auto; */
+    height: 240px;
+    border-radius: 0;
+    box-shadow: 0 0 0 rgba(0,0,0,0);
+    font-weight: normal;
+}
+
+.swiper-slide.gridWrap03 {
+	display: block;
+   /*  overflow-y: auto; */
+    height: 240px;
+    border-radius: 0;
+    box-shadow: 0 0 0 rgba(0,0,0,0);
+    font-weight: normal;
+}
+
+.gallery-top1 {height: 100%; width: 100%;}
+
+
+.currentMap_moreInfo { 
+    width: 20px;
+    height: 20px;
+    background: url(../images/moreinfo.png) no-repeat center;
+    border: 0;
+    outline: none;
+    margin-left: 5px;
+    background-size: 20px;
+    text-indent: -999px; /*2020.09.11[신예리] 웹접근성 문제로 인한 text 추가*/
+}
+
+.swiper-slide.tabDataboardtxt p {display: flex; align-items: center;} 
+
+.sfbSchool-current {
+	height: 32px;
+    box-sizing: border-box;
+    border: 1px solid #E1E1E2;
+    width: 50%;
+    margin-left: auto;
+}
+
+.sfbSchool-current ul {
+	display: flex;
+	flex-direction: row;
+}
+
+.sfbSchool-current ul li { 
+	padding: 0;
+    margin: 0;
+    border-right: 1px solid #E1E1E2;
+    box-sizing: border-box;
+    border-bottom: none;
+    flex: 1 auto;
+    color: #4B5158;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+ 
+
+.sfbSchool-current ul li:last-child {
+	border-right: 0;
+}
+
+.sfbSchool-current ul li a {
+	display: flex;
+    padding: 0 5px;
+    width: 100%;
+    height: 30px;
+    background-color: #fff;
+    text-align: center;
+    font-size: 14px;
+    color: #4B5158;
+    align-items: center;
+    justify-content: center;
+}
+
+.sfbSchool-current ul li a.on {
+	background-color: #2FBFDE;
+    color: white;
+}
+
+
+.itemSearchToggle {
+	border: 1px solid #E1E1E2; 
+    top: 0;
+    right: 20px;
+    padding: 3px 15px;
+    border-radius: 50px;
+    margin-left: auto;
+    color: #777C82;
+    background-color: white;
+}
+
+/*focus, active 삭제 20200731 박은식*/
+.itemSearchToggle.on{
+	color: #fff;
+	background-color:#2FBFDE;
+}
+
+.itemSearchList {
+	display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 5px 0;
+    border-top: 1px solid #E1E1E2;
+    border-bottom: 1px solid #E1E1E2;
+    padding: 10px 0;
+}
+
+.itemSearchList li {
+	display: flex;
+    flex-direction: row;
+    align-items: center;
+    background: #f3f3f3;
+    border-radius: 50px;
+    margin: 5px 0;
+}
+
+.itemSearchList li span {
+	width: 25px;
+    height: 25px;
+    display: flex;
+    background-color: #ddd;
+    color: white;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ddd;
+    border-radius: 50px;
+    margin-right: 8px;
+    margin-left: 5px;
+}
+
+.itemSearchList li.on, .itemSearchList li:focus, .itemSearchList li:active {
+	background-color: #2FBFDE;
+	color: white;
+}
+
+.itemSearchList li span.on, .itemSearchList li span:focus, .itemSearchList li span:active {
+	width: 25px;
+    height: 25px;
+    display: flex;
+    background-color: white;
+    color: #2FBFDE;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #2FBFDE;
+    border-radius: 50px;
+    margin-right: 8px;
+}
+
+.itemDropboxBtn {
+	width: 30px;
+    height: 30px;
+    background: url(../images/select_arrow.png) no-repeat center; background-size:12px;
+    margin-left: auto;
+}
+
+.itemDropboxBtn.on {
+	width: 30px;
+    height: 30px;
+    background: url(../images/select_arrow_up.png) no-repeat center;
+    margin-left: auto;
+}
+
+
+/*내주변통계 tab 버튼 클릭 시 표출되는 팝업*/
+/* .currentMap_moreInfo {
+	left: calc(50% - 175px);
+    bottom: calc(100% - 10% );
+    display: block;
+    width: 80%;
+    position: absolute;
+    height: auto;
+    z-index: 11000;
+    border-radius: 10px;
+    box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+}  */
+.currentmoreInfoWrap {
+	background-color: white;
+	border-radius: 10px;
+}
+
+.currentmoreInfoCon {
+	padding: 10px; 
+}
+
+.currentPoptit {
+	color: #2DC2DA;
+	font-weight: 600;
+	font-size: 15px;
+}
+
+.currentFocus { 
+	font-weight: 600;
+	color: #353B48;
+	font-size: 14px;
+	white-space: nowrap;
+    margin-right: 5px;
+}
+
+.currentmoreInfoCon > div > ul li {
+	display: flex;
+    flex-direction: row;
+    width: 100%;
+    font-size: 13px;
+}
+
+.currentmoreInfoCon > div > ul li > span {
+	flex: 1 auto;
+}
+
+
+/*관심지역 POI조회 팝업*/
+ 
+.interMenuWrap {
+    background-color: #fff;
+    height: 55px;
+    display: flex;
+
+}
+
+.interMenuWrap ul {
+	display: inline-flex;
+	display: -webkit-inline-box;
+	display: -webkit-inline-flex; 
+	border-bottom: 2px solid #E1E1E2;
+    height: 50px;
+    box-sizing: border-box;
+}
+
+.interMenuWrap ul li {
+	display: inline-block;
+}
+
+.interMenuWrap ul li.on {
+	border-bottom: 4px solid #2FBFDE;
+    margin-bottom: -3px;
+}
+
+.interMenuWrap ul li a {
+	display: block;
+    position: relative;
+    padding: 15px 10px 10px 20px;
+    font-size: 1.3em;
+    -webkit-box-sizing: content-box;
+    box-sizing: content-box;
+    word-break: keep-all;
+    background-size: 30px;
+    color: #353B48;
+    font-weight: 700;
+}
+
+.tab-conRow02 {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	margin: 5px 16px;
+}
+
+.tab-conRow02 > p.Infotxt { 
+    font-size: 14px;
+    word-break: break-word;
+}
+
+
+.tab-ConCard02 {
+	display: flex;
+    flex-direction: row;
+    flex: 0 1 auto; 
+    flex-basis: 48%;
+    min-height: 50px;
+    margin: 5px;
+    align-items: center;
+    padding: 10px;
+    border-radius: 7px;
+    border: 2px solid #E1E1E2;
+    box-sizing: border-box;
+}
+
+.tab-ConCard02.on, .tab-ConCard02:focus, .tab-ConCard02:hover { 
+    border: 2px solid #2FBFDE; 
+}
+
+.tab-ConCard02 > img {
+	height: 30px;
+	width: auto;
+	margin-right: 10px;
+}
+
+/**
+2020-07-12 내주변통계 .gridWrap .currentWrap 높이 강제지정
+*/ 
+.currentWrap {
+	/*display: flex; flex-direction: column; justify-content:center;*/ display: block; overflow-y: auto; height: 150px;
+	height : 300px;
+}
+
+/**내주변통계 상단 title 변경 부분*/
+
+.currenSettingWrap {
+	position: relative;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+} 
+
+.currenSetting {
+	position: relative;
+    margin: 0 15px 0 0;
+    padding: 5px 15px;
+    border: 1px solid #D67C89;
+    color: #555;
+    border-radius: 50px; 
+    line-height: 25px;
+    z-index: 1100;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.currenSetting>span {
+	 
+    display: flex;
+    align-items: center;
+    justify-content: center;    
+    font-weight: 700;
+    font-size: 1.15em;
+    
+}
+
+.btn_Setting {
+	margin-left: 15px;
+	width: 30px;
+	height: 22px;
+	background: url(../images/sub/current_setting.png) no-repeat center;
+	background-size: 25px;
+	text-indent: -1000px;
+	text-align: left;
+	overflow: hidden;
+}
+
+
+.currentAllWrap {
+	position: fixed;
+    width: 100%;
+    top: 101px;
+    left:0px;
+    z-index: 700; /*2022-11-09 수정*/
+    background-color: white; 
+    overflow: hidden; 
+    box-sizing:border-box;
+    /*2022-11-03 추가*/
+    height: calc(100% - 101px);
+}
+
+.currentHeader {
+	display: flex;
+    align-items: center;
+    
+    border-bottom:1px solid #E7E7E7;
+    padding:5px 0;
+} 
+
+.currentContent {
+	padding: 16px;
+	/* position: relative;
+    
+    margin-bottom: 150px; /* 2020-09-03 [곽제욱] 내주변통계 스크롤 하단 영역 추가 */
+    /* padding-bottom: 45px; */
+}
+
+/*2020.09.02 [신예리] 내주변통계 스크롤 잘리는 부분 미디어쿼리 추가 START*/
+@media screen and (min-width:200px) and (max-width:360px) {
+	.currentContent {
+	padding: 16px; 
+    
+}	
+}
+/*2020.09.02 [신예리] 내주변통계 스크롤 잘리는 부분 미디어쿼리 추가 END*/
+
+.currentContent .tit_top { border-bottom:1px solid #e7e7e7; padding-bottom:5px;}
+.currentContent .tit {
+	color: #353B48;
+    font-size: 1.3em;
+    font-weight: 700;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    
+}
+
+.currentListWrap{
+	display: block;
+	background: #fff;
+	/* padding: 15px; */
+	padding-bottom: 10px;
+}
+
+.currentListWrap.current{
+	display: inherit;
+}
+
+.List-conRow {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	margin-top: 0px;
+}
+
+.List-ConCard {
+	display: flex;
+    flex-direction: row;
+    flex: 0 1 auto; 
+    flex-basis: 49%;
+    margin: 5px;
+    align-items: center;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #E1E1E2;
+    box-sizing: border-box;
+    justify-content: center;
+}
+
+.List-ConCard span {
+	font-size: 14px;
+	color: #4B5158;
+	font-weight: 600;
+}
+
+.List-ConCard>h2 {
+	font-size: 13px;
+	color: #4B5158;
+	font-weight: 500;
+}
+
+.List-ConCard.on {
+	display: flex;
+    flex-direction: row;
+    flex: 0 1 auto; 
+    flex-basis: 49%;
+    margin: 5px;
+    align-items: center;
+    padding: 8px;
+    border-radius: 5px; 
+    box-sizing: border-box;
+    justify-content: center;
+    border: 1px solid #2277F2; 
+}
+.List-ConCard.on h2 { color:#2277f2;}
+
+.List-ConCardFull {
+	display: flex;
+    flex-direction: row;
+    flex: 1 auto;  
+    min-height: 35px;
+    margin: 5px;
+    align-items: center;
+    padding: 0;
+    text-indent:10px; 
+    border-radius: 1px;
+    border: 1px solid #E8E8E8;
+    box-sizing: border-box;
+    justify-content: center;
+}
+
+.List-ConCardFull>h2 {
+	font-size: 12px;
+	color: #4B5158;
+	font-weight: 500;
+}
+
+.List-ConCardFull.on { 
+    border: 2px solid #2FBFDE; 
+}
+
+@media all and ( width : 320px) {
+	.DetailBox {
+		height: 667px;
+	}
+}
+
+@media all and ( width : 360px) {
+	.DetailBox {
+		height: 667px;
+	}
+}
+
+.DetailBox {
+	height: auto;
+}
+
+.btnclose {
+	position: absolute;
+    right: 15px;
+    top: 7px;
+    overflow: hidden;
+    background: url(../images/sub/MovedeleteBtn.png) no-repeat center center;
+    width: 24px;
+    height: 24px;
+    background-size: 15px;
+    border: none 0;
+    text-indent: -1000px;
+}
+
+/*2020.09.10[신예리] My통계로 생애주기 관심분야 카테고리 영역 css 추가 START*/
+.pd10b {
+    padding: 0 10px 10px 10px;
+}
+
+.visi {
+    visibility: hidden;
+}
+
+#statsMeListDiv { 
+	/* box-sizing:border-box;  border:1px solid #3D3D3D; box-sizing:border-box; padding:10px;*/ 
+	/* 2022-10-19 팝업 css 수정 */
+	width: 100%;
+	height: calc(100% - 100px);  
+    position: fixed;
+    top: 101px;
+    border-top:3px solid #112B48;
+	z-index: 999;
+    background-color: white;
+    display: block;
+    bottom: 0;
+    overflow: hidden;
+    padding:10px;
+}
+
+.statsMeCategorytit {
+	width:100%; margin:0 auto; text-align:left;
+	border-bottom: 1px solid #E7E7E7; padding:5px 0 10px 0; position:relative; 
+}
+.statsMeCategorytit button { position:absolute; z-index:10; right:0px; top:7px; background-color:#fff;}
+
+.statsMeCategorytit > h2 {
+	color: #000;
+	font-size: 12px;
+	font-weight: 700;
+}
+
+div.CategoryWrap {
+	display: block;
+    background-color: #fff;
+}
+
+.statsMeCategorySubtit {
+	font-size: 12px; color:#000;
+    width:100%; float:left;
+    font-weight: 700;
+    text-align:left; 
+    margin-bottom:5px;
+}
+
+div.CategoryWrap > a {
+    border: 1px solid #E8E8E8;
+    color:#3D3D3D;
+    background-color: white;
+    border-radius: 1px;
+    padding: 3px 10px;
+    box-sizing:border-box;
+    margin: 0;
+    min-height: 24px;	/* 2020.09.11[한광희] 버튼 사이즈 수정 */
+    font-weight: normal;
+    text-align:center; 
+}
+
+.CategoryBtn {
+    background-color: #fff !important;
+    color: #9fa6ad;
+    font-size: 12px;
+}
+
+.CategoryBtn.on {
+    color: #2277F2;
+    border: 1px solid #2277F2;
+}
+.statsMeMainListWrap {
+    position: fixed;
+    bottom: 0;
+    z-index: 400;
+    width: 100%;
+}
+
+.statsMeMainListbox {
+	position: fixed;
+	bottom: 0;
+	width: 100%;
+	background-color: white;
+	border-top:3px solid #112B48;
+}
+
+.statsMeMainList { 
+	margin: 0 0 10px 0;
+	padding: .2em 1.2em; 
+}
+ 
+
+/*2020.09.10[신예리] My통계로 생애주기 관심분야 카테고리 영역 css 추가 END*/
+
+
+/* 20220831 배천규 추가  */
+.nav-2022 { width:100%; position:fixed; z-index:200; left:0; top:60px; overflow:hidden; padding:5px 10px; box-sizing:border-box; display:flex; justify-content:space-between; background-color:#f7f7f7; border-bottom:1px solid #757678;}
+.nav-2022 div span { display:flex; justify-content:space-between; align-items:center;box-sizing:border-box; padding:5px 6px; font-size:12.5px; color:#4F4F4F; border:1px solid #E0E0E0; background-color:#fff; border-radius:1px; float:left; margin-left:5px; height:30px;}/* 2022-11-15 수정 padding:5px 10px; 2022-11-30 수정 font-size:13px;*/
+.nav-2022 div span:first-child { margin-left:0px;}
+.nav-2022 div span svg { fill:#4F4F4F; margin-left:5px; transform: rotate(180deg);}
+.nav-2022 div span.active { border:1px solid #2277F2; color:#2277F2;}
+.nav-2022 div span.active svg { fill:#2277F2; transform: rotate(00deg);}
+.nav-layer { position:fixed; z-index:500; left:10px; top:105px; background-color:#fff; width:120px; border:1px solid #757678; display:none;   } /* 2022-10-20 css 수정 */
+.nav-layer ul { padding:0; margin:0; }
+.nav-layer li { width:100%; float:left; text-align:left; box-sizing:border-box; padding:5px 10px; color:#3D3D3D; font-size:13px; }
+.nav-layer li a { color:#4f4f4f; }
+.nav-layer li.on3 { background-color:#F2F2F2; color:#2277F2;}
+.nav-layer li.on4 { background-color:#F2F2F2; color:#2277F2;}
+
+
+.Content { width:100%; margin:0 auto; position:relative; overflow:hidden; height:100vh; box-sizing:border-box; padding-top:60px;}
+.Wrap > .Content > .contentBox { width:100%; margin:0 auto; position:relative; overflow:hidden; padding-top:40px; box-sizing:border-box; height:calc(100vh - 40px); }
+
+#todayStatusDetailPopup .Content { padding-top:0px !important; }
+#todayStatusDetailPopup .Content .contentBox { padding-top:0px !important; }
+#lifeEnvironmentPopup .Content { padding-top:0px !important; }
+#lifeEnvironmentPopup .Content .contentBox { padding-top:0px !important; }

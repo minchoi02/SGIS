@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="figure">
+	<!--2019-03-26 박길섭 시작 -->
+	<select id="buildingArea" parameterType="hashmap" resultType="hashmap">
+		<!--SELECT 
+				SUFID
+				, trim(BD_NM) AS BD_NM
+				, TO_CHAR(HIGHEST_FLR) AS HIGHEST_FLR
+				, TO_CHAR(LOWEST_FLR) AS LOWEST_FLR
+				, trim(BD_NADDR) AS BD_NADDR
+				, ST_ASBINARY(BORD) AS GEOMETRY
+		FROM 
+				SRV_NAT_BAS_BLDG_PG
+		WHERE 
+				ST_INTERSECTS(
+					ST_RECTFROMTEXT(
+						'RECTANGLE(${minx} ${miny}, ${maxx} ${maxy})', 0
+					)
+					,BORD
+				) = 1 -->
+		SELECT 
+				SUFID
+				, trim(BD_NM) AS BD_NM
+				, trim(BD_NADDR) AS BD_NADDR
+				, ST_ASBINARY(GEOM) AS GEOMETRY
+		FROM 
+				SRV_SA_BLDG	
+		WHERE 
+				ST_INTERSECTS(
+					ST_RECTFROMTEXT(
+						'RECTANGLE(${minx} ${miny}, ${maxx} ${maxy})', 0
+					)
+					,GEOM
+				) = 1	
+	</select>
+	<!--2019-03-26 박길섭 끝 -->
+	<!--2019-03-26 박길섭 시작 -->
+	<select id="buildingAttribution" parameterType="hashmap" resultType="hashmap">
+		<!--SELECT 
+				SUFID
+				, trim(BD_NM) AS BD_NM
+				, DEVFIGURE_TYPE AS DEV_FIGURE_TYPE
+				, trim(BD_ADM_ADDR) AS BD_ADM_ADDR
+				, trim(BD_NADDR) AS BD_NADDR
+				, TO_CHAR(HIGHEST_FLR) AS HIGHEST_FLR
+				, TO_CHAR(LOWEST_FLR) AS LOWEST_FLR
+		FROM 
+				SRV_NAT_BAS_BLDG_PG
+		WHERE 
+				SUFID = #{sufid}-->
+		SELECT 
+				SUFID
+				, trim(BD_NM) AS BD_NM
+				, trim(BD_ADM_ADDR) AS BD_ADM_ADDR
+				, trim(BD_NADDR) AS BD_NADDR
+		FROM 
+				SRV_SA_BLDG
+		WHERE 
+				SUFID = #{sufid}
+	</select>
+	<!--2019-03-26 박길섭 끝 -->
+	<!--2019-04-04 박길섭 시작 -->
+	<select id="floorBoundary" parameterType="hashmap" resultType="hashmap">
+		<!--SELECT
+				FIGURE.SUFID
+				, FIGURE.MAIN_YN
+				, st_asbinary(FIGURE.BORD) GEOMETRY
+				, '1' AS FIGURE_TYPE
+		FROM
+				SRV_NAT_OUT_DRAW_PG FIGURE
+		WHERE
+				1=1
+				AND FIGURE.SUFID = ${sufid}
+				AND FIGURE.FLR_NO = ${flr_no}
+				LIMIT 1
+		-->
+		SELECT
+				FIGURE.SUFID
+				, st_asbinary(FIGURE.GEOM) GEOMETRY
+				, '1' AS FIGURE_TYPE
+		FROM
+				SRV_SA_BLDG FIGURE
+		WHERE
+				1=1
+				AND FIGURE.SUFID = ${sufid}
+				LIMIT 1				
+	</select>
+	<!--2019-04-04 박길섭 끝 -->
+	<select id="floorCompany" parameterType="hashmap" resultType="hashmap">
+		<!-- KSY 수정 : 신규테이블 컬럼 필요 DB일련번호 -->
+<!--
+		select
+			figure.decilist_serial
+			, substr(figure.theme_cd,1,2) theme_cd_front
+			, st_asbinary(bord) geometry
+			, '2' as figure_type
+		from
+			(
+				select *
+				from srv_nat_comp_in_draw_pg
+				where sufid = ${sufid}
+				and flr_no = ${flr_no}
+			) figure
+				, srv_dt_corpcensus_9 corp
+		where
+			1=1
+			and figure.decilist_serial = corp.list_db_serial
+			and corp.base_year = '2016' /*'2013'*/
+			and st_isempty(bord) = 0
+		order by
+			theme_cd_front asc
+			, figure.decilist_serial asc
+-->
+		select '' decilist_serial
+		     , '' theme_cd_front
+		     , st_asbinary(geom) geometry
+		     , '2' as figure_type
+		     , dp_cd type
+		  from srv_sa_plan
+		 where sufid = ${sufid}
+		   and flr_no = ${flr_no}
+		   and st_isempty(geom) = 0
+		 order by theme_cd_front asc
+
+	</select>
+	
+	<select id="floorEtcFacility" parameterType="hashmap" resultType="hashmap">
+		<!-- KSY 쿼리수정  : 경계필요 -->
+<!--
+		SELECT 
+				TRIM(ETCFAC.FAC_TYPE) FAC_TYPE
+				/* , ETCFAC.ICON_URL */
+				, st_asbinary(BORD) GEOMETRY
+				, '3' AS FIGURE_TYPE
+		FROM 
+				SRV_NAT_FW_IN_DRAW_PG ETCFAC
+		WHERE 
+				1=1
+				AND ETCFAC.SUFID = ${sufid}
+				AND ETCFAC.FLR_NO = ${flr_no}
+				AND ST_ISEMPTY(BORD) = 0
+-->
+		SELECT 
+				THEME_CD FAC_TYPE
+				, st_asbinary(GEOM) GEOMETRY
+				, '3' AS FIGURE_TYPE
+		FROM 
+				SRV_SP_PTHM ETCFAC
+		WHERE 
+				1=1
+				AND ETCFAC.SUFID = ${sufid}
+				AND ETCFAC.FLR_NO = ${flr_no}
+				AND ST_ISEMPTY(GEOM) = 0
+
+	</select>
+	
+	<select id="floorThemeInfo" parameterType="hashmap" resultType="hashmap">
+		<!-- KSY 쿼리수정 -->
+<!--
+		select
+			case
+				when theme.b_theme_cd_nm is null then '기타'
+				else theme.b_theme_cd_nm || '(' ||theme.s_theme_cd_nm || ')'
+				end theme_cd_nm,
+				theme.theme_cd
+		from
+			(
+				select theme_cd from srv_dt_corpcensus_9
+				where base_year = '2016'
+					  and list_db_serial in ( select decilist_serial from srv_nat_comp_in_draw_pt where sufid = #{sufid} and flr_no = ${flr_no} )
+			) co
+		left join
+			cmm_cd_theme theme
+		on
+			co.theme_cd = theme.theme_cd
+		group by
+				b_theme_cd_nm, s_theme_cd_nm, theme.theme_cd
+-->		 <!--2019-03-18 박길섭 시작-->
+		select
+			case
+				when theme.b_theme_cd_nm is null then '기타'
+				else theme.b_theme_cd_nm || '(' ||theme.s_theme_cd_nm || ')'
+				end theme_cd_nm,
+				theme.theme_cd
+		from
+			(
+				select theme_cd from srv_dt_corpcensus_10
+				where 1 = 1
+					  and list_db_serial in ( select list_db_serial from srv_sp_plan where sufid = #{sufid} and flr_no = ${flr_no} )
+			) co
+		left join
+			cmm_cd_theme theme
+		on
+			co.theme_cd = theme.theme_cd
+		group by
+				b_theme_cd_nm, s_theme_cd_nm, theme.theme_cd
+		<!--2019-03-18 박길섭 끝-->
+	</select>
+	
+	<select id="floorCompanyInfo" parameterType="hashmap" resultType="hashmap">
+		<!-- KSY 쿼리수정 -->
+<!--
+		select
+			replace(corp.corp_nm, '（주）', '(주)') as corp_nm
+			, figure.decilist_serial
+			, st_x(figure.pt) center_x
+			, st_y(figure.pt) center_y
+			, figure.theme_cd
+		from
+			(
+				select decilist_serial, theme_cd, pt
+				from srv_nat_comp_in_draw_pt
+				where
+				sufid = #{sufid} and flr_no = ${flr_no}
+			) figure
+			, srv_dt_corpcensus_9 corp
+		where
+			1=1
+			and corp.base_year = '2016'
+			and figure.decilist_serial = corp.list_db_serial
+-->
+		 <!--2019-04-08 박길섭 시작-->
+		select
+			replace(corp.corp_nm, '（주）', '(주)') as corp_nm
+			, figure.list_db_serial decilist_serial
+			, st_x(figure.geom) center_x
+			, st_y(figure.geom) center_y
+			, corp.theme_cd
+		from
+			(
+				select list_db_serial, geom
+				from srv_sp_plan
+				where
+				sufid = #{sufid} and flr_no = ${flr_no}
+			) figure
+			, (select corp_nm,theme_cd,list_db_serial from srv_dt_corpcensus_10 where sufid = #{sufid} and ''||base_year='2018') corp
+		where
+			1=1
+			and figure.list_db_serial = corp.list_db_serial
+		<!--2019-04-08 박길섭 끝-->
+	</select>
+	
+	<select id="floorFacilityInfo" parameterType="hashmap" resultType="hashmap">
+		<!-- KSY 쿼리수정 : 데이터 없음 -->
+<!--
+		SELECT
+					TRIM(FAC.FAC_TYPE) FAC_TYPE
+					, st_x(FAC.PT) CENTER_X
+					, st_y(FAC.PT) CENTER_Y
+		FROM
+				SRV_NAT_FW_IN_DRAW_PT FAC
+		WHERE
+				1=1
+				AND FAC.SUFID = ${sufid}
+				AND FAC.FLR_NO = ${flr_no}
+				AND ST_ISEMPTY(FAC.PT) = 0
+-->
+		SELECT
+					THEME_CD FAC_TYPE
+					, st_x(FAC.GEOM) CENTER_X
+					, st_y(FAC.GEOM) CENTER_Y
+		FROM
+				SRV_SP_PTHM FAC
+		WHERE
+				1=1
+				AND FAC.SUFID = ${sufid}
+				AND FAC.FLR_NO = ${flr_no}
+				AND ST_ISEMPTY(FAC.GEOM) = 0
+
+	</select>
+</mapper>

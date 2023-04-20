@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns:p="http://www.springframework.org/schema/p"
+xsi:schemaLocation="http://www.springframework.org/schema/beans    http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+	<bean id="base.stringPool" class="com.neighborsystem.durian.pool.string.SbPool">
+		<constructor-arg index="0" type="int" value="100"/>
+	</bean>
+	
+    
+    <bean id="geoSearch" class="kostat.sop.OpenAPI3.search.GeocodeSearching">  
+<!--         <property name="IndexPath" value="/home/sop/index"/> 
+		<constructor-arg index="0" value="/data2/agent_data/docs/index/geocode" /> -->
+		<constructor-arg index="0" value="/data2/agent_data/index" />
+    </bean>
+
+	<bean id="searchHandler" class="kostat.sop.OpenAPI3.search.handler.SearchingHandler" />
+</beans>

@@ -1,0 +1,246 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd" >
+<html>
+	<head>
+		<meta http-equiv="pragma" content="no-cache"/>
+		<meta http-equiv="cache-control" content="no-cache"/>
+		<meta http-equiv="expires" content="0"/>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+		<title>SGIS 관리자사이트(CNM)</title> 
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+		<link rel="stylesheet" href="./../include/css/login.css" />
+		<link rel="stylesheet" href="./../include/css/default.css" />
+		<script type="text/javascript" src="./../include/js/jquery-1.11.0.min.js"></script> 
+		<script type="text/javascript" src="./../include/js/default.js"></script>
+		<script type="text/javascript" src="../../js/common/includeHead.js"></script>
+		<script src="../../js/common/common.js"></script>
+		<script type="text/javascript" src="../../js/MB/manager.js"></script>
+	</head>
+	<body>
+		<div class="wrapper">
+		<!-- cls:header start -->
+			<div class="header">
+				<div class="defaultbox">
+					<div class="logo"><a href="#"><img src="./../include/img/pic/pic_logo.png" alt="logo" /></a></div>
+					<div class="navi"></div>
+				</div>
+				<div class="menuWrapper">
+					<div class="menuCnm">
+						<ul>
+							<li><a>서비스 현황</a></li>
+							<li><a>사용자 현황</a></li>
+							<li><a>서비스 관리</a></li>
+							<li><a>정보 관리</a></li>
+							<li><a>게시판 관리</a></li>
+							<li><a class="on">회원 관리</a></li>
+						</ul>
+					</div>
+				</div>
+				<div class="subMenuWrapper">
+					<div class="subMenu">	</div>
+				</div>
+			</div>
+			<!-- cls:header end -->
+			<div class="contents">
+			<!-- cls:left start -->
+				<div class="lefitMenuWrapper">
+					<!-- <div class="leftTitle">회원 관리</div>
+					<div class="leftMenu">
+						<ul>					
+							<li><a href="./../MB/member.html">일반회원</a></li>
+							<li><a class="on" href="./../MB/manager.html">관리자</a></li>
+							<li><a href="./../CM/myPage.html">마이페이지</a></li>
+							href="./../CM/myPage.html"
+						</ul>
+					</div> -->
+					<script type="text/javascript">
+						makeLeftMenu("7", "2", "1");	//탑메뉴순서, 선택된 왼쪽 빅메뉴, 선택된 왼쪽 small메뉴
+					</script>
+				</div>
+			<!-- cls:left end -->
+				<div class="acticle">
+					<div class="location">
+						<p>
+							<a><img src="./../include/img/ico/ico_home.png" alt="home"/></a>
+							<span><img src="./../include/img/ico/ico_navi.png" alt="다음"/></span>
+							<span >회원관리</span>
+							<span><img src="./../include/img/ico/ico_navi.png" alt="다음"/></span>
+							<span class="fontS"> 관리자</span>
+						</p>
+					</div>
+						<p class="title01">관리자 정보관리</p>						
+						<div class="tilte03">검색조건</div>
+						<div class="searchBtn04" id="searchButton"><a style="cursor: pointer"><img src="./../include/img/btn/btn_search.png" alt="검색"/></a></div>
+						<table class="apiTable02" summary="조회조건">
+							<caption>검색조건</caption>
+							<colgroup>
+								<col width="141"/>
+								<col width=""/> 								 
+							</colgroup>
+							<tbody>								
+								<tr>
+									<th>관리자성명</th>
+									<td>
+										<input type="text" id="keywordInput" class="input_use03" maxlength="50" style="width:158px"/>
+									</td>									
+								</tr>
+							</tbody>
+						</table>
+						<div class="membership">
+							<ul>
+								<li>총 등록 건수 : <span id="totalQueryCount">0</span>  </li>								
+							</ul>
+						</div>
+						<!-- <div class="searchBtn04">
+							<a id="delButton" style="cursor: pointer"><img src="./../include/img/btn/btn_del.png" alt="삭제"/></a>
+						</div> -->	
+						<table class="apiTable03" summary="검색결과"></table>		
+						<table summary="검색결과" id="searchResultTable"></table>
+						<div class="searchWrapper02" id="noSearchResult" style="margin-top:-95px;border-left:0;border-top:0;border-right:0;position:absolute;height:30px;padding-top:0px;text-align:center">검색 결과가 없습니다</div>
+				</div>
+			</div>
+		</div>		
+		<!-- cls:footer start -->
+		<div class="footerWrapper"></div>
+		
+		<!-- popup -->
+		<div class="popupWrapper">
+			<div class="aplPopupWrapper">
+				<div class="aplPopupTitle">
+					<div class="myTitleFont">상세정보</div>
+					<div class="myXbtn"><a style="cursor: pointer"><img src="./../include/img/btn/btn_popupX.png" alt="종료"/></a></div>					
+				</div>
+				<div class="tilte05">기본정보</div>
+				<table class="popupTable02"  summary="관리자정보 조회 상세정보popup">
+					<caption>관리자정보 조회 상세정보popup</caption>
+					<colgroup>
+						<col width="133"/>
+						<col width="200"/>
+						<col width="133"/>
+						<col width="200"/> 	 	
+					</colgroup>
+					<tbody>
+						<tr>
+							<th>성명</th>
+							<td id="managerNm"></td>
+							<th>이메일</th>
+							<td><input type="text" class="input_use02" id="email" name="email" disabled/></td>
+						</tr>
+						<tr>
+							<th>관리자등급</th>
+							<td>
+								<select class="input_use08" id="managerGrade" disabled>
+									<option value="SA">슈퍼관리자</option>
+									<option value="MA">중간관리자</option>
+									<option value="GA">일반관리자</option>
+									<option value="NN">승인대기관리자</option>
+								</select> 
+							</td>
+							<th>부서</th>
+							<td ><input type="text" class="input_use02" id="dept" disabled/></td>
+						</tr>
+						<tr>
+							<th>핸드폰</th>
+								<td >
+									<input class="input_use19" id="TEL_NO0" name="TEL_NO0" disabled/> -
+									<input type="text" class="input_use19" id="TEL_NO1" name="TEL_NO1" disabled /> -
+									<input type="text" class="input_use19" id="TEL_NO2" name="TEL_NO2" disabled />
+								</td> 
+							<th>직급</th>
+							<td ><input type="text" class="input_use02" id="jobPos" disabled="true"/></td>
+						</tr>
+						<tr>
+							<th>전화번호</th>
+							<td>
+								<input class="input_use19" id="cpNo" disabled/> -
+								<input type="text" class="input_use19" id="cpNo1" disabled/> -
+								<input type="text" class="input_use19" id="cpNo2" disabled/>
+							</td>
+							<th>내선번호</th>
+							<td ><input type="text" class="input_use02" id="extNo" disabled/></td>
+						</tr>
+					</tbody>
+				</table>
+				<input type="hidden" id="managerId" name="managerId"/>
+				<div class="tilte05">기타정보</div>
+				<table class="popupTable02"  summary="회원정보 조회 상세정보popup">
+					<caption>회원정보 조회 상세정보popup</caption>
+					<colgroup>
+						<col width="133"/>
+						<col width="200"/>
+						<col width="133"/>
+						<col width="200"/> 	
+					</colgroup>
+					<tbody>
+						<tr>
+							<th>최종 접속일자</th>
+							<td><label id="lastAccessTs"></label></td>
+							<th>최종로그오프 일자</th>
+							<td><label id="lastLogoutTs"></label></td>
+						</tr>
+						<tr>
+							<th>최종접속IP</th>
+							<td colspan="3"><label id="lastAccessIp"></label></td>
+						</tr>
+						
+					</tbody>
+				</table>
+				<div class="tilte05">열람내역</div>
+				<div class="popupTable04Scroll">
+					<table class="popupTable04">
+						<colgroup>
+						 	<col width="60"/>
+							<col width="100"/>
+							<col width="70"/>
+							<col width="300"/> 
+							<col width=""/>
+						</colgroup>
+						<thead>
+							<tr>
+								<th>번호</th>
+								<th>회원아이디</th>
+								<th>CRUD</th>
+								<th>내역</th>
+								<th>일시</th>
+							</tr>
+						</thead>
+						<tbody id="loginHistoryTab">
+						</tbody>
+					</table>
+				</div>
+				<!-- <table class="popupTable03" style="margin-top:10px" summary="회원정보 조회 상세정보popup">
+					<caption>회원정보 조회 상세정보popup</caption>
+					<colgroup>
+						<col width="66"/>
+						<col width="279"/>
+						<col width="64"/>
+						<col width="129"/> 
+						<col width=""/>
+					</colgroup> -->
+					<!-- <thead>
+						<tr>
+							<th>번호</th>
+							<th>회원아이디</th>
+							<th>CRUD</th>
+							<th>내역</th>
+							<th>일시</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td colspan="5">
+								
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				 -->
+				<div class="btnbox">
+					<a id="modifyButtonDisabled" style="cursor: pointer" title="수정할 권한이 없습니다."><img src="../../img/btn_modify_disabled.png" alt="수정"/></a>	
+					<a id="modifyButton" style="cursor: pointer"><img src="./../include/img/btn/btn_modify.png" alt="수정"/></a>	
+					<a id="cancelButton" style="cursor: pointer"><img src="./../include/img/btn/btn_cancel.png" alt="취소"/></a>
+				</div>
+			</div>
+		</div>
+		
+	</body>	
+</html>

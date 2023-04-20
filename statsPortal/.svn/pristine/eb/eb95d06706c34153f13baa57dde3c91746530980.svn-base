@@ -1,0 +1,115 @@
+package kostat.sop.ServiceAPI.lvs.service.Impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+import org.springframework.ui.ModelMap;
+
+import egovframework.rte.fdl.cmmn.EgovAbstractServiceImpl;
+import kostat.sop.ServiceAPI.lvs.mapper.LvsStatsMapper;
+import kostat.sop.ServiceAPI.lvs.service.LvsStatsService;
+import kostat.sop.ServiceAPI.lvs.vo.LvsVO;
+import kostat.sop.ServiceAPI.sbr.mapper.SbrStatsMapper;
+import kostat.sop.ServiceAPI.sbr.service.SbrStatsService;
+import kostat.sop.ServiceAPI.sbr.vo.SbrVo;
+
+@Service("lvsStatsService")
+public class LvsStatsServiceImpl  extends EgovAbstractServiceImpl implements LvsStatsService {
+	
+	@Resource( name = "lvsStatsMapper" )
+	private LvsStatsMapper lvsStatsMapper;
+
+	@Override
+	public List<Map<String, Object>> selectMainDataInfo(LvsVO vo) throws Exception {
+		// TODO Auto-generated method stub
+		System.out.println(vo.toString());
+		
+		List<Map<String, Object>> censusIndexList = lvsStatsMapper.selectCensusIndex(vo) ;
+		
+		
+		List<Map<String, Object>> resultList = new ArrayList<>();
+		Map<String, Object> result  = new HashMap<String,Object>();
+		Map<String, Object> subResult  = new HashMap<String,Object>();
+		
+		subResult.put("censusIndex", censusIndexList);   //센서스 데이터   //기타지표도 더 넣어야 함.
+		setData1(vo,subResult);		//step1 인구데이터
+		result.put(vo.getRegionCd(), subResult);
+		result.put("errMsg", "Success");
+		result.put("errCd", "0");
+		
+		resultList.add(result);
+		return  resultList ;
+	}
+	
+	//인구데이터 세팅
+	private void setData1(LvsVO vo, Map<String, Object> subResult) {
+		List<Map<String, Object>> ppltnlist = lvsStatsMapper.selectTotPpltn(vo) ;
+		List<Map<String, Object>> ppltnlistYear = lvsStatsMapper.selectTotPpltnYear(vo) ;
+		
+		if (ppltnlist.size() >0) {
+			Map<String, Object> pplnData = ppltnlist.get(0);
+			Map<String, Object> pplnData_year = new HashMap<String,Object>();
+			
+			ArrayList<String> yearList = new ArrayList<>();  // 지표리스트
+			ArrayList<Integer> title1_data = new ArrayList<>();  //남자데이터			
+			ArrayList<Integer> title2_data = new ArrayList<>();  //여자데이터
+			ArrayList<Integer> tot_data = new ArrayList<>();  //합계데이터
+			String key1 = "";
+			String key2 = "";			
+			
+			for(int i=0; i<ppltnlistYear.size(); i++) {
+				Map<String, Object> row = ppltnlistYear.get(i);
+				yearList.add((String) row.get("year"));
+				
+				title1_data.add(Integer.parseInt(String.valueOf(row.get("val1"))));
+				title2_data.add(Integer.parseInt(String.valueOf(row.get("val2"))));
+				tot_data.add(Integer.parseInt(String.valueOf(row.get("val"))));
+				key1 = (String)row.get("key1");
+				key1 = (String)row.get("key2");				
+			}
+			
+			pplnData_year.put("title1", key1) ;
+			pplnData_year.put("title2", key2) ;
+			pplnData_year.put("year", yearList) ;			
+			pplnData_year.put("title1_data", title1_data) ;
+			pplnData_year.put("title2_data", title2_data) ;
+			pplnData_year.put("tot_data", tot_data) ;
+			
+			pplnData.put("yearData", pplnData_year) ;
+			subResult.put("tot_ppltn", pplnData);
+			
+		}
+	}
+	
+	/*
+	public List<Map<String, Object>> selectMainDataInfo() throws Exception {
+		//List<Map<String, Object>> list = selectCensusBigThemeInfo();
+		
+		List<Map<String, Object>> list = new ArrayList();
+		
+		for(int i = 0 ; i < bigList.size() ; i++) {
+			//System.out.println(bigList.get(i));
+			Map<String, Object> param = bigList.get(i);
+			List<Map<String, Object>> smallList = selectCensusSmallThemeInfo((String)param.get("b_theme_cd"));
+			bigList.get(i).put("s_theme_list", smallList);
+		}
+	
+		return list;
+	}
+    */
+	
+	
+	/*
+	@Override
+	public String getDdata() throws Exception {
+		return sbrStatsMapper.selectTestData();
+	}
+	*/
+	
+}

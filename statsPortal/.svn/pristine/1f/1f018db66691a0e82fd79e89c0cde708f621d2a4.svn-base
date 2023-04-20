@@ -1,0 +1,2686 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="thematicMap">
+	<!-- 통계주제도 도서관분포현황 POI -->
+	<!-- mng_s 20171211 주용민 -->
+	<select id="thematicMap.select.library" resultType="hashmap">
+		SELECT * FROM SRV_DT_LIBRARY ORDER BY 1
+	</select>
+	<!-- mng_e 20171211 주용민 -->
+
+	<!-- 통계주제도 카테고리정보  조회 -->
+<!-- 	<select id="thematicMap.select.cateList" parameterType="hashmap" resultType="hashmap"> -->
+<!-- 		SELECT  -->
+<!-- 			* -->
+<!-- 		FROM 	del_srv_dt_stattopic  					 -->
+<!-- 		<if test="cate_id != null"> -->
+<!-- 		WHERE  category = #{cate_id}  -->
+<!-- 		</if>		 -->
+<!-- 	</select> -->
+	
+	<select id="thematicMap.select.cateList" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+		A.THEMA_MAP_CATEGORY AS THEMA_MAP_CATEGORY
+	   ,A.CATEGORY_ICON_ID AS CATEGORY_ICON_ID
+	   ,A.CATEGORY_NM AS CATEGORY_NM
+	   ,A.EN AS EN
+	   ,A.EXP  AS EXP
+	   ,A.REG_TS AS REG_TS
+	   ,A.REG_ID AS REG_ID
+	   ,A.SRV_YN AS SRV_YN
+	   ,B.CATEGORY_ICON_URL AS CATEGORY_ICON_URL
+	   ,A.DISP_RANK <!-- 2017.11.29 [개발팀] 통계주제도 우선표출여부 수정 -->
+		
+		FROM 	MNG_DT_THEMAMAPCATEGORY A, MNG_DT_THEMAMAPICON B 					
+		WHERE A.category_icon_id = B.category_icon_id
+		AND	A.srv_yn = 'Y'
+		<if test="cate_id != null">
+		 AND A.thema_map_category = #{cate_id}
+		</if>
+		ORDER BY A.DISP_RANK ASC <!-- 2017.11.29 [개발팀] 통계주제도 우선표출여부 수정 -->	 	
+		
+	</select>
+	
+	<!-- 통계주제도 정보 조회(메뉴에서 이용) -->
+<!-- 	<select id="thematicMap.select.menuList" parameterType="hashmap" resultType="hashmap"> -->
+<!-- 		SELECT  -->
+<!-- 		    title -->
+<!-- 		,   stat_thema_map_id -->
+<!-- 		,   thema_map_type -->
+<!-- 		,   category -->
+<!-- 		FROM 	del_srv_dt_statthemamap  					 -->
+<!-- 		WHERE  category = #{cate_id}  -->
+<!-- 		AND 	srv_yn='Y' -->
+<!-- 		ORDER BY reg_ts DESC -->
+<!-- 	</select> -->
+	<!-- 통계주제도 정보 조회(메뉴에서 이용 - 테스트) -->
+	<select id="thematicMap.select.menuList" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+		    title
+		,   stat_thema_map_id
+		,   thema_map_type
+		,   thema_map_category
+		,	stat_thema_map_file_url
+		FROM 	mng_dt_themamaplist  					
+		WHERE  thema_map_category = #{thema_map_category} 
+		AND 	srv_yn='Y'
+		ORDER BY reg_ts DESC
+	</select>
+	
+	<!-- 통계주제도 정보 조회(테스트) -->
+	<select id="thematicMap.select.getThemaStatsInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			 stat_thema_map_id,  							 /*통계주제도ID*/
+			 thema_map_category,					 		 /*주제도카테고리*/
+			 manager_id,							 		 /*관리자ID*/
+			 title,								     		 /*제목*/
+			 thema_map_exp as EXP,							 /*설명 exp는 대문자로*/
+			 reg_ts,							     		 /*등록일시*/
+			 thema_map_type,					     		 /*주제도종류 */
+			 /*stat_disp_level,					     통계표출레벨 */
+			 hits,									  		 /*조회수*/
+			 max_expnsn_level,					     		 /*최대 확대레벨*/
+			 min_redctn_level,								 /*최소 축소레벨*/			 
+			 start_x_coor,									 /*시작 X좌표*/ 
+			 start_y_coor,							 		 /*시작 Y좌표*/
+			 base_year as left_base_year,					 /*경계년도 A*/
+			 left_sep_nm,									 /*표출정보 A 명*/
+			 left_sep_unit,									 /*표출정보 A 단위*/
+			 right_sep_nm,									 /*표출정보 B 명*/
+			 right_sep_unit,								 /*표출정보 B 단위*/ 
+			 stat_data_base_year,							 /*데이터 년도*/ 
+			 trim(thema_map_data_id) as thema_map_data_id,   /*주제도데이터ID*/
+			 left_sep_ttip_title,							 /*표출정보 A 툴팁 타이틀*/
+			 right_sep_ttip_title,							 /*표출정보 B 툴팁 타이틀*/
+			 left_sep_chart_title,							 /*표출정보 B 차트 타이틀*/
+			 right_sep_chart_title,							 /*표출정보 B 차트 타이틀*/			 
+			 trim(sep_map_data_id) as sep_map_data_id,   	 /*주제도데이터ID*/
+			 sep_map_data_year,							     /*분할맵 데이터 년도*/
+			 sep_map_left_sep_nm,							 /*분할맵 데이터 ID*/
+			 sep_map_left_sep_unit,							 /*분할맵 표출정보 A 명*/
+			 sep_map_right_sep_nm,							 /*분할맵 표출정보 A 단위*/
+			 sep_map_right_sep_unit,						 /*분할맵 표출정보 B 명*/
+			 sep_map_left_sep_ttip_title,					 /*분할맵 표출정보 B 단위*/
+			 sep_map_right_sep_ttip_title,					 /*분할맵 표출정보 A 출처*/
+			 sep_map_left_sep_source,						 /*분할맵 표출정보 B 출처*/
+			 sep_map_right_sep_source,						 /*분할맵 데이터 년도*/
+			 left_sep_source,								 /*분할맵 표출정보 B 출처*/
+			 right_sep_source,						 		/*분할맵 데이터 년도*/
+			 exmpl_type,									/*범례종류*/
+			 atdrc_yn,										/*자치구 여부*/
+			 bord_fix_yn as boundary_fix_yn,				/*시계열경계년도*/
+			 add_data_disp_yn,								/*추가데이터유무*/	
+			 poi_disp_yn,									/*poi 표출 유무*/
+			 theme_cd,										/*poi 표출 테마코드*/
+			 corp_class_cd									/*poi 표출 산업분류코드*/
+			 
+		FROM mng_dt_themamaplist
+		WHERE stat_thema_map_id = #{stat_thema_map_id}
+		ORDER BY priority_disp_yn DESC, reg_ts DESC
+	</select>
+	
+	<!-- 통계주제도 연도 조회(테스트) -->
+	<!-- 2019-04-17 DJLEE 수정 시작 -->
+	<select id="thematicMap.select.getThemaMapBaseYear" parameterType="hashmap" resultType="hashmap">
+		/** THEMATICMAP.SELECT.GETTHEMAMAPBASEYEAR START ... ${type} **/
+		<if test='type != null and type == "1"'>
+			 SELECT
+			BASE_YEAR				/*기준년도*/
+<!-- 			FROM odm_mng_dt_themamapdata -->
+ 			FROM mng_dt_themamapdata 
+			WHERE 
+			<!-- thema_map_data_id like #{thema_map_data_id} || '%' -->
+					<!-- mng_s 20210914 조건추가 -->
+					<if test='thema_map_data_id == "kosis_empymn_ppltn_cnt" or thema_map_data_id == "stat_hsby_1_mean_fmember_cnt" or thema_map_data_id == "stat_psby_1000_house_cnt" or thema_map_data_id == "stat_pvt_per"' >
+						  trim(thema_map_data_id) = #{thema_map_data_id}
+					</if>
+					<if test='thema_map_data_id != "kosis_empymn_ppltn_cnt" and thema_map_data_id != "stat_hsby_1_mean_fmember_cnt" and thema_map_data_id != "stat_psby_1000_house_cnt" and thema_map_data_id != "stat_pvt_per"' >
+					  	  thema_map_data_id like #{thema_map_data_id}||'%'
+					</if>
+			AND BASE_YEAR <![CDATA[<>]]> '9016' 
+			GROUP by base_year
+			ORDER BY base_year
+		</if>
+		<if test='type != null and type =="2"'>
+			SELECT
+				irds_year as BASE_YEAR
+			FROM	mng_dt_themamapchange
+			WHERE	thema_map_data_id=#{thema_map_data_id}
+			GROUP BY irds_year
+			ORDER BY irds_year
+		</if>
+		<if test='type != null and type =="3"'>
+ 			 SELECT
+			distinct(left(BASE_YEAR,2)) as base_year
+ 			FROM mng_dt_themamapdata 
+			WHERE 
+			<!-- thema_map_data_id like #{thema_map_data_id} || '%' -->
+					<!-- mng_s 20210914 조건추가 -->
+					<if test='thema_map_data_id == "kosis_empymn_ppltn_cnt" or thema_map_data_id == "stat_hsby_1_mean_fmember_cnt" or thema_map_data_id == "stat_psby_1000_house_cnt" or thema_map_data_id == "stat_pvt_per"' >
+						  trim(thema_map_data_id) = #{thema_map_data_id}
+					</if>
+					<if test='thema_map_data_id != "kosis_empymn_ppltn_cnt" and thema_map_data_id != "stat_hsby_1_mean_fmember_cnt" and thema_map_data_id != "stat_psby_1000_house_cnt" and thema_map_data_id != "stat_pvt_per"' >
+					  	  thema_map_data_id like #{thema_map_data_id}||'%'
+					</if>
+			AND BASE_YEAR <![CDATA[<>]]> '9016' 
+			GROUP by left(BASE_YEAR,2)
+			ORDER BY left(BASE_YEAR,2)
+		</if>
+		<if test='type != null and type =="4"'>
+ 			 SELECT
+			distinct(right(BASE_YEAR,2)) as base_year
+ 			FROM mng_dt_themamapdata 
+			WHERE 
+			<!-- thema_map_data_id like #{thema_map_data_id} || '%' -->
+					<!-- mng_s 20210914 조건추가 -->
+					<if test='thema_map_data_id == "kosis_empymn_ppltn_cnt" or thema_map_data_id == "stat_hsby_1_mean_fmember_cnt" or thema_map_data_id == "stat_psby_1000_house_cnt" or thema_map_data_id == "stat_pvt_per"' >
+						  trim(thema_map_data_id) = #{thema_map_data_id}
+					</if>
+					<if test='thema_map_data_id != "kosis_empymn_ppltn_cnt" and thema_map_data_id != "stat_hsby_1_mean_fmember_cnt" and thema_map_data_id != "stat_psby_1000_house_cnt" and thema_map_data_id != "stat_pvt_per"' >
+					  	  thema_map_data_id like #{thema_map_data_id}||'%'
+					</if>
+			AND BASE_YEAR <![CDATA[<>]]> '9016'
+			AND left(BASE_YEAR,2) = #{left_year} 
+			GROUP by right(BASE_YEAR,2)
+			ORDER BY right(BASE_YEAR,2)
+		</if>
+		<if test='type != null and type =="5"'>
+ 			 SELECT
+			base_year
+ 			FROM srv_dt_thema_covid19_status 
+			GROUP by base_year
+			ORDER BY base_year
+		</if>
+		<if test='type != null and type =="51"'>
+ 			 SELECT
+			base_month
+ 			FROM srv_dt_thema_covid19_status 
+ 			WHERE base_year = #{left_year}
+			GROUP by base_month
+			ORDER BY base_month
+		</if>
+		<if test='type != null and type =="52"'>
+ 			 SELECT
+			base_month
+ 			FROM srv_dt_thema_covid19_vacntn 
+ 			WHERE base_year = #{left_year}
+			GROUP by base_month
+			ORDER BY base_month
+		</if>
+		<if test='type != null and type =="6"'>
+ 			 SELECT
+			base_day
+ 			FROM srv_dt_thema_covid19_status 
+			WHERE base_year = #{left_year}
+			AND base_month = #{left_month} 
+			GROUP by base_day
+			ORDER BY base_day
+		</if>
+		<if test='type != null and type =="61"'>
+ 			 SELECT
+			base_day
+ 			FROM srv_dt_thema_covid19_vacntn 
+			WHERE base_year = #{left_year}
+			AND base_month = #{left_month} 
+			GROUP by base_day
+			ORDER BY base_day
+		</if>
+		<if test='type != null and type =="7"'>
+ 			 SELECT
+			base_year
+ 			FROM srv_dt_thema_cancer_patnt_data 
+			GROUP by base_year
+			ORDER BY base_year
+		</if>
+		<if test='type != null and type =="8"'>
+ 			 SELECT
+			base_year
+ 			FROM srv_dt_thema_icd_patnt_data 
+			GROUP by base_year
+			ORDER BY base_year
+		</if>
+		<if test='type != null and type =="9"'>
+ 			 SELECT
+			base_year
+ 			FROM srv_dt_thema_wether_data
+			GROUP by base_year
+			ORDER BY base_year
+		</if>
+		<if test='type != null and type =="10"'>
+			SELECT distinct occrrnc_year as base_year
+			FROM srv_pt_thema_tfcacd_data with (nolock)
+			ORDER BY occrrnc_year
+		</if>
+		<if test='type != null and type =="11"'>
+ 			 SELECT
+			base_year
+ 			FROM srv_dt_thema_covid19_vacntn 
+			GROUP by base_year
+			ORDER BY base_year
+		</if>
+	</select>
+	<!-- 2019-04-17 DJLEE 수정 끝 -->
+	
+	<!-- 통계주제도 기본데이터 마트 조회(테스트) -->
+	<!-- 2019-04-23 DJLEE 수정 시작 -->
+	<select id="thematicMap.select.getThemaMapData" parameterType="hashmap" resultType="hashmap">
+		/** THEMATICMAP.SELECT.GETTHEMAMAPDATA START ... ${base_year}  , ${type} **/
+		 SELECT * FROM (
+		 <if test='thema_map_data_id != "net_emergency_cnt_normal" and thema_map_data_id != "net_fire_cnt_normal" and thema_map_data_id != "net_police_cnt_normal" and thema_map_data_id != "covid19_status" and thema_map_data_id != "cancer_data" and thema_map_data_id != "infection_data" and thema_map_data_id != "weather_data" and thema_map_data_id != "car_accident_data" and thema_map_data_id !="covid19_vacc_data"'>
+		 SELECT
+				<!-- 2016. 10. 26 column name modified -->
+		  		trim(region_div) as area_type,			/*지역구분*/
+		  		replace(trim(base_year), '9016' , '2016') as base_year,			/*기준년도*/
+				trim(adm_cd) as adm_cd,		/*adm_cd*/
+		  		trim(left_sep_value) as left_data_val,	/*표출정보A 수치*/
+		  		trim(right_sep_value) as right_data_val	/*표출정보B 수치*/
+		  FROM mng_dt_themamapdata		  
+		  <!-- mng_s 20210727 kosis_empymn_ppltn_cnt, kosis_empymn_ppltn_cnt_per 가 존재해서 like로 하면 데이터가 둘다 불러져서 오류발생해서 고침 -->
+		  <if test='thema_map_data_id == "kosis_empymn_ppltn_cnt" or thema_map_data_id == "stat_hsby_1_mean_fmember_cnt" or thema_map_data_id == "stat_psby_1000_house_cnt" or thema_map_data_id == "stat_pvt_per"' >
+			  WHERE trim(thema_map_data_id) = #{thema_map_data_id}
+		 </if>
+		  <if test='thema_map_data_id != "kosis_empymn_ppltn_cnt" and thema_map_data_id != "stat_hsby_1_mean_fmember_cnt" and thema_map_data_id != "stat_psby_1000_house_cnt" and thema_map_data_id != "stat_pvt_per"' >
+		  	  WHERE thema_map_data_id like #{thema_map_data_id}||'%'
+		  </if>
+	  	  <if test="base_year != null and base_year !=''"> 
+ 		  	<choose>
+			    <when test="base_year lt '2017'">
+			      AND BASE_YEAR <![CDATA[<]]> '2017'
+			    </when>
+			    <otherwise>
+			       AND BASE_YEAR <![CDATA[>=]]> '2017'
+			    </otherwise>
+			 </choose>
+ 		  </if> 
+		  <if test='adm_cd_length != null and adm_cd_length == "0"'>
+		   AND len(adm_cd) = 2
+		  </if>
+		  <if test='adm_cd_length != null and adm_cd_length == "2"'>
+		   AND adm_cd like #{adm_cd}||'%'
+		   AND len(adm_cd) = 5
+		  </if>
+		  <if test='adm_cd_length != null and adm_cd_length == "5"'>
+		   AND adm_cd like #{adm_cd}||'%'
+		   AND len(adm_cd) = 7
+		  </if>
+		  <if test='adm_cd_length != null and adm_cd_length == "7"'>
+		   AND adm_cd = #{adm_cd}
+		  </if>
+		  
+		  <if test="stat_data_base_year != null  and stat_data_base_year != ''">
+		   AND base_year = #{stat_data_base_year}
+		  </if>
+		  
+		  <if test="databoard_adm_cd != null  and databoard_adm_cd != ''">
+		   AND adm_cd = #{databoard_adm_cd}
+		  </if>
+		  ORDER BY BASE_YEAR
+		</if>
+		 <if test='(thema_map_data_id == "net_emergency_cnt_normal" or thema_map_data_id == "net_fire_cnt_normal" or thema_map_data_id == "net_police_cnt_normal") and thema_map_data_id !="covid19_status" and thema_map_data_id != "cancer_data" and thema_map_data_id != "infection_data" and thema_map_data_id != "weather_data" and thema_map_data_id != "car_accident_data" and thema_map_data_id !="covid19_vacc_data"'>
+		 	
+			<if test='adm_cd_length != null and adm_cd_length == "0"'>
+				SELECT
+			  		trim(region_div) as area_type,			/*지역구분*/
+			  		trim(base_year) as base_year,			/*기준년도*/
+					trim(adm_cd) as adm_cd,		/*adm_cd*/
+					trim(left_sep_value) as left_data_val,		/*표출정보A 수치*/
+			  		trim(right_sep_value) as right_data_val,	/*표출정보B 수치*/
+					trim(thema_map_data_id) as thema_map_data_id
+				FROM 
+					mng_dt_themamapdata		  
+				WHERE 
+					<!-- thema_map_data_id like #{thema_map_data_id} || '%' -->
+					<!-- mng_s 20210914 조건추가 -->
+					<if test='thema_map_data_id == "kosis_empymn_ppltn_cnt" or thema_map_data_id == "stat_hsby_1_mean_fmember_cnt" or thema_map_data_id == "stat_psby_1000_house_cnt" or thema_map_data_id == "stat_pvt_per"' >
+						  trim(thema_map_data_id) = #{thema_map_data_id}
+					</if>
+					<if test='thema_map_data_id != "kosis_empymn_ppltn_cnt" and thema_map_data_id != "stat_hsby_1_mean_fmember_cnt" and thema_map_data_id != "stat_psby_1000_house_cnt" and thema_map_data_id != "stat_pvt_per"' >
+					  	  thema_map_data_id like #{thema_map_data_id}||'%'
+					</if>
+					
+					
+					
+					AND len(adm_cd) = 2
+					AND base_year = #{stat_data_base_year}
+			  	ORDER BY adm_cd, cast(replace(thema_map_data_id, #{thema_map_data_id} || '_', '') as int)
+			</if>
+						
+			<if test='adm_cd_length != null and adm_cd_length == "2"'>
+				SELECT 
+					area_type,			/*지역구분*/
+			  		base_year,			/*기준년도*/
+					adm_cd,		/*adm_cd*/
+					left_data_val,	/*표출정보A 수치*/
+			  		right_data_val,	/*표출정보B 수치*/
+					thema_map_data_id
+				FROM
+				(
+					SELECT sido_cd, sgg_cd, addr
+					FROM  
+						srv_pg_sggbord
+					WHERE 
+						st_intersects(lighten_bord, st_rectfromtext(#{area}, 0)) = 1
+					AND base_year = #{bnd_year}
+				) bord 
+				INNER JOIN
+				(
+					SELECT
+						trim(region_div) as area_type,
+						trim(base_year) as base_year,
+						trim(adm_cd) as adm_cd,
+						trim(left_sep_value) as left_data_val,
+						trim(right_sep_value) as right_data_val,
+						trim(thema_map_data_id) as thema_map_data_id
+					FROM mng_dt_themamapdata		  
+					WHERE 
+					
+					<!-- thema_map_data_id like #{thema_map_data_id} || '%' -->
+					<!-- mng_s 20210914 조건추가 -->
+					<if test='thema_map_data_id == "kosis_empymn_ppltn_cnt" or thema_map_data_id == "stat_hsby_1_mean_fmember_cnt" or thema_map_data_id == "stat_psby_1000_house_cnt" or thema_map_data_id == "stat_pvt_per"' >
+						  trim(thema_map_data_id) = #{thema_map_data_id}
+					</if>
+					<if test='thema_map_data_id != "kosis_empymn_ppltn_cnt" and thema_map_data_id != "stat_hsby_1_mean_fmember_cnt" and thema_map_data_id != "stat_psby_1000_house_cnt" and thema_map_data_id != "stat_pvt_per"' >
+					  	  thema_map_data_id like #{thema_map_data_id}||'%'
+					</if>
+					
+					AND len(adm_cd) = 5
+				) data
+				ON bord.sido_cd || bord.sgg_cd = data.adm_cd
+				ORDER BY adm_cd, cast(replace(thema_map_data_id, #{thema_map_data_id} || '_', '') as int)
+			</if>
+			
+			<if test='adm_cd_length != null and adm_cd_length == "5"'>
+				SELECT 
+					area_type,
+					base_year,
+					adm_cd,
+					left_data_val,
+					right_data_val
+				FROM
+				(
+					SELECT sido_cd, sgg_cd, emdong_cd, addr
+					FROM  
+						srv_pg_admbord
+					WHERE 
+						st_intersects(lighten_bord, st_rectfromtext(#{area}, 0)) = 1
+					AND base_year = #{bnd_year}
+				) bord 
+				INNER JOIN
+				(
+					SELECT
+						trim(region_div) as area_type,			/*지역구분*/
+						trim(base_year) as base_year,			/*기준년도*/
+						trim(adm_cd) as adm_cd,		/*adm_cd*/
+						trim(left_sep_value) as left_data_val,	/*표출정보A 수치*/
+						trim(right_sep_value) as right_data_val,	/*표출정보B 수치*/
+						trim(thema_map_data_id) as thema_map_data_id,
+						cast(replace(thema_map_data_id, #{thema_map_data_id} || '_', '') as int) as num
+					FROM mng_dt_themamapdata		  
+					WHERE 
+					<!-- thema_map_data_id like #{thema_map_data_id} || '%' -->
+					<!-- mng_s 20210914 조건추가 -->
+					<if test='thema_map_data_id == "kosis_empymn_ppltn_cnt" or thema_map_data_id == "stat_hsby_1_mean_fmember_cnt" or thema_map_data_id == "stat_psby_1000_house_cnt" or thema_map_data_id == "stat_pvt_per"' >
+						  trim(thema_map_data_id) = #{thema_map_data_id}
+					</if>
+					<if test='thema_map_data_id != "kosis_empymn_ppltn_cnt" and thema_map_data_id != "stat_hsby_1_mean_fmember_cnt" and thema_map_data_id != "stat_psby_1000_house_cnt" and thema_map_data_id != "stat_pvt_per"' >
+					  	  thema_map_data_id like #{thema_map_data_id}||'%'
+					</if>
+					AND len(adm_cd) = 7
+				) data
+				ON bord.sido_cd || bord.sgg_cd || bord.emdong_cd = data.adm_cd
+				ORDER BY adm_cd, num
+				<!--cast(replace(thema_map_data_id, #{thema_map_data_id} || '_', '') as int)-->
+			</if>
+		 </if>	  
+		  <if test='thema_map_data_id == "covid19_status"'>
+		  	<if test ='gubun == null'>
+					SELECT
+						trim(base_year) as base_year,
+						trim(sido_cd) as adm_cd,
+						trim(incdec) as left_data_val,
+						trim(defcnt) as right_data_val
+					FROM srv_dt_thema_covid19_status
+					WHERE base_year = #{covid_year_val} 
+					AND	base_month = #{covid_month_val}
+					AND base_day = #{covid_day_val}
+		    </if>	
+		  	<if test ='gubun == "databoard"'>
+				SELECT A.*,B.right_data_val
+				FROM
+					(SELECT  
+						base_year,
+						base_month,
+					 <if test ='databoard_adm_cd != "00"'>
+					 	sido_cd as adm_cd,
+					 </if>
+						sum(incdec) as left_data_val 
+					FROM srv_dt_thema_covid19_status 
+					WHERE sido_cd = #{databoard_adm_cd} 
+					GROUP BY base_month,base_year
+					 <if test ='databoard_adm_cd != "00"'>
+					 	,sido_cd
+					 </if>
+					 ) A 
+					INNER JOIN 
+					(SELECT
+						base_year, 
+						base_month,
+						max(defcnt) as right_data_val 
+					FROM srv_dt_thema_covid19_status 
+					WHERE sido_cd = #{databoard_adm_cd}
+					GROUP BY base_year, base_month) B 
+					ON A.base_year = B.base_year and A.base_month = B.base_month
+		  	</if>	
+		  	<if test ='gubun == "tooltip"'>
+		  		<if test ='part == "전체"'>
+					SELECT 
+						base_year,
+						sido_cd,
+						sgg_cd,
+						emdong_cd,
+						clnc_div_nm,
+						clnc_inst_nm,
+						clnc_inst_addr,
+						clnc_clnic_type_nm,
+						clnc_tel_no,
+						x_coor,
+						y_coor
+					FROM srv_pt_thema_covid19_status
+					WHERE 1=1
+				</if>
+			  	<if test ='part != "전체"'>
+					SELECT
+						base_year,
+						sido_cd,
+						sgg_cd,
+						emdong_cd,
+						clnc_div_nm,
+						clnc_inst_nm,
+						clnc_inst_addr,
+						clnc_clnic_type_nm,
+						clnc_tel_no,
+						x_coor,
+						y_coor
+					FROM srv_pt_thema_covid19_status
+					WHERE clnc_div_nm = #{part}
+			  	</if>
+		  	</if>
+		  	<if test ='gubun == "chart"'>
+				 SELECT
+					base_year,
+					base_month,
+					base_day,
+		  		<if test ='adm_cd != "00"'>
+					sido_cd as adm_cd,
+		  		</if>
+					incdec as left_data_val,
+					defcnt as right_data_val 
+				FROM srv_dt_thema_covid19_status 
+				<![CDATA[
+				WHERE TO_DATE(( base_year||base_month||base_day ),'yyyyMMdd') >= TO_DATE(#{covid_start},'yyyyMMdd')
+				  AND base_year <= TO_NUMBER(#{covid_year_val})
+				  AND base_month <= TO_NUMBER(#{covid_month_val})
+				  AND sido_cd = #{adm_cd}
+				ORDER BY base_month, base_day
+				]]> 
+		  	</if>
+		  </if>
+		  <if test='thema_map_data_id == "cancer_data"'>
+		  	SELECT 
+		  		base_year,
+		  		sido_cd as adm_cd,
+		  		cancer_type_div_cd,
+		  		new_cancer_patnt_cnt as left_data_val,
+		  		acc_cancer_patnt_cnt as right_data_val
+		  	FROM srv_dt_thema_cancer_patnt_data
+		  	WHERE base_year = #{base_year}
+		  	AND cancer_type_div_cd = #{cancer_type_div_cd}
+			  <if test='adm_cd != "00"'>            
+	            AND sido_cd = #{adm_cd}
+	          </if>
+		  </if>
+		  <if test='thema_map_data_id == "infection_data"'>
+		  	<if test='chart_disp_order == "0"'>
+			  	SELECT 
+			  		base_year,
+			  		sido_cd as adm_cd,
+			  		icd_patnt_cnt as left_data_val
+			  	FROM srv_dt_thema_icd_patnt_data
+			  	WHERE base_year = #{base_year}
+			  	AND icd_clst_nm = #{icd_clst_nm}
+			  	AND chart_disp_order = #{chart_disp_order}
+				<if test='adm_cd != "00"'>            
+		          AND sido_cd = #{adm_cd}
+		        </if>
+	        </if>
+		  	<if test='chart_disp_order != "0"'>
+				SELECT * FROM
+				(SELECT 
+					base_year,
+					sido_cd as adm_cd,
+					icd_clst_nm,
+					icd_diss_nm,
+					chart_disp_order,
+					icd_patnt_cnt as left_data_val
+				FROM srv_dt_thema_icd_patnt_data
+				WHERE base_year = #{base_year}
+				AND icd_clst_nm = #{icd_clst_nm}
+				AND chart_disp_order != '0'
+				AND chart_disp_order != '9'
+				AND chart_disp_order != #{chart_disp_order}) A
+				UNION
+				SELECT * FROM
+				(SELECT 
+					base_year,
+					sido_cd as adm_cd,
+					icd_clst_nm,
+					'기타',
+					chart_disp_order,
+					sum(icd_patnt_cnt)
+				FROM srv_dt_thema_icd_patnt_data 
+				WHERE chart_disp_order = #{chart_disp_order} 
+				AND base_year = #{base_year} 
+				AND icd_clst_nm = #{icd_clst_nm}
+				GROUP BY sido_cd,base_year,icd_clst_nm,chart_disp_order ) B
+	         </if>
+		  </if>
+		  <if test='thema_map_data_id == "weather_data"'>
+		  	SELECT 
+		  		base_year,
+		  		sido_cd as adm_cd,
+				<if test='weather_type_cd == "1"'>
+					round(avg(avg_tmprt_value),2) as left_data_val
+		  		</if>
+				<if test='weather_type_cd == "2"'>
+					round(avg(highest_tmprt_value),2) as left_data_val
+		  		</if>
+				<if test='weather_type_cd == "3"'>
+					round(avg(lowest_tmprt_value),2) as left_data_val
+		  		</if>
+				<if test='weather_type_cd == "4"'>
+			  		round(avg(sum_prcpt_qntty_value),2) as right_data_val
+		  		</if>
+				<if test='weather_type_cd == "5"'>
+			  		round(avg(one_day_mxm_prcpt_qntty_value),2) as right_data_val
+		  		</if>
+		  	FROM srv_dt_thema_wether_data
+		  	WHERE base_year = #{base_year}
+		  	GROUP BY base_year,sido_cd
+		  </if>
+		  <if test='thema_map_data_id == "car_accident_data"'>
+			  	<if test='gubun == "tooltip"'>
+			  		SELECT 
+			  			acdnt_no,
+						occrrnc_year as base_year,
+						x_coord,
+						y_coord
+					FROM 
+			  			srv_pt_thema_tfcacd_data
+			  		WHERE occrrnc_year = #{stat_data_base_year}
+			  		<if test='caracc_type_cd == "1"'>
+						AND dprs_cnt > 0
+					</if>
+					<if test='caracc_type_cd == "2"'>
+						AND swpsn_cnt > 0
+					</if>
+					<if test='caracc_type_cd == "3"'>
+						AND sinjpsn_cnt > 0
+					</if>
+					<if test='caracc_type_cd == "4"'>
+						AND inj_aplcnt_cnt > 0
+					</if>
+			  	</if>
+			  	<if test='gubun == "tooltip2"'>
+			  		SELECT 
+			  			acdnt_no,
+						occrrnc_year as base_year,
+						sido_nm,
+						sgg_nm,
+						emdong_nm,
+						sido_cd,
+						sgg_cd,
+						emdong_cd,
+						addr,
+						acdnt_dt,
+						acdnt_dayofweek,
+						acdnt_type_class_nm,
+						acdnt_type_nm,
+						dprs_cnt,
+						swpsn_cnt,
+						sinjpsn_cnt,
+						inj_aplcnt_cnt,
+						rdsrfc_sttus_nm,
+						road_sttus_nm,
+						wrngdor_violt_nm,
+						wrngdor_vhcty_nm,
+						wrngdor_gender_nm,
+						case when wrngdor_age_nm = '불명' then wrngdor_age_nm else left(wrngdor_age_nm, 1)||'0대'||substring(wrngdor_age_nm, 4) end as wrngdor_age_nm, 
+						wrngdor_inj_nm,
+						sufrer_vhcty_nm,
+						sufrer_gender_nm,
+						case when sufrer_age_nm = '불명' then sufrer_age_nm else left(sufrer_age_nm, 1)||'0대'||substring(sufrer_age_nm, 4) end as sufrer_age_nm, 
+						sufrer_inj_nm,
+						wether_sttus_nm
+					FROM 
+			  			srv_pt_thema_tfcacd_data
+			  		WHERE occrrnc_year = #{stat_data_base_year}
+					AND acdnt_no = #{acdnt_no}
+			  		<if test='caracc_type_cd == "1"'>
+						AND dprs_cnt > 0
+					</if>
+					<if test='caracc_type_cd == "2"'>
+						AND swpsn_cnt > 0
+					</if>
+					<if test='caracc_type_cd == "3"'>
+						AND sinjpsn_cnt > 0
+					</if>
+					<if test='caracc_type_cd == "4"'>
+						AND inj_aplcnt_cnt > 0
+					</if>
+			  	</if>
+			  	<if test='gubun != "tooltip" and gubun != "tooltip2"'>
+			  		<if test='databoard_adm_cd != null'>
+			  			SELECT b.base_year, nvl(a.left_data_val,0) as left_data_val, b.adm_cd FROM 
+						(SELECT 
+							occrrnc_year as base_year,
+							count(*) as left_data_val,
+							<if test='adm_cd != null and adm_cd.length() == "2"'>
+								sido_cd as adm_cd
+							</if>
+							<if test='adm_cd != null and adm_cd.length() == "5"'>
+								sido_cd||sgg_cd as adm_cd
+							</if>
+							<if test='adm_cd != null and adm_cd.length() == "7"'>
+								sido_cd||sgg_cd||emdong_cd as adm_cd
+						  	</if>
+						FROM srv_pt_thema_tfcacd_data 
+							<if test='adm_cd != null and adm_cd.length() == "2"'>
+								WHERE sido_cd = #{adm_cd}
+							</if>
+							<if test='adm_cd != null and adm_cd.length() == "5"'>
+								WHERE sido_cd||sgg_cd = #{adm_cd}
+							</if>
+							<if test='adm_cd != null and adm_cd.length() == "7"'>
+								WHERE sido_cd||sgg_cd||emdong_cd = #{adm_cd}
+							</if>
+							<if test='caracc_type_cd == "1"'>
+								AND dprs_cnt > 0
+							</if>
+							<if test='caracc_type_cd == "2"'>
+								AND swpsn_cnt > 0
+							</if>
+							<if test='caracc_type_cd == "3"'>
+								AND sinjpsn_cnt > 0
+							</if>
+							<if test='caracc_type_cd == "4"'>
+								AND inj_aplcnt_cnt > 0
+							</if>
+							<if test='adm_cd != null and adm_cd.length() == "2"'>
+								GROUP BY occrrnc_year,sido_cd)
+							</if>
+							<if test='adm_cd != null and adm_cd.length() == "5"'>
+								GROUP BY occrrnc_year,sido_cd||sgg_cd)
+							</if>
+							<if test='adm_cd != null and adm_cd.length() == "7"'>
+								GROUP BY occrrnc_year,sido_cd||sgg_cd||emdong_cd)
+						  	</if>
+						  	a ,  (select distinct occrrnc_year as base_year, #{adm_cd} as adm_cd from srv_pt_thema_tfcacd_data ) b where a.base_year (+) = b.base_year
+			  		</if>
+			  		<if test='databoard_adm_cd == null'>
+						SELECT 
+							${stat_data_base_year} as base_year ,
+							nvl(a.left_data_val,0) as left_data_val, 
+							b.adm_cd, 
+							b.sido_nm
+						FROM
+						(SELECT 
+							occrrnc_year as base_year,
+							count(*) as left_data_val,
+							<if test='adm_cd == "00"'>
+								sido_cd as adm_cd
+							</if>
+							<if test='adm_cd != "00" and adm_cd != null and adm_cd.length() == "2"'>
+								sido_cd||sgg_cd as adm_cd
+							</if>
+							<if test='adm_cd != null and adm_cd.length() == "5"'>
+								sido_cd||sgg_cd||emdong_cd as adm_cd
+						  	</if>
+						FROM srv_pt_thema_tfcacd_data 
+						WHERE occrrnc_year = #{stat_data_base_year}
+						<if test='adm_cd != "00" and adm_cd != null and adm_cd.length() == "2"'>
+							AND sido_cd = #{adm_cd}
+						</if>
+						<if test='adm_cd != "00" and adm_cd != null and adm_cd.length() == "5"'>
+							AND sido_cd||sgg_cd = #{adm_cd}
+						</if>
+						<if test='caracc_type_cd == "1"'>
+							AND dprs_cnt > 0
+						</if>
+						<if test='caracc_type_cd == "2"'>
+							AND swpsn_cnt > 0
+						</if>
+						<if test='caracc_type_cd == "3"'>
+							AND sinjpsn_cnt > 0
+						</if>
+						<if test='caracc_type_cd == "4"'>
+							AND inj_aplcnt_cnt > 0
+						</if>
+						<if test='adm_cd == "00"'>
+							GROUP BY occrrnc_year,sido_cd
+						</if>	
+						<if test='adm_cd != "00" and adm_cd != null and adm_cd.length() == "2"'>
+							GROUP BY occrrnc_year,sido_cd||sgg_cd
+						</if>
+						<if test='adm_cd != null and adm_cd.length() == "5"'>
+							GROUP BY occrrnc_year,sido_cd||sgg_cd||emdong_cd
+						</if>
+						)a, (
+						SELECT
+							base_year , 
+							<if test='adm_cd == "00"'>
+								sido_cd as adm_cd,
+								sido_nm
+								FROM srv_pg_sidobord
+							</if>
+							<if test='adm_cd != "00" and adm_cd != null and adm_cd.length() == "2"'>
+								sido_cd||sgg_cd as adm_cd,
+								sido_nm||sgg_nm as sido_nm
+								FROM srv_pg_sggbord
+							</if>
+							<if test='adm_cd != null and adm_cd.length() == "5"'>
+								sido_cd||sgg_cd||emdong_cd as adm_cd,
+								sido_nm||sgg_nm||emdong_nm as sido_nm
+								FROM srv_pg_admbord
+						  	</if>
+						WHERE base_year = (select base_year from mng_dt_themamapList where stat_thema_map_id = 'wPsSdFX8Wt20210520161423833UZjHClj5U3')
+						<if test='adm_cd != "00" and adm_cd != null and adm_cd.length() == "2"'>
+							AND sido_cd = #{adm_cd}
+						</if>
+						<if test='adm_cd != "00" and adm_cd != null and adm_cd.length() == "5"'>
+							AND sido_cd||sgg_cd = #{adm_cd}
+						</if>
+						<if test='adm_cd != "00" and adm_cd != null and adm_cd.length() == "7"'>
+							AND sido_cd||sgg_cd||emdong_cd = #{adm_cd}
+						</if>
+						)b where a.adm_cd (+) = b.adm_cd
+					</if>
+				</if>
+		  </if>
+		  <if test='thema_map_data_id == "covid19_vacc_data"'>
+		  	<if test='gubun == null'>
+				SELECT	
+					base_year,
+					sido_cd as adm_cd,
+					<if test ='covid_vacc_cd =="1"'>
+					today_fst_lnocl_cnt as left_data_val
+					</if>
+					<if test ='covid_vacc_cd =="2"'>
+					today_scd_lnocl_cnt as left_data_val
+					</if>
+					<if test ='covid_vacc_cd =="3"'>
+					today_third_lnocl_cnt as left_data_val
+					</if>
+					<if test ='covid_vacc_cd =="4"'>
+					total_fst_lnocl_cnt as right_data_val
+					</if>
+					<if test ='covid_vacc_cd =="5"'>
+					total_scd_lnocl_cnt as right_data_val
+					</if>
+					<if test ='covid_vacc_cd =="6"'>
+					total_third_lnocl_cnt as right_data_val
+					</if>
+				FROM srv_dt_thema_covid19_vacntn
+				WHERE base_year = #{covid_year_val} 
+				AND	base_month = #{covid_month_val}
+				AND base_day = #{covid_day_val}
+		  	</if>
+		  	<if test='gubun == "databoard"'>
+	  			SELECT 
+					base_year,
+					base_month,
+					 <if test ='databoard_adm_cd != "00"'>
+					 sido_cd as adm_cd,
+					 </if>
+				  	<if test='covid_vacc_cd == "1"'>
+					sum(today_fst_lnocl_cnt) as left_data_val
+				  	</if>
+				  	<if test='covid_vacc_cd == "2"'>
+					sum(today_scd_lnocl_cnt) as left_data_val
+				  	</if>
+				  	<if test='covid_vacc_cd == "3"'>
+					sum(today_third_lnocl_cnt) as left_data_val
+				  	</if>
+				  	<if test='covid_vacc_cd == "4"'>
+					max(total_fst_lnocl_cnt) as right_data_val
+				  	</if>
+				  	<if test='covid_vacc_cd == "5"'>
+					max(total_scd_lnocl_cnt) as right_data_val
+				  	</if>
+				  	<if test='covid_vacc_cd == "6"'>
+					max(total_third_lnocl_cnt) as right_data_val
+				  	</if>
+				FROM srv_dt_thema_covid19_vacntn
+				WHERE sido_cd = #{databoard_adm_cd}
+				GROUP BY base_month,base_year,sido_cd
+		  	</if>
+			<if test ='gubun == "chart"'>
+				 SELECT
+					base_year,
+					base_month,
+					base_day,
+		  		<if test ='adm_cd != "00"'>
+					sido_cd as adm_cd,
+		  		</if>
+			  	<if test='covid_vacc_cd == "1"'>
+				sum(today_fst_lnocl_cnt) as left_data_val
+			  	</if>
+			  	<if test='covid_vacc_cd == "2"'>
+				sum(today_scd_lnocl_cnt) as left_data_val
+			  	</if>
+			  	<if test='covid_vacc_cd == "3"'>
+				sum(today_third_lnocl_cnt) as left_data_val
+			  	</if>
+			  	<if test='covid_vacc_cd == "4"'>
+				sum(total_fst_lnocl_cnt) as right_data_val
+			  	</if>
+			  	<if test='covid_vacc_cd == "5"'>
+				sum(total_scd_lnocl_cnt) as right_data_val
+			  	</if>
+			  	<if test='covid_vacc_cd == "6"'>
+				sum(total_third_lnocl_cnt) as right_data_val
+			  	</if>
+				FROM srv_dt_thema_covid19_vacntn
+				<![CDATA[
+				WHERE TO_DATE(( base_year||base_month||base_day ),'yyyyMMdd') >= TO_DATE(#{covid_start},'yyyyMMdd')
+				  AND base_year <= TO_NUMBER(#{covid_year_val})
+				  AND base_month <= TO_NUMBER(#{covid_month_val})
+				  AND sido_cd = #{adm_cd}
+				GROUP BY	 base_year, base_month, base_day, sido_cd 
+				ORDER BY base_month, base_day
+				]]> 
+		  	</if>
+		  	<if test='gubun == "tooltip"'>
+		  		SELECT
+		  			'2021' as base_year,
+		  			cnter_nm,
+		  			oper_engn_nm,
+		  			fac_nm,
+		  			addr,
+		  			tel_no,
+		  			cnter_type_nm,
+		  			x_coor,
+		  			y_coor
+		  		FROM srv_pt_thema_covid19_vacntn
+		  	</if>
+		  	<if test='gubun == "tooltip2"'>
+				SELECT 
+					substr(ym_de,0,4) as base_year,
+					inst_cd,
+					x_coor,
+					y_coor
+				FROM srv_pt_thema_covid19_cnsgn
+		  	</if>
+		  	<if test='gubun == "tooltip3"'>
+				SELECT 
+					substr(ym_de,0,4) as base_year,
+					inst_nm,
+					tel_no,
+					addr,
+					dayofweek,
+					lunch_start_time,
+					lunch_end_time,
+					clnic_start_time,
+					clnic_end_time
+				FROM srv_pt_thema_covid19_cnsgn
+				WHERE inst_cd = #{inst_cd}
+		  	</if>
+		  </if>
+		  <if test='thema_map_data_id == "infection_data"'>
+			 ) ORDER BY adm_cd,chart_disp_order
+		  </if>
+		  <if test='(thema_map_data_id != "covid19_status" or gubun != "tooltip") and thema_map_data_id != "infection_data"'>
+			  ) ORDER BY TO_NUMBER(BASE_YEAR)
+		  </if>
+		  <if test='thema_map_data_id == "covid19_status" and gubun == "tooltip"'>
+			  ) ORDER BY sido_cd || sgg_cd || emdong_cd	,clnc_inst_addr,clnc_clnic_type_nm  	
+		  </if>
+		  
+		  
+	</select>
+	<!-- 2019-04-23 DJLEE 수정 끝 -->
+	
+	<!-- 통계주제도 증감 수데이터 조회 -->
+	<select id="thematicMap.select.getThemaMapDataForChart" parameterType="hashmap" resultType="hashmap">
+		 SELECT
+		 		substr(trim(adm_cd), 0, 2) as sido_cd,
+				<!-- 2016. 10. 26 column name modified -->
+		  		trim(region_div) as area_type,			/*지역구분*/
+		  		<!-- trim(base_year) as base_year,			/*기준년도*/ -->
+				trim(adm_cd) as adm_cd,					/*adm_cd*/
+		  		trim(chart_value) as right_data_val,			/*표출정보A 수치*/
+		  		trim(irds_year) as base_year			/*데이터년도*/
+		  FROM mng_dt_themamapchange		  
+		  WHERE 
+		  <!-- thema_map_data_id like #{thema_map_data_id} || '%' -->
+					<!-- mng_s 20210914 조건추가 -->
+					<if test='thema_map_data_id == "kosis_empymn_ppltn_cnt" or thema_map_data_id == "stat_hsby_1_mean_fmember_cnt" or thema_map_data_id == "stat_psby_1000_house_cnt" or thema_map_data_id == "stat_pvt_per"' >
+						  trim(thema_map_data_id) = #{thema_map_data_id}
+					</if>
+					<if test='thema_map_data_id != "kosis_empymn_ppltn_cnt" and thema_map_data_id != "stat_hsby_1_mean_fmember_cnt" and thema_map_data_id != "stat_psby_1000_house_cnt" and thema_map_data_id != "stat_pvt_per"' >
+					  	  thema_map_data_id like #{thema_map_data_id}||'%'
+					</if>
+		  AND irds_year = #{data_year}
+	  	
+	  	  <if test = 'area_type =="1" or area_type =="auto"'>
+	  	  	<if test='adm_cd == null or adm_cd == "00"'>
+	  	  		 AND len(adm_cd) = 2
+	  	 	 </if>
+		  	<if test='adm_cd != null and adm_cd.length() == "0"'>
+		 	  AND len(adm_cd) = 2
+		 	</if>
+			<if test='adm_cd != null and adm_cd.length() == "2" and adm_cd != "00"'>
+			   AND adm_cd like #{adm_cd}||'%'
+			   AND len(adm_cd) = 5
+			</if>
+			<if test='adm_cd != null and adm_cd.length() == "5"'>
+			   AND adm_cd like #{adm_cd}||'%'
+			   AND len(adm_cd) = 7
+			</if>
+	  	  </if>
+	  	  <if test = 'area_type =="2"'>
+	  	   		AND len(adm_cd) = 5
+	  	  </if>
+	  	  <if test = 'area_type =="3"'>
+	  	  	AND len(adm_cd) = 7
+	  	  </if>
+	  	  
+		  
+		  ORDER BY irds_year
+	</select>
+	
+	<!-- 메인 주요 통계 조회 -->
+	<!-- 2019-03-13 박길섭 시작-->
+	<select id="thematicMap.select.GetMainPopsgg" parameterType="hashmap" resultType="hashmap">
+	<!--
+		 SELECT  	GENDER 
+			,		(SELECT TO_CHAR(NVL(SUM(PPLTN_CNT) 	, 0),'9,999,999') FROM SRV_DT_POPSGG_2017 		WHERE SIDO_CD  = #{sido_cd} AND SGG_CD = #{sgg_cd} AND BORD_BASE_YEAR=#{bord_year}) AS TOTAL
+			,		(SELECT TO_CHAR(NVL(SUM(RESID_CNT) 	, 0),'9,999,999') FROM SRV_DT_HOUSESGG_2017		WHERE SIDO_CD  = #{sido_cd} AND SGG_CD = #{sgg_cd} AND BORD_BASE_YEAR=#{bord_year} AND HOUSE_YN = 'Y') AS HOUSE_TOTAL 
+			,		(SELECT TO_CHAR(NVL(SUM(CORP_CNT) 	, 0),'9,999,999') FROM SRV_DT_TECHBIZ_CORPSGG 	WHERE SIDO_CD  = #{sido_cd} AND SGG_CD = #{sgg_cd} AND BASE_YEAR=#{data_year}) AS CORP_TOTAL
+			,		(SELECT TO_CHAR(NVL(SUM(EMPLOYEE_CNT) 	, 0),'9,999,999') FROM SRV_DT_TECHBIZ_CORPSGG 	WHERE SIDO_CD  = #{sido_cd} AND SGG_CD = #{sgg_cd} AND BASE_YEAR=#{data_year}) AS EMPLOYEE_TOTAL
+			, 		TO_CHAR(NVL(SUM(PPLTN_CNT), 0 ),'9,999,999') CNT
+		 FROM 		SRV_DT_POPSGG_2017 
+		 WHERE 		SIDO_CD  = #{sido_cd} AND SGG_CD = #{sgg_cd} AND BORD_BASE_YEAR=#{bord_year} GROUP BY GENDER; 
+	-->
+			<!-- 2019-03-18 이경현 수정  start -->
+			select to_char(max(case when gender = '1' then cnt end), '9,999,999') as malecnt, 
+				   to_char(max(case when gender = '2' then cnt end), '9,999,999') as femalecnt,
+				   to_char(sum(cnt), '9,999,999') as total,
+				  (SELECT TO_CHAR(NVL(SUM(RESID_CNT) 	, 0),'9,999,999') FROM SRV_DT_HOUSESGG_2019		WHERE SIDO_CD  = #{sido_cd} AND SGG_CD = #{sgg_cd} AND BORD_BASE_YEAR= #{bord_year} AND HOUSE_YN = 'Y') AS HOUSE_TOTAL ,
+				  (select TO_CHAR(max(corp_cnt),'9,999,999') as corp_cnt from srv_dt_corpcensus_index where info_div = '2' and	region_cd = #{sido_cd} || #{sgg_cd}	and base_year = #{data_year}) AS CORP_TOTAL,
+				  (select TO_CHAR(max(EMPLOYEE_CNT),'9,999,999') as corp_cnt from srv_dt_corpcensus_index where info_div = '2' and	region_cd = #{sido_cd} || #{sgg_cd}	and base_year = #{data_year}) AS EMPLOYEE_TOTAL
+			from(
+				select gender, nvl(sum(ppltn_cnt),0) as cnt from 
+				SRV_DT_POPSGG_2020
+				WHERE 		SIDO_CD  = #{sido_cd} AND SGG_CD = #{sgg_cd} AND BORD_BASE_YEAR = #{bord_year} 
+				GROUP BY GENDER, sido_cd, sgg_cd 
+			);
+			<!-- 2019-03-18 이경현 수정  end --> 
+	</select>
+	<!-- 2019-03-13 박길섭 끝-->
+	
+	<select id="thematicMap.select.getThemaMapDataAll" parameterType="hashmap" resultType="hashmap">
+	<if test='thema_map_data_id != "covid19_status" and thema_map_data_id != "cancer_data" and thema_map_data_id != "infection_data" and thema_map_data_id != "weather_data" and thema_map_data_id !="car_accident_data"'>
+		 SELECT
+		 		substr(trim(adm_cd), 0, 2) as sido_cd,
+				<!-- 2016. 10. 26 column name modified -->
+		  		trim(region_div) as area_type,			/*지역구분*/
+		  		trim(base_year) as base_year,			/*기준년도*/
+				trim(adm_cd) as adm_cd,		/*adm_cd*/
+		  		trim(left_sep_value) as left_data_val,	/*표출정보A 수치*/
+		  		trim(right_sep_value) as right_data_val	/*표출정보B 수치*/
+		  FROM mng_dt_themamapdata		  
+		  WHERE 
+		  <!-- thema_map_data_id like #{thema_map_data_id} || '%' -->
+					<!-- mng_s 20210914 조건추가 -->
+					<if test='thema_map_data_id == "kosis_empymn_ppltn_cnt" or thema_map_data_id == "stat_hsby_1_mean_fmember_cnt" or thema_map_data_id == "stat_psby_1000_house_cnt" or thema_map_data_id == "stat_pvt_per"' >
+						  trim(thema_map_data_id) = #{thema_map_data_id}
+					</if>
+					<if test='thema_map_data_id != "kosis_empymn_ppltn_cnt" and thema_map_data_id != "stat_hsby_1_mean_fmember_cnt" and thema_map_data_id != "stat_psby_1000_house_cnt" and thema_map_data_id != "stat_pvt_per"' >
+					  	  thema_map_data_id like #{thema_map_data_id}||'%'
+					</if>
+		  <!-- 2016. 10. 26 column name modified -->
+		  AND	region_div = #{area_type}
+		  <if test="stat_data_base_year != null  and stat_data_base_year != ''">
+		   AND base_year = #{stat_data_base_year}
+		  </if>
+		  ORDER BY base_year
+	</if>
+	<if test='thema_map_data_id == "covid19_status"'>
+			SELECT
+				trim(base_year) as base_year,
+				trim(sido_cd) as adm_cd,
+				trim(incdec) as left_data_val,
+				trim(defcnt) as right_data_val
+			FROM srv_dt_thema_covid19_status
+			WHERE base_month = #{covid_month_val}
+			AND base_day = #{covid_day_val}
+			ORDER BY base_month DESC
+	</if>	
+	<if test='thema_map_data_id == "cancer_data"'>
+		  	SELECT 
+		  		base_year,
+		  		sido_cd as adm_cd,
+		  		cancer_type_div_cd,
+		  		new_cancer_patnt_cnt as left_data_val,
+		  		acc_cancer_patnt_cnt as right_data_val
+		  	FROM srv_dt_thema_cancer_patnt_data
+		  	WHERE cancer_type_div_cd = #{cancer_type_div_cd}
+		  <if test='adm_cd != "00"'>            
+            AND sido_cd = #{adm_cd}
+          </if>
+	</if>
+	<if test='thema_map_data_id == "infection_data"'>
+	  	<if test='chart_disp_order == "0"'>
+	  	SELECT 
+	  		base_year,
+	  		sido_cd as adm_cd,
+	  		icd_patnt_cnt as left_data_val
+	  	FROM srv_dt_thema_icd_patnt_data
+	  	WHERE icd_clst_nm = #{icd_clst_nm}
+	  	AND chart_disp_order = #{chart_disp_order}
+		  <if test='adm_cd != "00"'>            
+            AND sido_cd = #{adm_cd}
+          </if>
+      </if>
+	</if>
+	  <if test='thema_map_data_id == "weather_data"'>
+	  	SELECT 
+	  		base_year,
+	  		sido_cd as adm_cd,
+			<if test='weather_type_cd == "1"'>
+				round(avg(avg_tmprt_value),2) as left_data_val
+	  		</if>
+			<if test='weather_type_cd == "2"'>
+				round(avg(highest_tmprt_value),2) as left_data_val
+	  		</if>
+			<if test='weather_type_cd == "3"'>
+				round(avg(lowest_tmprt_value),2) as left_data_val
+	  		</if>
+			<if test='weather_type_cd == "4"'>
+		  		round(avg(sum_prcpt_qntty_value),2) as right_data_val
+	  		</if>
+			<if test='weather_type_cd == "5"'>
+		  		round(avg(one_day_mxm_prcpt_qntty_value),2) as right_data_val
+	  		</if>
+	  	FROM srv_dt_thema_wether_data
+	  	WHERE sido_cd = #{adm_cd}
+	  	GROUP BY base_year,sido_cd
+	  </if> 
+	  <if test='thema_map_data_id == "car_accident_data"'>
+		SELECT 
+			${stat_data_base_year} as base_year, 
+			nvl(b.left_data_val,0) as left_data_val, 
+			a.sido_cd, 
+			a.adm_cd,
+		<if test = 'area_type !="1"'>
+			a.addr,
+		</if>
+		a.sido_nm
+		FROM (
+			<if test = 'area_type =="1"'>
+			SELECT
+				base_year , 
+				sido_cd as adm_cd,
+				sido_cd,
+				sido_nm
+			FROM		
+				srv_pg_sidobord
+			</if>
+			<if test = 'area_type =="2"'>
+			SELECT
+				base_year , 
+				sido_cd||sgg_cd as adm_cd,
+				addr,
+				sido_cd,
+				sido_nm
+			FROM
+				srv_pg_sggbord
+			</if>
+			<if test = 'area_type =="3"'>
+			SELECT
+				base_year , 
+				sido_cd||sgg_cd||emdong_cd as adm_cd,
+				addr,
+				sido_cd,
+				sido_nm
+			FROM
+				srv_pg_admbord 
+			</if>	
+			WHERE base_year = (select base_year from mng_dt_themamapList where stat_thema_map_id = 'wPsSdFX8Wt20210520161423833UZjHClj5U3')
+			) a
+		, (SELECT 
+			occrrnc_year as base_year,
+			count(*) as left_data_val,
+			sido_cd,
+			<if test = 'area_type =="1"'>
+				sido_cd as adm_cd
+			</if>
+			<if test = 'area_type =="2"'>
+				sido_cd||sgg_cd as adm_cd
+			</if>
+			<if test = 'area_type =="3"'>
+				sido_cd||sgg_cd||emdong_cd as adm_cd
+			</if>	
+		FROM srv_pt_thema_tfcacd_data 
+		WHERE occrrnc_year = #{stat_data_base_year}
+			<if test='caracc_type_cd == "1"'>
+				AND dprs_cnt > 0
+			</if>
+			<if test='caracc_type_cd == "2"'>
+				AND swpsn_cnt > 0
+			</if>
+			<if test='caracc_type_cd == "3"'>
+				AND sinjpsn_cnt > 0
+			</if>
+			<if test='caracc_type_cd == "4"'>
+				AND inj_aplcnt_cnt > 0
+			</if>
+			<if test = 'area_type =="1"'>
+				GROUP BY occrrnc_year,sido_cd
+			</if>
+			<if test = 'area_type =="2"'>
+				GROUP BY occrrnc_year,sido_cd,sido_cd||sgg_cd
+			</if>
+			<if test = 'area_type =="3"'>
+				GROUP BY occrrnc_year,sido_cd,sido_cd||sgg_cd||emdong_cd
+			</if>
+			) b where b.adm_cd (+) = a.adm_cd
+	  </if>
+	</select>
+	
+	
+	<!-- 통계주제도 기본데이터 마트 조회(테스트) -->
+	<!--//2019-04-23 djlee 수정 시작 -->
+	<select id="thematicMap.select.getThemaMapChange" parameterType="hashmap" resultType="hashmap">
+		/**  THEMATICMAP.SELECT.GETTHEMAMAPCHANGE START ... ${base_year} , ${type} 통계주제도 수 , 증감  **/
+		 SELECT * FROM (
+		 SELECT
+				<!-- 2016. 10. 26 column name modified -->
+		  		trim(region_div) as area_type,			/*지역구분*/
+		  		replace(trim(base_year), '9016' , '2016') as base_year,			/*기준년도*/
+				trim(adm_cd) as adm_cd,		/*adm_cd*/
+		  		trim(chart_value) as chart_value,	/*차트 수치*/
+		  		replace(trim(irds_year), '9016' , '2016') as irds_year /*증감년도*/
+		  		
+		  FROM mng_dt_themamapchange		  
+		  WHERE 
+		  <!-- thema_map_data_id like #{thema_map_data_id} || '%' -->
+					<!-- mng_s 20210914 조건추가 -->
+					<if test='thema_map_data_id == "kosis_empymn_ppltn_cnt" or thema_map_data_id == "stat_hsby_1_mean_fmember_cnt" or thema_map_data_id == "stat_psby_1000_house_cnt" or thema_map_data_id == "stat_pvt_per"' >
+						  trim(thema_map_data_id) = #{thema_map_data_id}
+					</if>
+					<if test='thema_map_data_id != "kosis_empymn_ppltn_cnt" and thema_map_data_id != "stat_hsby_1_mean_fmember_cnt" and thema_map_data_id != "stat_psby_1000_house_cnt" and thema_map_data_id != "stat_pvt_per"' >
+					  	  thema_map_data_id like #{thema_map_data_id}||'%'
+					</if>
+		  <if test="area_type != 'auto'">
+		   AND  adm_cd = #{adm_cd}
+		  </if>
+ 		  <if test="base_year != null and base_year !=''"> 
+ 		  	<choose>
+			    <when test="base_year lt '2017'">
+			      AND IRDS_YEAR <![CDATA[<]]> '2017'
+			    </when>
+			    <otherwise>
+				      AND IRDS_YEAR <![CDATA[>=]]> '2017'
+			    </otherwise>
+			 </choose>
+ 		  </if> 
+ 		  )
+		  ORDER BY TO_NUMBER(IRDS_YEAR)
+	</select>
+	<!--//2019-04-23 djlee 수정 끝 -->
+	
+	<select id="thematicMap.select.getThemaMapKosisData" parameterType="hashmap" resultType="hashmap">
+		<!-- 귀농귀촌 데이터 보드 -->
+		 SELECT
+				<!-- 2018. 08. 27 column name modified -->
+		  		trim(region_div) as area_type,			/*지역구분*/
+		  		${base_year} as base_year,			/*기준년도*/
+				trim(adm_cd) as adm_cd,		/*adm_cd*/
+		  		trim(left_sep_value) as chart_value,	/*차트 수치*/
+		  		trim(right_sep_value) as chart_value2,	/*차트 수치*/
+		  		trim(base_year) as irds_year /*증감년도*/
+		  FROM mng_dt_themamapdata		  
+		  WHERE 
+		  <!-- thema_map_data_id like #{thema_map_data_id} || '%' -->
+					<!-- mng_s 20210914 조건추가 -->
+					<if test='thema_map_data_id == "kosis_empymn_ppltn_cnt" or thema_map_data_id == "stat_hsby_1_mean_fmember_cnt" or thema_map_data_id == "stat_psby_1000_house_cnt" or thema_map_data_id == "stat_pvt_per"' >
+						  trim(thema_map_data_id) = #{thema_map_data_id}
+					</if>
+					<if test='thema_map_data_id != "kosis_empymn_ppltn_cnt" and thema_map_data_id != "stat_hsby_1_mean_fmember_cnt" and thema_map_data_id != "stat_psby_1000_house_cnt" and thema_map_data_id != "stat_pvt_per"' >
+					  	  thema_map_data_id like #{thema_map_data_id}||'%'
+					</if>
+		  
+		   AND  adm_cd = #{adm_cd}
+		  ORDER BY base_year
+	</select>
+	
+	<select id="thematicMap.select.getThemaMapKosisData2" parameterType="hashmap" resultType="hashmap">
+		<!-- 귀농귀촌 데이터 보드 -->
+		 select 
+			base_year,
+			adm_cd,
+			bf_adm_cd,
+			data_type,
+			left_value,
+			right_value,
+			adm_nm,
+			bf_adm_nm
+		from (
+		 SELECT
+			a.base_year as base_year,
+			a.sido_cd as adm_cd,
+			a.bf_sido_cd as bf_adm_cd,
+			a.data_type as data_type,
+			a.inflow_ppltn_cnt as left_value,
+			b.inflow_ppltn_cnt as right_value,
+			a.sido_nm as adm_nm,
+			a.bf_sido_nm as bf_adm_nm
+		from srv_dt_rtrn_home a
+		left join srv_dt_rtrn_home b
+		on b.bf_sido_cd = a.sido_cd and b.sido_cd = a.bf_sido_cd and b.base_year = #{base_year} and b.data_type = #{thema_map_data_id}
+		where 1 = 1
+		and a.sido_cd = #{adm_cd}
+		and a.base_year = #{base_year}
+		and a.data_type = #{thema_map_data_id}
+		order by a.bf_sido_cd
+		)
+	</select>
+	
+	
+	<!-- 통계주제도 경계 조회 카운트(테스트) -->
+	<select id="thematicMap.select.getRegionDataCount" parameterType="hashmap" resultType="String">
+	<choose>
+	    <when test="region ==1">
+	   		SELECT  count(*) from srv_pg_sidobord 
+				WHERE 
+<!-- 				BASE_YEAR = '2014' -->
+			BASE_YEAR = #{base_year} 
+<!-- 			  AND SIDO_CD = '25' -->
+	   	</when>
+		<when test="region == 2">
+			SELECT  count(*) from srv_pg_sggbord 
+				WHERE 
+<!-- 				BASE_YEAR = '2014' -->
+			BASE_YEAR = #{base_year} 	
+<!-- 			  AND SIDO_CD = '25'	 -->
+	   	</when>
+	   	<when test="region ==3">
+	   		SELECT  count(*) from srv_pg_admbord 
+				WHERE 
+<!-- 				BASE_YEAR = '2014' -->
+			BASE_YEAR = #{base_year} 	
+<!-- 			AND SIDO_CD = '25'	 -->
+	   	</when>	   
+	   </choose>	
+	</select>
+	
+	
+	
+	<!-- 통계주제도 시도 경계 조회(테스트) -->
+	<select id="thematicMap.select.getRegionData" parameterType="hashmap" resultType="hashmap">
+	   <choose>
+	    <when test="region == 1">
+	    	SELECT  
+							SIDO_CD AS adm_cd
+							, SIDO_NM AS adm_nm
+							, round(X_COOR) AS x
+							, round(y_COOR) AS y
+						<if test='strFormat != null '>
+							, st_asbinary(lighten_bord) geometry  
+						</if>
+						<if test='strFormat == null '>
+							, st_astext(lighten_bord) geometry  
+						</if>
+					FROM   srv_pg_sidobord 
+					WHERE  
+<!-- 					BASE_YEAR = '2014' -->
+							BASE_YEAR = #{base_year} 
+
+	   	</when>
+		<when test="region == 2">
+		SELECT * FROM
+			(SELECT rownum rn, tb.* from
+			   		(SELECT  
+						SIDO_CD || SGG_CD AS adm_cd
+						, SIDO_NM ||' '||SGG_NM AS adm_nm
+						, round(X_COOR) AS x
+						, round(y_COOR) AS y
+					<if test='strFormat != null '>
+						, st_asbinary(lighten_bord) geometry  
+					</if>
+					<if test='strFormat == null '>
+						, st_astext(lighten_bord) geometry  
+					</if>
+				FROM 
+					<if test='atdrc_yn == 0 or atdrc_yn == null'>
+						srv_pg_sggbord
+					</if>
+					<if test='atdrc_yn == 1'>
+						srv_pg_atdrcbord
+					</if>
+				WHERE  
+<!-- 				BASE_YEAR = '2014' -->
+						BASE_YEAR = #{base_year} 
+		<!-- 			AND SIDO_CD = '25' -->
+					) 
+			tb)
+		WHERE rn BETWEEN #{startSeq} AND #{endSeq}
+	   	</when>
+	   	<when test="region == 3">
+	   	
+	   <!-- 	SELECT * FROM
+	   		(SELECT rownum rn, tb.* from
+				(SELECT  
+					SIDO_CD||SGG_CD||EMDONG_CD AS adm_cd
+					, SIDO_NM ||' '||SGG_NM||' '|| EMDONG_NM AS adm_nm
+					, round(X_COOR) AS x
+					, round(y_COOR) AS y	
+					<if test='strFormat != null '>		
+					, st_asbinary(lighten_bord) geometry
+					</if>  
+					<if test='strFormat == null '>
+					, st_astext(lighten_bord) geometry
+					</if>  			
+					FROM 
+							srv_pg_admbord 
+					WHERE  
+						BASE_YEAR = #{base_year} 
+						BASE_YEAR = '2014')
+						AND SIDO_CD = '25')
+				)tb
+			) 
+		WHERE rn BETWEEN #{startSeq} AND #{endSeq} -->
+		
+				SELECT  
+					  SIDO_CD||SGG_CD||EMDONG_CD AS adm_cd
+					, SIDO_NM ||' '||SGG_NM||' '|| EMDONG_NM AS adm_nm
+					, round(X_COOR) AS x
+					, round(y_COOR) AS y	
+					<if test='strFormat != null '>		
+					, st_asbinary(lighten_bord) geometry
+					</if>  
+					<if test='strFormat == null '>
+					, st_astext(lighten_bord) geometry
+					</if>  			
+					FROM 
+							srv_pg_admbord 
+					WHERE  
+						BASE_YEAR = #{base_year} 
+					    and SIDO_CD = #{sido_cd}
+			
+	   	</when>	   
+	   </choose>
+
+		
+	</select>
+	
+	<!-- 통계주제도 네티워크 데이터 조회 -->
+	<select id="thematicMap.select.getNetworkData" parameterType="hashmap" resultType="hashmap">
+	    	
+	    <if test='region == "1" '>	
+	    	SELECT  
+				adm_cd
+				, adm_nm
+				, data_type
+				, st_asbinary(geom) geometry  
+			FROM
+				srv_pg_network_data 
+			WHERE  
+				BASE_YEAR = #{stat_data_base_year}
+				AND stat_thema_map_id = #{stat_thema_map_id}
+				AND weight = #{weight}
+				AND region = #{region}
+			ORDER BY cast(data_type as int) desc
+		</if>
+	    
+	    <if test='region == "2" '>
+			SELECT 
+				adm_cd, bord.addr AS adm_nm, data_type, st_asbinary(geom) geometry
+			FROM 
+			(
+				SELECT 
+					sido_cd, sgg_cd, addr
+				FROM  
+					srv_pg_sggbord
+				WHERE 
+					st_intersects(lighten_bord, st_rectfromtext(#{area}, 0)) = 1
+				 AND base_year = #{base_year}
+			) bord
+			INNER JOIN
+			(
+				SELECT  
+					adm_cd
+					, adm_nm
+					, data_type
+					, geom  
+				FROM 
+					srv_pg_network_data 
+				WHERE 
+					region = #{region} 
+					AND BASE_YEAR = #{stat_data_base_year}
+					AND stat_thema_map_id = #{stat_thema_map_id}
+					AND weight = #{weight}
+			) net
+			ON bord.sido_cd || bord.sgg_cd = net.adm_cd
+			ORDER BY cast(data_type as int) desc 
+	    </if>
+	    
+	    <if test='region == "3" '>
+			SELECT 
+				adm_cd, bord.addr AS adm_nm, data_type, st_asbinary(geom) geometry
+			FROM 
+			(
+				SELECT 
+					sido_cd, sgg_cd, emdong_cd, addr
+				FROM  
+					srv_pg_admbord
+				WHERE 
+					st_intersects(lighten_bord, st_rectfromtext(#{area}, 0)) = 1
+				 AND base_year = #{base_year}
+			) bord
+			INNER JOIN
+			(
+				SELECT  
+					adm_cd
+					, adm_nm
+					, data_type
+					, geom  
+				FROM 
+					srv_pg_network_data 
+				WHERE 
+					region = #{region} 
+					AND BASE_YEAR = #{stat_data_base_year}
+					AND stat_thema_map_id = #{stat_thema_map_id}
+					AND weight = #{weight}
+			) net
+			ON bord.sido_cd || bord.sgg_cd || bord.emdong_cd = net.adm_cd
+			ORDER BY cast(data_type as int) desc 
+	    </if>
+	</select>
+		
+	<!-- 통계주제도 정보 조회(이전데이터) -->
+<!-- 	<select id="thematicMap.select.statsMapList" parameterType="hashmap" resultType="hashmap"> -->
+<!-- 		SELECT	 -->
+<!-- 			    s.stat_thema_map_id AS stat_thema_map_id, -->
+<!-- 			    s.category AS category, -->
+<!-- 			    s.manager_id AS manager_id, -->
+<!-- 			    s.title AS title, -->
+<!-- 			    TO_CHAR(s.reg_ts, 'YYYYMMDDHH') AS reg_ts, -->
+<!-- 			    s.article_div AS article_div, -->
+<!-- 			    s.thema_map_type AS thema_map_type, -->
+<!-- 			    s.stat_disp_level AS stat_disp_level, -->
+<!-- 			    s.area_set AS area_set, -->
+<!-- 			    s.stat_thema_map_file_url, -->
+<!-- 			    s.hits AS hits, -->
+<!-- 			    s.disp_method AS disp_method, -->
+<!-- 			    s.rel_stat_info AS rel_stat_info, -->
+<!-- 			    s.exp AS thema_exp, -->
+<!-- 				t.category_nm AS category_nm, -->
+<!-- 				t.en AS category_en, -->
+<!-- 				t.exp AS category_exp, -->
+<!-- 				s.srv_yn -->
+<!-- 		FROM	del_srv_dt_statthemamap s, del_srv_dt_stattopic t -->
+		
+<!-- 		WHERE  s.category = t.category		 -->
+<!-- 		AND 	s.srv_yn='Y' -->
+<!-- 		<if test="cate_id != null"> -->
+<!-- 		AND		 s.category = #{cate_id}  -->
+<!-- 		</if>		 -->
+<!-- 		<if test="title != null"> -->
+<!-- 		AND		s.title like '%' || #{title} || '%' -->
+<!-- 		</if> -->
+<!-- 		<if test="article_div != null"> -->
+<!-- 		AND		s.article_div= #{article_div}  -->
+<!-- 		</if>	 -->
+<!-- 		<if test="stat_thema_map_id != null"> -->
+<!-- 		AND		s.stat_thema_map_id= #{stat_thema_map_id}  -->
+<!-- 		</if>		 -->
+<!-- 		ORDER BY s.reg_ts DESC -->
+				
+<!-- 		<choose> -->
+<!-- 		 <when test="resultCnt != null and p != null "> LIMIT ${p}, ${resultCnt}</when> -->
+<!-- 	     <when test="resultCnt != null "> LIMIT #{resultCnt}</when> -->
+	      
+<!-- 	    </choose>				 -->
+<!-- 	</select> -->
+	
+	<!-- mng_s 2019. 11. 20 j.h.Seok 이용자 중심 서비스 개편 - 정렬 방식 추가 -->
+	<select id="thematicMap.select.statsMapList" parameterType="hashmap" resultType="hashmap">                                          
+		SELECT	                                                                                                                        
+				s.stat_thema_map_id AS stat_thema_map_id,                                                                               
+				s.thema_map_category AS category,                                                                                       
+				s.manager_id AS manager_id,                                                                                             
+				s.title AS title,                                                                                                       
+				TO_CHAR(s.reg_ts, 'YYYYMMDDHH') AS reg_ts,                                                                              
+				s.thema_map_type AS thema_map_type,                                                                                     
+				s.stat_thema_map_file_url,                                                                                              
+				s.hits AS hits,                                                                                                         
+				s.disp_mthd AS disp_method,                                                                                             
+				s.rel_stat_info AS rel_stat_info,                                                                                       
+				s.thema_map_exp AS thema_exp,                                                                                           
+				t.category_nm AS category_nm,                                                                                           
+				t.en AS category_en,                                                                                                    
+				t.exp AS category_exp,                                                                                                  
+				s.max_expnsn_level as max_expnsn_level,                                                                                 
+				d.category_icon_url as category_icon_url,                                                                               
+				s.srv_yn,                                                                                                               
+				s.stat_data_base_year,                                                                                                  
+				s.year_info,                                                                                                            
+				nvl(s.sep_map_data_year, 0) as sep_map_data_year,                                                                       
+				s.priority_disp_yn                                                                                                      
+		FROM	mng_dt_themamaplist s WITH(NOLOCK), mng_dt_themamapcategory t WITH(NOLOCK), mng_dt_themamapicon d WITH(NOLOCK)          
+		
+		<if test='sort_type != null and sort_type == "favorite" '>     
+		LEFT OUTER JOIN                                                                                                                 
+		(                                                                                                                               
+			SELECT DET_CD, COUNT(*) AS CNT                                                                                              
+			FROM SRV_LOG                                                                                                                
+			WHERE CALL_TS BETWEEN ADD_MONTHS(SYSDATE, -1) AND SYSDATE - 1                                                               
+				AND F_CLASS_1_CD = 'B0'                                                                                                 
+				AND F_CLASS_2_CD = '03'                                                                                                 
+				AND F_CLASS_3_CD = '01'                                                                                                 
+				AND F_CLASS_4_CD = '00'                                                                                                 
+			GROUP BY DET_CD                                                                                                             
+		) LOG_DET_CD                                                                                                                    
+		ON S.title = LOG_DET_CD.DET_CD                                                                                                  
+		</if>
+		
+		WHERE  	s.thema_map_category = t.thema_map_category                                                                             
+		AND  	t.category_icon_id = d.category_icon_id                                                                                 
+		AND 	s.srv_yn = 'Y'                                                                                                          
+		AND		t.srv_yn = 'Y'                                                                                                          
+		<if test="cate_id != null">                                                                                                     
+		AND		 s.thema_map_category = #{cate_id}                                                                                      
+		</if>		                                                                                                                    
+		<if test="title != null">                                                                                                       
+		AND		s.title like '%' || #{title} || '%'                                                                                     
+		</if>                                                                                                                           
+		<if test="stat_thema_map_id != null">                                                                                           
+		AND		s.stat_thema_map_id= #{stat_thema_map_id}                                                                               
+		</if>		                                                                                                                    
+		<if test='sort_type != null and sort_type == "recommend" '>                                                                     
+		ORDER BY s.priority_disp_yn DESC, CAST(s.disp_rank as INT) ASC, s.reg_ts DESC                                                   
+		</if>                                                                                                                           
+		<if test='sort_type != null and sort_type == "favorite" '>                                                                      
+		ORDER BY NVL(LOG_DET_CD.CNT, 0) DESC, s.priority_disp_yn DESC, CAST(s.disp_rank as INT) ASC, s.reg_ts DESC                      
+		</if>                                                                                                                           
+		<if test='sort_type != null and sort_type == "alphabet" '>                                                                      
+		ORDER BY s.TITLE, s.priority_disp_yn DESC, CAST(s.disp_rank as INT) ASC, s.reg_ts DESC                                          
+		</if>                                                                                                                           
+	</select>                                                                                                                           
+	
+	<!-- 이전 버전 우선 주석 처리, 들여쓰기 라인은 원래 주석처리 되어 있던 부분 -->
+<!-- 	<select id="thematicMap.select.statsMapList" parameterType="hashmap" resultType="hashmap">        -->
+<!-- 		SELECT	                                                                                      -->
+<!-- 			    s.stat_thema_map_id AS stat_thema_map_id,                                             -->
+<!-- 			    s.thema_map_category AS category,                                                     -->
+<!-- 			    s.manager_id AS manager_id,                                                           -->
+<!-- 			    s.title AS title,                                                                     -->
+<!-- 			    TO_CHAR(s.reg_ts, 'YYYYMMDDHH') AS reg_ts,                                            -->
+<!-- 			    s.thema_map_type AS thema_map_type,                                                   -->
+<!-- 			    s.stat_thema_map_file_url,                                                            -->
+<!-- 			    s.hits AS hits,                                                                       -->
+<!-- 			    s.disp_mthd AS disp_method,                                                           -->
+<!-- 			    s.rel_stat_info AS rel_stat_info,                                                     -->
+<!-- 			    s.thema_map_exp AS thema_exp,                                                         -->
+<!-- 				t.category_nm AS category_nm,                                                         -->
+<!-- 				t.en AS category_en,                                                                  -->
+<!-- 				t.exp AS category_exp,                                                                -->
+<!-- 				s.max_expnsn_level as max_expnsn_level,                                               -->
+<!-- 				d.category_icon_url as category_icon_url,                                             -->
+<!-- 				s.srv_yn,                                                                             -->
+<!-- 				s.stat_data_base_year,                                                                -->
+<!-- 				s.year_info,                                                                          -->
+<!-- 				nvl(s.sep_map_data_year, 0) as sep_map_data_year,                                     -->
+<!-- 				s.priority_disp_yn                                                                    -->
+<!-- 		FROM	mng_dt_themamaplist s, mng_dt_themamapcategory t, mng_dt_themamapicon d               -->
+<!--                                                                                                      -->
+<!-- 		                                                                                              -->
+<!-- 		WHERE  	s.thema_map_category = t.thema_map_category                                           -->
+<!-- 		AND  	t.category_icon_id = d.category_icon_id                                               -->
+<!-- 		AND 	s.srv_yn='Y'                                                                          -->
+<!-- 		AND		t.srv_yn = 'Y'                                                                        -->
+<!-- 		<if test="cate_id != null">                                                                   -->
+<!-- 		AND		 s.thema_map_category = #{cate_id}                                                    -->
+<!-- 		</if>		                                                                                  -->
+<!-- 		<if test="title != null">                                                                     -->
+<!-- 		AND		s.title like '%' || #{title} || '%'                                                   -->
+<!-- 		</if>                                                                                         -->
+ <!-- 		<if test="article_div != null"> -->                                                      
+ <!-- 		AND		s.article_div= #{article_div}  -->                                               
+ <!-- 		</if>	 -->                                                                             
+<!-- 		<if test="stat_thema_map_id != null">                                                         -->
+<!-- 		AND		s.stat_thema_map_id= #{stat_thema_map_id}                                             -->
+<!-- 		</if>		                                                                                  -->
+<!-- 		ORDER BY s.priority_disp_yn DESC, CAST(s.disp_rank as INT) ASC, s.reg_ts DESC                 -->
+<!-- 				                                                                                      -->
+<!-- 		<choose>                                                                                      -->
+ <!--		 <when test="resultCnt != null and p != null "> LIMIT ${p}, ${resultCnt}</when> -->      
+ <!--	     <when test="resultCnt != null "> LIMIT #{resultCnt}</when>	-->                          
+<!-- 	                                                                                                  -->
+<!-- 	    </choose>				                                                                      -->
+<!-- 	</select>                                                                                         -->
+	<!-- mng_e 2019. 11. 20 j.h.Seok 이용자 중심 서비스 개편 - 정렬 방식 추가 -->
+	
+	
+	
+		<!-- 통계주제도 정보 조회 -->
+	<select id="thematicMap.select.statsMapList2" parameterType="hashmap" resultType="hashmap">
+		SELECT	
+			    s.stat_thema_map_id AS stat_thema_map_id,
+			    s.thema_map_category AS category,
+			    s.manager_id AS manager_id,
+			    s.title AS title,
+			    TO_CHAR(s.reg_ts, 'YYYYMMDDHH') AS reg_ts,
+			    s.thema_map_type AS thema_map_type,
+			    s.stat_thema_map_file_url,
+			    s.hits AS hits,
+			    s.disp_mthd AS disp_method,
+			    s.rel_stat_info AS rel_stat_info,
+			    s.thema_map_exp AS thema_exp,
+				t.category_nm AS category_nm,
+				t.en AS category_en,
+				t.exp AS category_exp,
+				s.max_expnsn_level as max_expnsn_level,
+				d.category_icon_url as category_icon_url,
+				s.srv_yn
+		FROM	mng_dt_themamaplist s, mng_dt_themamapcategory t, mng_dt_themamapicon d
+
+		
+		WHERE  	s.thema_map_category = t.thema_map_category 
+		AND  	t.category_icon_id = d.category_icon_id
+		AND 	s.srv_yn='Y'
+		AND		t.srv_yn = 'Y'
+		<if test="cate_id != null">
+		AND		 s.thema_map_category = #{cate_id} 
+		</if>		
+		<if test="title != null">
+		AND		s.title like '%' || #{title} || '%'
+		</if>
+		<if test="stat_thema_map_id != null">
+		AND		s.stat_thema_map_id= #{stat_thema_map_id} 
+		</if>		
+		ORDER BY s.reg_ts , s.thema_map_category DESC
+				
+		<choose>
+<!--		 <when test="resultCnt != null and p != null "> LIMIT ${p}, ${resultCnt}</when>	-->
+<!--	     <when test="resultCnt != null "> LIMIT #{resultCnt}</when>	-->
+
+		 <when test="resultCnt != null and p != null "> LIMIT ${p}, ${resultCnt}</when>
+	     <when test="resultCnt != null "> LIMIT #{resultCnt}</when>
+	      
+	    </choose>				
+	</select>
+	<!-- 통계주제도리스트 COUNT -->
+<!-- 	<select id="thematicMap.select.statsMapListCount" parameterType="hashmap" resultType="integer"> -->
+<!-- 	SELECT  -->
+<!-- 		COUNT(*) -->
+<!-- 	FROM del_srv_dt_statthemamap -->
+	
+<!-- 	WHERE  1=1 -->
+<!-- 		AND 	srv_yn='Y' -->
+<!-- 		<if test="cate_id != null"> -->
+<!-- 		AND		 category = #{cate_id}  -->
+<!-- 		</if>		 -->
+<!-- 		<if test="title != null"> -->
+<!-- 		AND		title like '%' || #{title} || '%' -->
+<!-- 		</if>	 -->
+<!-- 		<if test="article_div != null"> -->
+<!-- 		AND		article_div= #{article_div}  -->
+<!-- 		</if>	  -->
+<!-- 	</select> -->
+	
+	<select id="thematicMap.select.statsMapListCount" parameterType="hashmap" resultType="integer">
+	SELECT 
+		COUNT(*)
+	FROM mng_dt_themamaplist
+	
+	WHERE  1=1
+		AND 	srv_yn='Y'
+		<if test="cate_id != null">
+		AND		 thema_map_category = #{cate_id} 
+		</if>		
+		<if test="title != null">
+		AND		title like '%' || #{title} || '%'
+		</if>	
+<!-- 		<if test="article_div != null"> -->
+<!-- 		AND		article_div= #{article_div}  -->
+<!-- 		</if>	  -->
+	</select>
+	
+	<!-- 통계주제도파라미터 정보 조회 -->
+	<select id="thematicMap.select.statsParamInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT	
+				hist_id,
+				seq,
+				api_call_url,
+				param_info
+		FROM	srv_dt_stathistparaminfo
+		
+		WHERE hist_id = #{hist_id}
+	</select>
+		
+	<!-- 통계주제도 주제도 아이디로 조회 -->
+	<select id="thematicMap.select.statsMapListById" parameterType="hashmap" resultType="hashmap">
+		SELECT	
+			   *
+		FROM	mng_dt_themamaplist s, mng_dt_themamapcategory t
+		
+		WHERE  	s.thema_map_category = t.thema_map_category			
+		AND		s.stat_thema_map_id = #{stat_thema_map_id}
+		
+		
+	</select>
+	
+	
+	<!-- 통계주제도 범례 가져오기 -->
+	<select id="thematicMap.select.statsMapExmpl" parameterType="hashmap" resultType="hashmap">
+		SELECT	
+			   *
+		FROM	MNG_DT_THEMAMAPEXMPL
+		
+		WHERE  	stat_thema_map_id = #{stat_thema_map_id}
+	</select>
+	
+	
+	<!-- 통계주제도 주제도 아이디로 조회 시 조회수 증가 -->
+	<!--<update id="thematicMap.select.statsMapListByIdCountAdd" parameterType="hashmap">-->
+	<!--	UPDATE	mng_dt_themamaplist-->
+	<!--	SET		hits = hits + 1-->
+	<!--	WHERE	stat_thema_map_id = #{stat_thema_map_id}-->
+	<!--</update>-->
+	
+	<!-- 통계주제도 주제도 아이디로 조회 시 조회수 증가 -->
+	<update id="thematicMap.select.statsMapListByIdCountAdd" parameterType="hashmap">
+		UPDATE	mng_dt_themamaplist
+		<set>
+			hits = (case when(hits is null) then 1 else hits + 1 end)
+		</set>
+		WHERE	stat_thema_map_id = #{stat_thema_map_id}
+	</update>
+		
+	<!-- 통계주제도파라미터 정보 등록 -->
+	<insert id="thematicMap.insert.statsParamInfo" parameterType="hashmap">
+		INSERT INTO del_srv_dt_statthemamapparaminfo
+			(
+					stat_thema_map_id
+				,	seq
+				,	api_call_url
+				,   param_info
+			)
+		VALUES
+			(
+					#{stat_thema_map_id}
+				,	#{seq}
+				,	#{api_call_url}
+				,   #{param_info}
+			)
+	</insert>
+	
+	
+	<!-- 실명인증 정보 삭제 -->
+	<delete id="deleteNameInfo" parameterType="hashmap">
+		DELETE
+		FROM		del_srv_dt_authinfo
+		WHERE	real_nm_auth_person_key = #{member_key}
+	</delete>	
+	
+	<select id="thematicMap.select.sidoCodeList" resultType="hashmap">
+		SELECT
+					sido_cd
+		FROM		srv_pg_sidobord
+		GROUP BY	sido_cd
+	</select>	
+	
+	<select id="thematicMap.select.getChartList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				irds_year
+		FROM	mng_dt_themamapchange
+		WHERE	thema_map_data_id=#{thema_map_data_id}
+		GROUP BY irds_year
+	</select>
+	
+	<!-- mng_s 20170803_석진혁 -->
+	<select id="selectPOICount" parameterType="hashmap" resultType="hashmap">
+		select
+			count(*) totalcount
+			, case when TRUNC(count(*)/to_char(#{resultcount})) <![CDATA[=]]> to_char(#{pagenum}) then mod(count(*),to_char(#{resultcount}))
+			  when TRUNC(count(*)/to_char(#{resultcount})) <![CDATA[>]]> to_char(#{pagenum}) then to_number(to_char(#{resultcount}))
+			  when TRUNC(count(*)/to_char(#{resultcount})) <![CDATA[<]]> to_char(#{pagenum}) then 0
+			end as returncount
+			,to_char(#{pagenum}) as pagenum
+		from
+		(
+			select 
+				pt.sufid, pt.tot_reg_cd, pt.pt, corp.ksic_1_cd, corp.ksic_5_cd, corp.corp_nm, corp.employee_cnt, corp.theme_cd
+			from 
+			(
+				select 
+					sufid, tot_reg_cd, pt
+				from 
+					srv_pt_bd bd
+				where
+					<choose>
+						<when test='adm_cd != null and adm_cd != undefined'>
+							tot_reg_cd like #{adm_cd} || '%'
+						</when>
+						<otherwise>
+							st_within(bd.pt, st_rectfromtext(#{area}, 0)) = 1
+						</otherwise>
+					</choose>
+			) pt
+			INNER JOIN 
+			(
+				select 
+					sufid, ksic_1_cd, ksic_5_cd, corp_nm, employee_cnt, theme_cd
+				from 
+					srv_dt_corpcensus_10
+				where 
+					'' || base_year = #{year}
+					<if test='theme_cd != null and theme_cd != undefined'>
+						and theme_cd in
+						<foreach collection="theme_cd" item="data" open = "(" separator = "," close = ")">
+							#{data}
+						</foreach>
+					</if>
+					<if test='corp_class_cd != null and corp_class_cd != undefined'>
+						and ksic_5_cd in
+						<foreach collection="corp_class_cd" item="data" open = "(" separator = "," close = ")">
+							#{data}
+						</foreach>
+					</if>
+			) corp
+			ON pt.sufid = corp.sufid
+		)
+	</select>	
+	<!-- mng_e 20170803_석진혁 -->
+	<!-- mng_s 20200526_김건민 -->	
+	<select id="selecMulticulturalPOICount" parameterType="hashmap" resultType="hashmap">
+		select 
+			count(*) as totalcount
+		from 
+			srv_pt_multiculturalfamily_data 
+		where
+			tot_reg_cd like #{adm_cd} || '%'
+	</select>
+	
+	
+	<select id="selectMulticulturalPOI" parameterType="hashmap" resultType="hashmap">
+		select
+			left(tot_reg_cd , 2) as adm_cd, 
+			tot_reg_cd as tot_reg_cd,
+			addr as addr,
+			'99997' as theme_cd,
+			tel_no as tel_no,
+			round(st_x(pt)) as x,
+			round(st_y(pt)) as y
+		from 
+			srv_pt_multiculturalfamily_data 
+		where
+			tot_reg_cd like #{adm_cd} || '%'
+	</select>
+	<!-- mng_e 20200526_김건민 -->	
+	<select id="selectMarketPOICount" parameterType="hashmap" resultType="hashmap">
+		select 
+			count(*) as totalcount
+		from 
+			srv_pt_market_data 
+		where
+			tot_oa_cd like #{adm_cd} || '%'
+	</select>
+	
+	<select id="selectMarketPOI" parameterType="hashmap" resultType="hashmap">
+		select
+			left(tot_oa_cd , 5) as adm_cd, 
+			tot_oa_cd as tot_reg_cd,
+			market_nm as corp_nm,
+			'99998' as theme_cd,
+			market_type as market_type,
+			market_open as market_open,
+			shop_num as shop_num,
+			handling as handling,
+			home_page as home_page,
+			restroom_yn as restroom_yn,
+			parking_yn as parking_yn,
+			base_year as base_year,
+			number as number,
+			round(st_x(geom)) as x,
+			round(st_y(geom)) as y
+		from 
+			srv_pt_market_data 
+		where
+			tot_oa_cd like #{adm_cd} || '%'
+	</select>
+
+	<select id="selectElectrcarPOICount" parameterType="hashmap" resultType="hashmap">
+		select 
+			count(*) as totalcount
+		from 
+			srv_pt_electrcar_data 
+		where
+			tot_oa_cd like #{adm_cd} || '%'
+	</select>
+	
+	
+	<select id="selectElectrcarPOI" parameterType="hashmap" resultType="hashmap">
+		select
+			left(tot_oa_cd , 5) as adm_cd, 
+			tot_oa_cd as tot_reg_cd,
+			operating_agenct as operating_nm,
+			station as corp_nm,
+			'999999' as theme_cd,
+			station_div as station_div,
+			station_type as station_type,
+			cnt as cnt,
+			use_time as use_time,
+			station_cha as station_cha,
+			rapidity as rapidity,
+			parking as parking,
+			number as number,
+			addr as addr,
+			round(st_x(geom)) as x,
+			round(st_y(geom)) as y
+		from 
+			srv_pt_electrcar_data 
+		where
+			tot_oa_cd like #{adm_cd} || '%'
+	</select>
+	
+	<!-- mng_s 20190802_김건민 (무더위 쉼터 현황)-->
+	<select id="selectHearPOICount" parameterType="hashmap" resultType="hashmap">
+		select 
+			count(*) as totalcount
+		from 
+			srv_pt_heat_data 
+		where
+			tot_oa_cd like #{adm_cd} || '%'
+	</select>
+	
+	
+	<select id="selectHearPOI" parameterType="hashmap" resultType="hashmap">
+		select
+			left(tot_oa_cd , 5) as adm_cd, 
+			tot_oa_cd as tot_reg_cd,
+			shelter_nm as corp_nm,
+			'99999' as theme_cd,
+			facility_area as facility_area,
+			use_num as use_num,
+			electric_fan_num as electric_fan_num,
+			aircon_num as aircon_num,
+			night_yn as night_yn,
+			weekend_yn as weekend_yn,
+			lodge_yn as lodge_yn,
+			round(st_x(geom)) as x,
+			round(st_y(geom)) as y
+		from 
+			srv_pt_heat_data 
+		where
+			tot_oa_cd like #{adm_cd} || '%'
+
+	</select>
+	<!-- mng_e 20190802_김건민 -->
+	
+	<select id="selectPOI" parameterType="hashmap" resultType="hashmap">
+	<!-- mng_s 20180118_김건민 (쿼리 속도때문에 튜닝함)-->
+		select 
+			bord.adm_cd
+			, bdinfo.tot_reg_cd
+			, bdinfo.theme_cd
+			, bdinfo.ksic_1_cd || bdinfo.ksic_5_cd as class_code
+			, class.ksic_5_nm as class_nm
+			, bdinfo.corp_nm
+			, bord.addr as adm_addr
+			, round(st_x(bdinfo.pt)) as x
+			, round(st_y(bdinfo.pt)) as y
+			, '' as tel_no
+			, '' as hpage
+			, bdinfo.sufid
+			, bdinfo.employee_cnt as worker_sum
+			, theme.b_theme_cd_nm || '/' || s_theme_cd_nm theme_nm
+		from 
+		(
+			select 
+				pt.sufid, pt.tot_reg_cd, pt.pt, corp.ksic_1_cd, corp.ksic_5_cd, corp.corp_nm, corp.employee_cnt, corp.theme_cd
+			from 
+			(
+				select 
+					sufid, tot_reg_cd, pt
+				from 
+					srv_pt_bd bd
+				where
+					<choose>
+						<when test='adm_cd != null and adm_cd != undefined'>
+							tot_reg_cd like #{adm_cd} || '%'
+						</when>
+						<otherwise>
+							st_within(bd.pt, st_rectfromtext(#{area}, 0)) = 1
+						</otherwise>
+					</choose>
+			) pt
+			INNER JOIN 
+			(
+				select 
+					sufid, ksic_1_cd, ksic_5_cd, corp_nm, employee_cnt, theme_cd, base_year
+				from 
+					srv_dt_corpcensus_10
+				
+			) corp
+			ON pt.sufid = corp.sufid
+			where 
+					<if test='theme_cd != null and theme_cd != undefined'>
+						corp.theme_cd in
+						<foreach collection="theme_cd" item="data" open = "(" separator = "," close = ")">
+							#{data}
+						</foreach>
+					</if>
+					<if test='corp_class_cd != null and corp_class_cd != undefined'>
+						corp.ksic_5_cd in
+						<foreach collection="corp_class_cd" item="data" open = "(" separator = "," close = ")">
+							#{data}
+						</foreach>
+					</if>
+					
+					and corp.base_year = #{year}
+					
+			limit #{srt_idx}, #{resultcount}
+		) bdinfo
+		LEFT OUTER JOIN 
+		(
+			select 
+				sido_cd||sgg_cd||emdong_cd as adm_cd, addr
+			from
+				srv_pg_admbord
+			where 
+				base_year = #{bnd_year}
+		) bord
+		ON substr(bdinfo.tot_reg_cd, 1, 7) = bord.adm_cd
+		LEFT OUTER JOIN 
+		(
+			select 
+				ksic_1_cd, ksic_5_cd, ksic_5_nm
+			from 
+				cmm_cd_corpclass
+			where 
+				class_deg = 10
+		) class
+		on bdinfo.ksic_1_cd = class.ksic_1_cd
+		and bdinfo.ksic_5_cd = class.ksic_5_cd
+		LEFT OUTER JOIN
+		(
+			select
+				b_theme_cd_nm, s_theme_cd_nm, theme_cd
+			from
+				cmm_cd_theme
+		) theme
+		on bdinfo.theme_cd = theme.theme_cd
+	</select>
+	<!-- mng_e 20180118_김건민 -->
+	
+	<select id="thematicMap.select.childcareList" parameterType="hashmap" resultType="hashmap">
+		SELECT  
+				SIDO_CD||SGG_CD AS adm_cd
+				, st_asbinary(lighten_bord) geometry
+				, round(X_COOR) AS x
+				, round(y_COOR) AS y  
+		FROM 
+				srv_pg_sgg_childcare 
+		WHERE  
+				BASE_YEAR = #{year}
+				AND SIDO_CD = #{sido_cd} 
+			<if test='sgg_cd != null '>
+				AND SGG_CD = #{sgg_cd}
+			</if>
+	</select>
+	
+	<select id="thematicMap.select.childcarePTList" parameterType="hashmap" resultType="hashmap">	
+		<if test='data_type == "1" or data_type == "2" or data_type == "3" '>
+			SELECT 
+					nvl(corp.cnt, 0) as cnt
+				,	bord.adm_cd
+				,	bord.X
+				,	bord.Y
+			FROM
+				(
+					SELECT 
+						tot_reg_cd as adm_cd
+						,round(X_COOR) AS X
+						,round(Y_COOR) AS Y
+					FROM 
+						srv_pg_totregbord 
+					WHERE 
+						BASE_YEAR = #{bnd_year} 
+				) bord
+			INNER JOIN
+				(
+					SELECT  
+						sum(cnt) as cnt,
+						tot_reg_cd as adm_cd
+					FROM 
+						srv_pt_childcare
+				<if test='data_type == "2" or data_type == "3" '>
+					WHERE substr(tot_reg_cd,0,2) = #{sido_cd}
+				</if>
+					GROUP BY tot_reg_cd
+				) corp
+			ON bord.adm_cd = corp.adm_cd and corp.cnt > 0
+		</if>
+		<if test='data_type == "4" or data_type == "5" '>
+			SELECT 
+				A.tot_reg_cd, A.cnt, B.x_coor AS x , B.y_coor AS y 
+			FROM 
+			(
+				SELECT 
+					tot_reg_cd, cnt
+				FROM 
+					srv_pt_childcare
+				WHERE
+					 tot_reg_cd LIKE #{sido_cd} || #{sgg_cd} || '%'
+				
+			) A 
+			LEFT OUTER JOIN
+			(
+				SELECT 
+					x_coor, y_coor, tot_reg_cd 
+				FROM 
+					srv_pg_totregbord
+				WHERE 
+					base_year = '2016'
+			) B
+			ON A.tot_reg_cd = B.tot_reg_cd
+		</if>
+		
+		<if test='data_type == "100m"'>
+			SELECT 
+				A.cnt
+				,ST_X(ST_CENTROID(B.bord)) AS x
+				,ST_Y(ST_CENTROID(B.bord)) AS y
+			FROM
+			(
+				SELECT
+					A.grid_100m_cd, SUM(B.cnt) AS cnt
+				FROM
+				(
+					SELECT grid_100m_cd FROM srv_pg_grid_100m_bord WHERE st_intersects(bord, st_rectfromtext( #{area} ,0))=1
+				) A
+				join
+				(
+					SELECT grid_100m_cd, cnt FROM srv_pt_childcare
+				) B
+				ON A.grid_100m_cd = B.grid_100m_cd
+				GROUP BY A.grid_100m_cd
+			) A
+			join
+			(
+				SELECT grid_100m_cd, bord FROM srv_pg_grid_100m_bord
+			) B
+			ON A.grid_100m_cd = B.grid_100m_cd
+		</if>
+		
+		<if test='data_type == "1k"'>
+			SELECT 
+				A.cnt
+				,ST_X(ST_CENTROID(B.bord)) AS x
+				,ST_Y(ST_CENTROID(B.bord)) AS y
+			FROM
+			(
+				SELECT
+					A.grid_1k_cd, SUM(B.cnt) AS cnt
+				FROM
+				(
+					SELECT grid_1k_cd FROM srv_pg_grid_1k_bord WHERE st_intersects(bord, st_rectfromtext( #{area} , 0))=1
+				) A
+				join
+				(
+					SELECT grid_1k_cd, cnt FROM srv_pt_childcare
+				) B
+				ON A.grid_1k_cd = B.grid_1k_cd
+				GROUP BY A.grid_1k_cd
+			) A
+			join
+			(
+				SELECT grid_1k_cd, bord FROM srv_pg_grid_1k_bord
+			) B
+			ON A.grid_1k_cd = B.grid_1k_cd
+		</if>
+		
+		<if test='data_type == "10k"'>
+			SELECT 
+				A.cnt
+				,ST_X(ST_CENTROID(B.bord)) AS x
+				,ST_Y(ST_CENTROID(B.bord)) AS y
+			FROM
+			(
+				SELECT
+					A.grid_10k_cd, SUM(B.cnt) AS cnt
+				FROM
+				(
+					SELECT grid_10k_cd FROM srv_pg_grid_10k_bord WHERE st_intersects(bord, st_rectfromtext( #{area} , 0))=1
+				) A
+				join
+				(
+					SELECT grid_10k_cd, cnt FROM srv_pt_childcare
+				) B
+				ON A.grid_10k_cd = B.grid_10k_cd
+				GROUP BY A.grid_10k_cd
+			) A
+			join
+			(
+				SELECT grid_10k_cd, bord FROM srv_pg_grid_10k_bord
+			) B
+			ON A.grid_10k_cd = B.grid_10k_cd
+		</if>
+		
+		
+	</select>
+	
+	<select id="thematicMap.select.childcarePIList" parameterType="hashmap" resultType="hashmap">	
+		SELECT 
+			adm_cd, total_cnt, weak_cnt, weak_per 
+		FROM 
+			srv_dt_childcare_list
+		WHERE 
+			BASE_YEAR = #{bnd_year}
+			AND region_div = #{data_type}
+		<if test='data_type != "1"'>
+			AND adm_cd like #{adm_cd} || '%'
+		</if>
+	</select>
+	
+	<select id="thematicMap.select.earthquakePTList" resultType="hashmap">
+		SELECT 
+			base_year, x_coord, y_coord 
+		FROM 
+			srv_pt_earthquake
+		WHERE
+			base_year = #{base_year}
+	</select>
+
+	<!-- 네트워크 POI -->
+	<select id="thematicMap.select.networkDataPTList" resultType="hashmap">
+		SELECT 
+				name, type, telnum, x, y, addr
+			FROM 
+			(
+				SELECT 
+					sido_cd, sgg_cd
+				FROM  
+					srv_pg_sggbord
+				WHERE 
+					st_intersects(lighten_bord, st_rectfromtext(#{area}, 0)) = 1
+				 AND base_year = #{base_year}
+			) bord
+			INNER JOIN
+			(
+				SELECT 
+					name, type, telnum, x, y, addr, adm_cd
+				FROM 
+					srv_pt_network_data
+				WHERE
+					thema_map_data_id = #{stat_thema_map_id}
+			) net
+			ON bord.sido_cd || bord.sgg_cd = left(net.adm_cd, 5)
+	</select>
+	
+	<!-- 소방청 생활안전사고 출동건수 분월리스트 -->
+	<select id="thematicMap.select.getThemaMapSafeAccident" resultType="hashmap">
+		SELECT distinct(period_value)
+		FROM mng_dt_themamapdata_safeaccident
+		WHERE base_year = #{base_year}
+		AND period_div = #{period_div}
+	</select>
+	
+	<!-- 소방청 생활안전사고 출동건수 분월별 -->
+	<select id="thematicMap.select.getThemaMapSafeAccidentAll" resultType="hashmap">
+		SELECT base_year,
+			   period_value,
+			   sido_cd as adm_cd,
+			   left_sep_value as left_data_val,
+			   right_sep_value as right_data_val
+		FROM mng_dt_themamapdata_safeaccident
+		WHERE base_year = #{base_year}
+		AND period_value = #{period_value}
+		AND period_div = #{period_div}
+	</select>
+	
+	<!-- 소방청 생활안전사고 출동건수 데이터보드 차트 -->
+	<select id="thematicMap.select.getThemaMapSafeAccidentChart" resultType="hashmap">
+		SELECT base_year,
+			   period_value,
+			   sido_cd as adm_cd,
+			   left_sep_value as left_data_val,
+			   right_sep_value as right_data_val
+		FROM mng_dt_themamapdata_safeaccident
+		WHERE base_year = #{base_year}
+		AND period_div = #{period_div}
+	</select>
+	
+	<!-- 소방청 생활안전사고 출동건수 파이차트 -->
+	<select id="thematicMap.select.getThemaMapSafeAccidentPieChart" resultType="hashmap">
+		SELECT base_year,
+			   period_div,
+			   period_value,
+			   sido_cd as adm_cd,
+			   sido_nm as adm_nm,
+			   up_cd_nm,
+			   cnt,
+			   per_pop
+		FROM mng_dt_themamapdata_safeaccidentchart
+		WHERE base_year = #{base_year}
+		AND period_div = #{period_div}
+		<if test='period_value != "00"'>
+		AND period_value = #{period_value}
+		</if>
+		<if test='period_value == "00"'>
+		AND period_value is NULL
+		</if>
+	</select>
+
+	<!-- 통계주제도 카테고리정보 조회 (20190813 new) -->
+	<select id="thematicMap.select.cateListAll" resultType="hashmap">
+	SELECT * FROM (
+		SELECT TOP 3
+			   S.STAT_THEMA_MAP_ID AS STAT_THEMA_MAP_ID,
+			   S.THEMA_MAP_CATEGORY AS CATEGORY,
+			   S.MANAGER_ID AS MANAGER_ID,
+			   S.TITLE AS TITLE,
+			   TO_CHAR(S.REG_TS, 'YYYYMMDDHH') AS REG_TS,
+			   S.THEMA_MAP_TYPE AS THEMA_MAP_TYPE,
+			   S.STAT_THEMA_MAP_FILE_URL,
+			   S.HITS AS HITS,
+			   S.DISP_MTHD AS DISP_METHOD,
+			   S.REL_STAT_INFO AS REL_STAT_INFO,
+			   S.THEMA_MAP_EXP AS THEMA_EXP,
+			   T.CATEGORY_NM AS CATEGORY_NM,
+			   T.EN AS CATEGORY_EN,
+			   T.EXP AS CATEGORY_EXP,
+			   S.MAX_EXPNSN_LEVEL AS MAX_EXPNSN_LEVEL,
+			   D.CATEGORY_ICON_URL AS CATEGORY_ICON_URL,
+			   S.SRV_YN,
+			   S.STAT_DATA_BASE_YEAR,
+			   S.YEAR_INFO, 
+			   NVL(S.SEP_MAP_DATA_YEAR, 0) AS SEP_MAP_DATA_YEAR,
+			   S.PRIORITY_DISP_YN
+		  FROM (SELECT  MAX(THEMA_MAP_CATEGORY) AS THEMA_MAP_CATEGORY
+				  FROM (SELECT TOP 1 A.THEMA_MAP_CATEGORY AS THEMA_MAP_CATEGORY
+						  FROM MNG_DT_THEMAMAPCATEGORY A        
+						 WHERE A.SRV_YN = 'Y'
+						 ORDER BY A.DISP_RANK ASC    
+					   )
+			   ) M,
+			   MNG_DT_THEMAMAPLIST S, 
+			   MNG_DT_THEMAMAPCATEGORY T, 
+			   MNG_DT_THEMAMAPICON D
+		 WHERE M.THEMA_MAP_CATEGORY = S.THEMA_MAP_CATEGORY 
+		   AND S.THEMA_MAP_CATEGORY = T.THEMA_MAP_CATEGORY 
+		   AND T.CATEGORY_ICON_ID = D.CATEGORY_ICON_ID
+		   AND S.SRV_YN='Y'
+		   AND T.SRV_YN = 'Y'
+		 ORDER BY S.PRIORITY_DISP_YN DESC, CAST(S.DISP_RANK AS INT) ASC, S.REG_TS DESC
+	)
+	UNION ALL
+	SELECT * FROM (
+		SELECT TOP 3
+			   S.STAT_THEMA_MAP_ID AS STAT_THEMA_MAP_ID,
+			   S.THEMA_MAP_CATEGORY AS CATEGORY,
+			   S.MANAGER_ID AS MANAGER_ID,
+			   S.TITLE AS TITLE,
+			   TO_CHAR(S.REG_TS, 'YYYYMMDDHH') AS REG_TS,
+			   S.THEMA_MAP_TYPE AS THEMA_MAP_TYPE,
+			   S.STAT_THEMA_MAP_FILE_URL,
+			   S.HITS AS HITS,
+			   S.DISP_MTHD AS DISP_METHOD,
+			   S.REL_STAT_INFO AS REL_STAT_INFO,
+			   S.THEMA_MAP_EXP AS THEMA_EXP,
+			   T.CATEGORY_NM AS CATEGORY_NM,
+			   T.EN AS CATEGORY_EN,
+			   T.EXP AS CATEGORY_EXP,
+			   S.MAX_EXPNSN_LEVEL AS MAX_EXPNSN_LEVEL,
+			   D.CATEGORY_ICON_URL AS CATEGORY_ICON_URL,
+			   S.SRV_YN,
+			   S.STAT_DATA_BASE_YEAR,
+			   S.YEAR_INFO, 
+			   NVL(S.SEP_MAP_DATA_YEAR, 0) AS SEP_MAP_DATA_YEAR,
+			   S.PRIORITY_DISP_YN
+		  FROM (SELECT  MAX(THEMA_MAP_CATEGORY) AS THEMA_MAP_CATEGORY
+				  FROM (SELECT TOP 2 A.THEMA_MAP_CATEGORY AS THEMA_MAP_CATEGORY
+						  FROM MNG_DT_THEMAMAPCATEGORY A        
+						 WHERE A.SRV_YN = 'Y'
+						 ORDER BY A.DISP_RANK ASC    
+					   )
+			   ) M,
+			   MNG_DT_THEMAMAPLIST S, 
+			   MNG_DT_THEMAMAPCATEGORY T, 
+			   MNG_DT_THEMAMAPICON D
+		 WHERE M.THEMA_MAP_CATEGORY = S.THEMA_MAP_CATEGORY 
+		   AND S.THEMA_MAP_CATEGORY = T.THEMA_MAP_CATEGORY 
+		   AND T.CATEGORY_ICON_ID = D.CATEGORY_ICON_ID
+		   AND S.SRV_YN='Y'
+		   AND T.SRV_YN = 'Y'
+		 ORDER BY S.PRIORITY_DISP_YN DESC, CAST(S.DISP_RANK AS INT) ASC, S.REG_TS DESC
+	)
+	UNION ALL
+	SELECT * FROM (
+		SELECT TOP 3
+			   S.STAT_THEMA_MAP_ID AS STAT_THEMA_MAP_ID,
+			   S.THEMA_MAP_CATEGORY AS CATEGORY,
+			   S.MANAGER_ID AS MANAGER_ID,
+			   S.TITLE AS TITLE,
+			   TO_CHAR(S.REG_TS, 'YYYYMMDDHH') AS REG_TS,
+			   S.THEMA_MAP_TYPE AS THEMA_MAP_TYPE,
+			   S.STAT_THEMA_MAP_FILE_URL,
+			   S.HITS AS HITS,
+			   S.DISP_MTHD AS DISP_METHOD,
+			   S.REL_STAT_INFO AS REL_STAT_INFO,
+			   S.THEMA_MAP_EXP AS THEMA_EXP,
+			   T.CATEGORY_NM AS CATEGORY_NM,
+			   T.EN AS CATEGORY_EN,
+			   T.EXP AS CATEGORY_EXP,
+			   S.MAX_EXPNSN_LEVEL AS MAX_EXPNSN_LEVEL,
+			   D.CATEGORY_ICON_URL AS CATEGORY_ICON_URL,
+			   S.SRV_YN,
+			   S.STAT_DATA_BASE_YEAR,
+			   S.YEAR_INFO, 
+			   NVL(S.SEP_MAP_DATA_YEAR, 0) AS SEP_MAP_DATA_YEAR,
+			   S.PRIORITY_DISP_YN
+		  FROM (SELECT  MAX(THEMA_MAP_CATEGORY) AS THEMA_MAP_CATEGORY
+				  FROM (SELECT TOP 3 A.THEMA_MAP_CATEGORY AS THEMA_MAP_CATEGORY
+						  FROM MNG_DT_THEMAMAPCATEGORY A        
+						 WHERE A.SRV_YN = 'Y'
+						 ORDER BY A.DISP_RANK ASC    
+					   )
+			   ) M,
+			   MNG_DT_THEMAMAPLIST S, 
+			   MNG_DT_THEMAMAPCATEGORY T, 
+			   MNG_DT_THEMAMAPICON D
+		 WHERE M.THEMA_MAP_CATEGORY = S.THEMA_MAP_CATEGORY 
+		   AND S.THEMA_MAP_CATEGORY = T.THEMA_MAP_CATEGORY 
+		   AND T.CATEGORY_ICON_ID = D.CATEGORY_ICON_ID
+		   AND S.SRV_YN='Y'
+		   AND T.SRV_YN = 'Y'
+		 ORDER BY S.PRIORITY_DISP_YN DESC, CAST(S.DISP_RANK AS INT) ASC, S.REG_TS DESC
+	)
+	UNION ALL
+	SELECT * FROM (
+		SELECT TOP 3
+			   S.STAT_THEMA_MAP_ID AS STAT_THEMA_MAP_ID,
+			   S.THEMA_MAP_CATEGORY AS CATEGORY,
+			   S.MANAGER_ID AS MANAGER_ID,
+			   S.TITLE AS TITLE,
+			   TO_CHAR(S.REG_TS, 'YYYYMMDDHH') AS REG_TS,
+			   S.THEMA_MAP_TYPE AS THEMA_MAP_TYPE,
+			   S.STAT_THEMA_MAP_FILE_URL,
+			   S.HITS AS HITS,
+			   S.DISP_MTHD AS DISP_METHOD,
+			   S.REL_STAT_INFO AS REL_STAT_INFO,
+			   S.THEMA_MAP_EXP AS THEMA_EXP,
+			   T.CATEGORY_NM AS CATEGORY_NM,
+			   T.EN AS CATEGORY_EN,
+			   T.EXP AS CATEGORY_EXP,
+			   S.MAX_EXPNSN_LEVEL AS MAX_EXPNSN_LEVEL,
+			   D.CATEGORY_ICON_URL AS CATEGORY_ICON_URL,
+			   S.SRV_YN,
+			   S.STAT_DATA_BASE_YEAR,
+			   S.YEAR_INFO, 
+			   NVL(S.SEP_MAP_DATA_YEAR, 0) AS SEP_MAP_DATA_YEAR,
+			   S.PRIORITY_DISP_YN
+		  FROM (SELECT  MAX(THEMA_MAP_CATEGORY) AS THEMA_MAP_CATEGORY
+				  FROM (SELECT TOP 4 A.THEMA_MAP_CATEGORY AS THEMA_MAP_CATEGORY
+						  FROM MNG_DT_THEMAMAPCATEGORY A        
+						 WHERE A.SRV_YN = 'Y'
+						 ORDER BY A.DISP_RANK ASC    
+					   )
+			   ) M,
+			   MNG_DT_THEMAMAPLIST S, 
+			   MNG_DT_THEMAMAPCATEGORY T, 
+			   MNG_DT_THEMAMAPICON D
+		 WHERE M.THEMA_MAP_CATEGORY = S.THEMA_MAP_CATEGORY 
+		   AND S.THEMA_MAP_CATEGORY = T.THEMA_MAP_CATEGORY 
+		   AND T.CATEGORY_ICON_ID = D.CATEGORY_ICON_ID
+		   AND S.SRV_YN='Y'
+		   AND T.SRV_YN = 'Y'
+		 ORDER BY S.PRIORITY_DISP_YN DESC, CAST(S.DISP_RANK AS INT) ASC, S.REG_TS DESC
+	)
+	UNION ALL
+	SELECT * FROM (
+		SELECT TOP 3
+			   S.STAT_THEMA_MAP_ID AS STAT_THEMA_MAP_ID,
+			   S.THEMA_MAP_CATEGORY AS CATEGORY,
+			   S.MANAGER_ID AS MANAGER_ID,
+			   S.TITLE AS TITLE,
+			   TO_CHAR(S.REG_TS, 'YYYYMMDDHH') AS REG_TS,
+			   S.THEMA_MAP_TYPE AS THEMA_MAP_TYPE,
+			   S.STAT_THEMA_MAP_FILE_URL,
+			   S.HITS AS HITS,
+			   S.DISP_MTHD AS DISP_METHOD,
+			   S.REL_STAT_INFO AS REL_STAT_INFO,
+			   S.THEMA_MAP_EXP AS THEMA_EXP,
+			   T.CATEGORY_NM AS CATEGORY_NM,
+			   T.EN AS CATEGORY_EN,
+			   T.EXP AS CATEGORY_EXP,
+			   S.MAX_EXPNSN_LEVEL AS MAX_EXPNSN_LEVEL,
+			   D.CATEGORY_ICON_URL AS CATEGORY_ICON_URL,
+			   S.SRV_YN,
+			   S.STAT_DATA_BASE_YEAR,
+			   S.YEAR_INFO, 
+			   NVL(S.SEP_MAP_DATA_YEAR, 0) AS SEP_MAP_DATA_YEAR,
+			   S.PRIORITY_DISP_YN
+		  FROM (SELECT  MAX(THEMA_MAP_CATEGORY) AS THEMA_MAP_CATEGORY
+				  FROM (SELECT TOP 5 A.THEMA_MAP_CATEGORY AS THEMA_MAP_CATEGORY
+						  FROM MNG_DT_THEMAMAPCATEGORY A        
+						 WHERE A.SRV_YN = 'Y'
+						 ORDER BY A.DISP_RANK ASC    
+					   )
+			   ) M,
+			   MNG_DT_THEMAMAPLIST S, 
+			   MNG_DT_THEMAMAPCATEGORY T, 
+			   MNG_DT_THEMAMAPICON D
+		 WHERE M.THEMA_MAP_CATEGORY = S.THEMA_MAP_CATEGORY 
+		   AND S.THEMA_MAP_CATEGORY = T.THEMA_MAP_CATEGORY 
+		   AND T.CATEGORY_ICON_ID = D.CATEGORY_ICON_ID
+		   AND S.SRV_YN='Y'
+		   AND T.SRV_YN = 'Y'
+		 ORDER BY S.PRIORITY_DISP_YN DESC, CAST(S.DISP_RANK AS INT) ASC, S.REG_TS DESC
+	)	
+	UNION ALL
+	SELECT * FROM (
+		SELECT TOP 3
+			   S.STAT_THEMA_MAP_ID AS STAT_THEMA_MAP_ID,
+			   S.THEMA_MAP_CATEGORY AS CATEGORY,
+			   S.MANAGER_ID AS MANAGER_ID,
+			   S.TITLE AS TITLE,
+			   TO_CHAR(S.REG_TS, 'YYYYMMDDHH') AS REG_TS,
+			   S.THEMA_MAP_TYPE AS THEMA_MAP_TYPE,
+			   S.STAT_THEMA_MAP_FILE_URL,
+			   S.HITS AS HITS,
+			   S.DISP_MTHD AS DISP_METHOD,
+			   S.REL_STAT_INFO AS REL_STAT_INFO,
+			   S.THEMA_MAP_EXP AS THEMA_EXP,
+			   T.CATEGORY_NM AS CATEGORY_NM,
+			   T.EN AS CATEGORY_EN,
+			   T.EXP AS CATEGORY_EXP,
+			   S.MAX_EXPNSN_LEVEL AS MAX_EXPNSN_LEVEL,
+			   D.CATEGORY_ICON_URL AS CATEGORY_ICON_URL,
+			   S.SRV_YN,
+			   S.STAT_DATA_BASE_YEAR,
+			   S.YEAR_INFO, 
+			   NVL(S.SEP_MAP_DATA_YEAR, 0) AS SEP_MAP_DATA_YEAR,
+			   S.PRIORITY_DISP_YN
+		  FROM (SELECT  MAX(THEMA_MAP_CATEGORY) AS THEMA_MAP_CATEGORY
+				  FROM (SELECT TOP 6 A.THEMA_MAP_CATEGORY AS THEMA_MAP_CATEGORY
+						  FROM MNG_DT_THEMAMAPCATEGORY A        
+						 WHERE A.SRV_YN = 'Y'
+						 ORDER BY A.DISP_RANK ASC    
+					   )
+			   ) M,
+			   MNG_DT_THEMAMAPLIST S, 
+			   MNG_DT_THEMAMAPCATEGORY T, 
+			   MNG_DT_THEMAMAPICON D
+		 WHERE M.THEMA_MAP_CATEGORY = S.THEMA_MAP_CATEGORY 
+		   AND S.THEMA_MAP_CATEGORY = T.THEMA_MAP_CATEGORY 
+		   AND T.CATEGORY_ICON_ID = D.CATEGORY_ICON_ID
+		   AND S.SRV_YN='Y'
+		   AND T.SRV_YN = 'Y'
+		 ORDER BY S.PRIORITY_DISP_YN DESC, CAST(S.DISP_RANK AS INT) ASC, S.REG_TS DESC
+	)	
+	</select>
+
+
+	<!-- 코로나 현황판 조회 mng_s 20200730 -->
+	<select id="thematicMap.select.getCoronaCnt" parameterType="hashmap" resultType="hashmap">
+		select a.base_year, a.base_month, a.base_day,  
+		a.incdec, a.localocccnt, a.overflowcnt, a.defcnt, a.isolclearcnt, a.isolingcnt, a.deathcnt, a.qurrate,
+		a.defcnt-b.defcnt defcnt_pm, a.isolclearcnt-b.isolclearcnt isolclearcnt_pm, 
+		a.isolingcnt-b.isolingcnt isolingcnt_pm, a.deathcnt-b.deathcnt deathcnt_pm
+		from 
+			(select * from srv_dt_thema_covid19_status
+			where base_year||base_month||base_day=(select max(base_year||base_month||base_day) max_day from srv_dt_thema_covid19_status)
+			and sido_cd='00') a
+			,
+			(select * from srv_dt_thema_covid19_status
+			where base_year||base_month||base_day=(to_char(to_date((select max(base_year||base_month||base_day) from srv_dt_thema_covid19_status), 'YYYYMMDD') -1, 'YYYYMMDD'))
+			and sido_cd='00') b
+	</select>
+	
+	<select id="thematicMap.select.getCoronaVaccCnt" parameterType="hashmap" resultType="hashmap">
+			select * from  root.srv_dt_thema_covid19_vacntn
+			where base_year||base_month||base_day=(select max(base_year||base_month||base_day) max_day from srv_dt_thema_covid19_vacntn)
+			and sido_cd = '00'
+	</select>
+
+	<!-- 코로나 현황판 차트 mng_s 20210713 -->
+	<select id="thematicMap.select.getCoronaCntChart" parameterType="hashmap" resultType="hashmap">
+		<!-- SELECT 
+			gubun,
+			conf_case,
+			conf_case_rate,
+			death,
+			death_rate,
+			critical_rate
+		FROM srv_dt_thema_covid19_age_status
+		WHERE base_month = #{covid_month_val}
+		AND base_day = #{covid_day_val} -->
+		
+		SELECT 
+			gubun,
+			conf_case,
+			conf_case_rate,
+			death,
+			death_rate,
+			critical_rate
+		FROM srv_dt_thema_covid19_age_status
+		WHERE base_year||base_month||base_day=(select max(base_year||base_month||base_day) max_day from srv_dt_thema_covid19_age_status)
+		ORDER BY gubun
+	</select>
+
+</mapper>

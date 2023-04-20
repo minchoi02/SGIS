@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="PubDataManage"> 
+	<select id="searchPubData"  parameterType="Map" resultType="Map">
+		select * from
+		(
+			select ROWNUM R, PUB_DATA_ID, PUB_DATA_NM, PUB_DATA_YEAR,
+				   INTRACTVMAP_APPLY_YN, BIZSTATMAP_APPLY_YN, 
+				   SUBSTR(TO_CHAR(REG_DT,'yyyy-MM-dd'),0,10) as REG_DT
+			from SRV_DT_PUB_DATA_MAIN
+			where 1=1
+			<if test="SEARCH_WORD != null">
+			    and PUB_DATA_NM like  #{SEARCH_WORD} 
+			</if>
+			<if test="SEARCH_TYPE_INTRACTV != null and  SEARCH_TYPE_INTRACTV != 'ALL' ">
+				and INTRACTVMAP_APPLY_YN = #{SEARCH_TYPE_INTRACTV}
+			</if>
+			<if test="SEARCH_TYPE_BIZSTAT != null and  SEARCH_TYPE_BIZSTAT != 'ALL' ">
+				and BIZSTATMAP_APPLY_YN = #{SEARCH_TYPE_BIZSTAT}
+			</if>
+			and  ROWNUM <![CDATA[<=]]> #{END_INDEX}
+		)
+		where R <![CDATA[>=]]> #{START_INDEX}
+		order by PUB_DATA_NM
+	</select>
+	<select id="searchPubDataCount"  parameterType="hashmap" resultType="int">
+			SELECT COUNT(PUB_DATA_ID) AS CNT
+			from SRV_DT_PUB_DATA_MAIN
+			where 1=1
+			<if test="SEARCH_WORD != null">
+			    and PUB_DATA_NM like  #{SEARCH_WORD} 
+			</if>
+			<if test="SEARCH_TYPE_INTRACTV != null and  SEARCH_TYPE_INTRACTV != 'ALL' ">
+				and INTRACTVMAP_APPLY_YN = #{SEARCH_TYPE_INTRACTV}
+			</if>
+			<if test="SEARCH_TYPE_BIZSTAT != null and  SEARCH_TYPE_BIZSTAT != 'ALL' ">
+				and BIZSTATMAP_APPLY_YN = #{SEARCH_TYPE_BIZSTAT}
+			</if>
+	</select>
+	<update id="updatePubData" parameterType="Map" >
+		update SRV_DT_PUB_DATA_MAIN 
+		set PUB_DATA_NM = #{PUB_DATA_NM},
+			PUB_DATA_YEAR = #{PUB_DATA_YEAR},
+			INTRACTVMAP_APPLY_YN = #{INTRACTVMAP_APPLY_YN},
+			BIZSTATMAP_APPLY_YN = #{BIZSTATMAP_APPLY_YN}
+		where PUB_DATA_ID = #{PUB_DATA_ID}
+	</update>
+	<insert id="addPubData" parameterType="Map">
+		insert into SRV_DT_PUB_DATA_MAIN
+			(PUB_DATA_ID,PUB_DATA_NM,PUB_DATA_YEAR,INTRACTVMAP_APPLY_YN,BIZSTATMAP_APPLY_YN,REG_DT)
+		values 
+			(#{PUB_DATA_ID},#{PUB_DATA_NM},#{PUB_DATA_YEAR},#{INTRACTVMAP_APPLY_YN},#{BIZSTATMAP_APPLY_YN}, sysdate)
+	</insert>
+	<delete id="deletePubData" >
+		delete from SRV_DT_PUB_DATA_MAIN where PUB_DATA_ID in
+		<foreach collection="array" index="index" item="item" open="(" separator="," close=")">   
+        		#{item}   
+   		</foreach> 
+	</delete>
+	<delete id="deletePubChData" parameterType="Map">
+		delete from mng_dt_themamapchange where thema_map_data_id = #{THEMA_MAP_DATA_ID}
+	</delete>
+	<select id="getId" parameterType="Map" resultType="int">
+		select NVL(MAX(PUB_DATA_ID)+1,1) as SEQ from SRV_DT_PUB_DATA_MAIN
+	</select>
+	<insert id="regPubDataId" parameterType="Map">
+		insert into MNG_DT_THEMAMAPCHAR
+			(THEMA_MAP_DATA_ID, THEMA_MAP_DATA_NM)
+		values 
+			(#{dataId},#{TITLE})
+	</insert>
+	<insert id="regExcelData" parameterType="Map">
+		insert into MNG_DT_THEMAMAPDATA
+		    (THEMA_MAP_DATA_ID, REGION_DIV, BASE_YEAR, ADM_CD, LEFT_SEP_VALUE, RIGHT_SEP_VALUE)
+		values
+		     (#{THEMA_MAP_DATA_ID},#{REGION_DIV},#{BASE_YEAR},#{ADM_CD},#{LEFT_SEP_VALUE},#{RIGHT_SEP_VALUE})
+
+	</insert>
+	<insert id="regExcelChange" parameterType="Map">
+		insert into MNG_DT_THEMAMAPCHANGE
+		    (THEMA_MAP_DATA_ID, REGION_DIV, BASE_YEAR, ADM_CD, IRDS_YEAR, CHART_VALUE)
+		values
+		     (#{THEMA_MAP_DATA_ID},#{REGION_DIV},#{BASE_YEAR},#{ADM_CD},#{IRDS_YEAR},#{CHART_VALUE})
+
+	</insert>
+	<!-- <delete id="deleteRegIdPubData" >
+		delete from MNG_DT_THEMAMAPCHAR where THEMA_MAP_DATA_ID in
+		<foreach collection="array" index="index" item="item" open="(" separator="," close=")">   
+        		#{item}   
+   		</foreach> 
+	</delete> -->
+	<delete id="deleteRegDataPubData" >
+		delete from MNG_DT_THEMAMAPDATA where THEMA_MAP_DATA_ID in
+		<foreach collection="array" index="index" item="item" open="(" separator="," close=")">   
+        		#{item}   
+   		</foreach> 
+	</delete>
+	<!-- <delete id="deleteRegChePubData" >
+		delete from MNG_DT_THEMAMAPCHANGE where THEMA_MAP_DATA_ID in
+		<foreach collection="array" index="index" item="item" open="(" separator="," close=")">   
+        		#{item}   
+   		</foreach> 
+	</delete>	 -->
+	
+	<select id="getThemaID" resultType="Map">
+		<!-- select * from( select b.thema_map_data_id, b.thema_map_data_nm ,ROWNUM 
+			R, nvl((select base_year from mng_dt_themamapchange a where a.thema_map_data_id 
+			= b.thema_map_data_id),'2014') as base_year from mng_dt_themamapchar b where 
+			thema_map_data_nm is not null -->
+		select * from(
+		select *,ROWNUM R from(
+		select
+		distinct
+		a.thema_map_data_id,
+		b.thema_map_data_nm
+		from
+		mng_dt_themamapdata a,
+		mng_dt_themamapchar b
+		where
+		a.thema_map_data_id =
+		b.thema_map_data_id
+		<if test="SEARCH_WORD != null">
+		and thema_map_data_nm like #{SEARCH_WORD}
+		</if>
+		)
+		where ROWNUM <![CDATA[<=]]>
+		#{END_INDEX}
+		)c left join (
+        select
+        distinct
+        a.thema_map_data_id as thema_map_data_idyn
+        from
+        MNG_DT_THEMAMAPCHANGE a,
+        mng_dt_themamapchar b
+        where
+        a.thema_map_data_id =
+        b.thema_map_data_id) d
+        on c.thema_map_data_id = d.thema_map_data_idyn
+		
+		where R <![CDATA[>=]]>
+		#{START_INDEX}
+		<!-- <if test="SEARCH_WORD != null"> <if test="SEARCH_TYPE == 'search'"> 
+			and thema_map_data_nm like #{SEARCH_WORD} </if> <if test="SEARCH_TYPE == 
+			'assoc'"> and tehma_map_data_id like #{SEARCH_WORD} </if> </if> -->
+	</select>
+	<select id="getThemaIDCount" resultType="int">
+		select count(*) from(
+		select *,ROWNUM R from(
+		select
+		distinct
+		a.thema_map_data_id,
+		b.thema_map_data_nm
+		from
+		mng_dt_themamapdata a,
+		mng_dt_themamapchar b
+		where
+		a.thema_map_data_id =
+		b.thema_map_data_id
+		<if test="SEARCH_WORD != null">
+		and thema_map_data_nm like #{SEARCH_WORD}
+		</if>
+		)
+		)c
+		
+	</select>
+	<select id="getRegThemaID" resultType="Map">
+		select * from(
+        select *,ROWNUM R from(
+        select       
+        *
+        from
+        mng_dt_themamapdata
+        where
+        thema_map_data_id=#{THEMA_MAP_DATA_ID}
+        <if test="SEARCH_WORD != null">
+		and base_year like #{SEARCH_WORD}
+		</if>        
+		)
+		where ROWNUM <![CDATA[<=]]> #{END_INDEX} )
+		where R <![CDATA[>=]]> #{START_INDEX}
+		
+	</select>
+	<select id="getRegThemaIDCount" resultType="int">
+		select count(*) 
+		from mng_dt_themamapdata 
+		where thema_map_data_id=#{THEMA_MAP_DATA_ID}
+		<if test="SEARCH_WORD != null">
+		and base_year like #{SEARCH_WORD}
+		</if>  
+	</select>
+	<select id="getRegThemaChID" resultType="Map">
+		select * from(
+        select *,ROWNUM R from(
+        select       
+        *
+        from
+        mng_dt_themamapchange
+        where
+        thema_map_data_id=#{THEMA_MAP_DATA_ID}
+        <if test="SEARCH_WORD != null">
+		and base_year like #{SEARCH_WORD}
+		</if>        
+		)
+		where ROWNUM <![CDATA[<=]]> #{END_INDEX} )
+		where R <![CDATA[>=]]> #{START_INDEX}
+		
+	</select>
+	<select id="getRegThemaChIDCount" resultType="int">
+		select count(*) 
+		from mng_dt_themamapchange
+		where thema_map_data_id=#{THEMA_MAP_DATA_ID}
+		<if test="SEARCH_WORD != null">
+		and base_year like #{SEARCH_WORD}
+		</if>  
+	</select>
+	<select id="getpolicyMapList" resultType="Map">
+		select * from(
+        select *,ROWNUM R from(
+            SELECT C.idx_id, C.CATEGORY_NM
+            ,C.POLICY_IDX_NM
+            ,(CASE C.SOURCE_INST_CD WHEN '1' THEN '통계청' WHEN '2' THEN '지자체' END) as SOURCE_INST_CD
+            ,(CASE C.IDX_TYPE WHEN '1' THEN '지역별 수요변화' WHEN '2' THEN '연산형' WHEN '3' THEN '분석형' END) as IDX_TYPE
+            ,C.SRV_YN  FROM (
+            SELECT * FROM SRV_DT_POLICYMAP_CATEGORY A, SRV_DT_POLICYMAP_LIST B WHERE A.CATEGORY_ID=B.CATEGORY_ID
+            ) C                    
+        )
+        where ROWNUM <![CDATA[<=]]> #{END_INDEX} )
+        where R <![CDATA[>=]]> #{START_INDEX}	
+	</select>
+	<select id="getpolicyMapListCount" resultType="int">
+		select count(*) from(
+            SELECT C.idx_id, C.CATEGORY_NM
+            ,C.POLICY_IDX_NM
+            ,(CASE C.SOURCE_INST_CD WHEN '1' THEN '통계청' WHEN '2' THEN '지자체' END) as SOURCE_INST_CD
+            ,(CASE C.IDX_TYPE WHEN '1' THEN '지역별 수요변화' WHEN '2' THEN '연산형' WHEN '3' THEN '분석형' END) as IDX_TYPE
+            ,C.SRV_YN  FROM (
+            SELECT * FROM SRV_DT_POLICYMAP_CATEGORY A, SRV_DT_POLICYMAP_LIST B WHERE A.CATEGORY_ID=B.CATEGORY_ID
+            ) C                    
+        )
+	</select>
+	
+	
+</mapper>

@@ -1,0 +1,441 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="technicalbiz">
+
+	<!-- 전국 기술업종 정보(조회년도 검색) API_1101-->
+	<select id="yearInfo" parameterType="hashmap" resultType="String">
+		SELECT base_year
+		FROM(SELECT DISTINCT(base_year) 
+			FROM SRV_DT_TECHBIZ_CHARTRINFO 
+			ORDER BY base_year desc 
+			)
+		WHERE ROWNUM <![CDATA[<=]]> 5
+	</select>
+
+	<!-- 전국 기술업종 정보(연도별 기술업종 사업체 수) API_1101-->
+	<select id="totalCorpCnt" parameterType="hashmap" resultType="String">
+		select sum(corp_cnt) techbiz_corp_total_cnt from SRV_DT_TECHBIZ_CHARTRINFO
+		WHERE region_div = '1' and techbiz_cd_div = '2' and base_year = #{year}
+	</select>
+	
+	<!-- 전국 기술업종 정보 API_1101-->
+	<select id="companyInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT CD.techbiz_m_class_cd_nm techbiz_nm, TEC.techbiz_class_cd techbiz_cd, corp_cnt techbiz_corp_cnt
+			, corp_per techbiz_corp_per, corp_irdsrate techbiz_corp_irdsrate 
+		FROM SRV_DT_TECHBIZ_CHARTRINFO TEC,
+			(SELECT DISTINCT(techbiz_m_class_cd), techbiz_m_class_cd_nm 
+							FROM CMM_CD_TECHBIZ_CD) CD
+		WHERE TEC.techbiz_class_cd = CD.techbiz_m_class_cd and TEC.region_div = '1' and TEC.base_year = #{year}
+	</select>
+
+	<!-- 시군구 기술업종 정보 (시도코드 검색) API_1102-->	
+	<select id="sidoInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT sido_cd, sido_nm 
+		FROM  SRV_PG_SIDOBORD 
+		WHERE base_year = (SELECT max(base_year) base_year 
+							FROM SRV_PG_SIDOBORD )
+	</select>
+	
+	
+	<!-- 시군구 기술업종 정보 (시도코드 검색) API_1102-->
+	<!-- 2020.02.13 김건민  2018년도으로 수정-->	
+	<select id="sidoTotalInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			A.sido_cd, sido_nm, TO_CHAR(nvl(B.techbiz_corp_total_cnt, 0)) as techbiz_corp_total_cnt
+		FROM 
+			(
+				SELECT sido_cd, sido_nm 
+				FROM  SRV_PG_SIDOBORD bord
+				WHERE bord.base_year = (
+										SELECT 
+											max(base_year) base_year 
+										FROM 
+											SRV_PG_SIDOBORD
+										)
+			) A
+		LEFT OUTER JOIN 
+		(
+			SELECT 
+				trim(adm_cd) as adm_cd, nvl(SUM(corp_cnt),'0') techbiz_corp_total_cnt 
+			FROM 
+				SRV_DT_TECHBIZ_CHARTRINFO
+			WHERE 
+				region_div = '1'
+				AND techbiz_cd_div = '2'
+				AND base_year = (SELECT TOP 1 BASE_YEAR FROM SRV_DT_SIDOLIFEBIZ_INTRO ORDER BY BASE_YEAR DESC)
+			GROUP BY trim(adm_cd)
+		) B
+		ON A.sido_cd = B.adm_cd
+	</select>
+	
+	
+	<!-- 시군구 기술업종 종사자 정보 (시도코드 검색) API_1111-->
+	<!-- 2017.09.04 최재영 추가-->
+	<!-- 2020.02.13 김건민  2018년도으로 수정-->
+	<select id="sidoWorkerTotalInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			A.sido_cd, sido_nm, TO_CHAR(nvl(B.techbiz_worker_total_cnt, 0)) as techbiz_worker_total_cnt
+		FROM 
+			(
+				SELECT sido_cd, sido_nm 
+				FROM  SRV_PG_SIDOBORD bord
+				WHERE bord.base_year = (
+										SELECT 
+											max(base_year) base_year 
+										FROM 
+											SRV_PG_SIDOBORD
+										)
+			) A
+		LEFT OUTER JOIN 
+		(
+			SELECT 
+				trim(adm_cd) as adm_cd, nvl(SUM(worker_cnt),'0') techbiz_worker_total_cnt 
+			FROM 
+				SRV_DT_TECHBIZ_CHARTRINFO
+			WHERE 
+				region_div = '1'
+				AND techbiz_cd_div = '2'
+				AND base_year =  (SELECT TOP 1 BASE_YEAR FROM SRV_DT_SIDOLIFEBIZ_INTRO ORDER BY BASE_YEAR DESC)
+			GROUP BY trim(adm_cd)
+		) B
+		ON A.sido_cd = B.adm_cd
+	</select>
+	
+		
+	
+	<!-- 시군구 기술업종 정보(시도별 기술업종 사업체 수) API_1102-->
+	<!-- 2020.02.13 김건민  2018년도으로 수정-->
+	<select id="sidoTotalCorpCnt" parameterType="hashmap" resultType="String">
+		SELECT nvl(SUM(corp_cnt),'0') techbiz_corp_total_cnt 
+		FROM SRV_DT_TECHBIZ_CHARTRINFO
+		WHERE region_div = '1'
+			and techbiz_cd_div = '2'
+			and trim(adm_cd) = #{sido_cd} 
+			and base_year = (SELECT TOP 1 BASE_YEAR FROM SRV_DT_SIDOLIFEBIZ_INTRO ORDER BY BASE_YEAR DESC)
+	</select>
+	
+	<!-- 시군구 기술업종 종사자 정보(시도별 기술업종 종사자 수) API_1101-->
+	<!-- 2017.09.04 개발팀 추가 -->
+	<!-- 2020.02.13 김건민  2018년도으로 수정-->
+	<select id="sidoTotalWorkerCnt" parameterType="hashmap" resultType="String">
+		SELECT nvl(SUM(worker_cnt),'0') techbiz_worker_total_cnt 
+		FROM SRV_DT_TECHBIZ_CHARTRINFO
+		WHERE region_div = '1'
+			and techbiz_cd_div = '2'
+			and trim(adm_cd) = #{sido_cd} 
+			and base_year = (SELECT TOP 1 BASE_YEAR FROM SRV_DT_SIDOLIFEBIZ_INTRO ORDER BY BASE_YEAR DESC)
+	</select>
+	
+	<!-- 시군구 기술업종 정보 API_1102-->
+	<!-- 2020.02.13 김건민  2018년도으로 수정-->
+	<select id="sidoCompanyInfo" parameterType="hashmap" resultType="hashmap">  
+		SELECT TEC.techbiz_class_cd techbiz_cd, CD.techbiz_m_class_cd_nm techbiz_nm,
+			TEC.corp_cnt techbiz_corp_cnt, TEC.corp_per techbiz_corp_per, TEC.corp_irdsrate techbiz_corp_irdsrate
+		FROM SRV_DT_TECHBIZ_CHARTRINFO TEC,
+					(
+					SELECT DISTINCT(techbiz_m_class_cd), techbiz_m_class_cd_nm 
+					FROM CMM_CD_TECHBIZ_CD
+					) CD
+		WHERE TEC.techbiz_class_cd = CD.techbiz_m_class_cd 
+			and region_div = '1' 
+			and trim(adm_cd) = #{sido_cd}
+			and base_year = (SELECT TOP 1 BASE_YEAR FROM SRV_DT_SIDOLIFEBIZ_INTRO ORDER BY BASE_YEAR DESC)
+	</select>	
+	
+	<!-- 시군구 기술업종 정보 사업체 API_1110-->
+	<!-- 2017.09.04 개발팀 추가 -->
+	<!-- 2020.02.13 김건민  2018년도으로 수정-->
+	<select id="sidoWorkerInfo" parameterType="hashmap" resultType="hashmap">	
+		SELECT TEC.techbiz_class_cd techbiz_cd, CD.techbiz_m_class_cd_nm techbiz_nm,
+			TEC.worker_cnt techbiz_worker_cnt, TEC.worker_per techbiz_worker_per, TEC.corp_irdsrate techbiz_corp_irdsrate
+		FROM SRV_DT_TECHBIZ_CHARTRINFO TEC,
+					(
+					SELECT DISTINCT(techbiz_m_class_cd), techbiz_m_class_cd_nm 
+					FROM CMM_CD_TECHBIZ_CD
+					) CD
+		WHERE TEC.techbiz_class_cd = CD.techbiz_m_class_cd 
+			and region_div = '1' 
+			and trim(adm_cd) = #{sido_cd}
+			and base_year = (SELECT TOP 1 BASE_YEAR FROM SRV_DT_SIDOLIFEBIZ_INTRO ORDER BY BASE_YEAR DESC)
+	</select>	
+	
+
+	<!-- 시군구 기술업종 정보 API_1103-->
+	<select id="sggCompanyInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT sido_cd, sgg_cd, techbiz_nm, techbiz_corp_cnt, techbiz_corp_per, techbiz_cd, techbiz_corp_irdsrate, sido_nm, sgg_nm, x_coor, y_coor
+		FROM (
+			SELECT TECH.sido_cd, TECH.sgg_cd, TECH.techbiz_nm, TECH.techbiz_corp_cnt, TECH.techbiz_cd, TECH.techbiz_corp_per, TECH.techbiz_corp_irdsrate 
+				, SGG.SIDO_NM, SGG.SGG_NM, SGG.X_COOR, SGG.Y_COOR 
+			FROM(
+				SELECT substr(TEC.adm_cd,0,2) sido_cd, substr(TEC.adm_cd,3,5) sgg_cd, CD.techbiz_m_class_cd_nm techbiz_nm, TEC.techbiz_class_cd techbiz_cd, corp_cnt techbiz_corp_cnt
+					, corp_per techbiz_corp_per, corp_irdsrate techbiz_corp_irdsrate
+				FROM SRV_DT_TECHBIZ_CHARTRINFO TEC,(
+									SELECT DISTINCT(techbiz_m_class_cd), techbiz_m_class_cd_nm 
+									FROM CMM_CD_TECHBIZ_CD
+									) CD
+					WHERE TEC.techbiz_class_cd = CD.techbiz_m_class_cd and TEC.base_year = '2017'
+						and TEC.techbiz_class_cd = #{techbiz_cd} and TEC.region_div = '2'
+				) TECH 
+				INNER JOIN (
+							SELECT sido_cd sido_cd, sgg_cd sgg_cd, TRIM(sido_nm) sido_nm, TRIM(sgg_nm) sgg_nm
+									, ROUND(TO_FLOAT(x_coor)) x_coor, ROUND(TO_FLOAT(y_coor)) y_coor
+							FROM SRV_PG_SGGBORD
+							WHERE BASE_YEAR = (
+												SELECT TOP 1 base_year 
+												FROM SRV_PG_SGGBORD 
+												ORDER BY base_year DESC
+												)
+						) SGG
+				ON TECH.SIDO_CD = SGG.SIDO_CD AND TECH.SGG_CD = SGG.SGG_CD
+		)
+	</select>
+
+	<!-- 창업지원시설 정보  API_1104-->
+	<select id="startupBizFac" parameterType="hashmap" resultType="hashmap">
+		SELECT TEC.inst_nm, CMM.cd_content as lct_type_nm, TEC.lct_type, TEC.addr, TEC.tel_no, TEC.url, TEC.x_coor, TEC.y_coor 
+		FROM SRV_DT_TECHBIZ_STARTUPBIZFAC TEC 
+			LEFT OUTER JOIN CMM_CD_ONE CMM 
+			ON TEC.lct_type = CMM.cd_value_1
+		WHERE CMM.cd_nm = '창업지원시설입지유형'
+	</select>
+	
+	<!-- 시도별 창업지원 시설수 API_1105 -->
+	<select id="sidoStartupBizFacCount" parameterType="hashmap" resultType="hashmap">
+		SELECT sido_cd, sido_nm, count(*) startupbizfac_cnt 
+		FROM (
+		    SELECT TEC.sido_cd, SIDO.sido_nm
+		    FROM SRV_DT_TECHBIZ_STARTUPBIZFAC TEC
+		    LEFT OUTER JOIN (SELECT sido_cd, sido_nm 
+		    				FROM SRV_PG_SIDOBORD
+		    				WHERE base_year = (SELECT MAX(base_year) base_year 
+		    								FROM SRV_PG_SIDOBORD)
+		    				)SIDO
+		    ON TEC.sido_cd = SIDO.sido_cd 
+			<if test='lct_type != null '>
+				WHERE TEC.lct_type in
+				<foreach collection="lct_type" item="lct" open = "(" separator = "," close = ")">
+					#{lct}
+				</foreach>
+			</if>
+		)
+		GROUP BY sido_cd, sido_nm
+		UNION ALL
+		SELECT '00' sido_cd, '전국평균' sido_nm, avg(cnt) startupbizfac_cnt 
+		FROM (
+		    SELECT COUNT(*) cnt 
+		    FROM SRV_DT_TECHBIZ_STARTUPBIZFAC
+			<if test='lct_type != null '>
+				WHERE lct_type in
+				<foreach collection="lct_type" item="lct" open = "(" separator = "," close = ")">
+					#{lct}
+				</foreach>
+			</if>
+		    GROUP BY sido_cd
+		)
+	</select>
+	
+	<!-- 시군구 창업지원시설정보 리스트 API_1106 -->	
+	<select id="sggStartupBizFac" parameterType="hashmap" resultType="hashmap">
+        SELECT TEC.inst_nm, CMM.cd_content lct_type_nm,TEC.lct_type, TEC.addr, TEC.tel_no, TEC.url, TEC.x_coor, TEC.y_coor 
+        FROM SRV_DT_TECHBIZ_STARTUPBIZFAC TEC 
+            LEFT OUTER JOIN CMM_CD_ONE CMM 
+            ON TEC.lct_type = CMM.cd_value_1
+        WHERE CMM.cd_nm = '창업지원시설입지유형'
+        	<if test='adm_cd != null'>
+        		<if test='adm_cd.length() == 2'>
+        			and sido_cd = SUBSTR(#{adm_cd},1,2)
+        		</if>
+        		<if test='adm_cd.length() == 5'>
+        			<if test='adm_cd == "31020"'>
+	        			and sido_cd = SUBSTR(#{adm_cd},1,2)
+	        			and sgg_cd like SUBSTR(#{adm_cd},3,2) || '%'
+        			</if>
+        			<if test='adm_cd != "31020"'>
+	        			and sido_cd = SUBSTR(#{adm_cd},1,2)
+        				and sgg_cd = SUBSTR(#{adm_cd},3,3)
+        			</if>
+        		</if>
+        	</if>
+        	
+        	<if test='lct_type != null '>
+        		<!-- and TEC.lct_type = #{lct_type} -->
+        		<!-- 2017.09.26 개발팀 수정 lct_type Array로 변경-->
+        		and TEC.lct_type in 
+	        		<foreach collection="lct_type" item="lct"  open = "(" separator = "," close = ")">
+	        			 #{lct}
+	        		</foreach> 
+	        		<!-- 2017.09.26 개발팀 수정 종료-->
+	        		<!-- and TEC.lct_type = #{lct_type} -->
+	        		
+        	</if>
+        	LIMIT #{startnum}, #{count}
+	</select>
+	
+	<!-- 시군구 창업지원시설정보 카운트 API_1106 -->	
+	<select id="sggStartupBizFacCount" parameterType="hashmap" resultType="hashmap">
+		SELECT COUNT(*) total_cnt
+		FROM(
+	        SELECT TEC.inst_nm, CMM.cd_content LCT_TYPE, TEC.addr, TEC.tel_no, TEC.url, TEC.x_coor, TEC.y_coor 
+	        FROM SRV_DT_TECHBIZ_STARTUPBIZFAC TEC 
+	            LEFT OUTER JOIN CMM_CD_ONE CMM 
+	            ON TEC.lct_type = CMM.cd_value_1
+	        WHERE CMM.cd_nm = '창업지원시설입지유형'
+	        	<!-- <if test='sido_cd != null '>
+	       			and sido_cd = #{sido_cd}
+	        	</if>
+	        	<if test='sgg_cd != null '>
+	         		and sgg_cd = #{sgg_cd}
+	        	</if> -->
+	        	<if test='adm_cd != null'>
+	        		<if test='adm_cd.length() == 2'>
+	        			and sido_cd = SUBSTR(#{adm_cd},1,2)
+	        		</if>
+	        		<if test='adm_cd.length() == 5'>
+	        			<if test='adm_cd == "31020"'>
+		        			and sido_cd = SUBSTR(#{adm_cd},1,2)
+		        			and sgg_cd like SUBSTR(#{adm_cd},3,2) || '%'
+        				</if>
+	        			<if test='adm_cd != "31020"'>
+		        			and sido_cd = SUBSTR(#{adm_cd},1,2)
+	        				and sgg_cd = SUBSTR(#{adm_cd},3,3)
+	        			</if>
+	        		</if>
+        		</if>
+	        	<if test='lct_type != null '>
+	        		<!-- 2017.09.26 개발팀 수정 lct_type Array로 변경-->
+	        		and TEC.lct_type in
+	        		<foreach collection="lct_type" item="lct" open = "(" separator = "," close = ")">
+	        			 #{lct}
+	        		</foreach>
+	        		<!-- 2017.09.26 개발팀 수정 종료-->
+	        		<!-- and TEC.lct_type = #{lct_type} -->
+	        	</if>
+		)
+	</select>
+	
+	<!-- 시도 산업단지 수 API_1107 -->	
+	<select id="sidoInduscomCount" parameterType="hashmap" resultType="hashmap">
+		SELECT sido_cd, sido_nm, count(*) induscom_cnt 
+		FROM (
+		    SELECT TEC.sido_cd, SIDO.sido_nm 
+		    FROM SRV_DT_TECHBIZ_INDUSCOMINFO TEC
+		    LEFT OUTER JOIN (SELECT sido_cd, sido_nm 
+		    				FROM  SRV_PG_SIDOBORD 
+		    				WHERE base_year = (SELECT max(base_year) base_year 
+		    								FROM SRV_PG_SIDOBORD )
+		    				) SIDO
+		    ON TEC.sido_cd = SIDO.sido_cd 
+		)
+		GROUP BY sido_cd, sido_nm
+		UNION ALL
+		SELECT '00' sido_cd, '전국평균' sido_nm, AVG(cnt) induscom_cnt
+		FROM (
+		    SELECT COUNT(*) cnt 
+		    FROM SRV_DT_TECHBIZ_INDUSCOMINFO
+		    GROUP BY sido_cd
+		)
+	</select>	
+	
+	<!-- 전국 산업단지정보 API_1108 -->	
+	<select id="Induscom" parameterType="hashmap" resultType="hashmap">
+		SELECT DISTINCT BORD.complex_no, BORD.complex_nm, BORD.complex_type, BORD.x_coor, BORD.y_coor, BORD.area, INFO.make_purps_chartr, 
+			INFO.implementer_mgmt_inst, INFO.lc, INFO.tot_area, INFO.induty_fac_zone_area, INFO.support_fac_zone_area, 
+			INFO.pub_fac_zone_area, INFO.green_zone_area, INFO.resid_zone_area, INFO.etc_zone_area, INFO.mvn_biz, INFO.mvn_qualf, INFO.mvn_limit, INFO.sido_cd, INFO.sgg_cd,
+			b.sido_nm, b.sgg_nm
+		FROM SRV_DT_TECHBIZ_INDUSCOMINFO INFO
+			LEFT OUTER JOIN SRV_PG_SGGBORD b
+			ON INFO.sido_cd = b.sido_cd and INFO.sgg_cd = b.sgg_cd and b.base_year=#{bnd_year}
+			LEFT OUTER JOIN SRV_PG_TECHBIZ_INDUSCOMBORD BORD
+			ON INFO.complex_no = BORD.complex_no
+	</select>
+
+	<!-- 시군구 산업단지정보 리스트 API_1109 -->	
+	<select id="sggInduscom" parameterType="hashmap" resultType="hashmap">
+        SELECT DISTINCT BORD.complex_no, BORD.complex_nm, BORD.complex_type, BORD.x_coor, BORD.y_coor, BORD.area
+        	, INFO.make_purps_chartr, INFO.implementer_mgmt_inst, INFO.lc, INFO.tot_area, INFO.induty_fac_zone_area
+        	, INFO.support_fac_zone_area, INFO.pub_fac_zone_area, INFO.green_zone_area,	INFO.resid_zone_area
+        	, INFO.etc_zone_area, INFO.mvn_biz, INFO.mvn_qualf, INFO.mvn_limit
+        	, b.sido_nm, b.sgg_nm
+		FROM SRV_DT_TECHBIZ_INDUSCOMINFO INFO
+			LEFT OUTER JOIN SRV_PG_SGGBORD b
+			ON INFO.sido_cd = b.sido_cd and INFO.sgg_cd = b.sgg_cd and b.base_year=#{bnd_year}
+			LEFT OUTER JOIN SRV_PG_TECHBIZ_INDUSCOMBORD BORD
+			ON INFO.complex_no = BORD.complex_no
+		WHERE 
+        	<if test='adm_cd != null'>
+        		<if test='adm_cd.length() == 2'>
+        			INFO.sido_cd = SUBSTR(#{adm_cd},1,2)
+        		</if>
+        		<if test='adm_cd.length() == 5'>
+        			<if test='adm_cd == "31020"'>
+	        			INFO.sido_cd = SUBSTR(#{adm_cd},1,2)
+	        			and INFO.sgg_cd like SUBSTR(#{adm_cd},3,2) || '%'
+        			</if>
+        			<if test='adm_cd != "31020"'>
+	        			INFO.sido_cd = SUBSTR(#{adm_cd},1,2)
+        				and INFO.sgg_cd = SUBSTR(#{adm_cd},3,3)
+        			</if>
+        		</if>
+        	</if>
+			<if test='induscom_cd != null '>
+				<!-- 2017.09.30 개발팀 수정 -->
+	        	<!-- and BORD.complex_type = #{induscom_cd} -->
+	        	and BORD.complex_type in
+	        	<foreach collection="induscom_cd" item="induscom"  open = "(" separator = "," close = ")">
+	        		#{induscom}
+	        	</foreach>
+	        	<!-- 2017.09.30 개발팀 수정 종료 -->
+	       	</if>
+       		LIMIT #{startnum}, #{count}        
+	</select>
+	
+	<!-- 시군구 산업단지 카운트 API_1109 -->	
+	<select id="SggInduscomCount" parameterType="hashmap" resultType="hashmap">
+		SELECT COUNT(*) total_cnt
+		FROM(
+	        SELECT BORD.complex_no, BORD.complex_nm, BORD.complex_type, BORD.x_coor, BORD.y_coor, BORD.area
+        		, INFO.make_purps_chartr, INFO.implementer_mgmt_inst, INFO.lc, INFO.tot_area, INFO.induty_fac_zone_area
+	        	, INFO.support_fac_zone_area, INFO.pub_fac_zone_area, INFO.green_zone_area,	INFO.resid_zone_area
+	        	, INFO.etc_zone_area, INFO.mvn_biz, INFO.mvn_qualf, INFO.mvn_limit
+			FROM SRV_DT_TECHBIZ_INDUSCOMINFO INFO
+				LEFT OUTER JOIN SRV_PG_TECHBIZ_INDUSCOMBORD BORD
+				ON INFO.complex_no = BORD.complex_no
+			WHERE 
+	        	<if test='adm_cd != null'>
+	        		<if test='adm_cd.length() == 2'>
+	        			sido_cd = SUBSTR(#{adm_cd},1,2)
+	        		</if>
+	        		<if test='adm_cd.length() == 5'>
+	        			<if test='adm_cd == "31020"'>
+		        			sido_cd = SUBSTR(#{adm_cd},1,2)
+	        				and sgg_cd like SUBSTR(#{adm_cd},3,2) || '%'
+	        			</if>
+	        			<if test='adm_cd != "31020"'>
+		        			sido_cd = SUBSTR(#{adm_cd},1,2)
+	        				and sgg_cd = SUBSTR(#{adm_cd},3,3)
+	        			</if>
+		        	</if>
+        		</if>
+				<if test='induscom_cd != null '>
+		        	<!-- 2017.09.30 개발팀 수정 -->
+	        		<!-- and BORD.complex_type = #{induscom_cd} -->
+	        		and BORD.complex_type in
+	        		<foreach collection="induscom_cd" item="induscom"  open = "(" separator = "," close = ")">
+	        			#{induscom}
+	        		</foreach>
+	        	<!-- 2017.09.30 개발팀 수정 종료 -->
+		       	</if>
+		)
+	</select>
+
+	<!-- 산업단지 경계 API_1110 -->	
+	<select id="induscomBord" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				st_asbinary(bord) geometry
+		FROM SRV_PG_TECHBIZ_INDUSCOMBORD
+		WHERE complex_no = #{complex_no}
+	</select>
+
+</mapper>
+
+

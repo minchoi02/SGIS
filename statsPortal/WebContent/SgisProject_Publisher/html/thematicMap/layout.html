@@ -1,0 +1,370 @@
+<!-- 
+*
+* HTML입니다.
+* author : 정은우
+*
+//-->
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+	<meta charset="utf-8">
+	<title>통계지리정보서비스</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<script type="text/javascript" src="../../include/js/jquery.min.js"></script>
+	<script src="../../include/plugin/jquery-1.11.3.min.js" type="text/javascript"></script>
+
+	<link rel="stylesheet" type="text/css" href="../../include/css/legend.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/sop.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/thematicMap-css.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/default.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slick/slick.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slick/slick-theme.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/jquery.mCustomScrollbar.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slider-Pips/jquery-ui-slider-pips.min.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slider-Pips/jqueryui.min.css">
+	
+	<script type="text/javascript" src="../../include/plugin/slider-Pips/jquery-plus-ui.min.js"></script>
+	<script type="text/javascript" src="../../include/plugin/slider-Pips/jquery-ui-slider-pips.js"></script>
+	<!-- <link href="/css/jquery-ui-1.10.4.custom.css" rel="stylesheet" type="text/css" /> -->
+
+	<script type="text/javascript" src="../../include/js/jquery.mCustomScrollbar.concat.min.js"></script>
+	<script type="text/javascript" src="../../include/js/jquery-ui-1.10.3.custom.js"></script>
+	<script type="text/javascript" src="../../include/js/legendInfo.js"></script>
+	<script type="text/javascript" src="../../include/js/sop-src.js"></script>
+	<script type="text/javascript" src="../../include/js/thematicMapCustom.js"></script>
+	
+	<style>
+
+.areaBox .dbTabs,.noneAreaBox .dbTabs{position:absolute;top:10px;right:0;display:table;overflow:visible;width:160px;table-layout:fixed;border-collapse:collapse;border:1px solid #ccc;}
+.areaBox .dbTabs a,.noneAreaBox .dbTabs a{font-size:12px;line-height:1.5em;display:table-cell;height:30px;text-align:center;vertical-align:middle;letter-spacing:-1px;color:#fff;border:0;background:#1778cc;}
+.areaBox .dbTabs a.on,.noneAreaBox .dbTabs a.on{color:#595757;border:0;background:#fff;}
+
+.noneAreaBox{position:relative;overflow:hidden;width:530px;height:50px;}
+.dbTabs{display:table;width:100%;table-layout:fixed;border-collapse:collapse;}
+.dbTabs a{font-size:14px;display:table-cell;height:35px;text-align:center;vertical-align:middle;letter-spacing:-1px;color:#fff;border-top:1px solid #6a707c;background:#6a707c;}
+.dbTabs a.on{color:#595757;border-top:1px solid #b7b6b6;background:#f1f1f1;}
+
+.dscList{overflow:hidden;width:530px;height:auto;margin:0 auto;}
+.dscList .title{font-family:'Nanum Gothic Bold';font-size:18px;padding:30px 0 20px;text-align:center;color:#555;}
+.dscList .area-tit{width:100%;height:30px;margin:0 auto 12px;text-align:center;background:#1778cc;}
+.dscList dt a { display: block;}
+.dscList .area-tit  a > span{font-size:13px;line-height:30px;color:#fff;}
+.dscList dd{display:block;overflow:hidden;width:100%;height:auto;margin:0 auto 20px auto;}
+	</style>
+	
+</head>
+
+<body>
+	<!-- 스킵네비게이션 -->
+	<div class="accNav">
+		<p><a href="#gnb">주메뉴 바로가기</a></p>
+		<p><a href="#container">본문 바로가기</a></p>
+	</div>
+	<!-- 스킵네비게이션 -->
+	<!--wrap-->
+	<div id="wrap">
+		<!--header-->
+		<div id="header">
+			<div class="util"></div>
+		</div>
+		<!--//header-->
+		<hr class="hidden" />
+		<!--contents-->
+		<div class="containerBox">
+			<div class="rela">
+				<div class="sceneBox on">
+					<div class="sceneRela">
+						<div class="toolBar clearfix">
+							<h2>통계주제도</h2>
+							<div class="viewTitle"> </div>
+							<!-- 현재위치 네비게이션 -->
+							<div class="interactNavi" id="mapNavi">
+								<div class="interactiveSelect" id="location_mapNavi">조회중입니다...</div>
+								<img id="interactive_magni" src="../../include/images/magni_plus.png" alt="돋보기">
+							</div>
+							<!-- 현재위치 네비게이션 end -->
+							<!-- 튜토리얼 -->
+							<!-- 가로툴바 -->
+							<div class="tb_right" id="btnList_1">
+								<div class="left">
+									<button type="button" id="tuto_start_btn" onclick="readyTutorial();" title="사용법 따라하기"><span>튜토리얼</span></button>
+								</div>
+								<!-- 튜토리얼 end -->
+								<ul>
+									<li>
+										<a onclick="javascript:$interactiveMap.ui.doMaxSize(1);" class="tb_sizing" title="전체 화면 확대"><img src="../../include/images/ico_toolbars01.png" alt="전체 화면 확대"></a>
+									</li>
+									<li>
+										<a onclick="javascript:$interactiveMap.ui.doClearMap(1);" title="초기화"><img src="../../include/images/ico_toolbars02.png" alt="초기화"></a>
+									</li>
+									<li>
+										<a onclick="javascript:$interactiveMap.ui.doShare(1);" class="tb_share" title="URL 공유하기"><img src="../../include/images/ico_toolbars04.png" alt="URL 공유하기"></a>
+									</li>
+									<li>
+										<a onclick="javascript:$galleryAdd.interactiveGalleryPopOpen();" class="tb_bookmark" title="즐겨찾기로 저장하기"><img src="../../include/images/ico_toolbars05.png" alt="즐겨찾기로 저장하기"></a>
+									</li>
+									<li>
+										<a onclick="javascript:$interactiveMap.ui.reportDataSet(1);" class="tb_report" title="보고서 보기"><img src="../../include/images/ico_toolbars06.png" alt="보고서 보기"></a>
+									</li>
+								</ul>
+							</div>
+							<!-- 가로툴바 end -->
+						</div>
+						<!-- 도움말 -->
+						<div class="interactiveBar">
+							<!-- <a onclick=""tabindex="98"title="통계지도체험">체험하기</a> -->
+							<!-- <span   title="통계지도체험">체험하기</span> -->
+							<h3 class="h3">시도별 귀농 / 귀어 / 귀촌인구 현황</h3>
+						</div>
+						<!-- 분석지도 맵 컨텐츠 시작 -->
+						<div class="mapContents" style="position: relative;">
+							<img src="../../include/images/map_img.jpg">
+							<!-- right menu -->
+							<div class="sop-top sop-right">
+								<div class="info sop-control">
+									<div class="mapBtnWrapper"><a class="rightQuick rq01"><span>GPS</span></a></div>
+								</div>
+								<div class="info sop-control">
+									<div class="mapBtnWrapper"><a href="javascript:void(0)" class="rightQuick rq02"><span>맵기능설정</span></a></div>
+								</div>
+								<div class="info sop-control">
+									<div class="mapBtnWrapper"><a class="rightQuick rq06"><span>GPS</span></a></div>
+								</div>
+								<div class="info sop-control">
+									<div class="mapZoomWrapper"><a class="rightQuick rq03">확대하기</a><a class="rightQuick rq07">이동</a><a class="rightQuick rq04">읍면동</a><a class="rightQuick rq05">축소하기</a></div>
+								</div>
+							</div>
+							<!-- right menu -->
+						</div>
+						<!-- //분석지도 맵 컨텐츠 끝 -->
+					</div>
+					<!-- container 끝-->
+				</div>
+				<!--// sceneRela -->
+				<a href="javascript:void(0)" class="sideQuick sq02" id="map_left_btn" tabindex="97">
+			<span>통계메뉴</span><img src="../../include/images/ico_totalmenu.gif"alt="통계메뉴"/>
+		</a>
+				<div class="buttonBar ui-draggable">
+					<a href="javascript:void(0)" class="sideQuick sq03 xw">
+				<span>주제도 설정</span>
+			</a>
+					<div class="sqListBox sq03" id="sqlListBox">
+						<div class="sqTabs">
+							<!-- <span>사용자 맞춤 주제도 설정</span>  -->
+							<a href="javascript:void(0)" class="stepClose2"></a>
+						</div>
+						<div class="sqList">
+							<ul>
+								<li id="stat_sel">
+									<span>통계선택</span>
+									<input type="hidden" id="selectValue" value="rightValue">
+									<input type="hidden" id="selectValue" value="rightValue">
+									<a href="javascript:$thematicMapFrame04.Popup.show();$thematicMapFrame04.ui.changeLeftRightValue()" class="first on" id="rightValue">전체</a>
+									<a href="javascript:$thematicMapFrame04.Popup.show();$thematicMapFrame04.ui.changeLeftRightValue()" class="" id="rightValue">귀농</a>
+									<a href="javascript:$thematicMapFrame04.Popup.show();$thematicMapFrame04.ui.changeLeftRightValue()" class="" id="rightValue">귀촌</a>
+									<a href="javascript:$thematicMapFrame04.Popup.show();$thematicMapFrame04.ui.changeLeftRightValue()" class="last" id="leftValue">귀어</a>
+								</li>
+								<li id="base_year" style=""><span>년도선택</span>
+									<select id="select_base_year" onchange="javascript:$thematicMapFrame04.Popup.show();$thematicMapFrame04.ui.mapList[0].changeRegionBound()">
+										<option>2000</option>
+										<option>2005</option>
+										<option>2010</option>
+										<option>2015</option>
+										<option selected="true">2016</option>
+									</select>
+								</li>
+								<li id="region_boundary">
+									<span>지역경계</span>
+									<a href="javascript:$thematicMapFrame04.Popup.show();$thematicMapFrame04.ui.mapList[0].changeRegionBound()" class="first on" id="autoRegion">자동</a>
+									<a href="javascript:$thematicMapFrame04.Popup.show();$thematicMapFrame04.ui.mapList[0].changeRegionBound()" id="sido" class="last"><span>시도별 전국지도</span></a>
+									<input type="hidden" id="selectValue2" value="auto">
+								</li>
+								<li id="map_type">
+									<span>지도유형</span>
+									<a href="javascript:$thematicMapFrame04.ui.changeDataMode()" class="first on" id="color">색상</a>
+									<a href="javascript:$thematicMapFrame04.ui.changeDataMode()" class="last">버블</a>
+									<input type="hidden" id="dataMode" value="color">
+								</li>
+								<li id="data_type">
+									<span>통계표출</span>
+									<a href="javascript:$thematicMapFrame04.ui.changeDataMode2()" class="first">ON</a>
+									<a href="javascript:$thematicMapFrame04.ui.changeDataMode2()" class="last on" id="default_switch">OFF</a>
+									<input type="hidden" id="dataMode2" value="dataOff">
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+				<!-- 왼쪽메뉴  -->
+				<div class="leftArea">
+					<div class="shadow"></div>
+					<div class="quickBox step01">
+						<div class="subj">
+							<h2>통계주제도</h2>
+						</div>
+						<div class="scrollBox">
+							<ul class="themul ul-area">
+								<li><a href="javascript:void(0)">인구와 가구</a></li>
+								<li><a href="javascript:void(0)">주거와 교통 </a></li>
+								<li><a href="javascript:void(0)">복지와 문화 </a></li>
+								<li><a href="javascript:void(0)">노동과 경제</a></li>
+								<li><a href="javascript:void(0)">환경과 안전 </a></li>
+							</ul>
+							<ol class="stat-infor">
+								<li><a href="/">주제도 요청하기</a></li>
+								<li><a href="/">보고서 보기</a></li>
+								<li><a href="/">도움말 보기</a></li>
+								<li><a href="/">전체 확면 확대</a></li>
+							</ol>
+						</div>
+						<div class="menuAutoClose">
+							<input type="radio " name="menuAutoClose_radio " id="menuAutoClose_radio " onclick="$interactiveLeftMenu.ui.sqlListBoxPosition( '244px'); ">
+							<label for="menuAutoClose_radio " class="on ">메뉴 자동닫기</label>
+						</div>
+						<div class="bottom "><a href="javascript:void(0) " class="buttom stepClose ">닫기</a></div>
+					</div>
+					<div class="nav-sidebar">
+						<ul class="thematic nav-list ">
+							<li><a href="javascript:void(0)" title="인구와 가구"><span>인구와 가구</span></a></li>
+							<li><a href="javascript:void(0)" title="주거와 교통"><span>주거와 교통</span></a></li>
+							<li><a href="javascript:void(0)" title="복지와 문화 "><span>복지와 문화</span></a></li>
+							<li><a href="javascript:void(0)" title="노동과 경제 "><span>노동과 경제</span></a></li>
+							<li><a href="javascript:void(0)" title="환경과 안전"><span>환경과 안전</span></a></li>
+						</ul>
+					</div>
+					<div class="quickBox step02">
+						<div class="subj">
+							<h2>인구와 가구 주제<a href="javascript:void(0)" class="ar" ><img src="../../include/images/ico/ico_tooltip01.png" alt="물음표" ></a></h2>
+							<a href="javascript:void(0)"></a>
+						</div>
+						<div class="normalBox">
+							<div class="stepBox group">
+								<ul class="radioType">
+									<li>
+										<input type="radio" name=" " id=" " value=" " />
+										<label id=" " for=" ">1인 가구 변화</label>
+									</li>
+									<li>
+										<input type="radio " name=" " id=" " value=" " />
+										<label id=" " for=" ">인구 변화</label>
+									</li>
+									<li>
+										<input type="radio" name=" " id=" " value=" " />
+										<label id=" " for=" ">인구이동</label>
+									</li>
+									<li>
+										<input type="radio " name=" " id=" " value=" " />
+										<label id=" " for=" ">주민등록 인구 현황</label>
+									</li>
+									<li>
+										<input type="radio" name=" " id=" " value=" " />
+										<label id=" " for=" ">인구 자연증가 현황</label>
+									</li>
+									<li>
+										<input type="radio " name=" " id=" " value=" " />
+										<label id=" " for=" ">실업률</label>
+									</li>
+									<li>
+										<input type="radio" name=" " id=" " value=" " />
+										<label id=" " for=" ">65세 이상 1인가구 변화</label>
+									</li>
+									<li>
+										<input type="radio " name=" " id=" " value=" " />
+										<label id=" " for=" ">여자인구 대비 남자인구 비율</label>
+									</li>
+									<li>
+										<input type="radio" name=" " id=" " value=" " />
+										<label id=" " for=" ">15세 미만 유소년 인구 변화</label>
+									</li>
+									<li>
+										<input type="radio " name=" " id=" " value=" " />
+										<label id=" " for=" ">65세 이상 고령자 인구 변화</label>
+									</li>
+									<li>
+										<input type="radio" name=" " id=" " value=" " />
+										<label id=" " for=" ">시군구별 외국인 주민 현황</label>
+									</li>
+									<li>
+										<input type="radio " name=" " id=" " value=" " />
+										<label id=" " for=" ">출생 및 사망 현황</label>
+									</li>
+									<li>
+										<input type="radio" name=" " id=" " value=" " />
+										<label id=" " for=" ">혼인 및 이혼율 현황</label>
+									</li>
+									<li>
+										<input type="radio " name=" " id=" " value=" " />
+										<label id=" " for=" ">노령화 지수</label>
+									</li>
+									<li>
+										<input type="radio" name=" " id=" " value=" " />
+										<label id=" " for=" ">인구 밀도</label>
+									</li>
+									<li>
+										<input type="radio " name=" " id=" " value=" " />
+										<label id=" " for=" ">지역별 농림어가의 청장년인구 변화</label>
+									</li>
+								</ul>
+							</div>
+						</div>
+						<div class="bottom "><a href="javascript:void(0) " class="stepClose ">닫기</a></div>
+					</div>
+				</div>
+				<!-- 왼쪽메뉴  end -->
+				<!-- 데이터보드 -->
+				<div id="dataBoard">
+					<a href="javascript:void(0)" class="interactiveDataBoard">데이터보드</a>
+					<div class="colorMapLegend">
+						<p>지도정보 기준</p>
+						<a href="javascript:void(0)" class="switchBox">
+					<span class="txt"></span>
+					<span class="ball"></span>
+				</a>
+					</div>
+					<div class="dataSideBox">
+						<div class="bar">
+							<div id="dataSlider" class="dataSlider"></div>
+							<a href="javascript:void(0)" class="stepClose-data">데이터보드 닫기</a>
+						</div>
+						<div class="dataSideContents">
+							<div class="dataSideScroll">
+								<p class="thematicTopText">지역을 클릭하면 해당지역 증감현황을 볼 수 있습니다.</p>
+								<dl class="dscList">
+									<div class="title">연도별 귀농/귀어/귀촌 인구 수(명)</div>
+									<dt class="area-tit"><a href="javascript:void(0)"><span>충청북도</span></a></dt>
+									<dd>
+										<div class="dbTabs">
+											<a href="javascript:void(0)" class="on">2013년</a>
+											<a href="javascript:void(0)">2014년</a>
+											<a href="javascript:void(0)">2015년</a>
+											<a href="javascript:void(0)">2016년</a>
+										</div>
+										<div class="noneAreaBox">
+											<div class="dbTabs">
+												<a href="javascript:void(0)" class="on">종합</a>
+												<a href="javascript:void(0)">유입/유출대비</a>
+											</div>
+										</div>
+										<div class="compareBox">
+											<div class="thematicCharts">
+											</div>
+											<div id="columCharts"></div>
+										</div>
+									</dd>
+								</dl>
+							</div>
+						</div>
+					</div>
+					<form id="excelDownForm" name="excelDownForm" method="post"></form>
+				</div>
+				<!-- //데이터보드 end -->
+			</div>
+			<!--//rela-->
+		</div>
+		<!--//container-->
+	</div>
+	<!--//wrap-->
+</body>
+
+</html>

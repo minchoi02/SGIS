@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="account">
+	
+	<!-- 기관명 가져오기 -->
+	<select id="getInstitutionList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+					inst_seq
+				,	inst_nm
+		FROM	INSTITUTION
+		ORDER BY inst_seq
+	</select>
+	
+	<!-- 아이디 중복체크-->
+	<select id="getLoginIdCheck" parameterType="hashmap" resultType="int">
+		SELECT 	
+				COUNT(*) 
+		FROM 	MEMBER
+		WHERE	user_id = #{user_id}
+	</select>
+	
+	<!-- 회원가입 -->
+	<insert id="insertSignUp" parameterType="hashmap">
+        INSERT INTO MEMBER
+        ( 
+            user_id
+          , user_nm
+          , user_pw
+          , institute
+          , dept
+          , job_pos
+          , email
+          , tel_no
+          , tel_no2
+          , use_sz
+          , user_div
+          , login_fail_cnt
+          , grant_yn
+          , use_yn
+          , reg_ts
+          , mod_ts
+          , inst_seq
+          , use_start_date
+          , use_end_date
+          , multi_connect_lmtt_yn
+          <if test="ubis_yn != null">
+          , ubis_yn
+		  </if>
+        ) VALUES (
+		    #{ user_id }
+		  , #{ user_nm }
+		  , #{ user_pw }
+		  , #{ institute }
+		  , #{ dept }
+		  , #{ job_pos }
+		  , #{ email }
+		  , #{ tel_no }
+		  , #{ tel_no2 }
+		  , #{ use_sz }
+		  , #{ user_div }
+		  , 0
+			<if test="ubis_yn != null and ubis_yn == 'N'.toString() ">
+             	, 'O'
+			</if>
+			<if test="ubis_yn != null and ubis_yn == 'Y'.toString() ">
+             	, 'Y'
+			</if>
+		  , 'Y'
+		  , NOW()
+		  , NOW()
+		  , #{inst_seq}
+		  , ( SELECT TO_CHAR( NOW(),'YYYYMMDD' ) )
+		  , ( SELECT TO_CHAR( DATE('NOW') + INTERVAL '1 YEAR', 'YYYYMMDD' ) )
+		  , 'N'
+			<if test="ubis_yn != null">
+				, #{ubis_yn}
+			</if>
+		)
+    </insert>
+    
+    <!-- 로그인정보 업데이트 -->
+    <update id="updateLoginInfo" parameterType="hashmap">
+		UPDATE	MEMBER
+		SET
+				login_ip = #{login_ip}
+			,	login_ts = NOW()
+			,	login_fail_cnt = #{login_fail_cnt}	
+		WHERE 	user_id=#{user_id}
+    </update>
+    
+    <!-- 로그인 실패 횟수 업데이트 -->
+    <update id="updateLoginFailCnt" parameterType="hashmap">
+		UPDATE	MEMBER
+		SET
+				login_fail_cnt = #{login_fail_cnt}
+		WHERE 	user_id=#{user_id}
+    </update>
+    
+    <!-- 로그인 제한여부 업데이트 -->
+    <update id="updateLoginUseInfo" parameterType="hashmap">
+		UPDATE	MEMBER
+		SET
+				use_yn = #{use_yn}
+		WHERE 	user_id=#{user_id}
+    </update>
+    
+    <!-- 로그인 이력 저장 -->
+    <select id="insertLoginHistory" parameterType="hashmap" resultType="hashmap">
+		INSERT INTO LOGIN_HISTORY
+		(
+				user_id
+			,	login_ts
+			,	ip
+			,	login_sts
+		<if test="logout_time != null">
+			,	logout_time
+		</if>
+			
+		) VALUES (
+				#{user_id}
+			,	NOW()
+			,	#{login_ip}
+			,	#{login_sts}
+		<if test="logout_time != null">
+			,	#{logout_time}
+		</if>
+		) RETURNING history_no;
+    </select>
+    
+    <!-- 로그인 이력 업데이트 -->
+    <update id="updateLoginHistory" parameterType="hashmap">
+		UPDATE LOGIN_HISTORY
+		SET	
+			logout_time = NOW()
+		WHERE history_no = #{history_no}
+		AND	  user_id = #{user_id}
+    </update>
+    
+    <!-- 아이디 찾기 -->
+	<select id="getFindId" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				user_id
+		FROM	MEMBER
+		WHERE	user_nm = #{user_nm}
+		AND		email = #{email} LIMIT 1
+	</select>
+	
+	<!-- 비밀번호 찾기 -->
+	<select id="getFindPwd" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				user_pw
+					
+		FROM	MEMBER
+		WHERE	user_nm = #{user_nm}
+		AND		email = #{email}
+		AND		user_id = #{user_id}
+	</select>
+	
+	<!-- 아이디 중복확인 -->
+	<select id="getFindById" parameterType="hashmap" resultType="int">
+		SELECT  COUNT(*)	
+		FROM	MEMBER
+		WHERE	user_id = #{user_id}
+	</select>
+	
+</mapper>

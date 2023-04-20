@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+
+	<bean id="xml" class="com.neighborsystem.durian.restapi.view.XmlFormat">
+		<property name="contentType">
+			<value>text/xml;charset=UTF-8</value>
+		</property>
+		<property name="charset" value="UTF-8" />
+	</bean>
+
+	<bean id="json" class="com.neighborsystem.durian.restapi.view.JsonFormat">
+		<property name="contentType">
+			<value>application/json;charset=UTF-8</value>
+		</property>
+	</bean>
+	
+	<bean id="kml" class="kostat.sop.OpenAPI3.view.KmlFormat">
+		<property name="contentType">
+			<value>text/xml;charset=UTF-8</value>
+		</property>
+		<property name="charset" value="UTF-8" />
+	</bean>
+	
+	<bean id="geojson" class="kostat.sop.OpenAPI3.view.GeoJsonFormat">
+		<property name="contentType">
+			<value>application/json;charset=UTF-8</value>
+		</property>
+		<property name="charset" value="UTF-8" />
+	</bean>
+</beans>

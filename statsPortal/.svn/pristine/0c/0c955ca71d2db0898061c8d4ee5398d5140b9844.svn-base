@@ -1,0 +1,649 @@
+package kostat.sop.ServiceAPI.lvs.service.Impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import egovframework.rte.fdl.cmmn.EgovAbstractServiceImpl;
+import kostat.sop.ServiceAPI.lvs.mapper.LvsStatsMapper;
+import kostat.sop.ServiceAPI.lvs.service.LvsStatsService;
+import kostat.sop.ServiceAPI.lvs.vo.LvsSeekVO;
+import kostat.sop.ServiceAPI.lvs.vo.LvsVO;
+
+@Service("lvsStatsService")
+public class LvsStatsServiceImpl  extends EgovAbstractServiceImpl implements LvsStatsService {
+	
+	@Resource( name = "lvsStatsMapper" )
+	private LvsStatsMapper lvsStatsMapper;
+	
+
+	@Override
+	public List<Map<String, Object>> selectMainDataList(LvsVO vo) throws Exception {
+		// TODO Auto-generated method stub
+		System.out.println(vo.toString());
+		
+
+		
+		List<Map<String, Object>> resultList = new ArrayList<>();
+		Map<String, Object> result  = new HashMap<String,Object>();
+		Map<String, Object> subResult  = new HashMap<String,Object>();
+		
+		
+		for(int i=0; i<vo.getList().size(); i++) {
+			String statName = vo.getList().get(i);
+			vo.setDatakind(statName.toString());
+			if (statName.equals("tot_ppltn")) setData1(vo,subResult);		//step1 총인구데이터
+			if (statName.equals("tot_family"))setData2(vo,subResult);		//step2  가구수
+			if (statName.equals("tot_house")) setData3(vo,subResult);		//step3  가구수
+			if (statName.equals("corp_cnt"))setData4(vo,subResult);		    //step4  사업체수
+			if (statName.equals("employee_cnt")) setData5(vo,subResult);	//step5  종업원수			
+			
+		}
+		
+		result.put(vo.getRegionCd(), subResult);
+		result.put("errMsg", "Success");
+		result.put("errCd", "0");
+		
+		resultList.add(result);
+		return  resultList ;
+	}
+	
+	//총인구데이터 세팅
+	private void setData1(LvsVO vo, Map<String, Object> subResult) {
+		List<Map<String, Object>> list = lvsStatsMapper.selectTotPpltn(vo) ;
+		List<Map<String, Object>> subList = lvsStatsMapper.selectTotPpltnYear(vo) ;  //년도별 데이터 
+		
+		List<Map<String, Object>> censusIndexList = lvsStatsMapper.selectCensusIndex(vo) ;		
+		
+		if (list.size() >0) {
+			Map<String, Object> data = list.get(0);
+			Map<String, Object> data_year = new HashMap<String,Object>();
+			
+			ArrayList<String> yearList = new ArrayList<>();  // 지표리스트
+			ArrayList<Integer> title1_data = new ArrayList<>();  //남자데이터			
+			ArrayList<Integer> title2_data = new ArrayList<>();  //여자데이터
+			ArrayList<Integer> tot_data = new ArrayList<>();  //합계데이터
+			String key1 = "";
+			String key2 = "";			
+			
+			for(int i=0; i<subList.size(); i++) {
+				Map<String, Object> row = subList.get(i);
+				yearList.add((String) row.get("year"));
+				
+				title1_data.add(Integer.parseInt(String.valueOf(row.get("val1"))));
+				title2_data.add(Integer.parseInt(String.valueOf(row.get("val2"))));
+				tot_data.add(Integer.parseInt(String.valueOf(row.get("val"))));
+				key1 = (String)row.get("key1");
+				key1 = (String)row.get("key2");				
+			}
+			
+			data_year.put("title1", key1) ;
+			data_year.put("title2", key2) ;
+			data_year.put("year", yearList) ;			
+			data_year.put("title1_data", title1_data) ;
+			data_year.put("title2_data", title2_data) ;
+			data_year.put("tot_data", tot_data) ;
+			
+			
+			//인구데이터를 
+			
+			for(int i=0; i<subList.size(); i++) {
+				Map<String, Object> row = subList.get(i);
+				yearList.add((String) row.get("year"));
+			}
+			
+			ArrayList<Map<String, Object>> divList = new ArrayList<>();  // 지표리스트
+			for(int i=0; i<censusIndexList.size(); i++) {
+				divList.add(censusIndexList.get(i));
+			}
+			data.put("yearData",data_year);
+			data.put("subDiv",divList);
+			subResult.put("tot_ppltn", data);
+		}
+	}
+	
+	//총가구데이터 세팅
+	private void setData2(LvsVO vo, Map<String, Object> subResult) throws CloneNotSupportedException {
+		LvsVO vo2 = vo.clone();
+		vo2.setDatakind("tot_family");
+		vo2.setUnit("수");
+		List<Map<String, Object>> list = lvsStatsMapper.selectMainDataInfo_tot_family_house(vo2) ; //기본정보
+		List<Map<String, Object>> yearlistData = lvsStatsMapper.selectCensusIndexYear(vo2) ; //년도데이터
+		
+		if (vo2.getViewCd()=="sido") vo2.setInfoDiv("2");   //시도 모드라면 시군구 조회
+		else  vo2.setInfoDiv("3");   //시군구 또는 동조회 동조회
+		List<Map<String, Object>> subDivlistData = lvsStatsMapper.selectCensusIndexSubDiv(vo2) ; //하위행정구역데이터
+		
+		if (list.size() >0) {
+			Map<String, Object> data = list.get(0);
+			
+			//년도별 데이터
+			Map<String, Object> data_year = new HashMap<String,Object>();
+			ArrayList<String> yearList = new ArrayList<>();  // 지표리스트
+			ArrayList<Integer> tot_data = new ArrayList<>();  //합계데이터
+			for(int i=0; i<yearlistData.size(); i++) {
+				Map<String, Object> row = yearlistData.get(i);
+				yearList.add((String) row.get("base_year"));
+				tot_data.add(Integer.parseInt(String.valueOf(row.get("tot_family"))));
+			}
+			data_year.put("year", yearList) ;			
+			data_year.put("tot_data", tot_data) ;
+			
+			
+			ArrayList<Map<String, Object>> divList = new ArrayList<>();  // 지표리스트
+			for(int i=0; i<subDivlistData.size(); i++) {
+				divList.add(subDivlistData.get(i));
+			}
+			data.put("yearData",data_year);
+			data.put("subDiv",divList);
+			
+			subResult.put("tot_family", data);
+		}
+	}	
+	
+	//총가구데이터 세팅
+	private void setData3(LvsVO vo, Map<String, Object> subResult) throws CloneNotSupportedException {
+		LvsVO vo2 = vo.clone();
+		vo2.setDatakind("tot_house");
+		vo2.setUnit("수");
+		List<Map<String, Object>> list = lvsStatsMapper.selectMainDataInfo_tot_family_house(vo2) ; //기본정보
+		List<Map<String, Object>> yearlistData = lvsStatsMapper.selectCensusIndexYear(vo2) ; //년도데이터
+		
+		if (vo2.getViewCd()=="sido") vo2.setInfoDiv("2");   //시도 모드라면 시군구 조회
+		else  vo2.setInfoDiv("3");   //시군구 또는 동조회 동조회
+		List<Map<String, Object>> subDivlistData = lvsStatsMapper.selectCensusIndexSubDiv(vo2) ; //하위행정구역데이터
+		
+		if (list.size() >0) {
+			Map<String, Object> data = list.get(0);
+			
+			//년도별 데이터
+			Map<String, Object> data_year = new HashMap<String,Object>();
+			ArrayList<String> yearList = new ArrayList<>();  // 지표리스트
+			ArrayList<Integer> tot_data = new ArrayList<>();  //합계데이터
+			for(int i=0; i<yearlistData.size(); i++) {
+				Map<String, Object> row = yearlistData.get(i);
+				yearList.add((String) row.get("base_year"));
+				tot_data.add(Integer.parseInt(String.valueOf(row.get("tot_house"))));
+			}
+			data_year.put("year", yearList) ;			
+			data_year.put("tot_data", tot_data) ;
+			
+			
+			ArrayList<Map<String, Object>> divList = new ArrayList<>();  // 지표리스트
+			for(int i=0; i<subDivlistData.size(); i++) {
+				divList.add(subDivlistData.get(i));
+			}
+			data.put("yearData",data_year);
+			data.put("subDiv",divList);
+			
+			subResult.put("tot_house", data);
+		}
+	}
+	
+	//사업체수이터 세팅
+	private void setData4(LvsVO vo, Map<String, Object> subResult) throws CloneNotSupportedException {
+		LvsVO vo2 = vo.clone();
+		vo2.setDatakind("corp_cnt");
+		List<Map<String, Object>> list = lvsStatsMapper.selectMainDataInfo_corp_employee_cnt(vo2) ; //기본정보
+		List<Map<String, Object>> yearlistData = lvsStatsMapper.selectCorpCensusIndexYear(vo2) ; //년도데이터
+		
+		if (vo2.getViewCd()=="sido") vo2.setInfoDiv("2");   //시도 모드라면 시군구 조회
+		else  vo2.setInfoDiv("3");   //시군구 또는 동조회 동조회
+		List<Map<String, Object>> subDivlistData = lvsStatsMapper.selectCorpCensusIndexSubDiv(vo2) ; //하위행정구역데이터
+		
+		if (list.size() >0) {
+			Map<String, Object> data = list.get(0);
+			
+			//년도별 데이터
+			Map<String, Object> data_year = new HashMap<String,Object>();
+			ArrayList<String> yearList = new ArrayList<>();  // 지표리스트
+			ArrayList<Integer> tot_data = new ArrayList<>();  //합계데이터
+			for(int i=0; i<yearlistData.size(); i++) {
+				Map<String, Object> row = yearlistData.get(i);
+				yearList.add((String) row.get("base_year"));
+				tot_data.add(Integer.parseInt(String.valueOf(row.get("corp_cnt"))));
+			}
+			data_year.put("year", yearList) ;			
+			data_year.put("tot_data", tot_data) ;
+			
+			
+			ArrayList<Map<String, Object>> divList = new ArrayList<>();  // 지표리스트
+			for(int i=0; i<subDivlistData.size(); i++) {
+				divList.add(subDivlistData.get(i));
+			}
+			data.put("yearData",data_year);
+			data.put("subDiv",divList);
+			
+			subResult.put("corp_cnt", data);
+		}
+	}
+	
+	// 종업원수
+	private void setData5(LvsVO vo, Map<String, Object> subResult) throws CloneNotSupportedException {
+		LvsVO vo2 = vo.clone();
+		vo2.setDatakind("employee_cnt");
+		List<Map<String, Object>> list = lvsStatsMapper.selectMainDataInfo_corp_employee_cnt(vo2) ; //기본정보
+		List<Map<String, Object>> yearlistData = lvsStatsMapper.selectCorpCensusIndexYear(vo2) ; //년도데이터
+		
+		if (vo2.getViewCd()=="sido") vo2.setInfoDiv("2");   //시도 모드라면 시군구 조회
+		else  vo2.setInfoDiv("3");   //시군구 또는 동조회 동조회
+		List<Map<String, Object>> subDivlistData = lvsStatsMapper.selectCorpCensusIndexSubDiv(vo2) ; //하위행정구역데이터
+		
+		if (list.size() >0) {
+			Map<String, Object> data = list.get(0);
+			
+			//년도별 데이터
+			Map<String, Object> data_year = new HashMap<String,Object>();
+			ArrayList<String> yearList = new ArrayList<>();  // 지표리스트
+			ArrayList<Integer> tot_data = new ArrayList<>();  //합계데이터
+			for(int i=0; i<yearlistData.size(); i++) {
+				Map<String, Object> row = yearlistData.get(i);
+				yearList.add((String) row.get("base_year"));
+				tot_data.add(Integer.parseInt(String.valueOf(row.get("employee_cnt"))));
+			}
+			data_year.put("year", yearList) ;			
+			data_year.put("tot_data", tot_data) ;
+			
+			
+			ArrayList<Map<String, Object>> divList = new ArrayList<>();  // 지표리스트
+			for(int i=0; i<subDivlistData.size(); i++) {
+				divList.add(subDivlistData.get(i));
+			}
+			data.put("yearData",data_year);
+			data.put("subDiv",divList);
+			
+			subResult.put("employee_cnt", data);
+		}
+	}
+	
+	
+	
+  /***추천데이터**/
+	@Override
+	public List<Map<String, Object>> selectRecDataList(LvsVO vo) throws Exception {
+		// TODO Auto-generated method stub
+		System.out.println(vo.toString());
+		
+		List<Map<String, Object>> resultList = new ArrayList<>();
+		Map<String, Object> result  = new HashMap<String,Object>();
+		Map<String, Object> subResult  = new HashMap<String,Object>();
+		Map<String, Object> kindResult  = new HashMap<String,Object>();		
+		
+		
+		setRecData1(vo,subResult);		//step1 총인구데이터
+		//setRecData2(vo,subResult);		//step2 총가구데이터
+		kindResult.put(vo.getBoard2Kind(), subResult);		
+		result.put(vo.getRegionCd(), kindResult);
+		result.put("errMsg", "Success");
+		result.put("errCd", "0");
+		
+		resultList.add(result);
+		return  resultList ;
+	}
+	
+	
+	//총가구데이터 세팅
+	private void setRecData1(LvsVO vo, Map<String, Object> subResult) throws CloneNotSupportedException {
+		//1.기본정보
+		//2.연도별 정보
+		//3.상위행정구역에 대한 연도별 정보
+		//4.대전,서구,둔산동 등 행정구역별 정보
+		//5.하위행정구역별 인구정보 (subDiv)
+		
+		/// 1. 최근년도 인구통계 기본정보를 가져온다.
+		List<Map<String, Object>> infolist = lvsStatsMapper.selectRecIndex_tot_ppltn(vo) ;
+		Map<String, Object> data = infolist.get(0);		
+		
+		//기본정보가 있다면 
+		if (infolist.size() >0) {
+
+			/// 2. 인구통계 연도별 정보를 가져온다.
+			List<Map<String, Object>> yearListData = lvsStatsMapper.selectCensusRecIndexYear(vo) ;
+			
+			Map<String, Object> data_year = new HashMap<String,Object>();
+			
+			ArrayList<String> yearList = new ArrayList<>();  // 지표리스트
+			ArrayList<Integer> tot_data = new ArrayList<>();  //합계데이터
+			
+			for(int i=0; i<yearListData.size(); i++) {
+				Map<String, Object> row = yearListData.get(i);
+				yearList.add((String) row.get("base_year"));
+				tot_data.add(Integer.parseInt(String.valueOf(row.get("tot_ppltn"))));
+			}
+			
+			data_year.put("category", yearList) ;			
+			data_year.put("data", tot_data) ;
+			data_year.put("title", "총인구") ;
+			data.put("yearData", data_year) ;
+			
+			// 3. 인구통계 연도별 정보에 대한 상위행정구역에 대한 정보를 가져온다.
+			LvsVO vo2 = vo.clone();
+			
+			if (vo.getViewCd().equals("sgg") || vo.getViewCd().equals("emdong")) {   //시군구 또는 읍면동 모드라면
+				vo2.setRegionCd(vo.getSidoCd());    
+			} else if  (vo.getViewCd().equals("sido")) {  //시도라면
+				vo2.setRegionCd("00");			
+			}
+			
+			List<Map<String, Object>> yearListUpData = lvsStatsMapper.selectCensusRecIndexYear(vo2) ;		
+			
+			Map<String, Object> data_year2 = new HashMap<String,Object>();
+			
+			ArrayList<String> yearList2 = new ArrayList<>();  // 지표리스트
+			ArrayList<Integer> tot_data2 = new ArrayList<>();  //합계데이터
+			
+			for(int i=0; i<yearListUpData.size(); i++) {
+				Map<String, Object> row = yearListUpData.get(i);
+				yearList2.add((String) row.get("base_year"));
+				tot_data2.add(Integer.parseInt(String.valueOf(row.get("tot_ppltn"))));
+			}
+			
+			data_year2.put("category", yearList2) ;			
+			data_year2.put("data", tot_data2) ;
+			data_year2.put("title", "총인구") ;
+			
+			data.put("yearDataUp", data_year2) ;
+			
+			/// 4. 대전, 서구, 둔산동 등 행정구역별 정보
+			String base_year = (String)data.get("base_year")  ; 
+			vo.setBaseYear(base_year);
+			List<Map<String, Object>> infoRegionlist = lvsStatsMapper.selectRecIndex_tot_ppltn_region(vo) ;
+			
+			ArrayList<String> regionList = new ArrayList<>();  // 지표리스트
+			ArrayList<Integer> region_data = new ArrayList<>();  //합계데이터
+			
+			for(int i=0; i<infoRegionlist.size(); i++) {
+				Map<String, Object> row = infoRegionlist.get(i);
+				regionList.add((String) row.get("name"));
+				region_data.add(Integer.parseInt(String.valueOf(row.get("val"))));
+			}
+			
+			data.put("category", regionList) ;
+			data.put("chartData", region_data) ;		
+			
+			//5. 하위 행정구별 인구데이터 subDiv
+			//하위 행정구역에 관한 정보를 가져온다.
+			List<Map<String, Object>> censusIndexList = lvsStatsMapper.selectCensusIndex(vo) ;
+			
+			ArrayList<Map<String, Object>> divList = new ArrayList<>();  // 지표리스트
+			for(int i=0; i<censusIndexList.size(); i++) {
+				divList.add(censusIndexList.get(i));
+			}
+			
+			Map<String, Object> data_div_year = new HashMap<String,Object>();
+			data_div_year.put(base_year,divList); 
+			data.put("subDiv",data_div_year);
+		}
+		
+		/////////////////////////////
+		subResult.put("tot_ppltn", data);
+	}
+
+	@Override
+	public List<Map<String, Object>> selectCensusIndexList(LvsVO vo) throws Exception {
+		// TODO Auto-generated method stub
+		return lvsStatsMapper.selectCensusIndex(vo) ;
+	}
+	
+	@Override
+	public List<Map<String, Object>> selectCensusIndexYearList(LvsVO vo) throws Exception {
+		// TODO Auto-generated method stub
+		return lvsStatsMapper.selectCensusRecIndexYear(vo) ;
+	}
+	
+	
+	//모든지표보기
+	@Override
+	public List<Map<String, Object>> selectAllDataList(LvsSeekVO vo) throws Exception {
+		
+		List<Map<String, Object>> resultList = new ArrayList<>();
+		Map<String, Object> result  = new HashMap<String,Object>();
+		Map<String, Object> subResult  = new HashMap<String,Object>();
+		Map<String, Object> kindResult  = new HashMap<String,Object>();
+		
+		//코드값마다, 실행하는 함수를 달리함.
+		if (vo.getDatakind().equals("oneman_house")){
+			vo.setSeekCd("stat_house_psn_1_family_cnt");
+			vo.setTitle("1인가구 변화");
+		   setAllData1(vo,subResult);		//step1 총인구데이터
+		}
+		
+		if (vo.getDatakind().equals("old_oneman")){
+			vo.setSeekCd("stat_house_age_65_mt1_psn_1_family_cnt");
+			vo.setTitle("65세 이상 1인가구 변화");
+		   setAllData1(vo,subResult);		//step1 총인구데이터
+		}
+		
+		if (vo.getDatakind().equals("ppltn_reg")){
+			vo.setSeekCd("kosis_rsgst_ppltn_cnt");
+			vo.setTitle("주민등록 인구 현황");
+		   setAllData1(vo,subResult);		//step1 총인구데이터
+		}
+		
+		if (vo.getDatakind().equals("ppltn_increase")){
+			vo.setSeekCd("kosis_nrincrs_cnt_cnt");
+			vo.setTitle("인구 자연증가 현황");
+		   setAllData1(vo,subResult);		//step1 총인구데이터
+		}
+		
+		if (vo.getDatakind().equals("ppltn_movement")){
+			vo.setSeekCd("kosis_nmgr_cnt_cnt");
+			vo.setTitle("인구 이동 현황");
+		   setAllData1(vo,subResult);		//step1 총인구데이터
+		}
+		
+		if (vo.getDatakind().equals("old_age_cnt")){
+			vo.setSeekCd("stat_age_65_mt1_ppltn_cnt");
+			vo.setTitle("65세이상 고령자 인구변화");
+		   setAllData1(vo,subResult);		//step1 총인구데이터
+		}
+		
+		if (vo.getDatakind().equals("ppltn_foreigner")){
+			vo.setSeekCd("kosis_foreign_inhbtnt_cnt");
+			vo.setTitle("외국인 주민 현황");
+		   setAllData1(vo,subResult);		//step1 총인구데이터
+		}
+		
+		
+		if (vo.getDatakind().equals("pptln_youngman")){
+			vo.setSeekCd("stat_age_15_lt0_ppltn_cnt");
+			vo.setTitle("15세 미만 유소년 인구 변화");
+		   setAllData1(vo,subResult);		//step1 총인구데이터
+		}
+		
+		if (vo.getDatakind().equals("back_farm")){
+			vo.setSeekCd("kosis_rtrn_frmhs_cnt");
+			vo.setTitle("귀농/귀촌/귀어 인구현황");
+		   setAllData1(vo,subResult);		//step1 총인구데이터
+		}
+		
+		if (vo.getDatakind().equals("tot_ppltn")){
+			vo.setTitle("총 인구");
+		   setAllData2(vo,subResult);		//step2 총인구데이터
+		}
+		
+		if (vo.getDatakind().equals("avg_age")){
+			vo.setTitle("평균 나이");
+		   setAllData2(vo,subResult);		//step2평균 나이
+		}
+		
+		if (vo.getDatakind().equals("ppltn_density")){
+			vo.setTitle("인구 밀도");
+		   setAllData2(vo,subResult);		//step2평균 나이
+		}
+		
+		if (vo.getDatakind().equals("nongga_ppltn")){
+			vo.setTitle("농가 인구");
+		   setAllData2(vo,subResult);		//step2평균 나이
+		}
+		
+		if (vo.getDatakind().equals("imga_ppltn")){
+			vo.setTitle("임가 인구");
+		   setAllData2(vo,subResult);		//step2평균 나이
+		}
+		
+		
+		
+		
+		if (vo.getDatakind().equals("tot_man")){
+			vo.setTitle("남자 인구");
+			vo.setSeekCd("1");
+		   setAllData3(vo,subResult);		//step2평균 나이
+		}
+		
+		if (vo.getDatakind().equals("tot_woman")){
+			vo.setTitle("여자 인구");
+			vo.setSeekCd("2");			
+			setAllData3(vo,subResult);		//step2평균 나이
+		}
+		
+		result.put(vo.getRegionCd(), subResult);
+		result.put("errMsg", "Success");
+		result.put("errCd", "0");
+		
+		resultList.add(result);
+		return  resultList ;
+		
+	}
+	
+	//총가구데이터 세팅
+	private void setAllData1(LvsSeekVO vo, Map<String, Object> subResult) throws CloneNotSupportedException {
+		List<Map<String, Object>> infolist =  lvsStatsMapper.select_mng_dt_themamapdata(vo) ;
+	    System.out.println(vo.toString());		
+		
+	    
+		ArrayList<String> yearList = new ArrayList<>();  // 지표리스트
+		ArrayList<Integer> chart_data = new ArrayList<>();  //합계데이터
+		
+		for(int i=0; i<infolist.size(); i++) {
+			Map<String, Object> row = infolist.get(i);
+			yearList.add((String) row.get("base_year"));
+			chart_data.add(Integer.parseInt(String.valueOf(row.get("val"))));
+			//동모드일때는 자기동에 대한 데이터는 강조red 로 표시 해야 함.
+		}
+		
+		subResult.put("title", vo.getTitle()) ;		
+		subResult.put("category", yearList) ;
+		subResult.put("data", chart_data) ;
+		
+		if (infolist.size()==0) {
+			subResult.put("subDiv", null) ;			
+			return ;
+		}
+	
+		LvsSeekVO vo2 = new LvsSeekVO();	
+		/* 		title 		seekCd  		regionCd 		queryYear 		borderYear */
+		vo2.setTitle(vo.getTitle());
+	    vo2.setSeekCd(vo.getSeekCd());
+	    vo2.setRegionCd(vo.getViewCd().equals("sido")?vo.getSidoCd():vo.getSidoCd()+vo.getSggCd());
+	    vo2.setInfoDiv(vo.getViewCd().equals("sido")?"2":"3");
+	    vo2.setViewCd(vo.getViewCd());
+	    vo2.setQueryYear(infolist.get(infolist.size()-1).get("base_year").toString());
+	    vo2.setBorderYear(vo.getBorderYear());
+	    System.out.println(vo2.toString());
+	    
+	    
+	    List<Map<String, Object>> subDivlist =  lvsStatsMapper.select_mng_dt_themamapdata_with_admboard(vo2) ;	    
+		ArrayList<Map<String, Object>> divList = new ArrayList<>();  // 지표리스트
+		for(int i=0; i<subDivlist.size(); i++) {
+			divList.add(subDivlist.get(i));
+		}
+		subResult.put("subDiv", divList) ;
+	}
+	
+	
+	//총인구, 인구밀도, 평균나이
+	private void setAllData2(LvsSeekVO vo, Map<String, Object> subResult) throws CloneNotSupportedException {
+	    
+	    
+		List<Map<String, Object>> yearlistData =  lvsStatsMapper.select_allstat_srv_dt_census_index_yearlist(vo) ;		
+	    
+		ArrayList<String> yearList = new ArrayList<>();  // 지표리스트
+		String baseYear="" ;
+		for(int i=0; i<yearlistData.size(); i++) {
+			Map<String, Object> row = yearlistData.get(i);
+			yearList.add((String) row.get("base_year"));
+			if (i==yearlistData.size()-1) 
+				baseYear = (String) row.get("base_year") ;
+		}
+		
+		ArrayList<String> admList = new ArrayList<>();  // 동이름리스트		
+		ArrayList<Float> chart_data = new ArrayList<>();  //합계데이터
+		
+		if (vo.getQueryYear()==null || vo.getQueryYear().equals(""))
+			vo.setQueryYear(baseYear);
+		
+	    if  (vo.getViewCd().equals("sido"))  vo.setInfoDiv("2");
+	    else vo.setInfoDiv("3");
+	    System.out.println(vo.toString());
+		List<Map<String, Object>> infolist =  lvsStatsMapper.select_allstat_srv_dt_census_index(vo) ;
+	    
+		
+		for(int i=0; i<infolist.size(); i++) {
+			Map<String, Object> row = infolist.get(i);
+			admList.add((String) row.get("adm_nm"));
+			chart_data.add(Float.parseFloat(String.valueOf(row.get("val"))));
+		}
+		
+		
+		subResult.put("title", vo.getTitle()) ;		
+		subResult.put("category", admList) ;
+		subResult.put("yearlist", yearList) ;		
+		subResult.put("data", chart_data) ;
+		subResult.put("tableData", infolist) ;		
+		
+	    
+		ArrayList<Map<String, Object>> divList = new ArrayList<>();  // 지표리스트
+		for(int i=0; i<infolist.size(); i++) {
+			divList.add(infolist.get(i));
+		}
+		subResult.put("subDiv", divList) ;
+	}
+	
+	
+	//남자인구, 여자인구
+	private void setAllData3(LvsSeekVO vo, Map<String, Object> subResult) throws CloneNotSupportedException {
+	
+		
+		ArrayList<String> admList = new ArrayList<>();  // 동이름리스트		
+		ArrayList<Float> chart_data = new ArrayList<>();  //합계데이터
+		
+		if (Integer.parseInt(vo.getBorderYear())<=2021) vo.setLen(7);   //행정코드자리수를 2021이면 7자리
+		if (vo.getQueryYear()==null) {
+			vo.setQueryYear(vo.getThisYear());
+		}
+		
+	    System.out.println("===================");		
+	    System.out.println(vo.toString());
+		List<Map<String, Object>> infolist =  lvsStatsMapper.select_allstat_srv_dt_popsreg(vo) ;
+		List<Map<String, Object>> infolist2 =  lvsStatsMapper.select_allstat_srv_dt_popsreg_up_area(vo) ;		
+				
+	    
+		for(int i=0; i<infolist.size(); i++) {
+			Map<String, Object> row = infolist.get(i);
+			admList.add((String) row.get("adm_nm"));
+			chart_data.add(Float.parseFloat(String.valueOf(row.get("val"))));
+		}
+		
+		subResult.put("title", vo.getTitle()) ;		
+		subResult.put("category", admList) ;
+		subResult.put("yearlist", vo.getYearList()) ;		
+		subResult.put("data", chart_data) ;
+		subResult.put("tableData", infolist) ;
+		subResult.put("tableData2", infolist2) ;		
+		
+	    
+		ArrayList<Map<String, Object>> divList = new ArrayList<>();  // 지표리스트
+		for(int i=0; i<infolist.size(); i++) {
+			divList.add(infolist.get(i));
+		}
+		subResult.put("subDiv", divList) ;
+	}
+
+	
+}

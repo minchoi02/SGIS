@@ -1,0 +1,1182 @@
+
+const watcher = (variable, callback) => new Proxy (variable, {
+    set: (obj, prop, value ) => {
+        obj[prop] = value;
+        // event 중지 처리
+        
+        callback(obj)
+    },
+    get: (obj, prop) => {        
+        return obj[prop]
+    }
+})
+
+let boardState = {board: "", theme: "", tabs: ""};
+let tabState = {tabName: "", tabLink: ""}
+let boardWatcher = watcher(boardState, state => console.log(state))
+let tabWatcher = watcher(tabState, state => console.log(state))
+
+
+
+// 더미 데이터
+// id 차트 생성 아이디 html 만들때 + index 로 식별
+// type : 차트 타입 -> 차트 생성 때 매칭 dount, line, column, map, pie
+const sliderData = [
+    [{ "id": "ar1_", "type": "donut", "title": "총인구", "unit": "(단위:명)", "lastYearData": 471258, "nowYearData": 469426, "lastYearName": "2021년", "nowYearName": "2022년", "graphDataName1": "남자", "graphDataName2": "여자", "graphData1": 230978, "graphData2": 205875 },
+    { "id": "ar1_", "type": "line", "title": "사망자수", "unit": "(단위:명)", "category": [2018, 2019, 2020, 2021, 2022], "dataName": "사망자수", "dataCount": [456, 789, 999, 555, 666], "lastYearData": 471258, "nowYearData": 469426, "lastYearName": "2021년", "nowYearName": "2022년" },
+    { "id": "ar1_", "type": "column", "title": "1인가구", "unit": "(단위:명)", "category": [2018, 2019, 2020, 2021, 2022], "dataName": "1인가구", "dataCount": [123, 456, 789, 999, 1023], "lastYearData": 471258, "nowYearData": 469426, "lastYearName": "2021년", "nowYearName": "2022년" },
+    { "id": "ar1_", "type": "map", "title": "사업체 수", "unit": "(단위:개)", "lastYearData": 425775, "nowYearData": 413547, "lastYearName": "2021년", "nowYearName": "2022년", "dataSeries": [{ "name": "A", "value": 10, "colorValue": 1 }, { "name": "A", "value": 20, "colorValue": 2 }, { "name": "A", "value": 30, "colorValue": 3 }, { "name": "A", "value": 40, "colorValue": 4 }] },
+    { "id": "ar1_", "type": "pie", "title": "신혼부부 수", "unit": "(단위:명)", "lastYearData": 471258, "nowYearData": 469426, "lastYearName": "2021년", "nowYearName": "2022년", "graphDataName1": "2021년", "graphDataName2": "2022년", "graphData1": 230978, "graphData2": 205875 },
+    { "id": "ar1_", "type": "donut", "title": "총인구", "unit": "(단위:명)", "lastYearData": 425775, "nowYearData": 413547, "lastYearName": "2021년", "nowYearName": "2022년", "graphDataName1": "남자", "graphDataName2": "여자", "graphData1": 267785, "graphData2": 244755 }
+    ],
+    [{ "id": "idName", "type": "donut", "title": "총인구", "unit": "(단위:명)", "lastYearData": 112548, "nowYearData": 365123, "lastYearName": "2021년", "nowYearName": "2022년", "graphDataName1": "남자", "graphDataName2": "여자", "graphData1": 456123, "graphData2": 123456 },
+    { "id": "idName", "type": "donut", "title": "page2", "unit": "(단위:명)", "lastYearData": 132544, "nowYearData": 398751, "lastYearName": "2021년", "nowYearName": "2022년", "graphDataName1": "남자", "graphDataName2": "여자", "graphData1": 654321, "graphData2": 321456 },
+    { "id": "idName", "type": "donut", "title": "page2", "unit": "(단위:명)", "lastYearData": 124456, "nowYearData": 361231, "lastYearName": "2021년", "nowYearName": "2022년", "graphDataName1": "남자", "graphDataName2": "여자", "graphData1": 654321, "graphData2": 987654 },
+    { "id": "idName", "type": "donut", "title": "page2", "unit": "(단위:명)", "lastYearData": 123654, "nowYearData": 135875, "lastYearName": "2021년", "nowYearName": "2022년", "graphDataName1": "남자", "graphDataName2": "여자", "graphData1": 654123, "graphData2": 789456 },
+    { "id": "idName", "type": "donut", "title": "page2", "unit": "(단위:명)", "lastYearData": 187995, "nowYearData": 675654, "lastYearName": "2021년", "nowYearName": "2022년", "graphDataName1": "남자", "graphDataName2": "여자", "graphData1": 654654, "graphData2": 654321 },
+    { "id": "idName", "type": "donut", "title": "page2", "unit": "(단위:명)", "lastYearData": 135485, "nowYearData": 136871, "lastYearName": "2021년", "nowYearName": "2022년", "graphDataName1": "남자", "graphDataName2": "여자", "graphData1": 654321, "graphData2": 123456 }
+    ]]
+
+
+// 데이터보드 상태값 가져오기
+// let boardState
+
+$(function () {
+
+    startSliderItemSync(sliderData[0], 'sliderContent0');
+    
+    // 팝업 레이어 닫기
+    $(".layer_close").on('click', (e) => {
+        $(e.target).closest('.popup_layer').hide();
+    })
+
+    $(".tabCommon li a").click(function () {
+        let activeTab = $(this).attr("rel");
+        let tabName = $(this).data('tabname')
+        $(this).parent().siblings("li").removeClass("active");
+        $(this).parent().addClass("active"); 
+        
+        if(tabName == "tab2")  $(".tab_container2").children('.tab_content2').hide();  // 우리동네 상황판 차트, 테이블
+        else if (tabName == "tab3") $(this).closest('.tab_container').siblings('.tab_content3').hide(); // 추천지표보기, 모든지표 보기
+        else if (tabName == "tab4") $(this).closest('.tab_container4').children('.tab4').hide(); // 추천지표 (변화그래프, 지역내 순위, 변화지도, 타 지자체 비교)
+        else if (tabName == "tab5") $(this).closest('.tab_container5').children('.tab_content5').hide(); // 소지역보기 팝업 (집계구보기, 변화지도, 변화그래프)
+        else if (tabName == "tab6") $(this).closest('.result_box').children('.step_box').hide();
+        else if (tabName == "tab8" || tabName == "tab9") $(this).closest('.tabCommon').siblings('.tabContent').children('li').hide();
+        
+        if(!activeTab) {
+            activeTab = $(this).data('tab')
+            $(this).closest('.tabCommon').siblings('.tabContent').children('li').each((i,item) => {
+                $(item).removeClass('active')
+                $(item).hide()
+                if(activeTab == $(item).data('link')) {
+                    $(item).show();
+                    $(item).addClass('active')
+                }
+            })
+        } else {
+            $("#" + activeTab).fadeIn(10);
+        }
+        
+        
+        
+        if(activeTab == "tab4_1")  $('#tab4_chart1').highcharts().reflow() // 추천지표 변화그래프
+        else if(activeTab == "tab4_3") $('#tab4_chart3').highcharts().reflow()  // 추천지표 지역내 순위
+        else if(activeTab == "tab4_4") {                                         // 추천지표 타 지자체 비교
+            $('#vrsChart1').highcharts().reflow()
+            $('#vrsChart2').highcharts().reflow()
+        } else if (activeTab == "tab5_3") $("#popupChart1").highcharts().reflow() // 소지역보기 변화그래프
+
+    });
+
+    
+
+})
+
+
+/**
+ * 데이터 확장보드 컨트롤러
+ * @param {Element} obj this 
+ * @param {string} type type1: 우리동네 상황판, type2: 테마별 추천지표, type3: 테마별 모든지표
+ * @param {string} target 하위 지표 선택 파라미터 
+ */
+const boardController = (obj, type,target="") => {
+
+    let boardTitle = "데이터보드";
+    let sub = $(obj).data('link') // sub1 추천지표, sub2 모든지표 보기
+    
+
+    $(".extendBoard").hide(); 
+    
+    
+    // 추천지표 테마 가져오기
+    if(!target) {
+        $("#tabIndicator").children('li').each((i, item) => {
+            if($(item).hasClass('active')) target = $(item).data('link')
+        })
+    }
+
+
+    if(type == 'type1') { 
+
+        boardTitle = "우리동네 상황판";
+        $(".extend_data_01").show();
+        $(".data_player").show();
+        $(".tab_content3").hide();
+        startSliderItemSync(sliderData[0], 'sliderContent0');
+
+    } else if (type == "type2") {
+
+        // 테마별 지표 
+        $(".extend_data_02").show();
+        $(".data_player").hide(); 
+        $(".tab_content3").hide();
+        exboardType2Sync(target);
+        
+    } else if (type == "type3" && sub == "sub1") {
+
+        // 추천지표 
+        $(".extend_data_02").show();
+        $(".data_player").hide(); 
+        $(".tab_content3").hide();
+        exboardType2Sync(target);
+
+    } else if (type == "type3" && sub == "sub2") {
+
+        // 모든지표 
+        viewAllIndicator(target); // 인구가구, 주거교통 옵션값 보여주기
+
+        $(".extend_data_03").show(); 
+        $(".data_player").hide();
+
+        if(target == "tab1") {  // 인구가구 모든지표
+            ageRangeSlider.destroy();
+            ageRangeSlider.init();
+        } else if (target == "tab2"){ // 주거교통 모든지표
+            setTimeout(() => {
+                theme2SizeSlider.destroy();
+                theme2SizeSlider.init();
+            },1000)
+        }
+        
+        // 
+        $(".checkbox_listWrap .checkbox_list:first-child .list_text input").prop('checked',true)
+        // allIndicatorSelector(type)
+        excuteIndicator('aType')
+    }
+
+
+    $("#exBoardTitle").text(boardTitle);
+    boardClassController(obj,type);
+
+
+}
+
+
+const boardClassController = (obj,type) => {
+
+    removeType1Class = () => { $('#btn_extend').removeClass('active')}
+    removeType2Class = () => { $('#tabIndicator li').removeClass('active')}
+    removeType3Class = () => { $('#tabIndicatorSub li').removeClass('active')}
+    
+    // 클래스 Toggle
+    switch(type) {
+        case "type1":  
+            $(obj).addClass('active')
+            removeType2Class();
+            removeType3Class()
+            $('.tab_container').hide();
+            break;
+        case "type2":
+            removeType1Class();
+            removeType2Class();
+            removeType3Class();
+            $(obj).addClass('active');
+            $('#tabIndicatorSub li:first-child').addClass('active')
+            $('.tab_container').show();
+            break;
+        case "type3":
+            removeType3Class();
+            $(obj).closest('li').addClass('active');
+            break;
+        default:
+            break;
+    }
+}
+
+// 보드 확대, 축소 
+const toggleBoard = () => {
+
+    let boardSts = $("#extendBoard").hasClass('active');
+    $("#extendBoard").toggleClass('active');
+    $(".control_foot").toggleClass('extend');
+    $('.slick_slider').slick('refresh')  // slider refresh
+
+    // board status 
+
+    // 확대, 축소일 때 처리해야할 것들
+    // if(boardSts) {
+
+    // }
+}
+
+
+// 넘버 포멧
+const numberFormat = (x) => {
+    if (!x) return 0;
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+
+// 임시 랜덤 호출
+const makeRandomData = (min,max) => {
+    return Math.floor((Math.random() * (max - min)) + min)
+}
+
+
+/**
+ * 팝업 호출 함수
+ * @param {string} type 팝업 타입, 클래스에 같이 사용, type1:메인화면 이동 팝업 ,type2: 소지역보기 팝업
+ * @param {*} param 지역명 + 선택된 지표의 파라미터 전달
+ */
+const openPopup = (type, param) => {
+    if(type == 'type1') { // 메인페이지 이동
+      $(".popup_layer.type1").show();
+    }else  if(type == "type2") {  // 소지역 보기 팝업
+
+
+        let mapStatus = true // 맵 상태가 소지역일때 false, 소지역 이상일때 true 
+
+        if(!mapStatus) { 
+            $(".popup_layer.failed").show()
+            return false;
+        }
+
+        $(".popup_layer.type2.success").show() // 소지역 보기 팝업 오픈 
+        
+        // chart render 
+        let title = "임시타이틀"
+        let dummyData = {"title":title,"category":[],"data":[]} // 변화그래프 탭 차트
+        let count = makeRandomData(5,12);
+        for(i=0; i<count; i++){
+            dummyData.category.push(2010+i);
+            dummyData.data.push(makeRandomData(100,500))
+        }
+
+        combiLineColumn('popupChart1',dummyData);
+    }
+}
+
+
+const accordian = (obj) => {
+    $(obj).toggleClass('active')
+    $(obj).siblings('.accContent').slideToggle(300)
+
+}
+
+// 모든지표보기 인구가구, 주거교통 옵션박스 셀렉터
+const viewAllIndicator = (param) => {
+    $(".resultAcc").hide();
+    $(".resultAcc").each((i,item) => {
+        if($(item).data('link') == param) $(item).show();
+    })
+
+}
+
+// 모든지표보기 이너 탭
+const themeInnerTab = (param) => {
+    $(".tabBox").hide();
+    $(".tabBox").each((i,item) => {        
+        if(param == $(item).data('tabname')) $(item).show();
+    })
+
+    if(param == "theme1AgeRanger") {
+        ageRangeSlider.destroy();
+        ageRangeSlider.init();
+    }
+
+    
+}
+
+
+
+
+const ageRangeSlider = new rSlider({
+    target: '#ageRangeSlider',
+    values: [0, 20, 40, 60, 80, 100],
+    range: true,
+    tooltip: true,
+    scale: true,
+    labels: true,
+    set: [20, 60]
+});
+
+
+const theme2SizeSlider = new rSlider({
+    target: '#theme2SizeSlider',
+    values: [0, 20, 40, 60, 85, 100, 130, 165, 230],
+    range: true,
+    tooltip: true,
+    scale: true,
+    labels: true,
+    set: [20, 100]
+});
+
+
+/**
+ * 
+ */
+const hint = document.querySelectorAll('.tooltip') 
+hint.forEach((hintTarget, index) => {
+    hintTarget.addEventListener('mouseover',(e) => {
+        
+        let divX = e.pageX + 20
+        let divY = e.pageY 
+        let title = $(e.target).data('title');
+        let desc = $(e.target).data('desc');
+        let level = $(e.target).data('level');
+        let year = $(e.target).data('year');
+
+        setTimeout(() => {
+            $("#tipLayer").children('.title').text(title)
+            $("#tipLayer").children('.desc').text(desc)
+            $("#tipLayer").children('.level').text(level)
+            $("#tipLayer").children('.year').text(year)
+            $("#tipLayer").css({'display':'block',
+                                'left':divX,
+                                'top':divY,
+                                'position':'absolute'})
+        }, 500)
+    })
+
+    hintTarget.addEventListener('mouseout',(e) => {
+        
+        $("#tipLayer").children('.title').text("");
+        $("#tipLayer").children('.desc').text("");
+        $("#tipLayer").children('.level').text("");
+        $("#tipLayer").children('.year').text("");
+        $("#tipLayer").css('display',"none")
+    })
+
+    
+})
+
+
+//  우리동네 상황판 js 
+
+
+
+// 우리동네 상황판 슬라이더 기능구현
+async function startSliderItemSync(sliderData, parentId) {
+    let chartIds = await makeSliderHtml(sliderData, parentId);  // 슬라이더 아이템 html 생성
+    await makeSliderChart(chartIds, sliderData) // 슬라이더 아이템 차트 생성 
+    await makeSlider1(); // 슬라이더 렌더
+    let items = await getSliderItems() // 슬라이더 내 아이템 플레이리스트
+
+    sliderTimerCount = 0; // 렌더 타이머 카운터 초기화
+    sliderTimerStart(items)
+}
+
+// 우리동네 상황판 슬라이더 html 생성
+const makeSliderHtml = (dataSet, parentId) => {
+    return new Promise((resolve, reject) => {
+        // console.log("makeSliderHtml start ==========")
+
+        if (!dataSet) {
+            console.log("데이터 없음")
+            return false;
+        }
+
+        let chartIdAr = [];   // 차트 아이디 어레이
+        $("#" + parentId).empty();
+
+        dataSet.forEach((item, index) => {
+            let html = "";
+            html += '<li class="slider_item" onclick="sliderItemEvent(this)">'; // 우리동네 상황판 상단 헤더 변경 이벤트
+            html += '<div class="item_heading">';
+            html += '<h5>' + item.title + '</h5>';
+            html += '<img src="/images/lvs/icon/icon-tooltip.png" alt="">';
+            html += '<span>' + item.unit + '</span>';
+            html += '</div>';
+            html += '<div class="item_content">';
+            html += '<ul>';
+            html += '<li>';
+            html += '<div class="this_year">';
+            html += '<h6>' + item.lastYearName + '</h6>';
+            html += '<p>' + numberFormat(item.lastYearData) + '</p>';
+            html += '</div>';
+            html += '<div class="last_year">';
+            html += '<h6>' + item.nowYearName + '</h6>';
+            html += '<p>' + numberFormat(item.nowYearData) + '</p>';
+            html += '</div>';
+            html += '</li>';
+            html += '<li>';
+            html += '<div class="chart">';
+            if (item.type == "donut") html += '<div id="' + item.id + '_' + index + '" style="height:70px">';
+            else html += '<div id="' + item.id + '_' + index + '" style="height:100px">';
+            html += '</div>';
+            if (item.type == "donut") {
+                html += '<div>';
+                html += '<span class="cr01">' + item.graphDataName1 + '</span>';
+                html += '<strong>' + numberFormat(item.graphData1) + '</strong>';
+                html += '</div> ';
+                html += '<div>';
+                html += '<span class="cr02">' + item.graphDataName2 + '</span>';
+                html += '<strong>' + numberFormat(item.graphData2) + '</strong>';
+                html += '</div>';
+            }
+            html += '</li>';
+            html += '</ul>';
+            html += '</div>';
+            html += '</li>';
+
+            $("#" + parentId).append(html)
+            chartIdAr.push(item.id + '_' + index)
+        })
+
+        resolve(chartIdAr);
+    })
+}
+
+// 우리동네 현황판 슬라이더 
+const makeSlider1 = () => {
+    return new Promise((resolve, reject) => {
+        // console.log("makeSlider1 start ==========")
+        let target = $('.slick_slider')
+        let sts = target.hasClass('slick-initialized') // true 렌더 상태
+        let options = {
+            dots: true,
+            speed: 300,
+            prevArrow: ".arrows > .prev_arrow",
+            nextArrow: ".arrows > .next_arrow",
+            // autoplay: true,
+            autoplaySpeed: 2000
+        }
+        if (!sts) target.slick(options)
+
+        resolve();
+    })
+
+}
+
+// 우리동네 상황판 슬라이더 아이템 가져오기
+const getSliderItems = () => {
+    return new Promise((resolve) => {
+        // console.log("getSliderItems start ==========")
+        
+        resolve($(".slick_slider > div > div > div.slick-current > div > div").children('.slider_item').get())
+    })
+}
+
+// 우리동네 현황판 차트 그리기.
+const makeSliderChart = (ids, data) => {
+    // console.log("makeSliderChart start ==========")
+    return new Promise((resolve) => {
+        data.forEach((item, index) => {
+            if (item.type == 'donut') layerDonut(ids[index], item)
+            else if (item.type == 'column') layerColumn(ids[index], item)
+            else if (item.type == 'map') layerMap(ids[index], item)
+            else if (item.type == 'pie') layerPie(ids[index], item)
+            else if (item.type == 'line') layerLine(ids[index], item)
+            else console.log("nothing")
+        })
+        resolve();
+    })
+}
+
+// 우리동네 상황판 슬라이더 change 감지
+$('.slick_slider').on('afterChange', function (event, slick, currentSlide, nextSlide) {
+    // console.log("slider on chage start ==========")
+    let targetId = 'sliderContent' + currentSlide
+    // let dataName = "sliderData"+currentSlide
+    startSliderItemSync(sliderData[currentSlide], targetId)
+
+});
+
+// 우리동네 상황판 슬라이더 무버 
+const sliderTimer = (items="") => {
+    // console.log("mover start ==========")
+    let itemLength = items.length // 우리동네 상황판 슬라이더 아이템 갯수
+    if(!sliderTimerSts) return; // 슬라이더 정지, 퍼즈 상태 확인
+
+    sliderTimerCount++;
+    $(items).removeClass('active')
+    $(items).eq(sliderTimerCount-1).addClass('active')
+
+    if(sliderTimerCount <= itemLength) {
+        changeHeaderData(items[sliderTimerCount-1]);     // todo 상단 부분 아이템 차트 렌더 변경
+        setTimeout(sliderTimer, 5000, items); 
+    } else {
+        $(".slick_slider").slick('slickNext'); // slick afterChagne -> 렌더 다시 사직 후 interval 다시 시작
+    }
+}
+
+// 우리동네 상황판 슬라이더 스타트
+const sliderTimerStart = (items="") => {
+    sliderTimerSts = true;
+    if(!items)  {
+        getSliderItems().then((itemList) => {
+            sliderTimer(itemList);        
+        })
+    } else {
+        sliderTimer(items);
+    }
+}  
+
+// 우리동네 상황판 슬라이더 멈춤
+const sliderTimerPause = () => {
+    sliderTimerSts = false;
+}
+
+// 우리동네 상황판 슬라이더 아이템 클릭
+const sliderItemEvent = (obj) => {
+    sliderTimerPause();
+    getSliderItems().then((result) => {
+        result.forEach((t) => {
+            $(t).removeClass('active');
+        })
+    }).then(() => {
+        $(obj).addClass('active')
+    })
+    changeHeaderData(obj);
+
+}
+
+// 우리동네 상황판 상단 데이터, 차트 변경 
+const changeHeaderData = (obj) => {
+    // console.log("changeHeaderData start ==========")
+    let type = "";
+    let title = $(obj).children('.item_heading').children('h5').text();
+    let unit = $(obj).children('.item_heading').children('span').text();
+    let lastYear = $(obj).children('.item_content').find('div.this_year').children('h6').text()
+    let thisYear = $(obj).children('.item_content').find('div.last_year').children('h6').text()
+    let lastYearData = $(obj).children('.item_content').find('div.this_year').children('p').text()
+    let thisYearData = $(obj).children('.item_content').find('div.last_year').children('p').text()
+    let gubun1Name = $(obj).children('.item_content').find('div.chart').find('.cr01').text();
+    let gubun2Name = $(obj).children('.item_content').find('div.chart').find('.cr02').text();
+    let gubun1Data = $(obj).children('.item_content').find('div.chart').find('.cr01').siblings('strong').text();
+    let gubun2Data = $(obj).children('.item_content').find('div.chart').find('.cr02').siblings('strong').text();
+
+    // 정보 텍스트 변경
+    let target = $(".extend_data_01").find('.main_sec01').children('dl')
+    target.children('.thisYear').children('h5').html(title + ' <span>'+thisYear+'</span>')
+    target.children('.thisYear').children('h4').text(thisYearData)
+    target.children('.thisYear').children('p').text(unit)
+    if(gubun1Name == "" || gubun1Name == null || gubun1Name == undefined) { // type 으로 정의 필요.
+        target.children('.thisYear').children('div').hide();
+    } else {
+        target.children('.thisYear').children('div').children('span:nth-child(1)').text(gubun1Name)
+        target.children('.thisYear').children('div').children('span:nth-child(2)').text(gubun1Data)
+        target.children('.thisYear').children('div').children('span:nth-child(3)').text(gubun2Name)
+        target.children('.thisYear').children('div').children('span:nth-child(4)').text(gubun2Data)
+        target.children('.thisYear').children('div').show();
+    }
+
+    target.children('.lastYear').children('span:first-child').text(lastYear)
+    target.children('.lastYear').children('span:last-child').text(lastYearData)
+
+    
+    // 우리동네 상황판 상단 콤비 차트 더미데이터    
+    let dummyData = {
+        category : ["2001","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"],
+        columnName : "random",
+        columnData : [],
+        lineName : "random2",
+        lineData : []
+    }
+
+    for(i=0; i < dummyData.category.length; i++){
+        dummyData.columnData.push(makeRandomData(500,1000))
+        dummyData.lineData.push(makeRandomData(500,1000))
+    }
+
+    // chart reDraw
+    tabContent2_chart.xAxis[0].setCategories(dummyData.category); // 카테고리 변경
+
+    tabContent2_chart.series[0].setData(dummyData.columnData) // 컬럼 데이터 변경
+    tabContent2_chart.series[0].name = dummyData.columnName // 컬럼 이름 변경
+
+    tabContent2_chart.series[1].setData(dummyData.lineData) 
+    tabContent2_chart.series[1].name = dummyData.lineName
+    
+}
+
+// 우리동네 상황판 헤더 재생버튼 
+const sliderControl = (obj) => {
+    let sliderSts = $(obj).attr('data-status'); // 슬라이더 재생, 멈춤 상태
+    if (sliderSts == "play") sliderTimerStart();
+    else if (sliderSts == "pause") sliderTimerPause();
+}
+
+
+
+
+/////////////
+
+// 테마별 지표 js
+
+const dummyData1 = [
+    {"gubun":"인구가구","title":"총 인구","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,541323,451231]},
+    {"gubun":"인구가구","title":"남자인구","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,654321,456123]},
+    {"gubun":"인구가구","title":"여자인구","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,456123,546123]},
+    {"gubun":"인구가구","title":"가구","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,554123,546123]},
+    {"gubun":"인구가구","title":"1인 가구 변화","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,321654,521365]},
+    {"gubun":"인구가구","title":"65세 이상 1인 가구 변화","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,412563,541236]},
+    {"gubun":"인구가구","title":"15세 미만 유소년 인구 변화","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,412563,632541]},
+    {"gubun":"인구가구","title":"65세 이상 고령자 인구 변화","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,341256,521463]}
+]
+const dummyData2 = [
+    {"gubun":"주거교통","title":"주택(호)","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구"],"chartData":[456789,451263]},
+    {"gubun":"주거교통","title":"단독주택","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구"],"chartData":[456789,521463]},
+    {"gubun":"주거교통","title":"아파트현황","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구"],"chartData":[456789,632541]},
+    {"gubun":"주거교통","title":"1인당 자동차 등록대수","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구"],"chartData":[456789,325416]}
+]
+
+const dummyData3 = [
+    {"gubun":"복지문화","title":"보육업체 현황","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,521463,632541]},
+    {"gubun":"복지문화","title":"보건시설 1개당 65세 이상 노인","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,412563,325416]},
+    {"gubun":"복지문화","title":"교원 1인당 학생수","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,632541,632541]},
+    {"gubun":"복지문화","title":"어린이집 분포 현황","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,521463,325416]}
+]
+
+const dummyData4 = [
+    {"gubun":"노동경제","title":"사업체수","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구"],"chartData":[456789,412563]},
+    {"gubun":"노동경제","title":"종사자수","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구"],"chartData":[456789,254163]},
+    {"gubun":"노동경제","title":"고용율","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구"],"chartData":[456789,325416]},
+    {"gubun":"노동경제","title":"재정자립도 현황","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구"],"chartData":[456789,521463]}
+]
+
+const dummyData5 = [
+    {"gubun":"안전환경","title":"보행자 교통사고 발생 현황","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,456789,456789]},
+    {"gubun":"안전환경","title":"무더위 쉼터 현황","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,456789,456789]},
+    {"gubun":"안전환경","title":"도시공원 분포 현황","totalCount":469426,"baseYear":"2022-06","unit":"명","category":["대전","서구","둔산동"],"chartData":[456789,456789,456789]}
+]
+
+
+/**
+ * 테마별 지표 데이터보드 생성
+ * @param {string} theme  theme1 인구가구, theme2 주거교통, theme3 복지문화, theme4 노동경제, theme5 안전환경
+ * @param {string} target target1: 주요지표, ???? :  테마별 모든 지표 항목 호출 파라미터
+ */
+async function exboardType2Sync(theme,target="") {
+    let data = await getThemeData(theme);
+    let ids = await exboardType2Html(data);
+    let activeTarget = "" // 데이터보드 추천지표 첫번째 선택 아이템 
+    
+    ids.forEach((i,index) => {
+        layerColumnType2(ids[index],data[index]); // 차트 생성
+    })
+
+    // 슬라이더
+    if(data.length > 4) {
+        exboardType2Slider();
+        activeTarget = $('#tabType2Content').find('.slick-active').find('.rcmdItem').eq(0)
+    } else {
+        activeTarget = $('#tabType2Content').find('.rcmdItem').eq(0)
+    }
+
+    // // 변화그래프 기본 show
+    $("#tab4_1").show();
+
+    // 탭별 차트 렌더러
+    rcmdItemSelector(activeTarget);
+}
+
+/**
+ * 데이터보드 테마별 항목 호출 promise 
+ * @param {string} theme 지표 항목 tab1 인구가구, tab2 주거교통, tab3 복지문화, tab4 노동경제, tab5 안전환경
+ * @return 테마 데이터
+ */
+const getThemeData = (theme) => {
+    return new Promise((resolve) => {
+
+        // ajax로 변경 
+        let dataGroup = {"인구가구":dummyData1,"주거교통":dummyData2,"복지문화":dummyData3,"노동경제":dummyData4,"안전환경":dummyData5}
+        let name = "";
+
+        if(theme == "tab1") name = "인구가구";
+        else if(theme == "tab2") name = "주거교통";
+        else if(theme == "tab3") name = "복지문화";
+        else if(theme == "tab4") name = "노동경제";
+        else if(theme == "tab5") name = "안전환경";
+
+        resolve(dataGroup[name]);
+    })
+
+}
+
+/**
+ * 데이터보드 테마별 주요지표 html 생성
+ * @param {json} data 
+ * @return 차트 아이디 array
+ */
+const exboardType2Html = (data) => {
+    return new Promise ((resolve) => {
+        let chartIds = [];
+        $("#tabType2Content").empty();
+        data.forEach((item, index) => {
+            let html = "";
+
+            html += '<div class="content rcmdItem" onclick="rcmdItemSelector(this)">'; // 아이템 이벤트 클릭 
+            html += '<div class="head">'
+            html += '<h5>'+item.title+'</h5>';
+            html += '<img src="/images/lvs/icon/icon-tooltip.png" alt="">';
+            html += '</div>'
+            html += '<p>'+numberFormat(item.totalCount)+'</p>';
+            html += '<ul class="chart_box">';
+            html += '<li><img class="family_base" src="/images/lvs/icon/icon-img01.png" alt=""></li>';
+            html += '<li class="chart">';
+            html += '<div id="type2ChartId'+index+'" style="width:120px; height:70px"></div>';
+            html += '</li>';
+            html += '</ul>';
+            html += '<div class="base_year">';
+            html += '<span>기준 '+item.baseYear+'</span>';
+            html += '<span>(단위:'+item.unit+')</span>';
+            html += '</div>';
+            html += '</div>';
+
+            
+            $("#tabType2Content").append(html);
+            chartIds.push("type2ChartId"+index);
+        }) 
+
+        resolve(chartIds)
+    })
+}
+
+
+/**
+ * 데이터 확장보드2 추천지표 슬라이더
+ * @returns reslove
+ */
+const exboardType2Slider = () => {
+    return new Promise((resolve, reject) => {
+        let target = $('#tabType2Content')
+        let boardSts = $("#extendBoard").hasClass("active");
+        let sts = target.hasClass('slick-initialized') // true 렌더 상태
+        let options = {
+            slidesToShow: 4,
+            slidesToScroll: 4,
+            centerPadding:'20px',
+            dots: true,
+            speed: 300,
+            arrows:false,
+            autoplay: false,
+            autoplaySpeed: 2000,
+            
+        }
+        if(boardSts) {
+            delete options.vertical
+        } else {
+            options.vertical = true 
+        }
+
+        if (!sts) target.slick(options)
+        else    target.slick('refresh');
+
+
+
+        resolve();
+    })
+}
+
+/**
+ * 데이터 확장보드2 추천지표 선택 
+ * @param {element} obj 선택 요소 파라미터 
+ */
+const rcmdItemSelector = (obj) => {
+    let itemList = document.querySelectorAll('.rcmdItem')
+    itemList.forEach((item) => { $(item).removeClass('active')})
+    $(obj).addClass('active')
+
+    let title = $(obj).children('.head').children('h5').text();
+
+    $("#tab4_1").children('.title').text(title) // 변화그래프 타이틀
+    $("#tab4_3").children('.title').text(title) // 읍면동 순위 타이틀
+
+    
+    // 임시 더미데이터 생성
+    let dummyData = {"title":title,"category":[],"data":[]} // 변화그래프 탭 차트
+    let dummyData2 = {"title":title,"category":[],"data":[]} // 지역내순위 탭 차트
+    let dummyData3 = {"title":title,"category":[2000,2005,2010,2015,2016,2017,2018,2019,2020],
+                        "originTitle":"대전광역시 서구",
+                        "vrsTitle":"비교선택지역",
+                        "originData":[],
+                        'vrsData':[]} // 타 자자체 비교 탭 차트
+    let dummyData4 = {"title":title,"category":[2000,2005,2010,2015,2016,2017,2018,2019,2020],
+                        "originTitle":"대전광역시",
+                        "vrsTitle":"비교선택지역",
+                        "originData":[],
+                        'vrsData':[]} // 타 자자체 비교 탭 차트
+
+    let count = makeRandomData(5,12);
+    for(i=0; i<count; i++){
+        dummyData.category.push(2010+i);
+        dummyData.data.push(makeRandomData(100,500))
+    }
+
+    count = makeRandomData(5,12);
+    for(i=0; i<count; i++){
+        dummyData2.category.push(2010+i);
+        dummyData2.data.push(makeRandomData(10,500))
+    }
+
+
+    for(i=0; i<dummyData3.category.length; i++) {
+        dummyData3.originData.push(makeRandomData(100,2000))
+        // dummyData3.vrsData.push(makeRandomData(100,2000))
+    }
+
+    for(i=0; i<dummyData4.category.length; i++) {
+        dummyData4.originData.push(makeRandomData(100,2000))
+        // dummyData3.vrsData.push(makeRandomData(100,2000))
+    }
+
+    let data = [dummyData,dummyData2,dummyData3,dummyData4]
+
+    // 차트 render
+    tab4ChartRender(data)
+    
+    // 타지역비교 비교지역선택 초기화
+    vrsRegionDelete('row1')
+    vrsRegionDelete('row2')
+    
+    // 타지역비교 데이터 테이블 생성 
+    makeRegionTable(data[2],"crnt_tbdoy1","crnt") // 상단 선택 데이터 테이블
+    makeRegionTable(data[3],"crnt_tbdoy2","crnt") // 하단 선택 데이터테이블
+
+}
+
+/**
+ * 추천지표 변화그래프 차트 렌더
+ * @param {json} data 데이터
+ */
+const tab4ChartRender = (data) => {
+    combiLineColumn('tab4_chart1',data[0]); 
+    combiLineColumn('tab4_chart3',data[1]);
+    multiAxisLineColumn('vrsChart1',data[2])
+    multiAxisLineColumn('vrsChart2',data[3])
+}
+
+
+/**
+ * 추천지표 타 지자체 비교 비교지역 추가 버튼 클릭 이벤트
+ * @param {element} obj 클릭 대상 엘리먼트
+ * @returns 지역 이름
+ */
+const openVrsRegionPopup = (obj) => {
+
+    $("#vrsRegionElement").val($(obj).data('target'))
+    $(".vrsRegionPopup").show();
+    $(".vrsRegionPopup").css('left',event.layerX)
+    $(".vrsRegionPopup").css('top',event.layerY)
+
+}
+
+// 비교지역선택 팝업 닫기
+const selectVrsRegionPopupClose = () => {
+    $(".vrsRegionPopup").hide();
+}
+
+// 비교지역선택 팝업 확인
+const vrsRegionPopupSelect = () => {
+    let targetValue = $("#vrsRegionElement").val();
+
+    let nameLevel1 = $('select[name=level1] option:selected').text();  // 시도 네임
+    let nameLevel2 = $('select[name=level2] option:selected').text();  // 시군구 네임
+    let nameLevel3 = $('select[name=level3] option:selected').text();  // 읍면동 네임
+    if(nameLevel1 == "시/도") nameLevel1 = "";
+    if(nameLevel2 == "시/군/구") nameLevel2 = "";
+    if(nameLevel3 == "읍/면/동") nameLevel3 = "";
+    let selectRegionName = nameLevel1 + " " + nameLevel2+ " " +nameLevel3;
+
+
+    if(nameLevel1 == "") {
+        alert("지역을 선택해주세요.") 
+        return false;
+    }
+
+    if(targetValue == "row1") {
+        $(".row1Target").css('display','flex');;
+        $(".row1Target").children('.regionName').text(selectRegionName)
+        $("#row1_vrs_off").hide();
+        $("#row1_vrs_on").show();
+    } else if (targetValue == "row2") {
+        $(".row2Target").css('display','flex');;
+        $(".row2Target").children('.regionName').text(selectRegionName)
+        $("#row2_vrs_off").hide();
+        $("#row2_vrs_on").show();
+    }   
+
+    // 차트 업데이트 
+    updateVrsRegionInfo(selectRegionName,targetValue);
+
+    $(".vrsRegionPopup").hide();
+
+}
+
+/**
+ * 비교지역선택 차트,테이블 업데이트
+ * @param {string} region 지역코드 or 이름 전달
+ * @param {string} target 차트 구분 파라미터
+ * 
+ */
+const updateVrsRegionInfo = (region="",target) => {
+
+    let dummyData = {category:[2000,2005,2010,2015,2016,2017,2018,2019,2020],"vrsData":[],"vrsTitle":region};
+    let chartId;
+    let tableId;
+
+    // 더미데이터 생성
+    for(i=0; i < 9; i++) {
+        dummyData.vrsData.push(makeRandomData(100,600));
+    }
+
+    if(target == "row1") { 
+        chartId = 'vrsChart1'
+        tableId = 'vrs_tbdoy1'
+    } else if (target == "row2") { 
+        chartId = 'vrsChart2'
+        tableId = 'vrs_tbdoy2'
+    };
+
+    $("#"+chartId).highcharts().series[1].setData(dummyData.vrsData);
+    $("#"+chartId).highcharts().series[1].name = dummyData.vrsTitle
+
+    makeRegionTable(dummyData,tableId,'vrs');
+
+}
+
+/**
+ * 추천지표 타 지자체 비교 비교지역 삭제
+ * @param {string} row 대상 구분 파라미터
+ */
+const vrsRegionDelete = (row) => {
+
+    let chartId; 
+    if(row == "row1") {
+        $(".row1Target").hide();
+        $("#row1_vrs_on").hide();
+        $("#row1_vrs_off").show();
+        chartId = "vrsChart1";
+
+    } else if (row == "row2") {
+        $(".row2Target").hide();
+        $("#row2_vrs_on").hide();
+        $("#row2_vrs_off").show();
+        chartId = "vrsChart2";
+    }
+
+    $("#"+chartId).highcharts().series[1].setData();
+    $("#"+chartId).highcharts().series[1].name = ""
+
+}
+
+/**
+ * 추천지표 타 지자체 비교 테이블 생성
+ * @param {json} data 데이터 테이블 생성
+ * @param {string} id 대상 테이블 id
+ * @param {string} type crnt: 선택 지역 테이블, vrs: 비교지역 테이블
+ */
+const makeRegionTable = (data,id,type) => {
+    
+    let tableData;
+
+    if(type == "crnt") tableData = data.originData
+    else if(type == "vrs") tableData = data.vrsData
+
+    $("#"+id).empty();
+    for(i=0; i < data.category.length; i++) {
+        $("#"+id).append('<tr><td>'+data.category[i]+'</td><td>'+numberFormat(tableData[i])+'</td></tr>');
+    }
+}
+
+////////////////
+
+
+// 컬럼 차트 더미데이터
+let dummyData8 = [{"spaceName":"홍도동_1","spaceId":"2501068020201","spaceRank":"1","value":289,"rate":"6.1"},
+            {"spaceName":"홍도동_2","spaceId":"2501068010003","spaceRank":"2","value":244,"rate":"5.1"},
+            {"spaceName":"홍도동_3","spaceId":"2501068020102","spaceRank":"3","value":238,"rate":"5.0"},
+            {"spaceName":"홍도동_4","spaceId":"2501068020101","spaceRank":"4","value":231,"rate":"4.9"},
+            {"spaceName":"홍도동_5","spaceId":"2501068020401","spaceRank":"5","value":225,"rate":"4.7"},
+            {"spaceName":"홍도동_6","spaceId":"2501068020010","spaceRank":"6","value":222,"rate":"4.7"},
+            {"spaceName":"홍도동_7","spaceId":"2501068020012","spaceRank":"7","value":220,"rate":"4.6"},
+            {"spaceName":"홍도동_8","spaceId":"2501068010201","spaceRank":"8","value":209,"rate":"4.4"},
+            {"spaceName":"홍도동_9","spaceId":"2501068020004","spaceRank":"9","value":209,"rate":"4.4"},
+            {"spaceName":"홍도동_10","spaceId":"2501068020801","spaceRank":"10","value":187,"rate":"3.9"},
+            {"spaceName":"홍도동_11","spaceId":"2501068020402","spaceRank":"11","value":186,"rate":"3.9"},
+            {"spaceName":"홍도동_12","spaceId":"2501068020001","spaceRank":"12","value":185,"rate":"3.9"},
+            {"spaceName":"홍도동_13","spaceId":"2501068020003","spaceRank":"13","value":185,"rate":"3.9"},
+            {"spaceName":"홍도동_14","spaceId":"2501068020701","spaceRank":"14","value":183,"rate":"3.9"},
+            {"spaceName":"홍도동_15","spaceId":"2501068010002","spaceRank":"15","value":179,"rate":"3.8"},
+            {"spaceName":"홍도동_16","spaceId":"2501068020009","spaceRank":"16","value":178,"rate":"3.7"},
+            {"spaceName":"홍도동_17","spaceId":"2501068020007","spaceRank":"17","value":176,"rate":"3.7"},
+            {"spaceName":"홍도동_18","spaceId":"2501068020008","spaceRank":"18","value":174,"rate":"3.7"},
+            {"spaceName":"홍도동_19","spaceId":"2501068020006","spaceRank":"19","value":169,"rate":"3.6"},
+            {"spaceName":"홍도동_20","spaceId":"2501068010001","spaceRank":"20","value":167,"rate":"3.5"},
+            {"spaceName":"홍도동_21","spaceId":"2501068020702","spaceRank":"21","value":161,"rate":"3.4"},
+            {"spaceName":"홍도동_22","spaceId":"2501068010004","spaceRank":"22","value":152,"rate":"3.2"},
+            {"spaceName":"홍도동_23","spaceId":"2501068020005","spaceRank":"23","value":151,"rate":"3.2"},
+            {"spaceName":"홍도동_24","spaceId":"2501068020011","spaceRank":"24","value":147,"rate":"3.1"},
+            {"spaceName":"홍도동_25","spaceId":"2501068020002","spaceRank":"25","value":80,"rate":"1.7"}
+        ]
+
+// solidgauge 더미데이터             
+let dummyData9 = [{"title":"전국","data":70.5},
+                  {"title":"대전광역시","data":60.5},
+                  {"title":"대전광역시 서구","data":45.5},
+                  {"title":"대전광역시 서구 둔산동","data":30.5}]
+
+// 컬럼+라인 더미데이터                   
+let dummyData10 = {"category":[2000,2005,2010,2015,2016,2017,2018,2019,2020],
+                    "title":"다문화가구",
+                    "data":[1234,2314,2214,3142,1124,3254,4512,2152,1254]}
+
+// 모든지표보기 타입 실행 
+const excuteIndicator = (type) => {
+    indicatorMap[type](type);
+}
+
+
+
+// 모든지표보기 타입 별 정의
+/**
+ * A Type:     width: full,    콤비(컬럼+라인) 차트   / 시계열보기 X     / 데이터테이블 X
+ * B Type:     width: full,    바 차트             / 시계열보기 O     / 데이터테이블 O
+ * C Type:     width: half,    바 차트 + 게이지 차트  / 시계열보기 O     / 데이터테이블 O
+ * D Type:     width: full,    바 차트             / 시계열보기 X     / 데이터테이블 O
+ * @param {string} type 지표 타입 aType, bType, cType, dType
+ */
+const indicatorMap = {
+
+    async aType (type) {
+        await renderHtml(type)
+        columnLineLarge('aType_chart',dummyData10) // chartId , data
+    },
+
+    async bType (type) {
+        await renderHtml(type)
+
+        let modifyData = {"category":[],"data":[],"title":""}
+        dummyData8.forEach((item, index) => {
+            modifyData.category.push(item.spaceName)
+            modifyData.data.push(item.value)
+            modifyData.title = "타이틀" // 시리즈 타이틀
+        })
+
+
+        $("#bType_chart").css('height', dummyData8.length * 25) // 행 갯수에 따라 높이 조절 (고정폭 25 * 데이터 길이)
+
+        barLarge('bType_chart',modifyData)   // 바 차트 
+        makeEx3BoardTable1('bType_table',dummyData8) // 바 차트 테이블 
+        // solidgauge('bType_chart2',dummyData9)  // 서클 게이지 차트 
+        // makeEx3BoardTable2('bType_table1',dummyData9) // 서클 게이지 테이블
+    },
+
+    async cType (type) {
+
+        await renderHtml(type)
+
+        let modifyData = {"category":[],"data":[],"title":""}
+        dummyData8.forEach((item, index) => {
+            modifyData.category.push(item.spaceName)
+            modifyData.data.push(item.value)
+            modifyData.title = "타이틀" // 시리즈 타이틀
+        })
+
+        $("#cType_chart1").css('height', dummyData8.length * 25) // 행 갯수에 따라 높이 조절 (고정폭 25 * 데이터 길이)
+        $("#cType_chart2").css('height', dummyData8.length * 25) // 행 갯수에 따라 높이 조절 (고정폭 25 * 데이터 길이)
+        
+        barLarge('cType_chart1',modifyData)   // 바 차트 
+        makeEx3BoardTable1('cType_table1',dummyData8) // 바 차트 테이블 
+        solidgauge('cType_chart2',dummyData9)  // 서클 게이지 차트 
+        makeEx3BoardTable2('cType_table2',dummyData9) // 서클 게이지 테이블
+        
+    },
+
+    async dType (type) {
+        await renderHtml(type)
+
+        let modifyData = {"category":[],"data":[],"title":""}
+        dummyData8.forEach((item, index) => {
+            modifyData.category.push(item.spaceName)
+            modifyData.data.push(item.value)
+            modifyData.title = "타이틀" // 시리즈 타이틀
+        })
+
+        $("#dType_chart").css('height', dummyData8.length * 25) // 행 갯수에 따라 높이 조절 (고정폭 25 * 데이터 길이)
+        
+        barLarge('dType_chart',modifyData)   // 바 차트 
+        makeEx3BoardTable1('dType_table',dummyData8) // 바 차트 테이블 
+        
+    }
+
+}
+
+
+// html render 
+async function renderHtml(type) {
+    new Promise ((resolve) => {
+        $(".exboardType").hide();
+        $(".exboardType."+type).show();
+        return resolve();
+    })
+    await getBoardHeight(type);
+}
+
+// 차트, 테이블, 컨테이너 높이 
+const getBoardHeight = (type="") => {
+    return new Promise ((resolve) => {
+        let parentTarget = $(".extend_data_03 .main .main_wrap");
+        let conatinerHeight = $(parentTarget).height() - $(parentTarget).children('.headerWrap').outerHeight() - $(parentTarget).children('.text').outerHeight() - 15  // padding 15    
+        let sectionType = $('.main_wrap').find('.'+type); // sectionHeight
+        let headerHeight = $(sectionType).children('.section.chartArea').find('.accHeader').eq(0).outerHeight(true);
+        let tabHeight = $(sectionType).children('.section.chartArea').find('.tabCommon').eq(0).outerHeight(true);
+        let yearHeight = $(sectionType).children('.section.year').outerHeight(true);
+        let chartType = $(".exboardType."+type).find('.chart_wrap')
+        let tableType = $(".exboardType."+type).find('.table_wrap')
+        
+        let chartHeight = 0;
+
+        if(type == 'aType')                             chartHeight = conatinerHeight - headerHeight - 10 // padding
+        else if (type == 'bType' || type == 'cType')    chartHeight = conatinerHeight - headerHeight - tabHeight - yearHeight - 30 // margin
+        else if (type == 'dType')                       chartHeight = conatinerHeight - headerHeight - tabHeight - 20 // padding
+        
+        $(".exboardType."+type).css('height',conatinerHeight)
+        chartType.css('height',chartHeight)
+        tableType.css('height',chartHeight)
+        return resolve();
+    })
+    
+}
+
+
+
+
+// 전체지표 데이터보기 테이블 생성
+const makeEx3BoardTable1 = (id,data) => {
+    data.forEach(element => {
+        let html = "";
+        html += '<tr>'
+        html += '<td>'+element.spaceName+'</td>'
+        html += '<td>'+element.spaceId+'</td>'
+        html += '<td>'+element.spaceRank+'</td>'
+        html += '<td>'+element.value+'</td>'
+        html += '<td>'+element.rate+'</td>'
+        html += '</tr>'
+        $("#"+id).append(html)
+    });
+}
+
+// 전체지표 상위지역비교 데이터 보기 테이블 생성
+const makeEx3BoardTable2 = (id,data) => {
+    data.forEach(element => {
+        let html = "";
+        html += '<tr>'
+        html += '<td>'+element.title+'</td>'
+        html += '<td>'+element.data+'</td>'
+        html += '</tr>'
+        $("#"+id).append(html)
+    });
+}
+

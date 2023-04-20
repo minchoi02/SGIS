@@ -1,0 +1,94 @@
+<%@include file="/WEB-INF/jsp/m2019/includes/taglib.jsp" %>
+<%@page contentType="text/html; charset=UTF-8" %>
+<script>
+$(document).ready(function(){
+	
+});
+</script>
+<!--메인메뉴 네비게이션 팝업. START -->
+<div id="menu-popup" class="aside" style="display: none; left:-300px;">
+	<aside>
+		<h3>
+			<a href="/mobile/" style="color: #fff;">SGIS 통계지리정보서비스</a>	<!-- 2019.09.06[한광희] 일자리맵 메뉴에서 메인페이지 링크 추가 -->	
+			<button class="btn_menuClose" type="button" id="menu-close-button">메뉴닫기</button>
+		</h3>
+		<div class="aside_menu_wrap">
+			<div class="aside_main_menu">
+				<!-- 2019.09.17[한광희] 일자리 맵 메뉴 명칭 및 위치 변경. START -->
+				<h4>일자리 맵</h4>
+				<ul>
+					<li><a href="${ctx }/m2019/workroad/myNeighberhoodJobMap.sgis">- &nbsp;내 주변 일자리</a></li>
+					<li><a href="${ctx }/m2019/workroad/todayStatusMap.sgis">- &nbsp;오늘의 구인현황</a></li>
+					<!-- 2019.09.17[한광희] 일자리 맵 메뉴 명칭 및 위치 변경. END -->
+					<!-- 2019.12.16[김남민] 일자리 통계정보 OPEN. START -->
+					<li><a href="${ctx }/m2019/workroad/statsAnlsMap.sgis">- &nbsp;일자리 통계정보</a></li>
+					<!-- 2019.12.16[김남민] 일자리 통계정보 OPEN. END -->
+				</ul>
+			</div>
+			<div class="aside_menu">
+				<nav>
+					<ul>
+						<li class="menu01"><a onclick="javascript:apiLogWrite2('L0', 'L01', '내주변 통계', '없음', '00', '없음');" href="${ctx }/map/current.sgis">내 주변 통계</a></li>
+						<li class="menu02"><a onclick="javascript:apiLogWrite2('L0', 'L02', '통계주제도', '없음', '00', '없음');" href="${ctx }/map/thematic.sgis">통계주제도</a></li>
+						<li class="menu03"><a onclick="javascript:apiLogWrite2('L0', 'L03', '대화형통계지도', '없음', '00', '없음');" href="${ctx }/map/interactive.sgis">대화형 통계지도</a></li>
+						<li class="menu04"><a onclick="javascript:apiLogWrite2('L0', 'L04', '살고싶은 우리동네', '없음', '00', '없음');" href="${ctx }/map/house.sgis">살고싶은 우리동네</a></li>
+						<li class="menu05"><a onclick="javascript:apiLogWrite2('L0', 'L05', '우리동네 생활업종', '없음', '00', '없음');" href="${ctx }/map/biz.sgis">우리동네 생활업종</a></li>
+						<li class="menu06"><a onclick="javascript:apiLogWrite2('L0', 'L06', '지역현안 소통지도', '없음', '00', '없음');" href="${ctx }/community.sgis">지역현안 소통지도</a></li>
+						<li class="menu07"><a href="${ctx }/board/introduction.sgis">알림마당</a></li>
+					</ul>
+				</nav>
+			</div>
+		</div>
+	</aside>
+</div>
+<!--메인메뉴 네비게이션 팝업. END -->
+<div class="Header">
+	<header>
+		<div class="gnb">
+			<button id="menu-open-button" class="btn_menuOpen" type="button">메뉴열기</button>
+			<h2>${metaTitle }</h2>
+			<button id="login-open-button" class="btn_goLogin" type="button">로그인</button>
+			<div id="login-clos-main" style="display:none; position: absolute;width: calc(100% - 20px);margin: 0px 10px;height: 42px;background-color: #fff;top: 50px;font-size: 14px;line-height: 23px;padding: 10px 15px 10px 20px;border: 1px solid #dadada;border-radius: 5px;font-weight: bold;">
+				<span id="login-clos-main-name">-</span>님, <span style="color:red;">마감</span>이 <span style="color:red;">임박</span>한 <span style="color:red;">공고<span id="login-clos-main-count">-</span>건</span>이 있습니다.
+				<button id="login-clos-main-close" type="button" style="background-color: #ffffff;float: right;font-size: 15px;">Ｘ</button>
+			</div>
+		</div>
+		<div id="menu-background" class="aside_back" style="display: none;"></div>
+	</header>
+</div>
+<script>
+$("#menu-open-button").click(function(){
+	srvLogWrite("M0","02", "01", "00", "", "");		//메뉴열기
+	$("#menu-background").fadeIn();
+	$("#menu-popup").show().animate({
+		left: 0
+	},500,function(){
+		$(".Content").css({
+			"height": "100%",
+			"max-height": "100%",
+			"min-height": $("#menu-popup").outerHeight(true),
+			"overflow":"hidden"
+		});
+	});
+});
+$("#menu-close-button,#menu-background").click(function(){
+	$("#menu-popup").animate({
+		left: -300
+	},500,function(){
+		$(".Content").attr("style","");
+		$("#menu-background").fadeOut();
+		$("#menu-popup").hide();
+	});
+});
+$("#login-open-button").click(function(){
+	if(sop.isLogin) { //로그인 체크
+		common_login_info();
+	}
+	else {
+		common_login();
+	}
+});
+$("#login-clos-main-close").click(function() {
+	$("#login-clos-main").hide();
+});
+</script>

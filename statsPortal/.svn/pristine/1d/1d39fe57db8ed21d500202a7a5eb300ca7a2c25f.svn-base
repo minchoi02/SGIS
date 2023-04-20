@@ -1,0 +1,1410 @@
+var bFromData = null; 
+var bFromData2 = null;
+var test =1;
+var checkCd = "00";
+var mapfirst = 0;
+let mapMode = 1;
+let rankMenuFlag = false;
+let isJobFirst = false;
+let joblastPage = 0;
+let selectJobAdmCd = "";
+
+
+
+
+
+$(document).ready(function(){
+	if(accessToken == "" || accessToken == "none" )	accessTokenInfo();
+	
+	$('.sop-bottom.sop-left').css('z-index', 90);
+	
+	bFromData = $('#searchFrom').serialize();
+	bFromData2= $('#togetherSearchFrom').serialize();
+	$(".selected").click(function(){
+		if(!$(this).siblings('.optionContainer').hasClass('active')){
+			$(".selected").siblings('.optionContainer').removeClass('active');
+			$(".selected").removeClass('active');	
+		}
+		$(this).siblings('.optionContainer').toggleClass('active');
+		$(this).toggleClass('active');
+	
+	});
+	
+	$(".rankWrapper").hide();
+	
+	
+	$('.searchRadioOption').click(function(){
+		setLastCode("99999999");
+		var radio  = $(this).find('input[type=radio]');
+		var label  = $(this).find('label').text();
+		var data = radio.val();
+		var name = radio.attr('name');
+		
+		var searchInput = $('#searchFrom').find("input[name='"+name+"']");
+		var parentDiv =  $(this).parent('.optionContainer').parent('.selectBox');
+		
+		if(data == searchInput.val()){
+			$(parentDiv).find('.active').toggleClass('active');	
+			return; 
+		}
+		
+		setFlagF(true);
+		
+		searchInput.val(data);
+		$(parentDiv).find('.active').toggleClass('active');
+		$(parentDiv).find('.selected').find('.text').html(label);
+		
+		if(!checkFormData()){
+			setDetailSetting();
+			$sbrActiveMap.ui.mapList[0].getMapPolygon();
+		}
+		//$map
+		//getReversGeoCode();
+		
+		if(name == "detail_search_theme"){
+			selectAllfalse();
+		}
+		
+		
+		
+		if(data ==2 && name == "category"){
+			$(".sliderContainer").show();
+			setRightbtnMode(2);
+			$('#configTitle').html("조건별 지역찾기");
+			$('.selectBox.icon.area').find("label[for='area1']").text("시군구");
+			$('.selectBox.icon.area').find('.selected ').find('.text').html("시군구");
+			closeLeftAll();
+			clearFilterAll();
+		}else if(data ==1 && name == "category"){
+			$(".sliderContainer").hide();
+			setRightbtnMode(1);
+			$('#configTitle').html("지도로 생태분석");
+			$('.selectBox.icon.area').find("label[for='area1']").text("행정구역");
+			$('.selectBox.icon.area').find('.selected ').find('.text').html("행정구역");
+		}
+		
+	});
+	
+	
+	$('.searchRadioOption2').click(function(){
+		setLastCode("99999999");
+		
+		var radio  = $(this).find('input[type=radio]');
+		var label  = $(this).find('label').text();
+		var data = radio.val();
+		var name = radio.attr('name');
+		
+		var searchInput = $('#togetherSearchFrom').find("input[name='"+name+"']");
+		var parentDiv =  $(this).parent('.optionContainer').parent('.selectBox');
+		
+		if(data == searchInput.val()){
+			$(parentDiv).find('.active').toggleClass('active');	
+			return;
+		}
+		
+		setFlagF(true);
+		
+		 /*if(data == "house"){
+			 
+			 $sbrActiveMap.ui.mapList[0].moveMapCenter($sbrActiveMap.ui.mapList[0].center,7);
+			 $sbrActiveMap.ui.mapList[1].moveMapCenter($sbrActiveMap.ui.mapList[0].center,7);
+		 }
+		 else if(data == "home"){
+			 $sbrActiveMap.ui.mapList[0].moveMapCenter($sbrActiveMap.ui.mapList[0].center,7);
+			 $sbrActiveMap.ui.mapList[1].moveMapCenter($sbrActiveMap.ui.mapList[0].center,7);
+			 
+		 }*/
+		
+		
+		
+		searchInput.val(data);
+		$(parentDiv).find('.active').toggleClass('active');
+	
+		$(parentDiv).find('.selected').find('.text').html(label);
+		setDetailSetting();
+		
+		if(!checkFormData2()){
+			$sbrActiveMap.ui.mapList[1].getMapPolygon();
+		}
+		//$map
+		//getReversGeoCode();
+	});
+	
+	
+	$('#areaSearchBtn').click(function(){
+		/*if($(this).hasClass("active")){
+			$(this).removeClass('active');
+			$('#divAreaPopup').hide();	
+		}else{
+			$(this).toggleClass('active');
+			$('#divAreaPopup').show();
+		}*/
+	});
+	
+	
+	
+	$('#companySearChBtn').click(function(){
+		setLastCode("99999999");
+		$('#divAreaPopup').hide();
+		
+		if($(this).hasClass("active")){
+			$(this).removeClass('active');
+			$('#companyPopup').hide();	
+		}else{
+			$(this).toggleClass('active');
+			$('#companyPopup').show();
+		}
+	});
+	setRightbtnMode(1);
+	
+	$('.bizCodeTitle').click(function(){
+		$(this).find('i').toggleClass('active');
+		$(this).siblings('ul').toggle();
+	});
+	
+	$('.bizCodeOpen').click(function(){
+		var obj = $(this).parent('ul').siblings('.optionAcc');
+		obj.find('.bizCodeTitle').find('i').removeClass('active');
+		obj.find('ul').show();
+	});
+	
+	$('.bizCodeClose').click(function(){
+		var obj = $(this).parent('ul').siblings('.optionAcc');
+		obj.find('.bizCodeTitle').find('i').removeClass('active');
+		obj.find('.bizCodeTitle').find('i').toggleClass('active');
+		obj.find('ul').hide();
+	});
+	
+	$('.bizCodeSelect').click(function(){
+		var data1 = $(this).find('.valueBiz1').val();
+		var data2 = $(this).find('.valueBiz2').val();
+		var name1 = $(this).find('.nameBiz1').val();
+		var name2 = $(this).find('.nameBiz2').val();
+		
+		$('.bizCodeSelect').find('i').removeClass('active');
+		$(this).find('i').toggleClass('active');
+		$('.bizMenuTitle').find('.text').html(name2);
+		//$('#searchFrom').find('input[name=biz_cd]').val(data);
+		$('#searchFrom').find('input[name=kisc_cd_1]').val(data1);
+		$('#searchFrom').find('input[name=kisc_cd_2]').val(data2);
+		$('#searchksic_1_nm').val(name1);
+		$('#searchksic_2_nm').val(name2);
+		
+		
+		$(".selected").siblings('.optionContainer').removeClass('active');
+		$(".selected").removeClass('active');	
+		
+		if(!checkFormData()){
+			setFlagF(true);
+			$sbrActiveMap.ui.mapList[0].getMapPolygon();
+		}
+		
+	});
+	
+	//setRank("00");
+	//설정초기화
+	setDetailSetting();
+	//랭킹 보이는거 초기화
+	rankExpandSet();
+	
+	//$sbrActiveMap.ui.mapList[0].getMapPolygon();
+	
+	$("body").on("click",".colorck li>a",function(){
+		$sbrActiveMap.ui.mapList[0].getMapPolygon();
+		
+	});
+	
+	$("body").on("click",function(){
+		
+		var flag = $('.subTopMenu').siblings('.selectBox ').find('.optionContainer').hasClass('active');
+		
+	});
+	
+	$('#leftMainMenuBtnList').click(function(){
+		reSetMenuBtn();	
+	});
+	$('.mainTopMenu').click(function(){
+		//reSetMenuBtn();	
+	});
+	
+	 
+	
+	
+	 // 세대 옵션 최대 3개 
+    $('input[name="homeGroup"]').on('click', (e) => {
+        let count = $("input:checked[name='homeGroup']").length
+        if(count > 3) {
+            alert('세대 선택은 최대 3개까지 할 수 있습니다.')
+            $(e.target).prop('checked',false);
+        }
+    })
+
+    // 함께보기 주제 선택 변경 UI셀렉트 박스 
+    $('input[name=halfGubun]').on('click', e => {
+        selectBoxChange(e.target);
+    })
+	
+    
+    $('body').mouseover(function(e){
+       var parentOffset = $(this).parent().offset();
+    	
+	   var relX = e.pageX - parentOffset.left;
+	   var relY = e.pageY - parentOffset.top;
+	   
+	   if(isNaN(relX)) return ;
+	   if(isNaN(relY)) return ;
+	   
+	 
+	   if($sbrActiveMap.ui.isPopupFlag == true){
+			   $('.popup.rankResult').css("left",relX+"px");
+			   $('.popup.rankResult').css("top",(relY-130)+"px");
+			   $sbrActiveMap.ui.isPopupFlag = false;
+		   
+	   }
+	   
+    });
+    
+    $('#popupLayout1').mouseover(function(e){
+    	$('.popup.rankResult').show();
+    });
+    
+    $('#popupLayout1').mouseout(function(e){
+    	$('.popup.rankResult').hide();
+    });
+    
+    $('#mapRgn_box').mouseout(function(e){
+    	$('.popup.rankResult').hide();
+    });
+    
+    
+  //설정 탭 
+    $('ul.tab.options li').click((item) => {
+        $(item.target).parent('.tab').children('li').removeClass("on")
+        $(item.target).addClass('on')
+    })
+    
+    
+    var iWidth = $(window).width();
+	var iHeight = $(window).height();
+    
+    
+    if (iHeight >=1080||iWidth >=1920) { //1920*1080
+			$('#div_target').css({
+				position : 'absolute',
+				top : '52.5%',
+				left : '49.5%',
+				width : '20px',
+				height : '20px',
+				margin : $('#div_target').height()/2*-1+"0 0"+$('#div_target').width()/2*-1,
+				"z-index" : '4'
+			});
+			//보고서 출력시 중심점 마커 표시x
+			$("#div_target").attr('data-html2canvas-ignore', 'true');
+		
+	}else{ //1920*1080 아래
+			$('#div_target').css({
+				position : 'absolute',
+				top : '53.5%',
+				left : '49%',
+				width : '20px',
+				height : '20px',
+				margin : $('#div_target').height()/2*-1+"0 0"+$('#div_target').width()/2*-1,
+				"z-index" : '4'
+			});
+			//보고서 출력시 중심점 마커 표시x
+			$("#div_target").attr('data-html2canvas-ignore', 'true');
+	}
+    
+    
+    
+    const sliderTs = new rSlider({
+        target: '#slider',
+        values: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+        range: true,
+        tooltip: true,
+        scale: true,
+        labels: false,
+        set: [0, 100],
+        onChange:(value)=> {
+        	//findRank(value);    
+        }
+    });
+    $(".sliderContainer").hide();
+    
+    
+    $('#jobListDiv').scroll(function(){
+    	var scrollTop = $(this).scrollTop();
+        var innerHeight = $(this).innerHeight();
+        var scrollHeight = $(this).prop('scrollHeight');
+        
+        if (scrollTop + innerHeight >= scrollHeight) {
+        	//최하단
+        	setJobList(selectJobAdmCd,joblastPage);
+        }
+    	
+    });
+    
+    //시작시 지도그리기
+    $sbrActiveMap.ui.mapList[0].getMapPolygon();
+
+	rankViewMode(); // mxpd 2022.11.28 : 초기화면에서 지역순위 보이도록 설정
+});
+
+
+
+function reSetMenuBtn(){
+	$('.selectBox').find('.optionContainer').removeClass('active');
+	$('.selectBox').find('.selected').removeClass('active');
+	
+	$('#rightSelectArea').find('.selectBox ').find('.selected').removeClass('active');
+	
+}
+
+function reSetTopMenu(){
+	
+}
+
+function findRank(){
+	$sbrActiveMap.ui.mapList[0].getMapPolygon();
+}
+
+function helpTabBtn(){
+	closeLeftAll();
+	reSetMenuBtn();
+	setleftBtn(3);
+	$('#helpTab').show();
+}
+
+function checkFormData(){
+	var formData = $('#searchFrom').serialize();
+	
+	sMap.map.selectMapType = $('#searchArea').val();
+	sMap.map.mapCategory = $('#searchCategory').val();
+	
+	
+	if(mapMode != $('#searchCategory').val() && $('#searchCategory').val() !="" ){
+		//$('#')
+		mapMode = $('#searchCategory').val();
+		//$sbrActiveMap.ui.mapList[0].setZoomMap(1);
+	}
+	
+	
+	if(bFromData == formData){
+		return true;
+	}else{
+		bFromData = formData;
+		return false;
+	}
+}
+
+function checkFormData2(){
+	var formData = $('#togetherSearchFrom').serialize();
+	
+	console.log(formData);
+	console.log(bFromData2);
+	
+	if(bFromData2 == formData){
+		return true;
+	}else{
+		bFromData2 = formData;
+		return false;
+	}
+}
+
+
+function naviPopupSelect(obj){
+	console.log(obj);
+}
+
+function rankViewMode() {
+  $(".navRank").toggleClass('mini')
+  ////$(".naviWrapper").toggleClass('mini');
+  $(".rankWrapper").toggle();
+  resetSidoWrapper();
+  reSetMenuBtn();  
+}
+
+
+
+function rankExpand() {
+	
+	
+	if (!$(".rankWrapper").hasClass('isScroll')) {
+        $(".rankWrapper, .naviWrapper").addClass('isScroll')
+        $('.rankList.table li').show();
+        $(".rankBtn .btnLine p").text("축소보기");
+        rankMenuFlag = true;
+        rankResize();    
+    } else {
+        $(".rankWrapper, .naviWrapper").removeClass('isScroll')
+        $(".rankBtn .btnLine p").text("펼쳐보기");
+
+        //$('.rankList.table li').each(function (index, item) {
+        	//if(index> 10 )  $(item).hide();
+        //});
+        
+        rankMenuFlag = false;
+        $('.rankWrapper').css("height","");
+    }
+	 
+}
+
+function selectRankLi(obj){
+	$('#ranklistUl').find('li').removeClass("active");
+	$(obj).addClass("active");
+	
+}
+
+function rankExpandSet(){
+	
+	var rankCount =$('.rankList.table li').length; 
+	if(rankCount <= 10){
+		$('.rankBtn').hide();
+		return;
+	}else{
+		$('.rankBtn').show();
+	}
+		
+}
+
+function rankResize(){
+	 let wrapper = $('.rankWrapper');
+     var rankCount =$('.rankList.table li').length;
+     var rankSize = rankCount*35;
+     wrapper.css("height",rankSize +"px");
+}
+
+
+
+function resetSidoWrapper(){
+	$(".rankWrapper, .naviWrapper").removeClass('expand1')
+    $(".rankBtn .btnLine p").text("펼쳐보기");
+
+    $('.rankList.table li').each(function(index, item){
+      if($(item).hasClass('add')) $(item).remove();
+    });
+}
+
+
+function getCodeList(code){
+	
+	jQuery.ajax({
+		type:"POST",
+		url: "/view/sbrStats/codeList",
+		data: {codeId: code},
+		dataType:"json",
+		async: true,
+		success:function(data){
+			
+			return data;
+		},
+		error:function(data) {
+			
+			return "faill";
+		}
+	});
+	
+}
+
+//설정 토글
+function toggleSetting(){
+	reSetMenuBtn();
+    $(".leftContent").not('.settingBox').hide();
+    $(".filter li.setting button").toggleClass('active');
+    $(".settingBox").toggle();
+}
+
+
+//지역랭킹 아이템 클릭
+function showRankDetail(data,x,y,title){
+    // 지역랭킹 오버 일때 나오는 팝업 화면
+	closeLeftAll();
+	reSetMenuBtn();
+	$('#loadDiv').show();
+	
+	if(!isNaN(x) && x != ""){
+		$sbrActiveMap.ui.mapList[0].moveMap(x,y);
+		setXY(x,y);
+	}
+	
+	var flag = false;
+	
+	sMap.map.rankData.forEach(function(item,index){
+		if(item.bord_cd == data) flag = true;
+	});
+	
+	if(!flag){
+		$('#loadDiv').hide();
+		alert("기업 수가 3미만인 지역은 지역분석을 제공하지 않습니다.");
+		return ;
+	}
+	
+
+	$('#searchAdmCd').val(data);
+	sMap.map.selectAdmCd = data;
+	
+	// mxpd 2022.11.13 : "leftContent rankResult popup" set data
+	let selectedRankData = sMap.map.rankData.find(item => item.bord_cd == data);
+	//console.log(selectedRankData);
+
+	setTimeout(function() {
+		setLeftSideData(selectedRankData);
+	}, 50);
+	
+	setTimeout(function() {
+		setLeftSideData2(selectedRankData);
+	}, 50);
+	
+	isJobFirst = true;
+	joblastPage = 0;
+	selectJobAdmCd = data;
+	setJobList(data,0);
+	
+	setChartAdmCd(data);
+	settChartTitle(title);
+	
+	setTimeout(function() {
+		getLeftCartData(data);
+	}, 50);
+	
+	setTimeout(function() {
+		$('#loadDiv').hide();
+	}, 5000);
+	
+	selectRankLi($('#rankScroll'+data));
+	
+}
+
+function setJobList(code,page){
+	
+	
+	var rankData = sMap.map.rankData;
+	var addr = "";
+	
+	rankData.forEach(function(item,index){
+		if(item.bord_cd == code){
+			addr = item.addr;
+		}
+	});
+	
+	$.ajax({
+		method: "GET",
+		async: true,
+		url: "/view/sbrStats/sbrjobList",
+		data: {"adm_cd":code,"pageNumber":joblastPage},
+		dataType: "json",
+		success: function(res) {
+			
+			var titlehtml = "";
+			
+			var totalCount = res[0].total;
+			
+			if(isJobFirst){
+				$('#jobCountSpan').html(getCash(totalCount)+"건");
+				
+				titlehtml += "<article class=\"title\">";
+				titlehtml += "	<span class=\"bold\">"+addr+"</span>의<br>선택 업종 관련 <span  class=\"bold\">"+getCash(totalCount)+"건</span> 구인정보목록";
+				titlehtml += "</article>";
+				
+				$('#jobListDiv').html("");
+				$('#jobListDiv').append(titlehtml);
+				
+				var endBtn ="<div class=\"close\" onclick=\"closeLeft(this)\"><i class=\"closeBtn\"></i></div>";
+				$('#jobListDiv').append(endBtn);
+				
+			}
+			
+			
+			res.forEach(function(item,index){
+				
+				var jobLink = "";
+				if(item.jo_data_div == "W"){
+					jobLink ="https://www.work.go.kr/empInfo/empInfoSrch/detail/empDetailAuthView.do?callPage=detail&wantedAuthNo="+item.jo_data_key;
+				}else if(item.jo_data_div == "I"){
+					jobLink ="https://job.incruit.com/jobdb_info/jobpost.asp?job="+item.jo_data_key;
+				}else if(item.jo_data_div == "S"){
+					jobLink ="https://www.saramin.co.kr/zf_user/jobs/relay/view?rec_idx="+item.jo_data_key; 
+				}
+
+				
+				var endDAte = "'"+item.clos_dt.substring(2,4)+"."+item.clos_dt.substring(5,7)+"."+item.clos_dt.substring(7,9);
+				
+				var html = "";
+				html += "<article class=\"content\">";
+				html += "  <a href=\""+jobLink+"\" target=\"_blank\"><p class=\"title\">"+item.recru_nm+"</p></a>";
+				html += "  <ul class=\"info\">";
+				html += "    <li>"+item.corp_nm+"</li>";
+				html += "    <li class=\"date\">"+endDAte+" 마감</li>";
+				html += "  </ul>";
+				html += "  <ul class=\"tagWrap\">";
+				html += "    <li>"+item.career_nm+"</li>";
+				html += "    <li>"+item.acdmcr_nm+"</li>";
+				html += "  </ul>";
+				html += "</article>";
+				$('#jobListDiv').append(html);
+				
+				joblastPage = item.job_row_number;
+			});
+			
+			if(isJobFirst){
+				$('#jobListDiv').scrollTop(0);
+			}
+			
+			isJobFirst= false;
+			 
+			
+		}
+	});
+
+}
+
+// mxpd 2022.11.13 : 지역랭킹 클릭 시 왼쪽 팝업 메뉴 open & fill data
+function setLeftSideData(data) {
+	var formData = $('#searchFrom').serialize();
+	$(".leftContent.rankResult").show();
+	
+	// 1. 선택된 도시, 연도, 업종 binding
+	$('#regionName').html(data.addr);
+	settChartTitle(data.addr);
+	
+	$('#year').html(data.base_year);
+
+	var selectedBizName = data.kisc_cd_1 == '0' ? '전체업종' :  $('.selected.bizMenuTitle').text();
+	$('#bizName').html(selectedBizName); // item.뭐를가져와야 업종코드지?
+
+	// d. 청장년인구 증가율
+	//setYouthCountSignal(data);
+
+	// 0. leftSideMenu 에 필요한 Data를 가져온다.
+	$.ajax({
+		method: "GET",
+		async: true,
+		url: "/view/sbrStats/sbrRegionSignalDataList",
+		data: formData,
+		dataType: "json",
+		success: function(res) {
+
+			// a. 100대 대기업 위치
+			setRankSignal(res);
+			// c. 개폐업 비율
+			setOpenCloseSignal(res);
+		}
+	});
+	
+}
+
+function setLeftSideData2(data) {
+	var formData = $('#searchFrom').serialize();
+
+	$.ajax({
+		method: "GET",
+		async: true,
+		url: "/view/sbrStats/sbrYouthCount",
+		data: formData,
+		dataType: "json",
+		success: function(res) {
+
+			//console.log(res);
+			
+			//장년층
+			 var peop = res.ymage;
+			 var admCd = data.bord_cd;
+			 //console.log(data.bord_cd);
+			 var data1 = "";
+			 peop.forEach(function(item,index){
+				 if(item.bord_cd == admCd){
+					 data1 = item;
+				 }
+			 });
+			 
+			 
+			 var html = "";
+			     html += "청장년 인구" + getUpDownTitle(data1);
+			     html += "<span class=\"point\" id=\"youthRatio\">"+data1.base_val+"%</span>"+getUpDownTitle2(data1);
+			   
+			$('#peopleLeftTitle').html(html);
+			
+			
+			//토지가격 현황
+			 var lnd = res.lnd;
+			 var data2 = "";
+			 lnd.forEach(function(item,index){
+				 if(item.bord_cd == admCd){
+					 data2 = item;
+				 }
+			 });
+			 
+			 
+			 var html2 = "";
+			     html2 += "토지 공시지가" + getUpDownTitle(data2);
+			     html2 += "<span class=\"point\">"+getCash(Math.ceil(data2.base_val/10000))+"만원</span>"+getUpDownTitle2(data2);
+			$('#areaLeftTitle').html(html2);
+			
+			
+		}
+	});
+	
+}
+
+function getUpDownTitle(data){
+	if(data.base_key == "KIND1") return "3년 연속 평균";
+	else if(data.base_key == "KIND2") return "2년 연속 평균";
+	else if(data.base_key == "KIND3") return "전년대비 평균";
+	else if(data.base_key == "KIND4") return "전년대비 평균";
+	else if(data.base_key == "KIND5") return "평균";
+	else if(data.base_key == "KIND6") return "없음";
+	return data;
+}
+
+function getUpDownTitle2(data){
+	if(data.base_key == "KIND1") return "증가 추세";
+	else if(data.base_key == "KIND2") return "증가 추세";
+	else if(data.base_key == "KIND3") return "증가";
+	else if(data.base_key == "KIND4") return "감소";
+	else if(data.base_key == "KIND5") return "";
+	else if(data.base_key == "KIND6") return "";
+	return data;
+}
+
+
+
+function setYouthCountSignal(data) {
+	// data.base_year, bord_type, bord_cd 로 base_year-4 개년도 데이터를 가져와서 비교 후 최종 조건 및 데이터를 화면에 도시
+	// 청장년 인구 "3년 연속 99.9% 증가 추세", 청장년 인구 2년 연속 99.9% 증가 추세, 청장년 인구 전년대비 99.9% 증가, 청장년 인구 전년대비 99.9% 감소
+	// 지역 인구 중 청장년 인구 비율 12.4%  차지, 청장년 인구 없음
+
+	// 0. leftSideMenu 에 필요한 Data를 가져온다.
+	var formData = $('#searchFrom').serialize();
+	$.ajax({
+		method: "GET",
+		async: true,
+		url: "/view/sbrStats/sbrYouthCount",
+		data: formData,
+		dataType: "json",
+		success: function(res) {
+			console.log(res); 
+			let condition = getConditionByValue(res, data.base_year);
+			//[{"base_year :"2017", "ymage_co" : 55361}, ...]
+			var preText = '청장년 인구';
+			var ratioText = '12.3%';
+			var encText = '증가';
+			
+
+
+			var html = "";
+			html += "<span>";
+			html += "청장년 인구 3년 연속"; // 이거 바꿔주고
+			html += "<span class=\"point\">" + ratioText + "</span>"; // 수치 바꿔주고
+			html += "증가 추세"; // 증가 감소 바꿔주고
+			html += "</span>";
+
+			$('#youthPeopleSignal').empty(); // div 자식요소 날리고
+			$('#youthPeopleSignal').append(html); // span 추가
+		}
+	});
+}
+
+function getConditionByValue(data, base_year) {
+	var result = 0
+	var maxYouth = data.reduce((previous, current) => {
+		return previous.ymage_co > current.ymage_co ? previous.ymage_co : current.ymage_co;
+	});
+	var countArray = data.flatMap(x => x.ymage_co);
+	if(data.length > 0){
+		// [0] > [1] and [1] > [2] and [2] > [3] then condition1
+	}
+	return result;
+}
+
+function setOpenCloseSignal(res) {
+
+	let trendPrefix = '개업과 폐업 기업이 없는 정체 상태';
+	let trendRatio = 0.0;
+	if (res.ent_opbiz_co > res.ent_clsbiz_co) {
+		trendPrefix = '개업이 폐업보다';
+		trendRatio = res.ent_tot / res.ent_clsbiz_co;
+	} else if (res.ent_opbiz_co < res.ent_clsbiz_co) {
+		trendPrefix = '폐업이 개업보다';
+		trendRatio = res.ent_tot / res.ent_clsbiz_co;
+	} else if (res.ent_opbiz_co == res.ent_clsbiz_co) {
+		if (res.ent_opbiz_co > 0) {
+			trendPrefix = '개업과 페업 기업수가 비슷한 정체 상태';
+		} else {
+			// open, close = 0
+		}
+	} else if (res.ent_opbiz_co > 0 && res.ent_clsbiz_co == 0) {
+		trendPrefix = '폐업이 없는 개업률';
+		trendRatio = res.ent_tot / res.ent_clsbiz_co;
+	} else if (res.ent_opbiz_co == 0 && res.ent_clsbiz_co > 0) {
+		trendPrefix = '개업이 없는 폐업률';
+		trendRatio = res.ent_tot / res.ent_clsbiz_co;
+	} else {
+	}
+
+	let trendRatiotext = String(trendRatio.toFixed(1)) + '%';
+	$('#openCloseTrend').html(trendPrefix);
+	$('#openCloseRatio').html(trendRatiotext);
+}
+
+function setRankSignal(res) {
+	if (res.ltrs_sls_rank100_co > 0) {
+		$('#topBizSize').html('매출 100대 대기업');
+		$('#topBizCount').html(res.ltrs_sls_rank100_co);
+	} else if (res.ltrs_sls_rank500_co > 0) {
+		$('#topBizSize').html('매출 500대 대기업');
+		$('#topBizCount').html(res.ltrs_sls_rank500_co);
+	} else if (res.ltrs_sls_rank1000_co > 0) {
+		$('#topBizSize').html('매출 1000대 대기업');
+		$('#topBizCount').html(res.ltrs_sls_rank1000_co);
+	} else {
+		// 중견, 중소, 소상공인 중 기업매출 합계가 가장 높은 기업규모, 비중
+		var array = [res.mident_sls_amt, res.smlpz_sls_amt, res.smltrdids_sls_amt];
+		var maxAmt = array.reduce((previous, current) => {
+			return previous > current ? previous : current;
+		});
+		console.log(maxAmt);
+		$('#topBizSize').html('중견,중소,소상공인');
+		$('#topBizCount').html('xxx');
+	}
+}
+
+function optionDetail(obj){
+	
+	
+	var tab = $(obj).parents("li").parents('ul').siblings('.tab');
+	var subData = "";
+	var subOjb = "";
+	if(tab.length >0 ){
+		subOjb = tab.find('.on').find('input');
+		subData = subOjb.val();
+	}
+	
+	
+	
+	resetDitelOption($(obj).attr("class"),$(obj).attr("type"));
+	
+	if(subOjb != ""){
+		tab.children('li').removeClass("on")
+		subOjb.parents("li").addClass("on");
+		
+		subData = subData+"_";
+	}
+	
+	var selectData = [];
+	
+	if($(obj).attr("type") =="checkbox"){
+		var name = $(obj).attr("name");
+		$('input[name="'+name+'"]:checked').each(function(){
+			selectData.push(subData+$(this).val());
+		});
+	}else{
+		var mainData = $(obj).val();
+		selectData.push(subData+mainData);
+	}
+    	
+	$('#searchOptionList').val(selectData);
+	
+	
+	if(!checkFormData()){
+		setFlagF(true);	
+		$sbrActiveMap.ui.mapList[0].getMapPolygon();
+	}
+}
+
+
+function resetDitelOption(className,type){
+	
+	var index = 9;
+	var flag = true;
+	if(type == "checkbox") flag = false;
+	
+	for(var i=1; i<=9 ;i++){
+		var name = 'optionInput'+i;
+		if(name != className )$('.'+name).prop("checked",false);
+	}
+	
+	var tab = $('ul.tab.options li').parent('.tab');
+	
+		tab.children('li').removeClass("on");
+		tab.each(function(){
+			$(this).children('li').eq(0).addClass("on");
+		})
+}
+
+function selectAllfalse(){
+	
+	var index = 9;
+	
+	for(var i=1; i<=9 ;i++){
+		var name = 'optionInput'+i;
+		$('.'+name).prop("checked",false);
+	}
+	
+	var tab = $('ul.tab.options li').parent('.tab');
+	
+	tab.children('li').removeClass("on");
+	tab.each(function(){
+		$(this).children('li').eq(0).addClass("on");
+	})
+	
+}
+
+
+//지역랭킹 결과조회 지역시그널 클릭 이벤트
+function openSignal(obj){
+    const target =$(obj).data('content');
+
+    $('.rankResult .signal li').removeClass('active')
+    $(obj).addClass('active');
+
+    $(".leftSub").hide();
+    $(".leftSub").each((i, item) => {
+        if($(item).data('content') == target) $(item).show();
+    })
+}
+
+
+//종합분석 탭
+function layerBoxTab(obj){
+    var tabName = $(obj).data('tab');
+    $(".layerLg .menuWrap .tab li").removeClass('active');
+    $(obj).addClass('active');
+    $('#allResult .container > .content').each((i, item) => {
+        $(item).hide();
+        if(tabName == $(item).data('content')) $(item).show();
+    })
+    
+    if($(obj).data("tab") == "company"){
+    	setMapChart();
+    }
+}
+
+
+//종합분석 > 공간분석 > 맵 레이어
+function openDifferAreaMap(){
+    $(".differArea .mapArea").show();
+    
+    setAreaMpa();
+}
+function closeDifferAreaMap(){
+    $(".differArea .mapArea").hide();
+}
+ 
+
+
+//좌측 컨텐츠 닫기
+function closeLeft(leftContent){
+    // 설정 버튼 초기화
+    $(".filter li.setting button").removeClass('active');
+    $(leftContent).closest('.leftContent, .leftSub').hide();
+
+}
+
+//팝업 닫기
+function closePopup(popup){
+    $(popup).closest('.popup').hide();
+}
+
+function closeResult(){
+	
+	$('#mainTabBtn').click();
+    $(".layerOverlay").hide();
+    $("#allResult").hide();
+}
+
+//종합분석 팝업 열기
+function showAllResult(){
+    $(".layerOverlay").show();
+    $("#allResult").show();
+    
+    setChart();
+
+}
+
+//좌측 컨텐츠 전체 닫기(초기화)
+function closeLeftAll(){
+    $(".leftContent").hide();
+    $('.closeBtn').click();
+}
+
+function clearFilterAll() {
+	console.log("filter result");
+}
+
+
+function setNaviPopupArea(obj){
+
+}
+
+
+
+
+
+
+function getCash(str){
+	if(str == null || str == 0) return 0;
+	else if(!isNaN(str))return str.toLocaleString(navigator.language);
+	else          return 0;
+}
+
+
+function setCompayMap(){
+	
+	setleftBtn(1);
+	setRightbtnMode(1);
+	reSetMenuBtn();
+	$sbrActiveMap.ui.mapList[0].setZoomMap(1);
+	
+	 $(".navRank").removeClass('mini');
+	 $(".navRank").addClass('mini');
+	
+	$('.mainTopMenu').show();
+	$('.subTopMenu').hide();
+	$('.mainTopMenuDiv').css("width","calc(100% - 80px)");
+	$('.subTopMenuDiv').hide();
+	
+	
+	$('#mapRgn_box').css("width","100%");
+	$('#togetherMapDiv').hide();
+	//$sbrActiveMap.ui.createMap("mapRgn_2", 1);
+	
+	$('.dataWithView').hide();
+	$('#mapRgn_box2').hide();
+	
+	$('.selectBox.icon.area').show();
+	
+	$sbrActiveMap.ui.mapList[0].update();
+	$sbrActiveMap.ui.isTogether = false;
+	//$sbrActiveMap.ui.mapList[1].remove();
+	
+	//$sbrActiveMapApi.event.mapUnSyncEvent();
+	rankViewMode();
+}
+
+// mxpd 2022.11.25 : bizname by code
+// function getBizNameByCode(code1, code2) {
+
+// }
+
+
+function setTogetherMap(){
+	reSetMenuBtn();
+	setFlagF(true);
+	setLastCode("9999");
+	//카테고리 초기화
+	$('#searchCategory').val("1");
+	$("#categoryTitleSpan").html("지도로 생태분석");
+	$(".sliderContainer").hide();
+	sMap.map.mapCategory = 1;
+	
+	$sbrActiveMap.ui.isTogether = true;
+	setFlagF(true);
+	
+	//구역 초기화
+	$('#searchArea').val(1);
+	
+	$('.selectBox.icon.area').find('.selected ').find('.text').html("행정구역");
+	$('.selectBox.icon.area').hide();
+	closeLeftAll();
+	setleftBtn(2);
+	setRightbtnMode(3);
+	
+	var center = $sbrActiveMap.ui.mapList[0].center;
+	
+	/*if($sbrActiveMap.ui.mapList[0].zoom < 4){
+		$sbrActiveMap.ui.mapList[0].moveMapCenter($sbrActiveMap.ui.mapList[0].center,4);
+	}*/
+	
+	$sbrActiveMap.ui.mapList[0].setZoomMap(1);
+	
+	
+	$('#mapRgn_box2').show();
+	
+	$('.mainTopMenu').hide();
+	$('.subTopMenu').show();
+	$('.mainTopMenuDiv').css("width","calc(50% - 40px)");
+	$('.subTopMenuDiv').show();
+	
+	
+	$('#mapRgn_box').css("width","50%");
+	$('#togetherMapDiv').show();
+	
+	if($sbrActiveMap.ui.mapList[1] == null ){
+		$sbrActiveMap.ui.createMap("mapRgn_2", 1);
+	}
+	
+	$('.dataWithView').show();
+	
+	 $(".navRank").removeClass('mini')
+	 $(".rankWrapper").hide();
+	 
+	//$('.sop-control-container').hide();
+	
+	//좌표 재설정
+	$sbrActiveMap.ui.mapList[0].getMapPolygon();
+	$sbrActiveMap.ui.mapList[0].update();
+	
+	//moveMap
+	$sbrActiveMap.ui.mapList[1].moveMapCenter($sbrActiveMap.ui.mapList[0].center,1);
+	
+	
+
+	
+
+	
+	
+	//$sbrActiveMapApi.event.mapSyncEvent();
+	
+	
+}
+
+function  setleftBtn(number){
+	$('#leftMainMenuBtnList').find("li").removeClass("active");
+	
+	$('#leftMainMenuBtnList').find("li").eq(number).addClass("active");
+}
+
+
+function showDataWithViewPopup(){
+	
+
+	
+	var detailSearchTheme  = ["","기업이많은","개업이 많은","폐업이 많은","활동기업이 많은","비활동기업이 많은","생존율이 높은","영업기간이 높은","성장기업이 높은"];
+	var detailSearchTheme2 = ["","전체 기업수","전체 개업수","전체 폐업수","전체 활동기업수","전체 비활동기업수","평균 생존율","평균 영업기간","평균 성장율"];
+	var detailSearchTheme3 = ["","기업","개업","폐업","활동기업","비활동기업","생존율","영업기간","성장율"];
+
+	
+    $(".layerOverlay").show();
+    $("#dataWithViewPopup").show();
+    $('#loadDiv').show();
+    //팝업 타이틀 변경
+    
+    var adminCode = $('#searchAdmCd').val();
+    var mainTitle = "전국";
+    if(adminCode != "00"){
+    	var arearInfo = getReCode();
+    	if(adminCode.length == 5 )mainTitle = arearInfo.result[0].sido_nm;
+    	else if(adminCode.length == 7 || adminCode.lenght == 8 )mainTitle = arearInfo.result[0].sido_nm+" "+arearInfo.result[0].sgg_nm;
+    }
+    $('#toPopupTitle1').html(mainTitle+" 데이터 함께보기");
+    $('#toPopupChrtTitle1').html(mainTitle);
+    
+    
+    //detailSearchTheme;
+    var theme = $('#searchTheme').val();
+    var theme2 = $('#togetherSearchFrom').find("input[name=halfGubun]").val();
+    
+    $('#toPopupTitle2').html(detailSearchTheme[theme]);
+    $('#toPopupTitle3').html(detailSearchTheme2[theme]);
+    $('#toPopupTitle4').html(detailSearchTheme3[theme]);
+    
+    
+    
+    setTimeout(function() {
+    	getToChartData();
+	}, 50);
+    
+}
+function hideDataWithViewPopup(){
+	$(".layerOverlay").hide();
+    $("#dataWithViewPopup").hide();
+}
+
+
+
+
+
+selectBoxChange = (obj) => {
+
+    const group =  {
+            "people":['year','sex','age'],
+            "home":['year','homeGroup'],
+            "house":['year','type','bulidYear','allAreaSize'],
+            "other":['farmType','year','sexType2','age']
+        }
+
+        let filterName = $(obj).data('filter')
+        $("#rightSelectArea > li").not('.halfGubun').hide();
+
+        group[filterName].forEach((item) => {
+            $("#rightSelectArea > li").each((i, target) => {
+                if(target.classList.contains(item))  $(target).show()
+            })
+        })
+
+}
+
+let checkFalg1 = false;
+let checkFalg2 = false;
+let checkFalg3 = false;
+let checkFalg4 = false;
+let checkFalg5 = false;
+
+// 연령 선택 옵션 토글
+toggleCustomOption = (param, type, obj) => {
+
+    switch (type) {
+        case "age" :
+            if(param == 'hide') { // 선택하지 않음
+                $('.selectBox.age .tab').removeClass('active');
+                $('.selectBox.age ul.tabContent li').not('.btnWrap').hide()
+                checkFalg1 = false;
+                
+            } else if (param == 'show') { // 연령선택
+                $('.selectBox.age ul.tab').addClass('active');
+                $('.selectBox.age ul.tabContent li:first-child').show();
+                checkFalg1 = true;
+                makeAgeSlider('ageSlider','ageSliderContent')
+            }
+            break;
+        case "allAreaSize" :
+            if(param == 'hide'){
+                $(obj).closest('.selectBox').find('.tabContent li:first-child').hide();
+            }
+             else if (param == 'show'){
+                $(obj).closest('.selectBox').find('.tabContent li:first-child').show();
+                makeAgeSlider('allAreaSizeSlider','allAreaSizeSliderContent')
+             }
+            break;
+        default: 
+            if(param == 'hide')          $(obj).closest('.selectBox').find('.tabContent li:first-child').hide();
+             else if (param == 'show')    $(obj).closest('.selectBox').find('.tabContent li:first-child').show();
+            break;
+    }
+    
+    
+    if(param == 'hide'){
+    	//$('#togetherSearchFrom').find("input[name=age_from]").val("");
+    	//$('#togetherSearchFrom').find("input[name=age_to]").val("");
+    	checkFalg = false;
+    }
+}
+
+
+
+// 연령 선택 탭 
+selectAgeTab = (obj, param = "slider") => {
+    let tabName = param
+    $(".selectBox .tab li").removeClass('active')
+    $(obj).addClass('active');
+    
+    if(param == 'slider' ) makeAgeSlider('sliderSelect','sliderContent');
+
+    $(obj).closest('.tab').siblings('.tabContent').children('li').each((i, item) => {
+        $(item).hide();
+        if($(item).data('content') == tabName) $(item).show();
+        if($(item).hasClass('btnWrap')) $(item).show();
+        checkFalg
+    })
+}
+
+// 슬라이더 생성
+makeAgeSlider = (id,parent="") => {
+    // 돔 있는지 확인
+    if($("#"+id).length < 1) { // 슬라이더 객체 생성
+
+        let sliderInput = document.createElement('input');
+        sliderInput.setAttribute('id',id)
+        sliderInput.setAttribute('type','text');
+        $("."+parent).append(sliderInput);
+
+        new rSlider({
+            target: '#'+ id,
+            values: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+            range: true,
+            tooltip: true,
+            scale: true,
+            labels: false,
+            set: [10, 90],
+            onChange:(value)=> {
+            	var age = value.split(",");
+            	$('#minAge').val(age[0]);
+            	$('#maxAge').val(age[1]);
+            	checkFalg = true;
+            }
+        });
+        
+    } 
+}
+
+function closeCustomSelectBox(obj,type){
+	
+	
+	
+	
+	if(obj ==1){	
+		
+		if(type == "close"){
+			$('.optionContainerDiv').removeClass('active');
+		}if(checkFalg1){
+			$('#togetherSearchFrom').find("input[name=age_from]").val($('#minAge').val());
+			$('#togetherSearchFrom').find("input[name=age_to]").val($('#maxAge').val());	
+		}else{
+			$('#togetherSearchFrom').find("input[name=age_from]").val("");
+			$('#togetherSearchFrom').find("input[name=age_to]").val("");
+		}
+		
+		
+	}else{
+		
+	}
+	
+	
+	
+	if(!checkFormData2()){
+		$sbrActiveMap.ui.mapList[1].getMapPolygon();
+	}
+	
+	
+}
+
+
+
+//지역분석 기업규모별 매출액
+rankStatusTab = (obj) => {
+    $(obj).parent('.tab').children('div').removeClass('active');
+    $(obj).addClass('active')
+    const tabName = $(obj).data('tab');
+    $(obj).closest('ul').children('.tabContent').each((index, item) => {
+        $(item).hide();
+        if(tabName == $(item).data('content')) $(item).show();
+    })
+    
+    if(tabName == "company")leftCompanyChart(1);
+    else if(tabName == "cost")leftCompanyChart(2);
+    else if(tabName == "people")leftCompanyChart(3);
+    else if(tabName == "ceo")leftCartDataCompanyPeople(1);
+    else if(tabName == "worker")leftCartDataCompanyPeople(2);
+    
+    
+}
+
+
+function show_helpSub(){
+	$(".leftSub.helpIndicator").show();
+	$('.leftSub.sbrHelp').hide();
+	$('.leftSub.withHelp').hide();
+}
+
+function show_sbrHelp () {
+	$(".leftSub.helpIndicator").hide();
+	$('.leftSub.sbrHelp').show();
+	$('.leftSub.withHelp').hide();
+}
+function show_withHelp () {
+	$(".leftSub.helpIndicator").hide();
+	$('.leftSub.sbrHelp').hide();
+	$('.leftSub.withHelp').show();
+}
+
+function close_helpSub(obj) {
+    $(obj).closest('.helpSub').hide();
+}
+
+function setaaa(){
+	//sliderContainer
+}
+
+
+
+

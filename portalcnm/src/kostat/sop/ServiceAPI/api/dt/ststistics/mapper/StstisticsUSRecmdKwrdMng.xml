@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ststistics">
+    <select id="getStstisticsUSLifeCycleList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+    	SELECT 
+    		LFE_CYCLE_ID
+    		, LFE_CYCLE_NM
+		FROM SRV_DT_CTLG_LFE_CYCLE_LIST 
+		WHERE USE_YN = 'Y'
+    </select>
+    
+    <select id="getMappingInterestsList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+    	SELECT
+    		STAT_DISTANCE_ID
+    		, STAT_DISTANCE_NM
+		FROM SRV_DT_CTLG_DISTANCE_LIST 
+		WHERE 
+			USE_YN = 'Y'
+			<if test='lifeCycleId != "" and lifeCycleId != null'>
+				AND STAT_DISTANCE_ID IN (
+					SELECT 
+						STAT_DISTANCE_ID 
+					FROM SRV_DT_CTLG_CYCLE_DISTANCE 
+					WHERE LFE_CYCLE_ID = #{lifeCycleId}
+				)
+			</if>
+    </select>
+    
+	<select id="getSearchKwrdList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+    	SELECT 
+			SEARCH_WORD
+			, COUNT(SEARCH_WORD) AS CNT 
+		FROM (
+			select * from(
+				SELECT 
+					TO_CHAR(SEARCH_TS, 'YYYYMMDD') AS DATETEMP
+					,SEQ
+					,SEARCH_WORD
+					,LFE_CYCLE_1_ID
+					,LFE_CYCLE_2_ID
+					,STAT_DSTNC_1_ID
+					,STAT_DSTNC_2_ID
+					,SEARCH_TS
+					,REL_SEARCH_WORD
+					,SIDO_CD
+					,SGG_CD
+					,EMDONG_CD
+				FROM SRV_DT_CTLG_SEARCH_KWRD_LIST
+			)
+			WHERE 
+				(
+				LFE_CYCLE_1_ID = #{lifeCycleId}
+					OR LFE_CYCLE_2_ID = #{lifeCycleId}
+				)
+				<if test='interestsId != "" and interestsId != null'>
+					AND 
+					(
+					STAT_DSTNC_1_ID = #{interestsId}
+						OR STAT_DSTNC_2_ID = #{interestsId}
+					)
+				</if>
+				<if test='startDate != "" and startDate != null and endDate != "" and endDate != null'>
+					AND DATETEMP BETWEEN #{startDate} AND #{endDate}
+				</if>
+		)		
+		GROUP BY SEARCH_WORD 
+		ORDER BY CNT DESC LIMIT 10
+    </select>
+    
+    <select id="getRecmdKwrdList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+    	SELECT 
+    		RECMD_KWRD_1
+    		, RECMD_KWRD_2
+    		, RECMD_KWRD_3
+    		, RECMD_KWRD_4
+    		, RECMD_KWRD_5
+		FROM 
+			SRV_DT_CTLG_CYCLE_RECMD_KWRD
+		WHERE LFE_CYCLE_ID = #{lifeCycleId}
+			AND STAT_DISTANCE_ID = #{interestsId}
+    </select>
+    
+    <select id="getTrendKwrdList" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+        SELECT 
+			TREND_SRCHWRD
+			,ACC_CNT
+			,CASE WHEN COLCT_SOURCE_DIV = '01' THEN '구글' ELSE '네이버' END AS TREND_KWRD_SOURCE
+			,PBLICTE_DT
+		FROM SRV_DT_CTLG_TREND_SRCHWRD_LIST
+		<if test='startDate != "" and startDate != null and endDate != "" and endDate != null'>
+		WHERE PBLICTE_DT BETWEEN #{startDate} AND #{endDate}
+		</if>
+        ORDER BY ACC_CNT DESC LIMIT 10
+    </select>
+    
+	<select id="getCtlgMainKwrdList" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		select
+			ctlg_main_kwrd_serial
+			, ctlg_main_kwrd
+			, to_char(mod_ts, 'YYYY-MM-DD') as mod_date
+		from SRV_DT_CTLG_MAIN_KWRD_LIST
+		where
+			use_yn = 'Y'
+			<if test='startDate != "" and startDate != null and endDate != "" and endDate != null'>
+				and mod_ts between to_date(#{startDate}, 'YYYYMMDD') and to_date(#{endDate}, 'YYYYMMDD')
+			</if>
+			<if test='lifeCycleId != "" and lifeCycleId != null'>
+				and ctlg_main_kwrd_serial in
+					(
+						select distinct ctlg_main_kwrd_serial from SRV_DT_CTLG_MAIN_KWRD_DATA
+						where stat_data_id in
+							(
+								select stat_data_id from SRV_DT_CTLG_DISTANCE_DATA
+								where LFE_CYCLE_ID = #{lifeCycleId}
+								<if test='interestsId != "" and interestsId != null'>
+									and STAT_DISTANCE_ID = #{interestsId}
+								</if>
+							)
+					)
+			</if>	
+		order by mod_ts desc
+		limit 10	
+	</select>
+	
+</mapper>

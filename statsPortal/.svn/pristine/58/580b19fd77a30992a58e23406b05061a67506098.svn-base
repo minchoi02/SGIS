@@ -1,0 +1,74 @@
+// 지역변화분석지도 신규 펑선 작성
+// 작성자 : 고경남
+// 작성일 : 22.10.13
+
+$(function () {
+
+    toggleExtendBoard(document.getElementById('btn_extend')) // 초기 확장보드 설정
+    
+})
+
+
+// 우리동네 상황판 토글 
+toggleExtendBoard = (obj) => {
+
+    const extendBoard = document.getElementById('extendBoard') // 확장보드
+    let tabName = $(obj).data('attr')
+    let boardSts = extendBoard.classList.contains('active') // true : open , false: close;
+
+    if(!boardSts) {
+        extendBoard.classList.add('active');
+        $(".control_foot").addClass('extend') 
+    } 
+    
+    
+    // 버튼 분기가 내용 안에 컨텐츠가 바뀌고 렌더 다시 해줘야 한다.
+    $(extendBoard).children('div').each((index ,item) => {
+        if(tabName == $(item).data('attr')) $(item).show();
+        else $(item).hide();
+        if($(item).data('attr') == 'header') $(item).show();
+    })
+
+    // renderExBoardType1();
+    
+}
+
+// 우리동네 상황판 닫기
+closeExtendBoard = () => {
+    document.getElementById('extendBoard').classList.remove('active');
+    $(".control_foot").removeClass('extend') 
+}
+
+// 우리동네 상황판 Type_1 렌더 
+renderExBoardType1 = () => {
+    // 실 데이터 로드 시 ajax promise 사용 필요해보임
+    $('.extend_data_01').show();
+
+    // 슬라이더 랜더 
+    // 슬라이더 내 차트 렌더 
+
+}
+
+// 팁 이벤트 리스너
+const hint = document.querySelectorAll('.tooltip')
+hint.forEach((hintTarget) => {
+    let tipText = $(hintTarget).data('tip');
+
+    hintTarget.addEventListener('mouseover',(e) => {
+        let divX = e.pageX 
+        let divY = e.pageY
+
+        $("#tipLayer").html(tipText)
+        $("#tipLayer").css({'display':'block',
+                            'left':divX,
+                            'top':divY,
+                            'position':'absolute'})
+    })
+
+    hintTarget.addEventListener('mouseout',(e) => {
+        $("#tipLayer").html()
+        $("#tipLayer").css('display',"none")
+    })
+
+    
+})

@@ -1,0 +1,1844 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="totSurvForestry">
+
+	<!-- 임업총조사 임업(가구) 조회 - 2020.10.12	juKwak	신규 -->
+	<select id="getTotForestry" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_CD
+			, SURV_ID
+			, REGION_NM
+			, DT
+			, ITM_CD
+			, ITM_NM
+			, UNIT_NM
+			, RANK
+			, NVL(IRDSRATE, 0) IRDSRATE
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		 	<!-- 20201123 심창무 속도개선 START -->
+		    <choose>
+			   <when test='year == "2020"'>
+			      AND SURV_ID = 'FS0607'
+		          AND SURV_YEAR = '2020'
+			   </when>
+			   <when test='year == "2015"'>
+			      AND SURV_ID = 'FS0235'
+		          AND SURV_YEAR = '2015'
+			   </when>
+			   <otherwise>
+			      AND SURV_ID = 'FS0532'
+		          AND SURV_YEAR = '2010'
+			   </otherwise>
+		    </choose>
+		    <choose>
+			   <when test='region_cd == "99" or region_cd == "00"'>
+			      AND region_cd = '00'
+			   </when>
+			   <otherwise>
+			      AND region_cd = #{region_cd}
+			   </otherwise>
+		    </choose>
+		    <!-- 20201123 심창무 속도개선 END -->
+
+		    <!-- 20201123 심창무 소스삭제 START
+		 	<if test='region_cd == "99" or region_cd == "00"'>
+		 		AND region_cd = '00'
+		 	</if>
+		 	<if test='region_cd != "99" and region_cd != "00"'>
+		 		AND region_cd = #{region_cd}
+		 	</if>
+		 	/* 2020-11-19 [곽제욱] 속도개선을 위해 쿼리 변경 START */
+		 	<if test='year != null and year != "" and year == 2020'> 					/* 지표년도 */
+		 		AND SURV_ID = 'FS0607'
+		 	</if>
+		 	<if test='year != null and year != "" and year == 2015'> 					/* 지표년도 */
+		 		AND SURV_ID = 'FS0235'
+		 	</if>
+		 	<if test='year != null and year != "" and year == 2010'>
+		 		AND SURV_ID = 'FS0532'
+		 	</if>
+	 		AND SURV_YEAR = #{year}
+		 	/* 2020-11-19 [곽제욱] 속도개선을 위해 쿼리 변경 END */
+		 	20201123 심창무 소스삭제 END -->
+		 	AND ITM_CD = 'T00'	/* 가구수 */
+		 	AND C1 = '000'	/* 계 */
+		 	/* 2020-11-19 [곽제욱] 주석처리 */ /* AND SURV_ID IN ('FS0235', 'FS0532') */ /* FS0235 : 가구원수별 임가(2015), FS0532 : 가구원수별 임가(2010) */
+	</select>
+	
+	<!-- 임업총조사 농가 2010 대비, 임업(가구)수  증감율 조회 -->
+	<select id="getTotForestryRt" parameterType="hashmap" resultType="hashmap">
+	select 
+		A.dt AS now_year, B.dt as befor_year  , A.dt - B.dt as total, round(((A.dt-B.dt)/B.dt * 100) ,2) as rt
+	from
+	(
+		select
+			surv_year,
+			dt
+		from SRV_DT_ST_CHART_DET_ITM_RANK	
+		WHERE 1=1 	
+		<choose>
+		   <when test='year == "2020"'>
+		      AND SURV_ID = 'FS0607'
+	          AND SURV_YEAR = '2020'
+		   </when>
+		   <when test='year == "2015"'>
+		      AND SURV_ID = 'FS0235'	/* FS0235 : 가구원수별 임가(2015) */
+	          AND SURV_YEAR = '2015'
+		   </when>
+		   <otherwise>
+		      AND SURV_ID = 'FS0532'
+	          AND SURV_YEAR = '2010'
+		   </otherwise>
+	    </choose>
+		and   itm_cd = #{itmCd}
+		<if test='region_cd == "99" or region_cd == "00"'>
+	 		AND region_cd = '00'
+	 	</if>
+	 	<if test='region_cd != "99" and region_cd != "00"'>
+	 		AND region_cd = #{region_cd}
+	 	</if>
+		and   c1 = '000'
+	) A
+	,
+	(
+		select
+			surv_year,
+			dt
+		from SRV_DT_ST_CHART_DET_ITM_RANK	
+		WHERE 1=1 	
+		<choose>
+		   <when test='year == "2020"'>
+		      AND SURV_ID = 'FS0607'
+	          AND SURV_YEAR = '2020'
+		   </when>
+		   <when test='year == "2015"'>
+		      AND SURV_ID = 'FS0235'	/* FS0235 : 가구원수별 임가(2015) */
+	          AND SURV_YEAR = '2015'
+		   </when>
+		   <otherwise>
+		      AND SURV_ID = 'FS0532'
+	          AND SURV_YEAR = '2010'
+		   </otherwise>
+	    </choose>
+		and   itm_cd = #{itmCd}
+		<if test='region_cd == "99" or region_cd == "00"'>
+		 		AND region_cd = '00'
+	 	</if>
+	 	<if test='region_cd != "99" and region_cd != "00"'>
+	 		AND region_cd = #{region_cd}
+	 	</if>
+		and   c1 = '000'
+	) B
+	</select>
+	
+	<!-- 임업총조사 임가(인구) 조회 - 2020.10.12	juKwak	신규 -->
+	<select id="getTotHouseForestry" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_CD
+			, SURV_ID
+			, REGION_NM
+			, DT
+			, ITM_CD
+			, ITM_NM
+			, UNIT_NM
+			, RANK
+			, NVL(IRDSRATE, 0) IRDSRATE
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		 	<!-- 20201123 심창무 속도개선 START -->
+		    <choose>
+			   <when test='year == "2020"'>
+			      AND SURV_ID = 'FS0607'
+		          AND SURV_YEAR = '2020'
+			   </when>
+			   <when test='year == "2015"'>
+			      AND SURV_ID = 'FS0235'
+		          AND SURV_YEAR = '2015'
+			   </when>
+			   <otherwise>
+			      AND SURV_ID = 'FS0532'
+		          AND SURV_YEAR = '2010'
+			   </otherwise>
+		    </choose>
+		    <choose>
+			   <when test='region_cd == "99" or region_cd == "00"'>
+			      AND region_cd = '00'
+			   </when>
+			   <otherwise>
+			      AND region_cd = #{region_cd}
+			   </otherwise>
+		    </choose>
+		    <!-- 20201123 심창무 속도개선 END -->
+
+		    <!-- 20201123 심창무 소스삭제 START
+		 	<if test='region_cd == "99" or region_cd == "00"'>
+		 		AND region_cd = '00'
+		 	</if>
+		 	<if test='region_cd != "99" and region_cd != "00"'>
+		 		AND region_cd = #{region_cd}
+		 	</if>
+		 	/* 2020-11-19 [곽제욱] 속도개선을 위해 쿼리 변경 START */
+		 	<if test='year != null and year != "" and year == "2020"'>					/* 지표년도 */
+		 		AND SURV_ID = 'FS0607'
+		 		AND SURV_YEAR = #{year}
+		 	</if>
+		 	<if test='year != null and year != "" and year == "2015"'>					/* 지표년도 */
+		 		AND SURV_ID = 'FS0235'
+		 		AND SURV_YEAR = #{year}
+		 	</if>
+		 	<if test='year != null and year != "" and year == "2010"'>					/* 지표년도 */
+		 		AND SURV_ID = 'FS0532'
+		 		AND SURV_YEAR = #{year}
+		 	</if>
+		 	/* 2020-11-19 [곽제욱] 속도개선을 위해 쿼리 변경 END */
+		 	20201123 심창무 소스삭제 END -->
+		 	AND ITM_CD = 'T01'
+			AND C1 = '000'
+		 	/* 2020-11-19 [곽제욱] 주석처리 */ /* AND SURV_ID IN ('FS0235', 'FS0532') */ /* FS0235 : 가구원수별 임가가(2015), FS0532 : 가구원수별 임가(2010) */
+	</select>
+
+	<!-- 농업총조사 임가 인구 중 고령인 인구 조회 - 2020.10.12	juKwak	신규 -->
+	<select id="getTotForestryOldPeople" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_CD
+			, SURV_ID
+			, REGION_NM
+			, DT
+			, ITM_CD
+			, ITM_NM
+			, UNIT_NM
+			, RANK
+			, NVL(IRDSRATE, 0) IRDSRATE
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		 	<!-- 20201123 심창무 속도개선 START -->
+		    <choose>
+			   <when test='year == "2020"'>
+			      AND SURV_ID = 'FS0613'
+		          AND SURV_YEAR = '2020'
+			   </when>
+			   <when test='year == "2015"'>
+			      AND SURV_ID = 'FS0252'
+		          AND SURV_YEAR = '2015'
+			   </when>
+			   <otherwise>
+			      AND SURV_ID = 'FS0547'
+		          AND SURV_YEAR = '2010'
+			   </otherwise>
+		    </choose>
+		    <choose>
+			   <when test='region_cd == "99" or region_cd == "00"'>
+			      AND region_cd = '00'
+			   </when>
+			   <otherwise>
+			      AND region_cd = #{region_cd}
+			   </otherwise>
+		    </choose>
+		 	<choose>
+			   <when test='year == "2020"'>
+			   AND ITM_CD IN ('T00')  
+			   AND C1 IN ('000','O70','O75','O80','O85','O90')
+			   </when>
+			   <otherwise>
+			   AND C1 = '000'
+		 	   AND ITM_CD IN ('T00','T42','T45','T48','T51','T54')   /* 계(T00), 65세이상(T42,T45,T48,T51,T54)  */
+			   </otherwise>
+			</choose>
+		    <!-- 20201123 심창무 속도개선 END -->
+
+			/* 2020-11-19 [곽제욱] 주석처리 */ /* AND SURV_ID IN ('FS0252', 'FS0547') */ /* FS0252 : 연령계층 및 성별 임가인구(2015), FS0547 : 연령계층 및 성별 임가인구(2010) */
+	</select>
+
+	<!-- 경영주 연령별 분류 현황 - 2020.10.12	juKwak	신규 -->
+	<select id="getForestryMngmtAge" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_NM ,
+			SURV_ID , 
+			REGION_CD , 
+			DT , 
+			ITM_CD , 
+			ITM_NM , 
+			C1 , 
+			C1_NM , 
+			C2 , 
+			C2_NM , 
+			UNIT_NM , 
+			RANK , 
+			NVL(IRDSRATE, 0) IRDSRATE 
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		 	<!-- 20201123 심창무 속도개선 START -->
+		    <choose>
+			   <when test='year == "2020"'>
+			      AND SURV_ID = 'FS0611'
+		          AND SURV_YEAR = '2020'
+			   </when>
+			   <when test='year == "2015"'>
+			      AND SURV_ID = 'FS0238'
+		          AND SURV_YEAR = '2015'
+			   </when>
+			   <otherwise>
+			      AND SURV_ID = 'FS0535'
+		          AND SURV_YEAR = '2010'
+			   </otherwise>
+		    </choose>
+		    <choose>
+			   <when test='region_cd == "99" or region_cd == "00"'>
+			      AND region_cd = '00'
+			   </when>
+			   <otherwise>
+			      AND region_cd = #{region_cd}
+			   </otherwise>
+		    </choose>
+			AND C1 = '000'
+		 	AND ITM_CD IN ('T01','T02','T03','T04','T05','T06','T07','T08','T09','T10','T11','T12','T13')
+		    <!-- 20201123 심창무 속도개선 END -->
+
+		    <!-- 20201123 심창무 소스삭제 START
+		 	<if test='region_cd == "99" or region_cd == "00"'>
+		 		AND region_cd = '00'
+		 	</if>
+		 	<if test='region_cd != "99" and region_cd != "00"'>
+		 		AND region_cd = #{region_cd}
+		 	</if>
+		 	/* 2020-11-19 [곽제욱] 속도개선을 위해 쿼리 변경 START */
+		 	<if test='year != null and year != "" and year == "2020"'>					/* 지표년도 */
+	 			AND SURV_ID = 'FS0611'
+		 		AND SURV_YEAR = #{year}
+		 	</if>
+		 	<if test='year != null and year != "" and year == "2015"'>					/* 지표년도 */
+	 			AND SURV_ID = 'FS0238'
+		 		AND SURV_YEAR = #{year}
+		 	</if>
+		 	<if test='year != null and year != "" and year == "2010"'>					/* 지표년도 */
+	 			AND SURV_ID = 'FS0535'
+		 		AND SURV_YEAR = #{year}
+		 	</if>
+		 	/* 2020-11-19 [곽제욱] 속도개선을 위해 쿼리 변경 END */
+		 	AND ITM_CD IN ('T01','T02','T03','T04','T05','T06','T07','T08','T09','T10','T11','T12','T13')
+			AND C1 = '000'
+			20201123 심창무 소스삭제 END -->
+			/* 2020-11-19 [곽제욱] 주석처리 */ /* AND SURV_ID IN ('FS0238', 'FS0535') */ /* FS0238 : 경영주 연령 및 교육정도별 임가(2015), FS0535 : 경영주 연령 및 교육정도별 임가(2010) */
+	</select>
+
+	<!-- 경영주 임업 경력기간별 임가 - 2020.10.12	juKwak	신규 -->
+	<select id="getForestryMngmtCareerPd" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_NM ,
+			SURV_ID , 
+			REGION_CD , 
+			DT , 
+			ITM_CD , 
+			ITM_NM , 
+			C1 , 
+			C1_NM , 
+			C2 , 
+			C2_NM , 
+			UNIT_NM , 
+			RANK , 
+			NVL(IRDSRATE, 0) IRDSRATE
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		 	<!-- 20201123 심창무 속도개선 START -->
+		    <choose>
+			   <when test='year == "2020"'>
+			      AND SURV_ID = 'FS0612'
+		          AND SURV_YEAR = '2020'
+			   </when>
+			   <when test='year == "2015"'>
+			      AND SURV_ID = 'FS0246'
+		          AND SURV_YEAR = '2015'
+			   </when>
+			   <otherwise>
+			      AND SURV_ID = 'FS0542'
+		          AND SURV_YEAR = '2010'
+			   </otherwise>
+		    </choose>
+		    <choose>
+			   <when test='region_cd == "99" or region_cd == "00"'>
+			      AND region_cd = '00'
+			   </when>
+			   <otherwise>
+			      AND region_cd = #{region_cd}
+			   </otherwise>
+		    </choose>
+			AND C1 = '000'
+		    AND ITM_CD IN ('T01','T02','T03','T04','T05')
+		    <!-- 20201123 심창무 속도개선 END -->
+
+		    <!-- 20201123 심창무 소스삭제 START
+		 	<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+		    	AND region_cd = '00'
+		    </if>
+		    <if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+		    	AND region_cd = ${region_cd}
+		    </if>
+		    /* 2020-11-19 [곽제욱] 속도개선을 위해 쿼리 변경 START */
+		    <if test='year != null and year != "" and year == "2020"'>					/* 지표년도 */
+		    AND SURV_ID = 'FS0612'
+		    AND SURV_YEAR = #{year}
+		    </if>
+		    <if test='year != null and year != "" and year == "2015"'>					/* 지표년도 */
+		    AND SURV_ID = 'FS0246'
+		    AND SURV_YEAR = #{year}
+		    </if>
+		    <if test='year != null and year != "" and year == "2010"'>					/* 지표년도 */
+		    AND SURV_ID = 'FS0542'
+		    AND SURV_YEAR = #{year}
+		    </if>
+		    /* 2020-11-19 [곽제욱] 속도개선을 위해 쿼리 변경 END */
+		    /* 2020-11-19 [곽제욱] 주석처리 */ /* AND SURV_ID IN ('FS0246', 'FS0542') */ /* FS0246 : 경영주 임업경력기간별 임가(2015), FS0542 : 경영주 임업경력기간별 임가(2010) */
+		    AND ITM_CD IN ('T01','T02','T03','T04','T05')
+			AND C1 = '000'
+			20201123 심창무 소스삭제 END -->
+	</select>
+	
+	
+	<!-- 임업경영형태 - 2020.10.12	juKwak	신규 -->
+	<select id="getBusinessChart" parameterType="hashmap" resultType="hashmap">	
+		SELECT
+			REGION_NM ,
+			SURV_ID , 
+			REGION_CD , 
+			DT , 
+			ITM_CD , 
+			ITM_NM , 
+			C1 , 
+			C1_NM , 
+			C2 , 
+			C2_NM , 
+			UNIT_NM , 
+			RANK , 
+			NVL(IRDSRATE, 0) IRDSRATE
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		 	<!-- 20201123 심창무 속도개선 START -->
+		    <choose>
+			   <when test='year == "2020"'>
+			      AND SURV_ID = 'FS0608'
+		          AND SURV_YEAR = '2020'
+			   </when>
+			   <when test='year == "2015"'>
+			      AND SURV_ID = 'FS0229'
+		          AND SURV_YEAR = '2015'
+			   </when>
+			   <otherwise>
+			      AND SURV_ID = 'FS0526'
+		          AND SURV_YEAR = '2010'
+			   </otherwise>
+		    </choose>
+		    <choose>
+			   <when test='region_cd == "99" or region_cd == "00"'>
+			      AND region_cd = '00'
+			   </when>
+			   <otherwise>
+			      AND region_cd = #{region_cd}
+			   </otherwise>
+		    </choose>
+		    <!-- 20201123 심창무 속도개선 END -->
+
+		    <!-- 20201123 심창무 소스삭제 START
+		 	<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+		    	AND region_cd = '00'
+		    </if>
+		    <if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+		    	AND region_cd = ${region_cd}
+		    </if>
+		    /* 2020-11-19 [곽제욱] 속도개선을 위해 쿼리 변경 START */
+		    <if test='year != null and year != "" and year == "2020"'>					/* 지표년도 */
+		    AND SURV_ID = 'FS0608'
+		    AND SURV_YEAR = #{year}
+		    </if>
+		    <if test='year != null and year != "" and year == "2015"'>					/* 지표년도 */
+		    AND SURV_ID = 'FS0229'
+		    AND SURV_YEAR = #{year}
+		    </if>
+		    <if test='year != null and year != "" and year == "2010"'>					/* 지표년도 */
+		    AND SURV_ID = 'FS0526'
+		    AND SURV_YEAR = #{year}
+		    </if>
+		    /* 2020-11-19 [곽제욱] 속도개선을 위해 쿼리 변경 END */
+		    20201123 심창무 소스삭제 END -->
+	</select>	
+	
+	<!-- 임산물 판매 금액  - 2020.10.12	juKwak	신규 -->
+	<select id="getForestrySale" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_NM ,
+			SURV_ID , 
+			REGION_CD , 
+			DT , 
+			ITM_CD , 
+			REPLACE(ITM_NM, '(가구)', '') AS ITM_NM , 
+			C1 , 
+			C1_NM , 
+			C2 , 
+			C2_NM , 
+			UNIT_NM , 
+			RANK , 
+			NVL(IRDSRATE, 0) IRDSRATE
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		 	<!-- 20201123 심창무 속도개선 START -->
+		    <choose>
+			   <when test='year == "2020"'>
+			      AND SURV_ID = 'FS0609'
+		          AND SURV_YEAR = '2020'
+			   </when>
+			   <when test='year == "2015"'>
+			      AND SURV_ID = 'FS0249'
+		          AND SURV_YEAR = '2015'
+			   </when>
+			   <otherwise>
+			      AND SURV_ID = 'FS0544'
+		          AND SURV_YEAR = '2010'
+			   </otherwise>
+		    </choose>
+		    <choose>
+			   <when test='region_cd == "99" or region_cd == "00"'>
+			      AND region_cd = '00'
+			   </when>
+			   <otherwise>
+			      AND region_cd = #{region_cd}
+			   </otherwise>
+		    </choose>
+			AND C1 = '000'
+			AND ITM_CD IN ('T01','T02','T03','T04','T05','T06','T07','T08','T09','T10','T11','T12')
+		    <!-- 20201123 심창무 속도개선 END -->
+
+		    <!-- 20201123 심창무 소스삭제 START
+		 	<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+		    	AND region_cd = '00'
+		    </if>
+		    <if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+		    	AND region_cd = ${region_cd}
+		    </if>
+		    /* 2020-11-19 [곽제욱] 속도개선을 위해 쿼리 변경 START */
+		    <if test='year != null and year != "" and year == "2020"'>					/* 지표년도 */
+		    AND SURV_ID = 'FS0609'
+		    AND SURV_YEAR = #{year}
+		    </if>
+		    <if test='year != null and year != "" and year == "2015"'>					/* 지표년도 */
+		    AND SURV_ID = 'FS0249'
+		    AND SURV_YEAR = #{year}
+		    </if>
+		    <if test='year != null and year != "" and year == "2010"'>					/* 지표년도 */
+		    AND SURV_ID = 'FS0544'
+		    AND SURV_YEAR = #{year}
+		    </if>
+		    /* 2020-11-19 [곽제욱] 속도개선을 위해 쿼리 변경 END */
+		    /* 2020-11-19 [곽제욱] 주석처리 */ /* AND SURV_ID IN ('FS0249', 'FS0544') */ /* FS0249 : 임산물 판매금액별 임가(2015), FS0544 : 임산물 판매금액별 임가(2010) */
+		    /* 판매금액별임가:판매없음 (가구), 120만원 미만 (가구) 120~300만원 (가구), 300~500만원 (가구), 500~1천만원 (가구), 1천~2천만원 (가구) ,2천~3천만원 (가구),3천~5천만원 (가구),5천~1억원 (가구), 1억~2억원 (가구),2억~5억원 (가구),5억원 이상 (가구) */
+			AND ITM_CD IN ('T01','T02','T03','T04','T05','T06','T07','T08','T09','T10','T11','T12')
+			AND C1 = '000'
+			20201123 심창무 소스삭제 END -->
+	</select>
+	
+	<!-- 임산물재배 작물별 임가(전체)  - 2020.11.17	juKwak	신규 START -->
+	<select id="getFsrcsCtvtCropsForestry_0" parameterType="hashmap" resultType="hashmap">
+		SELECT  
+			SUM(DT) AS DT ,
+			<if test='year == "2010"'> 
+			'FS0555' as SURV_ID ,
+			'T00,T02,T04,T06,T08,T30' as ITM_CD ,
+			</if> 
+			<if test='year == "2015"'>
+			'FS0260' as SURV_ID ,
+			'T00,T02,T04,T06,T08,T10,T40' as ITM_CD,
+			</if>
+			<if test='year == "2020"'>
+			'FS0610' as SURV_ID ,
+			'T00,T02,T04,T06,T08,T10,T40' as ITM_CD,
+			</if>
+			'산나물' as ITM_NM , 
+			'000' as C1 , 
+			'계' as C1_NM
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		    <!-- 20201123 심창무 속도개선 START -->
+		    <choose>
+			   <when test='year == "2020"'>
+			      AND SURV_ID = 'FS0610'
+		          AND SURV_YEAR = '2020'
+			   </when>
+			   <when test='year == "2015"'>
+			      AND SURV_ID = 'FS0260'
+		          AND SURV_YEAR = '2015'
+			   </when>
+			   <otherwise>
+			      AND SURV_ID = 'FS0555'
+		          AND SURV_YEAR = '2010'
+			   </otherwise>
+		    </choose>
+		    <choose>
+			   <when test='region_cd == "99" or region_cd == "00"'>
+			      AND region_cd = '00'
+			   </when>
+			   <otherwise>
+			      AND region_cd = #{region_cd}
+			   </otherwise>
+		    </choose>
+		    AND C1 = '000'
+		    <choose>
+			   <when test='year == "2020"'>
+		          AND ITM_CD IN ('T00','T02','T04','T06','T08','T10','T40')
+			   </when>
+			   <when test='year == "2015"'>
+		          AND ITM_CD IN ('T00','T02','T04','T06','T08','T10','T40')
+			   </when>
+			   <otherwise>
+		          AND ITM_CD IN ('T00','T02','T04','T06','T08','T30')
+			   </otherwise>
+		    </choose>
+		    <!-- 20201123 심창무 속도개선 END -->
+
+		    <!-- 20201123 심창무 소스삭제 START
+		    /* 2020-11-19 [곽제욱] 주석처리 */ /* AND SURV_ID IN ('FS0260', 'FS0555') */ /* FS0260 : 임산물 재배작물별 임가 및 재배면적(2015), FS0555 : 임산물 재배품목별 임가 및 재배면적(2010) */
+		    <if test='year == "2010"'>
+		    	AND SURV_ID = 'FS0555' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T00','T02','T04','T06','T08','T30')
+			</if>
+			<if test='year == "2015"'>
+				AND SURV_ID = 'FS0260' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T00','T02','T04','T06','T08','T10','T40')
+			</if>
+			<if test='year == "2020"'>
+				AND SURV_ID = 'FS0610' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T00','T02','T04','T06','T08','T10','T40')
+			</if>
+			AND C1 = '000'
+		 	<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+		    	AND region_cd = '00'
+		    </if>
+		    <if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+		    	AND region_cd = ${region_cd}
+		    </if>
+		    <if test='year != null and year != "" '>					/* 지표년도 */
+		    AND SURV_YEAR = #{year}
+		    </if>
+		    20201123 심창무 소스삭제 END -->
+		UNION ALL /* 2 */
+		SELECT  
+			SUM(DT) AS DT ,
+			<if test='year == "2010"'> 
+			'FS0555' as SURV_ID ,
+			'T10,T12,T14,T16,T18,T20,T22,T32' as ITM_CD ,
+			</if> 
+			<if test='year == "2015"'>
+			'FS0260' as SURV_ID ,
+			'T12,T14,T16,T18,T20,T22,T24,T26,T42' as ITM_CD,
+			</if>
+			<if test='year == "2020"'>
+			'FS0610' as SURV_ID ,
+			'T12,T14,T16,T18,T20,T22,T24,T26,T42' as ITM_CD,
+			</if>
+			'약용작물' as ITM_NM , 
+			'000' as C1 , 
+			'계' as C1_NM
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		    <!-- 20201123 심창무 속도개선 START -->
+		    <choose>
+			   <when test='year == "2020"'>
+			      AND SURV_ID = 'FS0610'
+		          AND SURV_YEAR = '2020'
+			   </when>
+			   <when test='year == "2015"'>
+			      AND SURV_ID = 'FS0260'
+		          AND SURV_YEAR = '2015'
+			   </when>
+			   <otherwise>
+			      AND SURV_ID = 'FS0555'
+		          AND SURV_YEAR = '2010'
+			   </otherwise>
+		    </choose>
+		    <choose>
+			   <when test='region_cd == "99" or region_cd == "00"'>
+			      AND region_cd = '00'
+			   </when>
+			   <otherwise>
+			      AND region_cd = #{region_cd}
+			   </otherwise>
+		    </choose>
+		    AND C1 = '000'
+		    <choose>
+			   <when test='year == "2020"'>
+		          AND ITM_CD IN ('T12','T14','T16','T18','T20','T22','T24','T26','T42')
+			   </when>
+			   <when test='year == "2015"'>
+		          AND ITM_CD IN ('T12','T14','T16','T18','T20','T22','T24','T26','T42')
+			   </when>
+			   <otherwise>
+		          AND ITM_CD IN ('T10','T12','T14','T16','T18','T20', 'T22','T32')
+			   </otherwise>
+		    </choose>
+		    <!-- 20201123 심창무 속도개선 END -->
+
+		    <!-- 20201123 심창무 소스삭제 START
+		    /* 2020-11-19 [곽제욱] 주석처리 */ /* AND SURV_ID IN ('FS0260', 'FS0555') */ /* FS0260 : 임산물 재배작물별 임가 및 재배면적(2015), FS0555 : 임산물 재배품목별 임가 및 재배면적(2010) */
+		    <if test='year == "2010"'>
+		    	AND SURV_ID = 'FS0555' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T10','T12','T14','T16','T18','T20', 'T22','T32')
+			</if>
+			<if test='year == "2015"'>
+				AND SURV_ID = 'FS0260' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T12','T14','T16','T18','T20','T22','T24','T26','T42')
+			</if>
+			<if test='year == "2020"'>
+				AND SURV_ID = 'FS0610' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T12','T14','T16','T18','T20','T22','T24','T26','T42')
+			</if>
+			AND C1 = '000'
+		 	<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+		    	AND region_cd = '00'
+		    </if>
+		    <if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+		    	AND region_cd = ${region_cd}
+		    </if>
+		    <if test='year != null and year != "" '>					/* 지표년도 */
+		    AND SURV_YEAR = #{year}
+		    </if>
+		    20201123 심창무 소스삭제 END -->
+		UNION ALL /* 3 */
+		SELECT  
+			SUM(DT) AS DT ,
+			<if test='year == "2010"'> 
+			'FS0555' as SURV_ID ,
+			'T24,T26,T34' as ITM_CD ,
+			</if> 
+			<if test='year == "2015"'>
+			'FS0260' as SURV_ID ,
+			'T28,T30,T32,T34,T36,T44' as ITM_CD,
+			</if>
+			<if test='year == "2020"'>
+			'FS0610' as SURV_ID ,
+			'T28,T30,T32,T34,T36,T44' as ITM_CD,
+			</if>
+			'관상작물' as ITM_NM , 
+			'000' as C1 , 
+			'계' as C1_NM
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		    <!-- 20201123 심창무 속도개선 START -->
+		    <choose>
+			   <when test='year == "2020"'>
+			      AND SURV_ID = 'FS0610'
+		          AND SURV_YEAR = '2020'
+			   </when>
+			   <when test='year == "2015"'>
+			      AND SURV_ID = 'FS0260'
+		          AND SURV_YEAR = '2015'
+			   </when>
+			   <otherwise>
+			      AND SURV_ID = 'FS0555'
+		          AND SURV_YEAR = '2010'
+			   </otherwise>
+		    </choose>
+		    <choose>
+			   <when test='region_cd == "99" or region_cd == "00"'>
+			      AND region_cd = '00'
+			   </when>
+			   <otherwise>
+			      AND region_cd = #{region_cd}
+			   </otherwise>
+		    </choose>
+		    AND C1 = '000'
+		    <choose>
+			   <when test='year == "2020"'>
+		          AND ITM_CD IN ('T28','T30','T32','T34','T36','T44')
+			   </when>
+			   <when test='year == "2015"'>
+		          AND ITM_CD IN ('T28','T30','T32','T34','T36','T44')
+			   </when>
+			   <otherwise>
+		          AND ITM_CD IN ('T24','T26','T34')
+			   </otherwise>
+		    </choose>
+		    <!-- 20201123 심창무 속도개선 END -->
+
+		    <!-- 20201123 심창무 소스삭제 START
+		    /* 2020-11-19 [곽제욱] 주석 처리 */ /* AND SURV_ID IN ('FS0260', 'FS0555') */ /* FS0260 : 임산물 재배작물별 임가 및 재배면적(2015), FS0555 : 임산물 재배품목별 임가 및 재배면적(2010) */
+		    <if test='year == "2010"'>
+		    	AND SURV_ID = 'FS0555' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T24','T26','T34')
+			</if>
+			<if test='year == "2015"'>
+				AND SURV_ID = 'FS0260' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T28','T30','T32','T34','T36','T44')
+			</if>
+			<if test='year == "2020"'>
+				AND SURV_ID = 'FS0610' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T28','T30','T32','T34','T36','T44')
+			</if>
+			AND C1 = '000'
+		 	<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+		    	AND region_cd = '00'
+		    </if>
+		    <if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+		    	AND region_cd = ${region_cd}
+		    </if>
+		    <if test='year != null and year != "" '>					/* 지표년도 */
+		    AND SURV_YEAR = #{year}
+		    </if>
+		    20201123 심창무 소스삭제 END -->
+		UNION ALL /* 4 */
+		SELECT  
+			SUM(DT) AS DT ,
+			<if test='year == "2010"'> 
+			'FS0555' as SURV_ID ,
+			'T28,T36,T38' as ITM_CD ,
+			</if> 
+			<if test='year == "2015"'>
+			'FS0260' as SURV_ID ,
+			'T38,T46,T48' as ITM_CD,
+			</if>
+			<if test='year == "2020"'>
+			'FS0610' as SURV_ID ,
+			'T40,T48,T50' as ITM_CD,
+			</if>
+			'표고버섯' as ITM_NM , 
+			'000' as C1 , 
+			'계' as C1_NM
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		    <!-- 20201123 심창무 속도개선 START -->
+		    <choose>
+			   <when test='year == "2020"'>
+			      AND SURV_ID = 'FS0610'
+		          AND SURV_YEAR = '2020'
+			   </when>
+			   <when test='year == "2015"'>
+			      AND SURV_ID = 'FS0260'
+		          AND SURV_YEAR = '2015'
+			   </when>
+			   <otherwise>
+			      AND SURV_ID = 'FS0555'
+		          AND SURV_YEAR = '2010'
+			   </otherwise>
+		    </choose>
+		    <choose>
+			   <when test='region_cd == "99" or region_cd == "00"'>
+			      AND region_cd = '00'
+			   </when>
+			   <otherwise>
+			      AND region_cd = #{region_cd}
+			   </otherwise>
+		    </choose>
+		    AND C1 = '000'
+		    <choose>
+			   <when test='year == "2020"'>
+		          AND ITM_CD IN ('T40','T48','T50')
+			   </when>
+			   <when test='year == "2015"'>
+		          AND ITM_CD IN ('T38','T46','T48')
+			   </when>
+			   <otherwise>
+		          AND ITM_CD IN ('T28','T36','T38')
+			   </otherwise>
+		    </choose>
+		    <!-- 20201123 심창무 속도개선 END -->
+
+		    <!-- 20201123 심창무 소스삭제 START
+		    /* 2020-11-19 [곽제욱] 주석처리 */ /* AND SURV_ID IN ('FS0260', 'FS0555') */ /* FS0260 : 임산물 재배작물별 임가 및 재배면적(2015), FS0555 : 임산물 재배품목별 임가 및 재배면적(2010) */
+		    <if test='year == "2010"'>
+		    	AND SURV_ID = 'FS0555' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T28','T36','T38')
+			</if>
+			<if test='year == "2015"'>
+				AND SURV_ID = 'FS0260' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T38','T46','T48')
+			</if>
+			<if test='year == "2020"'>
+				AND SURV_ID = 'FS0610' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T38','T46','T48')
+			</if>
+			AND C1 = '000'
+		 	<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+		    	AND region_cd = '00'
+		    </if>
+		    <if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+		    	AND region_cd = ${region_cd}
+		    </if>
+		    <if test='year != null and year != "" '>					/* 지표년도 */
+		    AND SURV_YEAR = #{year}
+		    </if>
+		    20201123 심창무 소스삭제 END -->
+		UNION ALL /* 5 */
+		SELECT  
+			SUM(DT) AS DT ,
+			<if test='year == "2010"'> 
+			'FS0555' as SURV_ID ,
+			'T40,T42,T44,T46,T48,T50,T52' as ITM_CD ,
+			</if> 
+			<if test='year == "2015"'>
+			'FS0260' as SURV_ID ,
+			'T50,T52,T54,T56,T58,T60,T62' as ITM_CD,
+			</if>
+			<if test='year == "2020"'>
+			'FS0610' as SURV_ID ,
+			'T50,T52,T54,T56,T58,T60,T62' as ITM_CD,
+			</if>
+			'유실수' as ITM_NM , 
+			'000' as C1 , 
+			'계' as C1_NM
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		    <!-- 20201123 심창무 속도개선 START -->
+		    <choose>
+			   <when test='year == "2020"'>
+			      AND SURV_ID = 'FS0610'
+		          AND SURV_YEAR = '2015'
+			   </when>
+			   <when test='year == "2015"'>
+			      AND SURV_ID = 'FS0260'
+		          AND SURV_YEAR = '2015'
+			   </when>
+			   <otherwise>
+			      AND SURV_ID = 'FS0555'
+		          AND SURV_YEAR = '2010'
+			   </otherwise>
+		    </choose>
+		    <choose>
+			   <when test='region_cd == "99" or region_cd == "00"'>
+			      AND region_cd = '00'
+			   </when>
+			   <otherwise>
+			      AND region_cd = #{region_cd}
+			   </otherwise>
+		    </choose>
+		    AND C1 = '000'
+		    <choose>
+			   <when test='year == "2020"'>
+		          AND ITM_CD IN ('T50','T52','T54','T56','T58','T60','T62')
+			   </when>
+			   <when test='year == "2015"'>
+		          AND ITM_CD IN ('T50','T52','T54','T56','T58','T60','T62')
+			   </when>
+			   <otherwise>
+		          AND ITM_CD IN ('T40','T42','T44','T46','T48','T50','T52')
+			   </otherwise>
+		    </choose>
+		    <!-- 20201123 심창무 속도개선 END -->
+
+		    <!-- 20201123 심창무 소스삭제 START
+		    /* 2020-11-19 [곽제욱] 주석처리 */ /* AND SURV_ID IN ('FS0260', 'FS0555') */ /* FS0260 : 임산물 재배작물별 임가 및 재배면적(2015), FS0555 : 임산물 재배품목별 임가 및 재배면적(2010) */
+		    <if test='year == "2010"'>
+		    	AND SURV_ID = 'FS0555' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T40','T42','T44','T46','T48','T50','T52')
+			</if>
+			<if test='year == "2015"'>
+				AND SURV_ID = 'FS0260' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T50','T52','T54','T56','T58','T60','T62')
+			</if>
+			<if test='year == "2020"'>
+				AND SURV_ID = 'FS0610' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T50','T52','T54','T56','T58','T60','T62')
+			</if>
+			AND C1 = '000'
+		 	<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+		    	AND region_cd = '00'
+		    </if>
+		    <if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+		    	AND region_cd = ${region_cd}
+		    </if>
+		    <if test='year != null and year != "" '>					/* 지표년도 */
+		    AND SURV_YEAR = #{year}
+		    </if>
+		    20201123 심창무 소스삭제 END -->
+	</select>
+	<!-- 임산물재배 작물별 임가(전체)  - 2020.11.17	juKwak	신규 END -->
+	
+	<!-- 임산물재배 작물별 임가(산나물)  - 2020.10.12	juKwak	신규 -->
+	<select id="getFsrcsCtvtCropsForestry_1" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_NM ,
+			SURV_ID , 
+			REGION_CD , 
+			DT , 
+			ITM_CD , 
+			ITM_NM , 
+			C1 , 
+			C1_NM , 
+			C2 , 
+			C2_NM , 
+			UNIT_NM , 
+			RANK , 
+			NVL(IRDSRATE, 0) IRDSRATE
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		    <!-- 20201123 심창무 속도개선 START -->
+		    <choose>
+			   <when test='year == "2020"'>
+			      AND SURV_ID = 'FS0610'
+		          AND SURV_YEAR = '2020'
+			   </when>
+			   <when test='year == "2015"'>
+			      AND SURV_ID = 'FS0260'
+		          AND SURV_YEAR = '2015'
+			   </when>
+			   <otherwise>
+			      AND SURV_ID = 'FS0555'
+		          AND SURV_YEAR = '2010'
+			   </otherwise>
+		    </choose>
+		    <choose>
+			   <when test='region_cd == "99" or region_cd == "00"'>
+			      AND region_cd = '00'
+			   </when>
+			   <otherwise>
+			      AND region_cd = #{region_cd}
+			   </otherwise>
+		    </choose>
+		    AND C1 = '000'
+		    <choose>
+			   <when test='year == "2020"'>
+		          AND ITM_CD IN ('T00','T02','T04','T06','T08','T10','T40')
+			   </when>
+			   <when test='year == "2015"'>
+		          AND ITM_CD IN ('T00','T02','T04','T06','T08','T10','T40')
+			   </when>
+			   <otherwise>
+		          AND ITM_CD IN ('T00','T02','T04','T06','T08','T30')
+			   </otherwise>
+		    </choose>
+		    <!-- 20201123 심창무 속도개선 END -->
+
+		    <!-- 20201123 심창무 소스삭제 START
+		    /* 2020-11-19 [곽제욱] 주석 처리 */ /* AND SURV_ID IN ('FS0260', 'FS0555') */ /* FS0260 : 임산물 재배작물별 임가 및 재배면적(2015), FS0555 : 임산물 재배품목별 임가 및 재배면적(2010) */
+		    <if test='year == "2010"'>
+		    	AND SURV_ID = 'FS0555' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T00','T02','T04','T06','T08','T30')
+			</if>
+			<if test='year == "2015"'>
+				AND SURV_ID = 'FS0260' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T00','T02','T04','T06','T08','T10','T40')
+			</if>
+			<if test='year == "2020"'>
+				AND SURV_ID = 'FS0610' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T00','T02','T04','T06','T08','T10','T40')
+			</if>
+			AND C1 = '000'
+		 	<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+		    	AND region_cd = '00'
+		    </if>
+		    <if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+		    	AND region_cd = ${region_cd}
+		    </if>
+		    <if test='year != null and year != "" '>					/* 지표년도 */
+		    AND SURV_YEAR = #{year}
+		    </if>
+		    20201123 심창무 소스삭제 END -->
+	</select>
+	
+	<!-- 임산물재배 작물별 임가(약용작물)  - 2020.10.12	juKwak	신규 -->
+	<select id="getFsrcsCtvtCropsForestry_2" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_NM ,
+			SURV_ID , 
+			REGION_CD , 
+			DT , 
+			ITM_CD , 
+			ITM_NM , 
+			C1 , 
+			C1_NM , 
+			C2 , 
+			C2_NM , 
+			UNIT_NM , 
+			RANK , 
+			NVL(IRDSRATE, 0) IRDSRATE
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		    <!-- 20201123 심창무 속도개선 START -->
+		    <choose>
+			   <when test='year == "2020"'>
+			      AND SURV_ID = 'FS0610'
+		          AND SURV_YEAR = '2020'
+			   </when>
+			   <when test='year == "2015"'>
+			      AND SURV_ID = 'FS0260'
+		          AND SURV_YEAR = '2015'
+			   </when>
+			   <otherwise>
+			      AND SURV_ID = 'FS0555'
+		          AND SURV_YEAR = '2010'
+			   </otherwise>
+		    </choose>
+		    <choose>
+			   <when test='region_cd == "99" or region_cd == "00"'>
+			      AND region_cd = '00'
+			   </when>
+			   <otherwise>
+			      AND region_cd = #{region_cd}
+			   </otherwise>
+		    </choose>
+		    AND C1 = '000'
+		    <choose>
+			   <when test='year == "2020"'>
+		          AND ITM_CD IN ('T12','T14','T16','T18','T20','T22','T24','T26','T42')
+			   </when>
+			   <when test='year == "2015"'>
+		          AND ITM_CD IN ('T12','T14','T16','T18','T20','T22','T24','T26','T42')
+			   </when>
+			   <otherwise>
+		          AND ITM_CD IN ('T10','T12','T14','T16','T18','T20', 'T22','T32')
+			   </otherwise>
+		    </choose>
+		    <!-- 20201123 심창무 속도개선 END -->
+
+		    <!-- 20201123 심창무 소스삭제 START
+		    /* 2020-11-19 [곽제욱] 주석처리 */ /* AND SURV_ID IN ('FS0260', 'FS0555') */ /* FS0260 : 임산물 재배작물별 임가 및 재배면적(2015), FS0555 : 임산물 재배품목별 임가 및 재배면적(2010) */
+		    <if test='year == "2010"'>
+		    	AND SURV_ID = 'FS0555' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T10','T12','T14','T16','T18','T20', 'T22','T32')
+			</if>
+			<if test='year == "2015"'>
+				AND SURV_ID = 'FS0260' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T12','T14','T16','T18','T20','T22','T24','T26','T42')
+			</if>
+			<if test='year == "2020"'>
+				AND SURV_ID = 'FS0610' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T12','T14','T16','T18','T20','T22','T24','T26','T42')
+			</if>
+			AND C1 = '000'
+		 	<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+		    	AND region_cd = '00'
+		    </if>
+		    <if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+		    	AND region_cd = ${region_cd}
+		    </if>
+		    <if test='year != null and year != "" '>					/* 지표년도 */
+		    AND SURV_YEAR = #{year}
+		    </if>
+		    20201123 심창무 소스삭제 END -->
+	</select>
+	
+	<!-- 임산물재배 작물별 임가(관상작물)  - 2020.10.12	juKwak	신규 -->
+	<select id="getFsrcsCtvtCropsForestry_3" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_NM ,
+			SURV_ID , 
+			REGION_CD , 
+			DT , 
+			ITM_CD , 
+			ITM_NM , 
+			C1 , 
+			C1_NM , 
+			C2 , 
+			C2_NM , 
+			UNIT_NM , 
+			RANK , 
+			NVL(IRDSRATE, 0) IRDSRATE
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		    <!-- 20201123 심창무 속도개선 START -->
+		    <choose>
+			   <when test='year == "2020"'>
+			      AND SURV_ID = 'FS0610'
+		          AND SURV_YEAR = '2020'
+			   </when>
+			   <when test='year == "2015"'>
+			      AND SURV_ID = 'FS0260'
+		          AND SURV_YEAR = '2015'
+			   </when>
+			   <otherwise>
+			      AND SURV_ID = 'FS0555'
+		          AND SURV_YEAR = '2010'
+			   </otherwise>
+		    </choose>
+		    <choose>
+			   <when test='region_cd == "99" or region_cd == "00"'>
+			      AND region_cd = '00'
+			   </when>
+			   <otherwise>
+			      AND region_cd = #{region_cd}
+			   </otherwise>
+		    </choose>
+		    AND C1 = '000'
+		    <choose>
+			   <when test='year == "2020"'>
+		          AND ITM_CD IN ('T28','T30','T32','T34','T36','T44')
+			   </when>
+			   <when test='year == "2015"'>
+		          AND ITM_CD IN ('T28','T30','T32','T34','T36','T44')
+			   </when>
+			   <otherwise>
+		          AND ITM_CD IN ('T24','T26','T34')
+			   </otherwise>
+		    </choose>
+		    <!-- 20201123 심창무 속도개선 END -->
+
+		    <!-- 20201123 심창무 소스삭제 START
+		    /* 2020-11-19 [곽제욱] 주석 처리 */ /* AND SURV_ID IN ('FS0260', 'FS0555') */ /* FS0260 : 임산물 재배작물별 임가 및 재배면적(2015), FS0555 : 임산물 재배품목별 임가 및 재배면적(2010) */
+		    <if test='year == "2010"'>
+		    	AND SURV_ID = 'FS0555' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T24','T26','T34')
+			</if>
+			<if test='year == "2015"'>
+				AND SURV_ID = 'FS0260' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T28','T30','T32','T34','T36','T44')
+			</if>
+			<if test='year == "2020"'>
+				AND SURV_ID = 'FS0610' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T28','T30','T32','T34','T36','T44')
+			</if>
+			AND C1 = '000'
+		 	<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+		    	AND region_cd = '00'
+		    </if>
+		    <if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+		    	AND region_cd = ${region_cd}
+		    </if>
+		    <if test='year != null and year != "" '>					/* 지표년도 */
+		    AND SURV_YEAR = #{year}
+		    </if>
+		    20201123 심창무 소스삭제 END -->
+	</select>
+	
+	<!-- 임산물재배 작물별 임가(표고버섯)  - 2020.10.12	juKwak	신규 -->
+	<select id="getFsrcsCtvtCropsForestry_4" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_NM ,
+			SURV_ID , 
+			REGION_CD , 
+			DT , 
+			ITM_CD , 
+			ITM_NM , 
+			C1 , 
+			C1_NM , 
+			C2 , 
+			C2_NM , 
+			UNIT_NM , 
+			RANK , 
+			NVL(IRDSRATE, 0) IRDSRATE
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		    <!-- 20201123 심창무 속도개선 START -->
+		    <choose>
+			   <when test='year == "2020"'>
+			      AND SURV_ID = 'FS0610'
+		          AND SURV_YEAR = '2020'
+			   </when>
+			   <when test='year == "2015"'>
+			      AND SURV_ID = 'FS0260'
+		          AND SURV_YEAR = '2015'
+			   </when>
+			   <otherwise>
+			      AND SURV_ID = 'FS0555'
+		          AND SURV_YEAR = '2010'
+			   </otherwise>
+		    </choose>
+		    <choose>
+			   <when test='region_cd == "99" or region_cd == "00"'>
+			      AND region_cd = '00'
+			   </when>
+			   <otherwise>
+			      AND region_cd = #{region_cd}
+			   </otherwise>
+		    </choose>
+		    AND C1 = '000'
+		    <choose>
+			   <when test='year == "2020"'>
+		          AND ITM_CD IN ('T40','T48','T50')
+			   </when>
+			   <when test='year == "2015"'>
+		          AND ITM_CD IN ('T38','T46','T48')
+			   </when>
+			   <otherwise>
+		          AND ITM_CD IN ('T28','T36','T38')
+			   </otherwise>
+		    </choose>
+		    <!-- 20201123 심창무 속도개선 END -->
+
+		    <!-- 20201123 심창무 소스삭제 START
+		    /* 2020-11-19 [곽제욱] 주석 처리 */ /* AND SURV_ID IN ('FS0260', 'FS0555') */ /* FS0260 : 임산물 재배작물별 임가 및 재배면적(2015), FS0555 : 임산물 재배품목별 임가 및 재배면적(2010) */
+		    <if test='year == "2010"'>
+		    	AND SURV_ID = 'FS0555' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T28','T36','T38')
+			</if>
+			<if test='year == "2015"'>
+				AND SURV_ID = 'FS0260' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T38','T46','T48')
+			</if>
+			AND C1 = '000'
+		 	<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+		    	AND region_cd = '00'
+		    </if>
+		    <if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+		    	AND region_cd = ${region_cd}
+		    </if>
+		    <if test='year != null and year != "" '>					/* 지표년도 */
+		    AND SURV_YEAR = #{year}
+		    </if>
+		    20201123 심창무 소스삭제 END -->
+	</select>
+	
+	<!-- 임산물재배 작물별 임가(유실수)  - 2020.10.12	juKwak	신규 -->
+	<select id="getFsrcsCtvtCropsForestry_5" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_NM ,
+			SURV_ID , 
+			REGION_CD , 
+			DT , 
+			ITM_CD , 
+			ITM_NM , 
+			C1 , 
+			C1_NM , 
+			C2 , 
+			C2_NM , 
+			UNIT_NM , 
+			RANK , 
+			NVL(IRDSRATE, 0) IRDSRATE
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		    <!-- 20201123 심창무 속도개선 START -->
+		    <choose>
+			   <when test='year == "2020"'>
+			      AND SURV_ID = 'FS0610'
+		          AND SURV_YEAR = '2020'
+			   </when>
+			   <when test='year == "2015"'>
+			      AND SURV_ID = 'FS0260'
+		          AND SURV_YEAR = '2015'
+			   </when>
+			   <otherwise>
+			      AND SURV_ID = 'FS0555'
+		          AND SURV_YEAR = '2010'
+			   </otherwise>
+		    </choose>
+		    <choose>
+			   <when test='region_cd == "99" or region_cd == "00"'>
+			      AND region_cd = '00'
+			   </when>
+			   <otherwise>
+			      AND region_cd = #{region_cd}
+			   </otherwise>
+		    </choose>
+		    AND C1 = '000'
+		    <choose>
+			   <when test='year == "2020"'>
+		          AND ITM_CD IN ('T50','T52','T54','T56','T58','T60','T62')
+			   </when>
+			   <when test='year == "2015"'>
+		          AND ITM_CD IN ('T50','T52','T54','T56','T58','T60','T62')
+			   </when>
+			   <otherwise>
+		          AND ITM_CD IN ('T40','T42','T44','T46','T48','T50','T52')
+			   </otherwise>
+		    </choose>
+		    <!-- 20201123 심창무 속도개선 END -->
+
+		    <!-- 20201123 심창무 소스삭제 START
+		    /* 2020-11-19 [곽제욱] 주석 처리  */ /* AND SURV_ID IN ('FS0260', 'FS0555') */ /* FS0260 : 임산물 재배작물별 임가 및 재배면적(2015), FS0555 : 임산물 재배품목별 임가 및 재배면적(2010) */
+		    <if test='year == "2010"'>
+		    	AND SURV_ID = 'FS0555' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T40','T42','T44','T46','T48','T50','T52')
+			</if>
+			<if test='year == "2015"'>
+				AND SURV_ID = 'FS0260' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T50','T52','T54','T56','T58','T60','T62')
+			</if>
+			<if test='year == "2020"'>
+				AND SURV_ID = 'FS0610' /* 2020-11-19 [곽제욱] 속도개선을 위한 쿼리 변경 */
+				AND ITM_CD IN ('T50','T52','T54','T56','T58','T60','T62')
+			</if>
+			AND C1 = '000'
+		 	<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+		    	AND region_cd = '00'
+		    </if>
+		    <if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+		    	AND region_cd = ${region_cd}
+		    </if>
+		    <if test='year != null and year != "" '>					/* 지표년도 */
+		    AND SURV_YEAR = #{year}
+		    </if>
+		    20201123 심창무 소스삭제 END -->
+	</select>
+	
+	
+	
+	<!-- 랭크정보 조회 START -->
+	<select id='getTotForestryRank' parameterType="hashmap" resultType="hashmap">
+		SELECT *
+			FROM (
+				SELECT
+						*
+						, ROWNUM AS RANK
+					FROM (
+						SELECT
+								a.REGION_CD
+								, a.REGION_NM
+								, a.DT
+								, a.SURV_ID
+								, a.C1
+								, a.ITM_CD
+								, a.SURV_YEAR
+								, TO_CHAR(a.IRDSRATE, 'FM9990.00') AS IRDSRATE <!-- range 주택증감 값 표시 정보  -->
+							FROM SRV_DT_ST_CHART_DET_ITM_RANK a
+						    WHERE 1=1
+						    <!-- 20201123 심창무 속도개선 START -->
+						    <choose>
+							   <when test='year == "2020"'>
+							      AND a.SURV_ID = 'FS0607'
+						          AND a.SURV_YEAR = '2020'
+							   </when>
+							   <when test='year == "2015"'>
+							      AND a.SURV_ID = 'FS0235'
+						          AND a.SURV_YEAR = '2015'
+							   </when>
+							   <otherwise>
+							      AND a.SURV_ID = 'FS0532'
+						          AND a.SURV_YEAR = '2010'
+							   </otherwise>
+						    </choose>
+						    AND a.ITM_CD = 'T00'
+							AND a.C1 = '000'
+						    <!-- 20201123 심창무 속도개선 END -->
+
+						    <!-- 20201123 심창무 소스삭제 START
+						    <if test=" year != null and year != '' and year == '2020' ">
+						    	AND a.SURV_YEAR = #{year}
+								AND a.SURV_ID = 'FS0607' /* 2020-11-19 [곽제욱] in쿼리 이퀄쿼리로 변경 */
+								AND a.ITM_CD = 'T00'
+								AND a.C1 = '000'
+						    </if>
+						    <if test=" year != null and year != '' and year == '2015' ">
+						    	AND a.SURV_YEAR = #{year}
+								AND a.SURV_ID = 'FS0235' /* 2020-11-19 [곽제욱] in쿼리 이퀄쿼리로 변경 */
+								AND a.ITM_CD = 'T00'
+								AND a.C1 = '000'
+						    </if>
+						    <if test=" year != null and year != '' and year == '2010' ">
+						    	AND a.SURV_YEAR &lt;= #{year}
+								AND a.SURV_ID = 'FS0532' /* 2020-11-19 [곽제욱] in쿼리 이퀄쿼리로 변경 */
+								AND a.ITM_CD = 'T00'
+								AND a.C1 = '000'
+						    </if>
+						    20201123 심창무 소스삭제 END -->
+							<if test="level != null and level != '' and level == 'sido'"><!-- 광역시도 -->
+									AND LENGTH(a.REGION_CD) = 2
+									<if test="regionCd != '00'">
+										AND a.REGION_CD &lt;&gt; '00'
+									</if>
+									<if test="regionCd == '00'">
+										AND a.REGION_CD = '00'
+									</if>
+							</if>
+							<if test="level != null and level != '' and level == 'sgg'"><!-- 시군구 -->
+								AND LENGTH(a.REGION_CD) = 5
+								AND a.REGION_CD NOT IN (SELECT REGION_CD FROM SRV_DT_TOT_SURV_NON_ATDRC WHERE DEL_YN = 'N' AND BASE_YEAR = #{year} AND UPPER_REGION_CD IS NOT NULL)
+							</if>
+							<if test='level != null and level != "" and level == "atdrc"'>
+								AND a.REGION_CD IN (SELECT REGION_CD FROM SRV_DT_TOT_SURV_NON_ATDRC WHERE BASE_YEAR = #{year}
+								<if test="up_regionCd != null and up_regionCd != ''">
+									AND UPPER_REGION_CD = #{up_regionCd}
+								</if>
+								 AND REGION_CD NOT LIKE '%0'
+								 AND DEL_YN = 'N')
+							</if>
+							ORDER BY a.RANK
+						)
+					)
+					WHERE 1=1
+					<if test="rank != null and rank != ''">
+						AND RANK = #{rank}
+					</if>
+					<if test="regionCd != null and regionCd != ''">
+						AND REGION_CD = #{regionCd}
+					</if>
+	</select>
+	
+	<select id='getTotForestryHouseRatio' parameterType="hashmap" resultType="hashmap">
+		SELECT
+				SURV_ID
+				, SURV_YEAR
+				, ITM_CD
+				, ITM_NM
+				, DT
+				, C1
+				, TO_CHAR(IRDSRATE, 'FM9990.00') AS IRDSRATE
+				, REGION_CD
+				, REGION_NM
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+				<!-- 2020-11-23 [곽제욱] 속도개선 START -->
+				AND SURV_ID IN ('FS0532', 'FS0235', 'FS0607')
+				AND SURV_YEAR &lt;= #{year}
+				<!-- 2020-11-23 [곽제욱] 속도개선 END -->
+				AND ITM_CD = 'T01'
+				AND C1 = '000'
+				AND REGION_CD = #{regionCd}
+	</select>
+	
+	<select id="getTotForestryRaito" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				SURV_ID
+				, SURV_YEAR
+				, ITM_CD
+				, ITM_NM
+				, DT
+				, C1
+				, TO_CHAR(IRDSRATE, 'FM9990.00') AS IRDSRATE
+				, REGION_CD
+				, REGION_NM
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+			AND SURV_ID IN ('FS0532', 'FS0235', 'FS0607')
+			AND SURV_YEAR &lt;= #{year}
+			AND REGION_CD =  #{regionCd}
+			AND C1 = '000'
+			AND ITM_CD = 'T01'
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+			AND SURV_YEAR = #{year}
+			AND SURV_ID IN ('FS0532', 'FS0235', 'FS0607')
+			AND C1 = '000'
+			AND ITM_CD = 'T01'
+			AND REGION_CD =  #{regionCd}
+			20201123 심창무 소스삭제 END -->
+	</select>
+	
+	<!-- 2021-08-05 [이영호] 임가 현황 가구수 -->
+	<select id="getForestryHouseHoldRatio" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				SURV_ID
+				, SURV_YEAR
+				, ITM_CD
+				, ITM_NM
+				, DT
+				, C1
+				, TO_CHAR(IRDSRATE, 'FM9990.00') AS IRDSRATE
+				, REGION_CD
+				, REGION_NM
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+			AND SURV_ID IN ('FS0532', 'FS0235', 'FS0607')
+			AND SURV_YEAR &lt;= #{year}
+			AND REGION_CD =  #{regionCd}
+			AND C1 = '000'
+			AND ITM_CD = 'T00'
+	</select>
+	
+	<select id="getTotOldForesty" parameterType="hashmap" resultType="hashmap">
+		SELECT	
+				'FS0547' AS SURV_ID
+				, '2010' AS SURV_YEAR 
+				, #{regionCd} AS REGION_CD
+				, '000' AS C1
+				, NVL(SUM(DT), 0) AS DT
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+		    AND SURV_ID = 'FS0547'
+		    AND SURV_YEAR &lt;= #{year}
+		    AND REGION_CD = #{regionCd}
+		    AND C1 = '000'
+		    AND ITM_CD IN ('T42','T45','T48','T51','T54')
+		    <!-- 20201123 심창무 속도개선 END -->
+
+		    <!-- 20201123 심창무 소스삭제 START
+			AND SURV_YEAR = #{year}
+			AND SURV_ID = 'FS0547'
+			AND ITM_CD IN ('T42','T45','T48','T51','T54')
+			AND C1 = '000'
+			AND REGION_CD = #{regionCd}
+			20201123 심창무 소스삭제 END -->
+			
+			UNION ALL
+			
+		SELECT	
+				'FS0252' AS SURV_ID
+				, '2015' AS SURV_YEAR 
+				, #{regionCd} AS REGION_CD
+				, '000' AS C1
+				, NVL(SUM(DT), 0) AS DT
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+		    AND SURV_ID = 'FS0252'
+		    AND SURV_YEAR &lt;= #{year}
+		    AND REGION_CD = #{regionCd}
+		    AND C1 = '000'
+		    AND ITM_CD IN ('T42','T45','T48','T51','T54')
+		    <!-- 20201123 심창무 속도개선 END -->
+
+		    <!-- 20201123 심창무 소스삭제 START
+			AND SURV_YEAR = #{year}
+			AND SURV_ID = 'FS0252'
+			AND ITM_CD IN ('T42','T45','T48','T51','T54')
+			AND C1 = '000'
+			AND REGION_CD = #{regionCd}
+			20201123 심창무 소스삭제 END -->
+			UNION ALL
+			
+		SELECT	
+				'FS0613' AS SURV_ID
+				, '2020' AS SURV_YEAR 
+				, #{regionCd} AS REGION_CD
+				, '000' AS C1
+				, NVL(SUM(DT), 0) AS DT
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+		    AND SURV_ID = 'FS0613'
+		    AND SURV_YEAR &lt;= #{year}
+		    AND REGION_CD = #{regionCd}
+		    AND C1 IN ('O65','O70','O75','O80','O85','O90')
+		    AND ITM_CD = 'T00'
+		    <!-- 20201123 심창무 속도개선 END -->
+		    <!-- 20201123 심창무 소스삭제 START
+			AND SURV_YEAR = #{year}
+			AND SURV_ID = 'FS0613'
+			AND ITM_CD IN ('T42','T45','T48','T51','T54')
+			AND C1 = '000'
+			AND REGION_CD = #{regionCd}
+			20201123 심창무 소스삭제 END -->
+	</select>
+	<!-- 랭크정보 조회 END -->
+	
+	<!-- 임업경영형태 - 2020.11.20	juKwak	신규 START -->
+	<select id="getBusinessChartSum" parameterType="hashmap" resultType="hashmap">	
+		SELECT  /* 육림업 */
+			SUM(DT) AS DT ,
+			<if test='year == "2010"'> 
+			'FS0526' as SURV_ID ,
+			'T01' as ITM_CD ,
+			</if> 
+			<if test='year == "2015"'>
+			'FS0229' as SURV_ID ,
+			'T01' as ITM_CD,
+			</if>
+			<if test='year == "2020"'>
+			'FS0608' as SURV_ID ,
+			'T01' as ITM_CD,
+			</if>
+			'육림업' as ITM_NM , 
+			'000' as C1 , 
+			'계' as C1_NM
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		    <if test='year == "2010"'> 
+		    	AND SURV_ID = 'FS0526' 
+				AND ITM_CD = 'T01'
+			</if>
+			<if test='year == "2015"'>
+				AND SURV_ID = 'FS0229' 
+				AND ITM_CD = 'T01'
+			</if>
+			<if test='year == "2020"'>
+				AND SURV_ID = 'FS0608' 
+				AND ITM_CD = 'T01'
+			</if>
+		    AND SURV_YEAR = #{year}
+			AND C1 = '000'
+		 	<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+		    	AND region_cd = '00'
+		    </if>
+		    <if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+		    	AND region_cd = ${region_cd}
+		    </if>
+		 UNION ALL
+		 SELECT  /* 벌목업 */
+			SUM(DT) AS DT ,
+			<if test='year == "2010"'> 
+			'FS0526' as SURV_ID ,
+			'T02' as ITM_CD ,
+			</if> 
+			<if test='year == "2015"'>
+			'FS0229' as SURV_ID ,
+			'T02' as ITM_CD,
+			</if>
+			<if test='year == "2020"'>
+			'FS0608' as SURV_ID ,
+			'T02' as ITM_CD,
+			</if>
+			'벌목업' as ITM_NM , 
+			'000' as C1 , 
+			'계' as C1_NM
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		    <if test='year == "2010"'> 
+		    	AND SURV_ID = 'FS0526' 
+				AND ITM_CD = 'T02'
+			</if>
+			<if test='year == "2015"'>
+				AND SURV_ID = 'FS0229' 
+				AND ITM_CD = 'T02'
+			</if>
+			<if test='year == "2020"'>
+				AND SURV_ID = 'FS0608' 
+				AND ITM_CD = 'T02'
+			</if>
+		    AND SURV_YEAR = #{year}
+			AND C1 = '000'
+		 	<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+		    	AND region_cd = '00'
+		    </if>
+		    <if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+		    	AND region_cd = ${region_cd}
+		    </if>
+		 UNION ALL
+		 SELECT  /* 양묘업 */
+			SUM(DT) AS DT ,
+			<if test='year == "2010"'> 
+			'FS0526' as SURV_ID ,
+			'T03' as ITM_CD ,
+			</if> 
+			<if test='year == "2015"'>
+			'FS0229' as SURV_ID ,
+			'T03' as ITM_CD,
+			</if>
+			<if test='year == "2020"'>
+			'FS0608' as SURV_ID ,
+			'T03' as ITM_CD,
+			</if>
+			'양묘업' as ITM_NM , 
+			'000' as C1 , 
+			'계' as C1_NM
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		    <if test='year == "2010"'> 
+		    	AND SURV_ID = 'FS0526' 
+				AND ITM_CD = 'T03'
+			</if>
+			<if test='year == "2015"'>
+				AND SURV_ID = 'FS0229' 
+				AND ITM_CD = 'T03'
+			</if>
+			<if test='year == "2020"'>
+				AND SURV_ID = 'FS0608' 
+				AND ITM_CD = 'T03'
+			</if>
+		    AND SURV_YEAR = #{year}
+			AND C1 = '000'
+		 	<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+		    	AND region_cd = '00'
+		    </if>
+		    <if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+		    	AND region_cd = ${region_cd}
+		    </if>
+		 UNION ALL
+		 SELECT  /* 채취업 */
+			SUM(DT) AS DT ,
+			<if test='year == "2010"'> 
+			'FS0526' as SURV_ID ,
+			'T04,T05,T06,T07,T08,T09' as ITM_CD ,
+			</if> 
+			<if test='year == "2015"'>
+			'FS0229' as SURV_ID ,
+			'T04,T05,T06,T07,T08,T09' as ITM_CD,
+			</if>
+			<if test='year == "2020"'>
+			'FS0608' as SURV_ID ,
+			'T04,T05,T06,T07,T08,T09' as ITM_CD,
+			</if>
+			'채취업' as ITM_NM , 
+			'000' as C1 , 
+			'계' as C1_NM
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		    <if test='year == "2010"'> 
+		    	AND SURV_ID = 'FS0526' 
+				AND ITM_CD IN ('T04', 'T05', 'T06', 'T07', 'T08', 'T09')
+			</if>
+			<if test='year == "2015"'>
+				AND SURV_ID = 'FS0229' 
+				AND ITM_CD IN ('T04', 'T05', 'T06', 'T07', 'T08', 'T09')
+			</if>
+			<if test='year == "2020"'>
+				AND SURV_ID = 'FS0608' 
+				AND ITM_CD IN ('T04', 'T05', 'T06', 'T07', 'T08', 'T09')
+			</if>
+		    AND SURV_YEAR = #{year}
+			AND C1 = '000'
+		 	<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+		    	AND region_cd = '00'
+		    </if>
+		    <if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+		    	AND region_cd = ${region_cd}
+		    </if>
+	     UNION ALL
+		 SELECT  /* 겸업(비재배+재배) */
+			SUM(DT) AS DT ,
+			<if test='year == "2010"'> 
+			'FS0526' as SURV_ID ,
+			'T10,T11,T12,T13,T14,T15,T16,T17,T18' as ITM_CD ,
+			</if> 
+			<if test='year == "2015"'>
+			'FS0229' as SURV_ID ,
+			'T10,T11,T12,T13,T14,T15,T16,T17,T18' as ITM_CD,
+			</if>
+			<if test='year == "2020"'>
+			'FS0608' as SURV_ID ,
+			'T10,T11,T12,T13,T14,T15,T16,T17,T18' as ITM_CD,
+			</if>
+			'겸업(비재배+재배)' as ITM_NM , 
+			'000' as C1 , 
+			'계' as C1_NM
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		    <if test='year == "2010"'> 
+		    	AND SURV_ID = 'FS0526' 
+				AND ITM_CD IN ('T10', 'T11', 'T12', 'T13', 'T14', 'T15', 'T16', 'T17', 'T18')
+			</if>
+			<if test='year == "2015"'>
+				AND SURV_ID = 'FS0229' 
+				AND ITM_CD IN ('T10', 'T11', 'T12', 'T13', 'T14', 'T15', 'T16', 'T17', 'T18')
+			</if>
+			<if test='year == "2020"'>
+				AND SURV_ID = 'FS0608' 
+				AND ITM_CD IN ('T10', 'T11', 'T12', 'T13', 'T14', 'T15', 'T16', 'T17', 'T18')
+			</if>
+		    AND SURV_YEAR = #{year}
+			AND C1 = '000'
+		 	<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+		    	AND region_cd = '00'
+		    </if>
+		    <if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+		    	AND region_cd = ${region_cd}
+		    </if>
+		 UNION ALL
+		 SELECT  /* 재배임업만경영 */
+			SUM(DT) AS DT ,
+			<if test='year == "2010"'> 
+			'FS0526' as SURV_ID ,
+			'T19' as ITM_CD ,
+			</if> 
+			<if test='year == "2015"'>
+			'FS0229' as SURV_ID ,
+			'T19' as ITM_CD,
+			</if>
+			<if test='year == "2020"'>
+			'FS0608' as SURV_ID ,
+			'T19' as ITM_CD,
+			</if>
+			'재배임업만경영' as ITM_NM , 
+			'000' as C1 , 
+			'계' as C1_NM
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		    <if test='year == "2010"'> 
+		    	AND SURV_ID = 'FS0526' 
+				AND ITM_CD = 'T19'
+			</if>
+			<if test='year == "2015"'>
+				AND SURV_ID = 'FS0229' 
+				AND ITM_CD = 'T19'
+			</if>
+			<if test='year == "2020"'>
+				AND SURV_ID = 'FS0608' 
+				AND ITM_CD = 'T19'
+			</if>
+		    AND SURV_YEAR = #{year}
+			AND C1 = '000'
+		 	<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+		    	AND region_cd = '00'
+		    </if>
+		    <if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+		    	AND region_cd = ${region_cd}
+		    </if>
+	</select>
+	<!-- 임업경영형태 - 2020.11.20	juKwak	신규 END -->	
+</mapper>

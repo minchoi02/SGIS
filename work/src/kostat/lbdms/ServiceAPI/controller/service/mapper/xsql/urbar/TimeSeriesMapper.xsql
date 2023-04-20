@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="urbar_tm">
+
+
+	<!-- 신규 시계열 작업 -->
+	<insert id="createTmInfo" parameterType="hashmap">
+
+			INSERT INTO urbar.urbar_timeseries_result(
+						 project_key
+						,project_nm
+						,urbar_type
+						,create_dt
+						,create_year
+						,use_yn
+
+			)VALUES(
+					 default
+					,#{projectNm}
+					,#{urbarType}
+					,to_date(#{createDt} , 'YYYY-MM-DD')
+					,#{createYear}
+					,#{useYn}
+
+			)
+	</insert>
+	<!-- 시계열 목록 -->
+	<select id="selectTsInfoList" parameterType="hashmap" resultType="hashmap">
+		select
+			project_key
+		  , project_nm
+		  ,case urbar_type  when '01' then '도시' when '02' then '준도시' end as urbar_type
+		  , create_dt
+		  , create_year
+		  , COUNT(*) OVER() AS total
+		from urbar.urbar_timeseries_result
+		<where>
+			use_yn ='Y'
+				<if test="startDay != null and endDay != null ">
+				AND
+				(
+					create_dt between to_date(#{startDay},'YYYY-MM-DD') and to_date(#{endDay},'YYYY-MM-DD')
+				)
+			</if>
+		</where>
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+
+
+	<select id="selectTsInfoDetail" parameterType="hashmap" resultType="hashmap">
+		select
+			project_key
+		  , project_nm
+		  ,case urbar_type  when '01' then '도시' when '02' then '준도시' end as urbar_type
+		  , create_dt
+		  , create_year
+		from urbar.urbar_timeseries_result
+		where project_key =#{projectKey}
+
+	</select>
+
+
+	<update id="deleteTs" parameterType="hashmap">
+			update urbar.urbar_dnmt_result
+			set use_yn ='N'
+			where project_key =#{projectKey};
+
+	</update>
+		<select id="selectResult" parameterType="hashmap" resultType="hashmap">
+		select
+			*
+		from urbar.srv_pg_urbarbord_map_mapping
+		<where>
+			1=1
+				<if test="urbar_type != null">
+				AND
+				(
+					urbar_type =#{urbar_type}
+				)
+			</if>
+		</where>
+	</select>
+
+
+</mapper>

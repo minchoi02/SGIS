@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="srvAreaInfoMng"> 
+	<select id="getSrvareaSetInfoList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+	    <choose>
+			<when test="type == 1">
+		    	SELECT 
+					'시설유형 분류' AS SRV_TYPE
+					,FACTYPE_LCLAS_CD AS SRV_TYPE_CD
+					, FACTYPE_LCLAS_NM AS SRV_TYPE_NM
+					, ORDER_NO
+					, USE_YN
+					, SRV_YN
+				FROM SRV_DT_SRVAREA_FACTYPE_LCLAS
+				<if test="word != null and word !=''">
+				WHERE FACTYPE_LCLAS_NM like '%'|| #{word}||'%'
+				</if>
+				ORDER BY ORDER_NO
+			</when>
+			<when test="type == 2">
+			    SELECT
+					'격자유형' AS SRV_TYPE
+					, GRID_CD AS SRV_TYPE_CD
+					, GRID_NM AS SRV_TYPE_NM
+					, ORDER_NO
+					, USE_YN
+					, SRV_YN
+				FROM SRV_DT_SRVAREA_GRID
+				<if test="word != null and word !=''">
+				WHERE GRID_NM like '%'|| #{word}||'%'
+				</if>
+				ORDER BY ORDER_NO
+			</when>
+			<when test="type == 3">
+				SELECT
+					'범위유형' AS SRV_TYPE
+					, T1.SCOPE_CD AS SRV_TYPE_CD
+					, T1.SCOPE_NM AS SRV_TYPE_NM
+					, T1.ORDER_NO
+					, T1.USE_YN
+					, T1.SRV_YN
+					, T2.S_CLASS_CD_NM AS SCOPE_TYPE
+				FROM SRV_DT_SRVAREA_SCOPE T1
+				JOIN CMM_CD_COMCD T2
+				ON T1.SCOPE_TYPE = T2.S_CLASS_CD AND T2.B_CLASS_CD IN ('SRVA15')
+				<if test="word != null and word !=''">
+				WHERE T1.SCOPE_NM like '%'|| #{word}||'%'
+				</if>
+			</when>
+			<otherwise>
+		    	SELECT 
+					'시설유형' AS SRV_TYPE
+					,FACTYPE_LCLAS_CD AS SRV_TYPE_CD
+					, FACTYPE_LCLAS_NM AS SRV_TYPE_NM
+					, ORDER_NO
+					, USE_YN
+					, SRV_YN
+					, '' AS SCOPE_TYPE
+				FROM SRV_DT_SRVAREA_FACTYPE_LCLAS
+				<if test="word != null and word !=''">
+				WHERE FACTYPE_LCLAS_NM like '%'|| #{word}||'%'
+				</if>
+				UNION ALL
+				SELECT
+					'격자유형' AS SRV_TYPE
+					, GRID_CD AS SRV_TYPE_CD
+					, GRID_NM AS SRV_TYPE_NM
+					, ORDER_NO
+					, USE_YN
+					, SRV_YN
+					, '' AS SCOPE_TYPE
+				FROM SRV_DT_SRVAREA_GRID
+				<if test="word != null and word !=''">
+				WHERE GRID_NM like '%'|| #{word}||'%'
+				</if>
+				UNION ALL
+				SELECT
+					'범위유형' AS SRV_TYPE
+					, T1.SCOPE_CD AS SRV_TYPE_CD
+					, T1.SCOPE_NM AS SRV_TYPE_NM
+					, T1.ORDER_NO
+					, T1.USE_YN
+					, T1.SRV_YN
+					, T2.S_CLASS_CD_NM AS SCOPE_TYPE
+				FROM SRV_DT_SRVAREA_SCOPE T1
+				JOIN CMM_CD_COMCD T2
+				ON T1.SCOPE_TYPE = T2.S_CLASS_CD AND T2.B_CLASS_CD IN ('SRVA15')
+				<if test="word != null and word !=''">
+				WHERE T1.SCOPE_NM like '%'|| #{word}||'%'
+				</if>
+		</otherwise>
+		</choose>
+	</select>
+	
+	<select id="getSrvAreaUpperDetailData" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+	    SELECT 
+			FACTYPE_LCLAS_CD
+			, FACTYPE_LCLAS_NM
+			, ORDER_NO AS UPPER_ORDER_NO
+			, USE_YN AS UPPER_USE_YN
+			, SRV_YN AS UPPER_SRV_YN
+		FROM SRV_DT_SRVAREA_FACTYPE_LCLAS
+		<if test="factypeLclasCd != null and factypeLclasCd !=''">
+		WHERE FACTYPE_LCLAS_CD = #{factypeLclasCd}
+		</if>
+	</select>
+	
+	<select id="getSrvAreaGridDetailData" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+	    SELECT
+			GRID_CD
+			, GRID_NM
+			, GRID_LEVEL_DIV
+			, ORDER_NO AS GRID_ORDER_NO
+			, USE_YN AS GRID_USE_YN
+			, SRV_YN AS GRID_SRV_YN
+		FROM SRV_DT_SRVAREA_GRID
+		<if test="gridCd != null and gridCd !=''">
+		WHERE GRID_CD = #{gridCd}
+		</if>
+	</select>
+	
+	<select id="getSrvAreaScopeDetailData" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+	    SELECT
+			SCOPE_TYPE
+			, SCOPE_CD
+			, SCOPE_NM
+			, SCOPE_VALUE AS SCOPE_VAL
+			, USE_YN AS SCOPE_USE_YN
+			, SRV_YN AS SCOPE_SRV_YN
+			, ORDER_NO AS SCOPE_ORDER_NO
+		FROM SRV_DT_SRVAREA_SCOPE
+		<if test="scopeCd != null and scopeCd !=''">
+		WHERE SCOPE_CD = #{scopeCd}
+		</if>
+	</select>
+	
+	<update id="registerUpperFactypeMng" parameterType="java.util.HashMap" >
+	    INSERT INTO SRV_DT_SRVAREA_FACTYPE_LCLAS (
+			FACTYPE_LCLAS_CD
+			, FACTYPE_LCLAS_NM
+			, SRV_YN
+			, ORDER_NO
+			, USE_YN
+			, MOD_TS
+			, MOD_MANAGER_ID
+		) VALUES (
+			(SELECT 'SAL' || LPAD(TO_NUMBER(SUBSTR(max(factype_lclas_cd), 4, 3))+1,3,'0') FROM SRV_DT_SRVAREA_FACTYPE_LCLAS)
+			, #{factypeLclasNm}
+			, #{upperSrvYn}
+			, #{upperOrderNo}
+			, #{upperUseYn}
+			, SYSDATE
+			, #{modManagerId}
+		)
+	</update>
+	
+	<update id="updateUpperFactypeMng" parameterType="java.util.HashMap" >
+	    UPDATE 	
+	 		SRV_DT_SRVAREA_FACTYPE_LCLAS
+	 	SET 	
+			factype_lclas_nm = #{factypeLclasNm}
+			, srv_yn = #{upperSrvYn}
+			, USE_YN = #{upperUseYn}
+			, order_no = #{upperOrderNo}
+			, mod_ts = SYSDATE
+			, mod_manager_id = #{modManagerId}
+		WHERE 	factype_lclas_cd = #{factypeLclasCd}
+	</update>
+	
+	<update id="registerGirdMng" parameterType="java.util.HashMap" >
+	    INSERT INTO SRV_DT_SRVAREA_GRID (
+			GRID_CD
+			, GRID_NM
+			, GRID_LEVEL_DIV
+			, SRV_YN
+			, ORDER_NO
+			, USE_YN
+			, MOD_TS
+			, MOD_MANAGER_ID
+		) VALUES (
+			(SELECT 'GD' || LPAD(TO_NUMBER(SUBSTR(max(grid_cd), 3, 4))+1,4,'0') FROM SRV_DT_SRVAREA_GRID)
+			, #{gridNm}
+			, #{gridLevelDiv}
+			, #{gridSrvYn}
+			, #{gridOrderNo}
+			, #{gridUseYn}
+			, SYSDATE
+			, #{modManagerId}
+		)
+	</update>
+	
+	<update id="updateGirdMng" parameterType="java.util.HashMap" >
+	    UPDATE 	
+	 		SRV_DT_SRVAREA_GRID
+	 	SET 	
+			grid_nm = #{gridNm}
+			, GRID_LEVEL_DIV = #{gridLevelDiv}
+			, USE_YN = #{gridUseYn}
+			, srv_yn = #{gridSrvYn}
+			, order_no = #{gridOrderNo}
+			, mod_ts = SYSDATE
+			, mod_manager_id = #{modManagerId}
+		WHERE 	grid_cd = #{gridCd}
+	</update>
+	
+	<update id="registerScopeMng" parameterType="java.util.HashMap" >
+	    INSERT INTO SRV_DT_SRVAREA_SCOPE (
+			SCOPE_CD
+			, SCOPE_TYPE
+			, SCOPE_NM
+			, SCOPE_VALUE
+			, USE_YN
+			, SRV_YN
+			, ORDER_NO
+			, MOD_TS
+			, MOD_MANAGER_ID
+		) VALUES (
+			<choose>
+			    <when test="scopeType == 01">
+			        (select 'T' || lpad(to_number(substr(max(scope_cd),2,2))+1,2,'0') 
+			        from SRV_DT_SRVAREA_SCOPE where scope_type = '01')
+			    </when>
+			    <when test="scopeType == 02">
+			        (select 'D' || lpad(to_number(substr(max(scope_cd),2,2))+1,2,'0') 
+			        from SRV_DT_SRVAREA_SCOPE where scope_type = '02')
+			    </when>
+			    <otherwise>
+			        (select 'R' || lpad(to_number(substr(max(scope_cd),2,2))+1,2,'0') 
+			        from SRV_DT_SRVAREA_SCOPE where scope_type = '03')
+			    </otherwise>
+			</choose>
+			, #{scopeType}
+			, #{scopesNm}
+			, #{scopeVal}
+			, #{scopeUseYn}
+			, #{scopeSrvYn}
+			, #{scopeOrderNo}
+			, SYSDATE
+			, #{modManagerId}
+		)
+	</update>
+	
+	<update id="updateScopeMng" parameterType="java.util.HashMap" >
+	    UPDATE 	
+	 		SRV_DT_SRVAREA_SCOPE
+	 	SET 	
+	 		SCOPE_TYPE  = #{scopeType}
+			, SCOPE_NM = #{scopesNm}
+			, SCOPE_VALUE = #{scopeVal}
+			, USE_YN = #{scopeUseYn}
+			, SRV_YN = #{scopeSrvYn}
+			, ORDER_NO = #{scopeOrderNo}
+			, MOD_TS = SYSDATE
+			, MOD_MANAGER_ID = #{modManagerId}
+		WHERE 	SCOPE_CD = #{scopeCd}
+	</update>
+	
+	<select id="getFactypeLclasCdExists"  parameterType="java.util.HashMap" resultType="int">
+	    SELECT 	COUNT(FACTYPE_LCLAS_CD) 
+		FROM	SRV_DT_SRVAREA_FACTYPE_LCLAS
+		WHERE	FACTYPE_LCLAS_CD = #{factypeLclasCd}
+	</select>
+	
+	<select id="getGridCdExists"  parameterType="java.util.HashMap" resultType="int">
+	    SELECT 	COUNT(GRID_CD) 
+		FROM	SRV_DT_SRVAREA_GRID
+		WHERE	GRID_CD = #{gridCd}
+	</select>
+	
+	<select id="getScopeCdExists"  parameterType="java.util.HashMap" resultType="int">
+	    SELECT 	COUNT(SCOPE_CD) 
+		FROM	SRV_DT_SRVAREA_SCOPE
+		WHERE	SCOPE_CD = #{scopeCd}
+	</select>
+	
+	<select id="checkServiceYn"  parameterType="java.util.HashMap" resultType="int">
+	    SELECT COUNT(UPPER_FACTYPE_CD) 
+	    FROM SRV_DT_SRVAREA_FACTYPE
+		WHERE UPPER_FACTYPE_CD = #{factypeLclasCd}
+			AND SRV_YN = 'Y'
+			AND USE_YN = 'Y'
+	</select>
+</mapper>

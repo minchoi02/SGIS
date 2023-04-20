@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SRVStat">
+	<select id="getTotalPageVist" parameterType="Map" resultType="int">
+		select NVL(SUM(HOURLY_CALL_CNT),0) from SRV_DT_PAGEHOURLYSTAT
+		where
+		SUBSTR(CALL_HOURLY,0,
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		) <![CDATA[>=]]>
+		#{STARTDATE} and
+		SUBSTR(CALL_HOURLY,0,
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		) <![CDATA[<]]>
+		#{ENDDATE}
+
+	</select>
+	<select id="getTotalAccrueMember" parameterType="Map"
+		resultType="int">
+		select NVL(COUNT(*),0) as count from SRV_DT_MEMBERINFO
+		where
+		REG_TS is
+		not NULL and
+		<if test="TIMETYPE == 'DAILY'">to_char(REG_TS, 'yyyymmdd')</if>
+		<if test="TIMETYPE == 'MONTHLY'">to_char(REG_TS, 'yyyymm')</if>
+			<![CDATA[>=]]>
+		#{STARTDATE} and
+		<if test="TIMETYPE == 'DAILY'">to_char(REG_TS, 'yyyymmdd')</if>
+		<if test="TIMETYPE == 'MONTHLY'">to_char(REG_TS, 'yyyymm')</if>
+			<![CDATA[<]]>
+		#{ENDDATE}
+	</select>
+	<select id="getSeriesData" parameterType="Map" resultType="Map">
+		select
+		SUBSTR(a.YM_DT,0,
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		) as CALL_HOURLY,
+		NVL(SUM(a.VISIT_CNT),0) as CALL_CNT,
+		b.class_nm,
+		c.s_class_nm
+		FROM
+		MNG_DT_DAILYUSERLOGSTAT a, MNG_DT_LOGBIGCLASS b,
+		MNG_DT_LOGSMLCLASS c
+		where
+		a.usr_log_b_cd = b.usr_log_b_cd and
+		a.usr_log_s_cd = c.usr_log_s_cd and
+		a.usr_log_b_cd = #{USR_LOG_B_CD}
+		and
+		a.usr_log_s_cd = #{USR_LOG_S_CD} and
+		SUBSTR(a.YM_DT,0,
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		) <![CDATA[>=]]>
+		#{STARTDATE} and
+		SUBSTR(a.YM_DT,0,
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		) <![CDATA[<]]>
+		#{ENDDATE}
+		group by
+		SUBSTR(a.YM_DT,0,
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		),b.class_nm, c.s_class_nm
+		order by CALL_HOURLY
+	</select>
+	<select id="getPageInfo" resultType="Map">
+		select distinct hpage,
+		hpage_nm
+		from srv_dt_pagenminfo
+	</select>
+	<select id="getTotalMainVist" parameterType="Map" resultType="int">
+		select NVL(SUM(HOURLY_CALL_CNT),0)as count from SRV_DT_PAGEHOURLYSTAT
+		where
+		SUBSTR(CALL_HOURLY,0,
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		) <![CDATA[>=]]>
+		#{STARTDATE} and
+		SUBSTR(CALL_HOURLY,0,
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		) <![CDATA[<]]>
+		#{ENDDATE}
+		and HPAGE = '/html/index.html'
+
+	</select>
+	<select id="getTotalMainVist1" parameterType="Map" resultType="int">
+		select NVL(SUM(HOURLY_CALL_CNT),0)as CALL_CNT
+		from
+		SRV_DT_PAGEHOURLYSTAT
+		where
+		SUBSTR(CALL_HOURLY,0,
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		) <![CDATA[>=]]>
+		#{STARTDATE} and
+		SUBSTR(CALL_HOURLY,0,
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		) <![CDATA[<]]>
+		#{ENDDATE}
+
+	</select>
+	<select id="getTotalAccrueVist" resultType="int">
+
+		select NVL(SUM(visit_cnt),0) as ACC_CNT from
+		MNG_DT_DAILYUSERLOGSTAT
+		<!-- -->
+	</select>
+	<select id="getTotalAccrueVist1" resultType="int">
+		select
+		NVL(ACC_CNT,0) as ACC_CNT from SRV_DT_ACCRUE where ACC_STAT_ID
+		=
+		'1000'
+	</select>
+	<select id="getPageVisitInfo" parameterType="Map" resultType="Map">
+		select a.CALL_CNT,'https://sop.kostat.go.kr'|| a.HPAGE AS HPAGE
+		,b.HPAGE_NM from
+		(
+		select HPAGE, NVL(sum(HOURLY_CALL_CNT),0)as CALL_CNT
+		from SRV_DT_PAGEHOURLYSTAT
+		where
+		SUBSTR(CALL_HOURLY,0,
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		) <![CDATA[>=]]>
+		#{STARTDATE} and
+		SUBSTR(CALL_HOURLY,0,
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		) <![CDATA[<]]>
+		#{ENDDATE}
+		group by HPAGE
+		order by CALL_CNT DESC
+		)a
+		join SRV_DT_PAGENMINFO
+		b on a.HPAGE=b.HPAGE
+		<if test="TOP3 != null">
+			where ROWNUM <![CDATA[<]]>
+			4
+		</if>
+	</select>
+	<select id="getSRVStat1" parameterType="Map" resultType="Map">
+		select SUBSTR(CALL_HOURLY,0,
+		<if test="TIMETYPE == 'HOURLY'">10</if>
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		) as CALL_HOURLY, NVL(SUM(HOURLY_CALL_CNT),0)as CALL_CNT from
+		SRV_DT_PAGEHOURLYSTAT
+		where SUBSTR(CALL_HOURLY,0,
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE 
+			== 'MONTHLY'">6</if>
+		) <![CDATA[>=]]>
+		#{STARTDATE} and SUBSTR(CALL_HOURLY,0,
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		) <![CDATA[<]]>
+		#{ENDDATE}
+		<if test="MAIN_PAGE != null"> and HPAGE = #{MAIN_PAGE}
+		</if>
+		group by SUBSTR(CALL_HOURLY,0,
+		<if test="TIMETYPE == 'HOURLY'">10</if>
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		)
+	</select>
+	<select id="getSRVStat" parameterType="Map" resultType="Map">
+		select substr(ym_dt,0,
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		)
+		as CALL_HOURLY,
+		nvl(sum(visit_cnt),0) as CALL_CNT
+		from
+		mng_dt_dailyuserlogstat
+		where substr(ym_dt,0,
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		) <![CDATA[>=]]>#{STARTDATE}
+		and
+		substr(ym_dt,0,
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		) <![CDATA[<=]]>
+		#{ENDDATE}
+		group by substr(ym_dt,0,
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		)
+	</select>
+
+	<select id="searchMember" parameterType="Map" resultType="Map">
+		select * from
+		(
+		select MEMBER_ID, MEMBER_NM , ROWNUM R
+		from
+		SRV_DT_MEMBERINFO
+		where ROWNUM <![CDATA[<=]]>
+		#{END_INDEX}
+		<if test="SEARCH_WORD != null">
+			and (MEMBER_NM like #{SEARCH_WORD} or MEMBER_ID like
+			#{SEARCH_WORD})
+		</if>
+		order by MEMBER_NM
+		)
+		where R <![CDATA[>=]]>
+		#{START_INDEX}
+		order by r asc
+	</select>
+	<select id="searchMemberCount" parameterType="hashmap"
+		resultType="int">
+		select count(MEMBER_ID) AS CNT
+		from SRV_DT_MEMBERINFO
+		<if test="SEARCH_WORD != null">
+			where (MEMBER_NM like #{SEARCH_WORD} or MEMBER_ID like
+			#{SEARCH_WORD})
+		</if>
+	</select>
+	<select id="getMembervisitCnt" parameterType="Map" resultType="int">
+		select NVL(SUM(visit_cnt),0) AS CNT
+		from MNG_DT_DAILYUSERLOGSTAT
+		where
+		member_id is not null
+		and member_id=#{MEMBER_ID}
+	</select>
+	<select id="selectMemberValue" parameterType="Map" resultType="Map">
+		select
+		NVL(SUM(A.VISIT_CNT),0) AS CNT,
+		A.member_id,b.s_class_nm
+		from
+		MNG_DT_DAILYUSERLOGSTAT A, MNG_DT_LOGSMLCLASS B
+		where A.member_id is
+		not null
+		AND A.USR_LOG_S_CD = B.USR_LOG_S_CD
+		and
+		A.member_id=#{MEMBER_ID}
+		and SUBSTR(A.ym_dt,0,
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		) <![CDATA[>=]]>
+		#{STARTDATE}
+		and SUBSTR(A.ym_dt,0,
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		)<![CDATA[<=]]>
+		#{ENDDATE}
+		group by A.usr_log_s_cd, a.member_id
+		,b.s_class_nm
+	</select>
+	<select id="selectMemberTotal" parameterType="hashmap"
+		resultType="int">
+		select NVL(SUM(A.VISIT_CNT),0) AS CNT
+		from MNG_DT_DAILYUSERLOGSTAT A, MNG_DT_LOGSMLCLASS B
+		where A.member_id is not null
+		AND A.USR_LOG_S_CD = B.USR_LOG_S_CD
+		and A.member_id=#{MEMBER_ID}
+		and SUBSTR(A.ym_dt,0,
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		) <![CDATA[>=]]>
+		#{STARTDATE}
+		and SUBSTR(A.ym_dt,0,
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		)<![CDATA[<=]]>
+		#{ENDDATE}
+
+	</select>
+</mapper>

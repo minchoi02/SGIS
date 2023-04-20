@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.sgis.map.service.mapper.kairos.CommunityMapper">
+
+	<sql id="withCnt">
+		WITH POI_CNT AS
+		(
+		 SELECT CMMNTY_MAP_ID, COUNT(1) CNT
+		   FROM SRV_DT_CMMNTY_POI
+		  GROUP BY CMMNTY_MAP_ID
+		),
+			JOIN_CNT AS
+		(
+   		 SELECT A.CMMNTY_MAP_ID, COUNT(1) CNT
+		   FROM SRV_DT_CMMNTY_APPROVAL A , SRV_DT_CMMNTY_MAP B
+		  WHERE A.CMMNTY_MAP_ID = B.CMMNTY_MAP_ID
+			AND B.CMMNTY_PARTCPTN_GRANT_YN='Y'
+			AND APPROVAL_DISTINCT LIKE '%A%'
+		  GROUP BY A.CMMNTY_MAP_ID
+  		  UNION ALL
+		 SELECT A.CMMNTY_MAP_ID, COUNT(1) CNT
+		   FROM SRV_DT_CMMNTY_POI A, SRV_DT_CMMNTY_MAP B
+		  WHERE A.CMMNTY_MAP_ID = B.CMMNTY_MAP_ID
+			AND B.CMMNTY_PARTCPTN_GRANT_YN !='Y'
+		  GROUP BY A.CMMNTY_MAP_ID
+		)
+	</sql>
+
+	<sql id="joinSearch">
+		(
+			CASE
+				WHEN CMMNTY_PARTCPTN_GRANT_YN = 'Y'
+					THEN (
+						SELECT
+							COUNT(1)
+						FROM SRV_DT_CMMNTY_APPROVAL
+						WHERE
+							APPROVAL_DISTINCT LIKE '%A%'
+						AND SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID = SRV_DT_CMMNTY_APPROVAL.CMMNTY_MAP_ID
+						AND SRV_DT_CMMNTY_APPROVAL.USR_ID = '${member_id}'<!-- #으로 하면 에러나서 현재 이렇게 개발되어있습니다 mybatis 문제인듯... -->
+					)
+				ELSE (
+					SELECT
+						COUNT(1)
+					FROM SRV_DT_CMMNTY_POI
+					WHERE
+						SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID = SRV_DT_CMMNTY_POI.CMMNTY_MAP_ID
+					AND SRV_DT_CMMNTY_POI.USR_ID = '${member_id}'<!-- #으로 하면 에러나서 현재 이렇게 개발되어있습니다 mybatis 문제인듯... -->
+				)
+			END
+		)
+	</sql>
+	<sql id="listItem">
+		<include refid="withCnt"/>
+		SELECT
+			SRV_DT_CMMNTY_MAP.cmmnty_map_id,
+			SRV_DT_CMMNTY_MAP.cmmnty_map_nm,
+			SRV_DT_CMMNTY_MAP.intrcn,
+			SRV_DT_CMMNTY_MAP.usr_id,
+			SRV_DT_CMMNTY_MAP.cmmnty_partcptn_grant_yn,
+			SRV_DT_CMMNTY_MAP.reg_symbol,
+			SRV_DT_CMMNTY_MAP.custom_symbol_group_id,
+<!-- 			SRV_DT_CMMNTY_MAP.from_ce, -->
+			TO_CHAR(SRV_DT_CMMNTY_MAP.reg_date,'YYYY.MM.DD') AS reg_date,
+			TO_CHAR(SRV_DT_CMMNTY_MAP.prid_estbs_end_date,'YYYY.MM.DD') AS prid_estbs_end_date,
+			SRV_DT_CMMNTY_MAP_ATCH_IMAGE.path_nm,
+			SRV_DT_CMMNTY_MAP_ATCH_IMAGE.save_file_nm,
+			NVL(POI_CNT.cnt, 0) AS poi_cnt,
+	 		NVL(JOIN_CNT.cnt, 0)AS join_cnt,
+			CASE
+				WHEN AREA_ESTBS_SIDO_CD='00' THEN ''
+				ELSE
+					CASE
+						WHEN AREA_ESTBS_SGG_CD='999' THEN AREA_ESTBS_SIDO_CD
+						ELSE CASE
+							WHEN AREA_ESTBS_EMDONG_CD='00' THEN AREA_ESTBS_SIDO_CD||AREA_ESTBS_SGG_CD
+							ELSE AREA_ESTBS_SIDO_CD||AREA_ESTBS_SGG_CD||AREA_ESTBS_EMDONG_CD
+						END
+					END
+				END
+			AS adm_cd,
+			CASE
+				WHEN SRV_DT_CMMNTY_MAP.USR_ID = #{member_id} THEN 'Y'
+				WHEN CMMNTY_PARTCPTN_GRANT_YN = 'Y'
+					THEN
+						<choose>
+							<when test='member_id != null and member_id != ""'>
+								CASE
+									WHEN (
+										SELECT
+											COUNT(1)
+										FROM SRV_DT_CMMNTY_APPROVAL
+										WHERE
+											APPROVAL_DISTINCT = 'A'
+										AND SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID = SRV_DT_CMMNTY_APPROVAL.CMMNTY_MAP_ID
+										AND SRV_DT_CMMNTY_APPROVAL.USR_ID = #{member_id}
+									)>0
+									THEN 'Y'
+									WHEN (
+										SELECT
+											COUNT(1)
+										FROM SRV_DT_CMMNTY_APPROVAL
+										WHERE
+											APPROVAL_DISTINCT = 'WA'
+										AND SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID = SRV_DT_CMMNTY_APPROVAL.CMMNTY_MAP_ID
+										AND SRV_DT_CMMNTY_APPROVAL.USR_ID = #{member_id}
+									)>0
+									THEN 'W'
+									WHEN (
+										SELECT
+											COUNT(1)
+										FROM SRV_DT_CMMNTY_APPROVAL
+										WHERE
+											APPROVAL_DISTINCT = 'D'
+										AND SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID = SRV_DT_CMMNTY_APPROVAL.CMMNTY_MAP_ID
+										AND SRV_DT_CMMNTY_APPROVAL.USR_ID = #{member_id}
+									)>0
+									THEN 'D'
+									ELSE 'N'
+								END
+							</when>
+							<otherwise>
+								'N'
+							</otherwise>
+						</choose>
+				ELSE 'Y'
+			END
+			AS regist_yn,
+			CASE
+				WHEN CMMNTY_PARTCPTN_GRANT_YN = 'Y' THEN (SELECT TOP 1 APPROVAL_DISTINCT FROM SRV_DT_CMMNTY_APPROVAL WHERE SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID = SRV_DT_CMMNTY_APPROVAL.CMMNTY_MAP_ID AND USR_ID = '${member_id}' ORDER BY APPROVAL_WATIE_DATE DESC )
+				ELSE
+					CASE
+						WHEN <include refid="joinSearch"/>>0 THEN 'A'
+						ELSE null
+					END
+			END AS approval_distinct,
+			(SELECT LIST FROM SRV_DT_CMMNTY_MYDATA_LIST WHERE ROWNUM=1 AND SRV_DT_CMMNTY_MYDATA_LIST.CMMNTY_MAP_ID = SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID ORDER BY CMMNTY_MYDATA_LIST_ID DESC) AS mydata
+		FROM SRV_DT_CMMNTY_MAP
+		LEFT OUTER JOIN SRV_DT_CMMNTY_MAP_ATCH_IMAGE
+		  ON SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ATCH_FILE_ID = SRV_DT_CMMNTY_MAP_ATCH_IMAGE.CMMNTY_MAP_ATCH_FILE_ID
+		LEFT OUTER JOIN POI_CNT
+		  ON SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID = POI_CNT.CMMNTY_MAP_ID
+		LEFT OUTER JOIN JOIN_CNT
+		  ON SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID = JOIN_CNT.CMMNTY_MAP_ID
+	</sql>
+	<sql id="listWhere">
+			PRID_ESTBS_START_DATE &lt;= SYSDATE
+		AND LOCK_YN = 'N'
+		<choose>
+			<when test="type == 'open'">
+				AND USR_ID = #{member_id}
+			</when>
+			<when test="type == 'join'">
+				AND TEMP_SAVE_YN = 'N'
+				AND <include refid="joinSearch"/>>0
+			</when>
+		</choose>
+<!-- 		<if test="from_ce != null and from_ce != ''"> -->
+<!-- 		AND FROM_CE  =  #{from_ce} -->
+<!-- 		</if> -->
+		<if test="keywords != null and keywords != ''">
+			AND (
+				INSTR((
+					CASE
+						WHEN SRV_DT_CMMNTY_MAP.AREA_ESTBS_SIDO_CD = '00'
+						THEN '전국'
+						ELSE CASE
+							WHEN SRV_DT_CMMNTY_MAP.AREA_ESTBS_SGG_CD = '999'
+							THEN (SELECT SIDO_NM FROM SRV_PG_SIDOBORD WHERE SIDO_CD = SRV_DT_CMMNTY_MAP.AREA_ESTBS_SIDO_CD AND BASE_YEAR='${bnd_year}')
+							ELSE CASE
+								WHEN SRV_DT_CMMNTY_MAP.AREA_ESTBS_EMDONG_CD = '00'
+								THEN (SELECT SIDO_NM||' '||SGG_NM FROM SRV_PG_SGGBORD WHERE SIDO_CD = SRV_DT_CMMNTY_MAP.AREA_ESTBS_SIDO_CD AND SGG_CD = SRV_DT_CMMNTY_MAP.AREA_ESTBS_SGG_CD AND BASE_YEAR='${bnd_year}')
+								ELSE (SELECT SIDO_NM||' '||SGG_NM||' '||EMDONG_NM FROM SRV_PG_ADMBORD WHERE SIDO_CD = SRV_DT_CMMNTY_MAP.AREA_ESTBS_SIDO_CD AND SGG_CD = SRV_DT_CMMNTY_MAP.AREA_ESTBS_SGG_CD AND EMDONG_CD = SRV_DT_CMMNTY_MAP.AREA_ESTBS_EMDONG_CD  AND BASE_YEAR='${bnd_year}')
+							END
+						END
+					END
+				),#{keywords})>0
+				OR CMMNTY_MAP_NM LIKE '%'||#{keywords}||'%'
+				OR (SELECT COUNT(1) FROM SRV_DT_CMMNTY_KWRD WHERE SRV_DT_CMMNTY_KWRD.CMMNTY_MAP_ID = SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID AND KWRD LIKE '%'||#{keywords}||'%') &gt; 0
+			)
+		</if>
+		AND (
+			TEMP_SAVE_YN='N'
+			<if test="type!='hot' and member_id!=null and member_id !=''">
+				OR (USR_ID = #{member_id} AND TEMP_SAVE_YN='Y')
+			</if>
+		)
+	</sql>
+	<select id="selectCmmntyCount" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM SRV_DT_CMMNTY_MAP
+		<where>
+			<include refid="listWhere"/>
+		</where>
+	</select>
+	<select id="selectCmmntyList" resultType="communityVO">
+		<include refid="listItem"/>
+		<choose>
+			<when test="type=='hot'">
+				INNER JOIN SRV_DT_HOT_CMMNTY_MAP ON SRV_DT_HOT_CMMNTY_MAP.CMMNTY_MAP_ID = SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID
+				<where>
+					<include refid="listWhere"/>
+				</where>
+				ORDER BY SRV_DT_HOT_CMMNTY_MAP.ORDER ASC
+				LIMIT 4
+			</when>
+			<otherwise>
+				<where>
+					<include refid="listWhere"/>
+				</where>
+			<!--	리스트 정렬 기준 변경 추가
+					작성자 : 박은식
+					작성일 : 20200708
+					param : cmmnty_align
+
+					추가 start
+			-->
+					<if test="cmmnty_align == 'name'">
+						ORDER BY SRV_DT_CMMNTY_MAP.cmmnty_map_nm ASC,SRV_DT_CMMNTY_MAP.cmmnty_map_id DESC
+					</if>
+					<if test="cmmnty_align == 'count'">
+						ORDER BY join_cnt DESC,SRV_DT_CMMNTY_MAP.cmmnty_map_id DESC
+					</if>
+					<!-- <when test="edit"> 수정일자 확인이안됨
+						ORDER BY SRV_DT_CMMNTY_MAP.reg_date DESC,SRV_DT_CMMNTY_MAP.cmmnty_map_id DESC
+					</when> -->
+					<if test="cmmnty_align == null or cmmnty_align == ''">
+						ORDER BY SRV_DT_CMMNTY_MAP.reg_date DESC,SRV_DT_CMMNTY_MAP.cmmnty_map_id DESC
+					</if>
+						LIMIT ${pageSize*(page-1)+1},${pageSize}
+			<!-- 추가 end -->
+			</otherwise>
+		</choose>
+	</select>
+	<select id="selectCmmntyRemainderHotList" resultType="communityVO">
+		<include refid="listItem"/>
+		<where>
+				PRID_ESTBS_START_DATE &lt;= SYSDATE
+			AND LOCK_YN = 'N'
+			AND TEMP_SAVE_YN = 'N'
+			<foreach collection="communityList" item="item" separator="," open="AND CMMNTY_MAP_ID NOT IN (" close=")">
+				#{item.cmmnty_map_id}
+			</foreach>
+		</where>
+		ORDER BY JOIN_CNT DESC,CMMNTY_MAP_ID DESC
+		LIMIT ${4-communityList.size()}
+	</select>
+	<select id="selectCmmnty" resultType="communityVO">
+		<include refid="listItem"/>
+		<where>
+			<choose>
+				<when test="cmmnty_map_id!=null and cmmnty_map_id!=''">
+						PRID_ESTBS_START_DATE &lt;= SYSDATE
+					AND LOCK_YN = 'N'
+					AND TEMP_SAVE_YN='N'
+					AND SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID = #{cmmnty_map_id}
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose>
+		</where>
+	</select>
+	<select id="selectMapList" parameterType="String" resultType="egovMap">
+		SELECT
+			CASE
+				WHEN LIST='bassBsnes' THEN '총사업체'
+				WHEN LIST='bassStats' THEN '총인구'
+				ELSE (SELECT HIST_NM FROM SRV_DT_STATSEARCHHIST WHERE SRV_DT_STATSEARCHHIST.HIST_ID = LIST)
+			END AS HIST_NM,
+			LIST
+		FROM SRV_DT_CMMNTY_MAP_LIST
+		WHERE
+		CMMNTY_MAP_ID = #{value}
+		ORDER BY CMMNTY_MAP_LIST_ID ASC
+	</select>
+
+	<select id="selectCmmntyApprovalFromMemberCount" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM SRV_DT_CMMNTY_APPROVAL
+		<where>
+			<choose>
+				<when test="cmmnty_map_id != null and cmmnty_map_id != ''">
+						CMMNTY_MAP_ID = #{cmmnty_map_id}
+					AND USR_ID = #{member_id}
+					AND ROWNUM = 1
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose>
+		</where>
+	</select>
+	<select id="selectCommunityCustomSymbolList" parameterType="String" resultType="egovMap">
+		SELECT
+			SRV_DT_CMMNTY_CUSTOM_SYMBOL.CUSTOM_SYMBOL_ID,
+			SRV_DT_CMMNTY_CUSTOM_SYMBOL.CUSTOM_SYMBOL_GROUP_ID,
+			SRV_DT_CMMNTY_CUSTOM_SYMBOL.LABEL_NM,
+			SRV_DT_CMMNTY_CUSTOM_SYMBOL.ORDER,
+			SRV_DT_CMMNTY_CUSTOM_SYMBOL_ATCH_IMAGE.PATH_NM,
+			SRV_DT_CMMNTY_CUSTOM_SYMBOL_ATCH_IMAGE.SAVE_FILE_NM,
+			SRV_DT_CMMNTY_CUSTOM_SYMBOL_ATCH_IMAGE.FILE_EXTN,
+			SRV_DT_CMMNTY_CUSTOM_SYMBOL_ATCH_IMAGE.FILE_TYPE,
+			SRV_DT_CMMNTY_CUSTOM_SYMBOL_ATCH_IMAGE.ORI_FILE_NM
+		FROM SRV_DT_CMMNTY_CUSTOM_SYMBOL
+		LEFT OUTER JOIN SRV_DT_CMMNTY_CUSTOM_SYMBOL_ATCH_IMAGE
+			ON SRV_DT_CMMNTY_CUSTOM_SYMBOL.CUSTOM_SYMBOL_ID = SRV_DT_CMMNTY_CUSTOM_SYMBOL_ATCH_IMAGE.CUSTOM_SYMBOL_ID
+		<where>
+			<choose>
+				<when test="value != null and value != ''">
+					SRV_DT_CMMNTY_CUSTOM_SYMBOL.CUSTOM_SYMBOL_GROUP_ID = #{value}
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose>
+		</where>
+		ORDER BY SRV_DT_CMMNTY_CUSTOM_SYMBOL.ORDER ASC
+	</select>
+	<select id="selectCommunityPassword" parameterType="String" resultType="String">
+		SELECT
+			PW
+		FROM SRV_DT_CMMNTY_MAP
+		<where>
+			<choose>
+				<when test="value != null and value != ''">
+					SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID = #{value}
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose>
+		</where>
+	</select>
+
+	<!-- 2020.09.16[한광희] 지역현안 소통지도 수정 START -->
+	<select id="selectMainCommunityList" resultType="communityVO">
+		SELECT SRV_DT_CMMNTY_MAP.cmmnty_map_id
+			 , SRV_DT_CMMNTY_MAP.cmmnty_map_nm
+			 , SRV_DT_CMMNTY_MAP.usr_id
+			 , TO_CHAR(SRV_DT_CMMNTY_MAP.reg_date,'YYYY.MM.DD') AS reg_date
+			 , SRV_DT_CMMNTY_MAP_ATCH_IMAGE.path_nm
+			 , SRV_DT_CMMNTY_MAP_ATCH_IMAGE.save_file_nm
+		 FROM SRV_DT_CMMNTY_MAP
+		 LEFT OUTER JOIN SRV_DT_CMMNTY_MAP_ATCH_IMAGE
+		   ON SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ATCH_FILE_ID = SRV_DT_CMMNTY_MAP_ATCH_IMAGE.CMMNTY_MAP_ATCH_FILE_ID
+		WHERE PRID_ESTBS_START_DATE &lt;= SYSDATE
+		  AND LOCK_YN = 'N'
+<!-- 		  AND FROM_CE = #{from_ce} -->
+		  AND TEMP_SAVE_YN='N'
+		ORDER BY SRV_DT_CMMNTY_MAP.reg_date DESC,SRV_DT_CMMNTY_MAP.cmmnty_map_id
+		LIMIT 2
+	</select>
+
+	<select id="selectCommunityList" resultType="communityVO">
+		<include refid="withCnt"/>
+		SELECT SRV_DT_CMMNTY_MAP.cmmnty_map_id
+			 , SRV_DT_CMMNTY_MAP.cmmnty_map_nm
+			 , SRV_DT_CMMNTY_MAP.intrcn
+			 , SRV_DT_CMMNTY_MAP.usr_id
+			 , SRV_DT_CMMNTY_MAP.cmmnty_partcptn_grant_yn
+			 , SRV_DT_CMMNTY_MAP.reg_symbol
+			 , SRV_DT_CMMNTY_MAP.custom_symbol_group_id
+			 , TO_CHAR(SRV_DT_CMMNTY_MAP.reg_date,'YYYY.MM.DD') AS reg_date
+			 , TO_CHAR(SRV_DT_CMMNTY_MAP.prid_estbs_end_date,'YYYY.MM.DD') AS prid_estbs_end_date
+			 , SRV_DT_CMMNTY_MAP_ATCH_IMAGE.path_nm
+			 , SRV_DT_CMMNTY_MAP_ATCH_IMAGE.save_file_nm
+			 , NVL(POI_CNT.cnt, 0) AS poi_cnt
+			 , NVL(JOIN_CNT.cnt, 0)AS join_cnt
+		 FROM SRV_DT_CMMNTY_MAP
+		 LEFT OUTER JOIN SRV_DT_CMMNTY_MAP_ATCH_IMAGE
+		   ON SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ATCH_FILE_ID = SRV_DT_CMMNTY_MAP_ATCH_IMAGE.CMMNTY_MAP_ATCH_FILE_ID
+		 LEFT OUTER JOIN POI_CNT
+		   ON SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID = POI_CNT.CMMNTY_MAP_ID
+		 LEFT OUTER JOIN JOIN_CNT
+		   ON SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID = JOIN_CNT.CMMNTY_MAP_ID
+		WHERE PRID_ESTBS_START_DATE &lt;= SYSDATE
+		  AND LOCK_YN = 'N'
+<!-- 		  AND FROM_CE = #{from_ce} -->
+		  AND TEMP_SAVE_YN='N'
+		<if test="keywords != null and keywords != ''">
+			AND (
+				INSTR((
+					CASE
+						WHEN SRV_DT_CMMNTY_MAP.AREA_ESTBS_SIDO_CD = '00'
+						THEN '전국'
+						ELSE CASE
+							WHEN SRV_DT_CMMNTY_MAP.AREA_ESTBS_SGG_CD = '999'
+							THEN (SELECT SIDO_NM FROM SRV_PG_SIDOBORD WHERE SIDO_CD = SRV_DT_CMMNTY_MAP.AREA_ESTBS_SIDO_CD AND BASE_YEAR='${bnd_year}')
+							ELSE CASE
+								WHEN SRV_DT_CMMNTY_MAP.AREA_ESTBS_EMDONG_CD = '00'
+								THEN (SELECT SIDO_NM||' '||SGG_NM FROM SRV_PG_SGGBORD WHERE SIDO_CD = SRV_DT_CMMNTY_MAP.AREA_ESTBS_SIDO_CD AND SGG_CD = SRV_DT_CMMNTY_MAP.AREA_ESTBS_SGG_CD AND BASE_YEAR='${bnd_year}')
+								ELSE (SELECT SIDO_NM||' '||SGG_NM||' '||EMDONG_NM FROM SRV_PG_ADMBORD WHERE SIDO_CD = SRV_DT_CMMNTY_MAP.AREA_ESTBS_SIDO_CD AND SGG_CD = SRV_DT_CMMNTY_MAP.AREA_ESTBS_SGG_CD AND EMDONG_CD = SRV_DT_CMMNTY_MAP.AREA_ESTBS_EMDONG_CD  AND BASE_YEAR='${bnd_year}')
+							END
+						END
+					END
+				),#{keywords})>0
+				OR CMMNTY_MAP_NM LIKE '%'||#{keywords}||'%'
+				OR (SELECT COUNT(1) FROM SRV_DT_CMMNTY_KWRD WHERE SRV_DT_CMMNTY_KWRD.CMMNTY_MAP_ID = SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID AND KWRD LIKE '%'||#{keywords}||'%') &gt; 0
+			)
+		</if>
+		<if test="cmmnty_align == 'name'">
+			ORDER BY SRV_DT_CMMNTY_MAP.cmmnty_map_nm ASC,SRV_DT_CMMNTY_MAP.cmmnty_map_id DESC
+		</if>
+		<if test="cmmnty_align == 'count'">
+			ORDER BY join_cnt DESC,SRV_DT_CMMNTY_MAP.cmmnty_map_id DESC
+		</if>
+		<if test="cmmnty_align == null or cmmnty_align == ''">
+			ORDER BY SRV_DT_CMMNTY_MAP.reg_date DESC,SRV_DT_CMMNTY_MAP.cmmnty_map_id DESC
+		</if>
+			LIMIT ${pageSize*(page-1)+1},${pageSize}
+	</select>
+	<!-- 2020.09.16[한광희] 지역현안 소통지도 수정 START -->
+
+
+	<select id="selectCmmntyMapPassword" resultType="String" parameterType="String">
+		SELECT PW
+		  FROM SRV_DT_CMMNTY_MAP
+		 WHERE CMMNTY_MAP_ID = #{value}
+	</select>
+
+</mapper>

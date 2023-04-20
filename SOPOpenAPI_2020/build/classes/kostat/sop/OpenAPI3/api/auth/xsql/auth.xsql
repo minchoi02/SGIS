@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="auth">
+
+	<!-- 인증 정보 조회 -->
+	<select id="getAuthentication" parameterType="hashmap" resultType="String">
+		select secret_key
+        from srv_dt_usesrvinfo 
+        where srv_id = #{consumer_key}
+        and ( srv_end_dt <![CDATA[>=]]> sysdate or api_auth_key_type = 'USE' )
+        and ( grant_state='ASSENT' or grant_state='APPLCT')
+	</select>
+	
+	<!-- javascript 인증 정보 조회 -->
+	<select id="getJavascriptAuth" parameterType="hashmap" resultType="int">
+		select count(*) srv_cnt
+        from srv_dt_usesrvinfo 
+        where srv_id = #{consumer_key}
+        and ( srv_end_dt <![CDATA[>=]]> sysdate or api_auth_key_type = 'USE' )
+        and ( grant_state='ASSENT' or grant_state='APPLCT')
+	</select>
+	
+	<!-- 토큰 정보 입력 -->
+	<insert id="setAccestokenInfo" parameterType="hashmap">
+		insert into srv_dt_srvauthtokkeninfo(access_token,srv_id,create_ts,recent_use_ts)
+        values (#{accessToken},#{consumer_key},sysdate,sysdate)
+	</insert>
+	
+	<!-- 토큰 정보 조회 -->
+	<select id="getAccessTokenData" parameterType="hashmap" resultType="hashmap">
+		select to_char(create_ts,'YYYYMMDDHH24MISSsss') as lately_use_ts ,srv_id from srv_dt_srvauthtokkeninfo 
+        where access_token=#{accessToken}
+	</select>
+	
+	<!-- 토큰 타임 갱신 -->
+<!--	<update id="updateAccessTokentime" parameterType="hashmap">
+		update srv_dt_srvauthtokkeninfo set recent_use_ts=sysdate 
+		where access_token=#{accessToken}
+	</update>	-->
+	
+	<!-- 토큰 정보 삭제 -->
+	<delete id="deleteAccessToken" parameterType="hashmap">
+		delete from srv_dt_srvauthtokkeninfo where access_token=#{accessToken}
+	</delete>
+
+</mapper>

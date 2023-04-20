@@ -1,0 +1,66 @@
+<!-- 
+* 총괄이용 현황 미리보기 HTML입니다.
+* 
+* history : 네이버시스템(주), 1.0, 2017/07/19  초기 작성
+* author : 이동형
+* version : 1.0
+* see : 
+*
+//-->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>보고서</title>
+	<link rel="stylesheet" href="../include/css/common.css" type="text/css" /> 
+	<link rel="stylesheet" href="./../include/css/default.css" />
+	<script type="text/javascript"src="./../include/js/jquery-1.11.0.min.js"></script>
+	<script type="text/javascript" src="../../js/MN/APIStatDetail_pop.js"></script>
+	<style type="text/css" media="print">@page{size:auto;margin:10mm;}body{margin:0;}</style> 
+</head>
+<body>
+	<!-- <div id="mask" style="background:#ffffff;z-index:10000;width:100%;height:100%;">
+		<div id="AlertMessage">보고서 생성중입니다. 잠시만 기다려주세요.</div>
+	</div> -->
+	<div id="wrap">
+		<div class="printArea">
+			<div id="bizStatsTopDiv"> <!-- 생활업종통계 -->
+			 	<div class="pntPage">
+			 		<h1 class="pntHeader"><img src="./../include/img/common/logoPlus.jpg" alt="SGIS 오픈플랫폼"></h1>
+			 		<div class="pntBtn"><!-- <a href="javascript:$reportFormEvent.UI.reportPdfDown();" id="pdfdown">PDF</a> --><a href="javascript:reportPrint();">인쇄</a><a href="javascript:reportClose();">닫기</a></div>
+			 		<p class="pntURI">통계지리정보서비스 (https://sgis.kostat.go.kr)</p> 
+			 		<!-- <h2 class="pntTitle"><textarea cols="60" rows="1"></textarea></h2> -->
+			 		<p class="tilte02 fL"></p>
+			 		<div class="pntNewCenter" style="margin-top:10px;"><h3 style="height:40px;line-height:40px;">보고서명</h3><div style="width:677px;height:40px;float:left;font-family: "나눔고딕";font-size: 15px;color: #666;"><textarea cols="60" rows="1" id="reportTitle"></textarea></div></div>
+				 	<div class="pntNewCenter"><h3>검색조건</h3><div id="searchItem" class="pntNewRight"></div></div>
+				 	<div class="pntNewCenter"><h3>작성일자</h3><div id="date" class="pntNewRight"></div></div>
+			 		
+			 		<div id="mainGraphDiv_show" class="pntShowBtn"><a href="javascript:onOffDiv('mainGraphDiv');"><img src='./../include/img/common/btn_plus.png' alt='보이기' /></a></div>
+				 	<div id="mainGraphDiv" class="pntCenter" style="position:relative;">
+			 			<div class="pntNewCenterTitle"><h3>API 이용통계-상세 그래프 / 데이터</h3></div>
+			 			<div class="pntCloseBtn"><a href="javascript:onOffDiv('mainGraphDiv');"><img src='./../include/img/common/btn_closel01.png' alt='숨기기' /></a></div>
+			 			<div style="width:799px;height:100%;float:right;">
+			 				<div class="acticle">
+								<div>							
+									<!-- <div class="graph" id="openAPIArea_pop" style="width:743px;height:240px"><img src="./../include/img/pic/pic_graph.png" alt="그래프"/></div> -->
+									<br>
+									<div id="apiStatDetailTableRegion_pop" class="pntTables" style="margin-left: 25px;width:743px;height:100%"></div>
+									<br>
+								</div>
+							</div>
+			 			</div>
+					</div>
+	<br>
+	<div class="pntPage">
+	 	<div id="memoDiv_show" class="pntShowBtn"><a href="javascript:onOffDiv('memoDiv');"><img src='./../include/img/common/btn_plus.png' alt='보이기' /></a></div>
+	 		<div id="memoDiv" class='pntNewCenter' style='margin-bottom:10px;position:relative;'>
+	 			<h3 style='height:140px;line-height:140px;'>메모노트</h3>
+	 			<!-- 2017.03.09 보고서 수정  -->
+	 			<div style="width:677px;height:140px;float:left;"><textarea id="memo" style="height:130px; width:645px;line-height:1.5em;border:0;margin:5px;font-size:12px;"></textarea></div>
+	 			<div class="pntCloseBtn"><a href="javascript:onOffDiv('memoDiv');"><img src='./../include/img/common/btn_closel01.png' alt='숨기기'/></a></div>
+	 		</div>
+ 	</div>
+</body>
+</html>

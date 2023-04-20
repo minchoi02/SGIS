@@ -1,0 +1,419 @@
+<!doctype html>
+ 
+<html lang="ko">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=0,maximum-scale=10,user-scalable=yes">
+		<link rel="stylesheet" type="text/css" href="./css/common.css" />
+		<link rel="stylesheet" type="text/css" href="./css/default.css" />
+		<script src="./js/jquery-1.11.0.min.js"></script>  
+		<script src="./js/jquery.formstyler.js"></script>
+		<script src="./js/default.js"></script>  
+		<title>LBDMS BASIC+</title>
+	</head>
+	<body>
+		<div class="wrap">
+			<div class="topWrap">
+				<div class="topBox">
+					<div class="top">
+						<div class="toplogo"><img src="./img/logo.png" alt="logo"/></div>
+						<div class="topMenu">
+							<ul>
+								<li><a href="javascript:void(0)">나의 데이터</a></li>
+								<li><a href="javascript:void(0)">데이터 분석</a></li>
+								<li><a href="javascript:void(0)">공유 게시판</a></li>
+								<li><a href="javascript:void(0)">이용안내</a></li>
+							</ul>
+						</div>
+						<div class="topAdmin">
+							<ul>
+								<li class="admin on"></li>
+								<li class="group"></li>
+								<li>홍길동 님 환영합니다.</li>
+							</ul>
+							<button>로그아웃</button>
+						</div>
+					</div>
+				</div>
+			</div><!-- topWrap end-->
+			<div class="subMenuWrap">
+				<div class="subMenu">
+					<ul class="ml10">
+						<li><a href="javascript:void(0)">데이터 생성</a></li>
+						<li><a href="javascript:void(0)">데이터 관리</a></li>
+					</ul>
+					<ul>
+						<li><a href="javascript:void(0)">경계 분석</a></li>
+						<li><a href="javascript:void(0)">보로노이 다이어그램</a></li>
+						<li><a href="javascript:void(0)">버퍼 분석</a></li>
+						<li><a href="javascript:void(0)">입지 계수</a></li>
+						<li><a href="javascript:void(0)">공간 상관 분석</a></li>
+						<li><a href="javascript:void(0)">데이터 간 연산 분석</a></li>
+					</ul>
+					<ul class="ml10">
+						<li><a href="javascript:void(0)">데이터 공유</a></li>
+						<li><a href="javascript:void(0)">분석 결과 공유</a></li>
+					</ul>
+					<ul>
+						<li><a href="javascript:void(0)">서비스 활용 가이드</a></li>
+						<li><a href="javascript:void(0)">Q&A </a></li>
+						<li><a href="javascript:void(0)">FAQ</a></li>
+						<li><a href="javascript:void(0)">공지사항 </a></li>
+					</ul>
+				</div>
+			</div>
+			
+			
+			
+			
+			<!-- subMenuWrap end-->
+
+			<div class="subConentWrap">
+				<div class="subTitleWrap">
+					<div class="subTitle">
+						<p class="home">나의 데이터 > 데이터생성 및 관리 > 사용자 데이터</p>
+						<h1>데이터 수정</h1>
+						<h2>사용자가 업로드한 데이터를 수정할 수 있습니다.</h2>
+					 
+					</div>						
+				</div>
+				
+
+				<!-- contents start  -->
+				
+				<div class="container">
+
+			 
+
+					<div class="wTableBox t02 mt0">
+						<table class="wTable">
+							<tr>
+								<th>데이터의 이름을 작성해 주세요.</th>
+								<td><input type="text" class="inp"></td>
+							</tr>
+							<tr>
+								<th>데이터에 대한  설명해 주세요.</th>
+								<td><textarea class="textarea"></textarea></td>
+							</tr> 
+						</table>
+					</div>
+
+					<div class="tabBox">
+						<ul>
+							<li><a href="javascript:void(0)">데이터 수정</a></li>
+							<li><a href="javascript:void(0)" class="on">컬럼 수정</a></li>
+						</ul> 
+						<p class="e01">* 컬럼 : 데이터의 열을 의미합니다</p>
+					</div>
+					<div class="boardSearchBox"> 
+						<p class="e01">데이터를 기준으로 수정하세요.</p>
+						<div class="etc">
+							<select class="select w130"><option>10개 보기</option></select>
+							<a href="javascript:void(0)" class="btnEdit">선택한 컬럼 수정</a>
+							<a href="javascript:void(0)" class="btnDelete">선택한 컬럼 삭제</a>
+						</div>
+					</div>
+
+					<table class="listTable02" id="columTable">
+						<colgroup> 
+							<col width="60" />
+							<col width="120" />
+							<col width="" />
+							<col width="120" />
+							<col width="120" />
+							<col width="120" />
+							<col width="120" />
+							<col width="150" />
+							<col width="80" />
+						</colgroup>
+						<tbody>
+							<tr>  
+								<th>RID</th>
+								<th>
+									<input type="radio" class="rdEtc" name="columRd" />
+									<span>A(명칭)</span>
+								</th>
+								<th>
+									<input type="radio" class="rdEtc" name="columRd" />
+									<span>B(주소)</span>
+								</th>
+								<th>
+									<input type="radio" class="rdEtc" name="columRd" />
+									<span>C(권리금)</span>
+								</th>
+								<th>
+									<input type="radio" class="rdEtc" name="columRd" />
+									<span>D(월세)</span>
+								</th>
+								<th>
+									<input type="radio" class="rdEtc" name="columRd" />
+									<span>E(좌표X)</span>
+								</th>
+								<th>
+									<input type="radio" class="rdEtc" name="columRd" />
+									<span>F(좌표Y)</span>
+								</th>
+								<th>
+									<input type="radio" class="rdEtc" name="columRd" />
+									<span>G(읍면동코드)</span>
+								</th>
+								<td rowspan="3" class="sumRows">
+									<a href="javascript:void(0)" class="btnColumAdd">
+										<img src="./img/ico_plus03.png" />
+										<span>컬럼추가</span>
+									</a>
+								</th>
+							</tr>
+							<tr>  
+								<td>1</td>
+								<td>경희대한의원</td>
+								<td class="al">서울특별시 00구 00동 100-1</td>
+								<td>30000</td>
+								<td>500</td>
+								<td>947701.5247</td>  
+								<td>947701.5247</td>
+								<td>1104773</td>
+							</tr>
+							<tr>  
+								<td>2</td>
+								<td>경희대한의원</td>
+								<td class="al">서울특별시 00구 00동 100-1</td>
+								<td>30000</td>
+								<td>500</td>
+								<td>947701.5247</td>  
+								<td>947701.5247</td>
+								<td>1104773</td>
+							</tr>
+						</tbody>
+					</table> 
+
+					
+ 
+					 
+					<div class="page">
+						<ul>
+							<li><a href="javascript:void(0)">&lt;&lt; </a></li>
+							<li><a href="javascript:void(0)">&lt; </a></li>
+							<li class="ml20 on"><a href="javascript:void(0)">1</a></li>
+							<li><a href="javascript:void(0)">2</a></li>
+							<li><a href="javascript:void(0)">3</a></li>
+							<li><a href="javascript:void(0)">4</a></li>
+							<li><a href="javascript:void(0)">5</a></li>
+							<li><a href="javascript:void(0)">6</a></li>
+							<li><a href="javascript:void(0)">7</a></li>
+							<li><a href="javascript:void(0)">8</a></li>
+							<li><a href="javascript:void(0)">9</a></li>
+							<li><a href="javascript:void(0)">10</a></li>
+							<li  class="ml20"><a href="javascript:void(0)">&gt; </a></li>
+							<li><a href="javascript:void(0)">&gt;&gt;</a></li>
+						</ul>
+					</div>
+
+					<div class="btnBox">
+						<a href="javascript:void(0)">취소</a>
+			 			<a href="javascript:void(0)">수정 완료</a>
+					</div>
+					
+				</div>
+
+
+				<!-- contents end  -->
+
+
+				
+			</div><!-- subConentWrap end-->
+			
+
+
+
+
+
+
+
+
+			<div class="footerWrap">
+				<div class="footer">
+					<p>
+						[35208] 대전광역시 서구 청사로 189(둔산동, 정부대전청사 3동) FAX 042-481-2461 / 통계청콜센터 02-2012-9114 / 국번없이 110<br/>
+						ⓒ Statistics Korea. All rights reserved since 1996.
+
+					</p>
+				</div>
+			</div>
+		</div><!-- wrap end-->
+
+
+		<div class="popStatus t02" id="popColumEdit01">
+			<div class="pheader">
+				<span>컬럼 수정</span>
+				<a href="javascript:popClose('#popColumEdit01')"><img src="./img/btn_close02.png"></a> 
+			</div>
+			<div class="pcont auto">
+				<p class="t02">검색 조건을 설정하여 선택 컬럼중 수정할 데이터를 검색하세요</p>
+				<div class="wTableBox">
+					<table class="wTable type01"> 
+						<colgroup>
+							<col width="200" />
+							<col width="" />
+						</colgroup>
+						<tr>
+							<td>
+								<input type="radio" class="rdEtc" name="compareRd" id="compareRd01" />
+								<label for="compareRd01" class="mr20">값 비교</label>
+								<input type="radio" class="rdEtc" name="compareRd" id="compareRd02" />
+								<label for="compareRd02">범위</label>
+							</td> 
+							<td>
+								<span>비교대상 컬럼</span>
+								<input type="text" class="inp01 w120" />
+								<select class="select w150 ml5">
+									<option>연산 조건</option>
+									<option>와 같다</option>
+									<option>와 다르다</option>
+									<option>보다 작다</option>
+									<option>보다 크다</option>
+									<option>보다 작거나 같다</option> 
+									<option>보다 크거나 같다</option>
+									<option>와 비슷하다</option> 
+								</select>
+								<select class="select w150 ml5">
+									<option>선택하세요</option>
+									<option>OR</option>
+									<option>AND</option>
+								</select>
+							</td> 
+						</tr>
+						<tr>
+							<td>
+								<input type="radio" class="rdEtc" name="rangeRd" id="rangeRd01" />
+								<label for="rangeRd01" class="mr20">값 비교</label>
+								<input type="radio" class="rdEtc" name="rangeRd" id="rangeRd02" />
+								<label for="rangeRd02">범위</label>
+							</td> 
+							<td> 
+								<select class="select w150">
+									<option>범위대상 컬럼</option> 
+								</select>
+								<input type="text" class="inp01 w100 ml5" />
+								<span>~</span>
+								<input type="text" class="inp01 w100" />
+								<select class="select w120 ml5">
+									<option>선택하세요</option>
+									<option>OR</option>
+									<option>AND</option>
+								</select>
+							</td> 
+						</tr>
+					</table>
+					<div class="dataSearchResultScrolls">
+						<ul class="dataSearchResult">
+							<li>
+								<a href="javascript:void(0)"><img src="./img/btn_minus.png" /></a>
+								<span>값 비교 | item3 | 3000 | 와 같다 또는</span>
+							</li>
+							<li>
+								<a href="javascript:void(0)"><img src="./img/btn_minus.png" /></a>
+								<span>범위 | rid | 3~10</span>
+							</li>
+							<li>
+								<a href="javascript:void(0)"><img src="./img/btn_minus.png" /></a>
+								<span>값 비교 | item3 | 3000 | 와 같다 또는</span>
+							</li>
+							<li>
+								<a href="javascript:void(0)"><img src="./img/btn_minus.png" /></a>
+								<span>범위 | rid | 3~10</span>
+							</li>
+							<li>
+								<a href="javascript:void(0)"><img src="./img/btn_minus.png" /></a>
+								<span>값 비교 | item3 | 3000 | 와 같다 또는</span>
+							</li>
+							<li>
+								<a href="javascript:void(0)"><img src="./img/btn_minus.png" /></a>
+								<span>범위 | rid | 3~10</span>
+							</li>
+							<li>
+								<a href="javascript:void(0)"><img src="./img/btn_minus.png" /></a>
+								<span>값 비교 | item3 | 3000 | 와 같다 또는</span>
+							</li>
+							<li>
+								<a href="javascript:void(0)"><img src="./img/btn_minus.png" /></a>
+								<span>범위 | rid | 3~10</span>
+							</li>
+							<li>
+								<a href="javascript:void(0)"><img src="./img/btn_minus.png" /></a>
+								<span>값 비교 | item3 | 3000 | 와 같다 또는</span>
+							</li>
+							<li>
+								<a href="javascript:void(0)"><img src="./img/btn_minus.png" /></a>
+								<span>범위 | rid | 3~10</span>
+							</li>
+							<li>
+								<a href="javascript:void(0)"><img src="./img/btn_minus.png" /></a>
+								<span>값 비교 | item3 | 3000 | 와 같다 또는</span>
+							</li>
+							<li>
+								<a href="javascript:void(0)"><img src="./img/btn_minus.png" /></a>
+								<span>범위 | rid | 3~10</span>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="pfooter">
+				<a href="javascript:void(0)">취소</a> 
+				<a href="javascript:void(0)">검색</a> 
+			</div>
+		</div>
+
+
+		<div class="popStatus t02" id="popColumEdit02">
+			<div class="pheader">
+				<span>컬럼 수정</span>
+				<a href="javascript:popClose('#popColumEdit02')"><img src="./img/btn_close02.png"></a> 
+			</div>
+			<div class="pcont auto">
+				<p class="t02">조건에 맞는 데이터(0000개)에 수정할 내용을 입력해주세요.<br />수정 내용은 일괄적용 됩니다.</p>
+				<div class="wTableBox">
+					<table class="wTable">
+						<colgroup>
+							<col width="120" />
+							<col width="" />
+						</colgroup> 
+						<tr>
+							<th>수정 내용 입력</th>
+							<td colspan="3"><input type="text" class="inp01"></td> 
+						</tr> 
+					</table>
+				</div>
+			</div>
+			<div class="pfooter">
+				<a href="javascript:void(0)">취소</a> 
+				<a href="javascript:void(0)">수정</a> 
+			</div>
+		</div>
+
+	
+	<script>
+	$(function(){
+		$("body").on("click", ".btnColumAdd", function(){
+			var n = $("#columTable tr").length;
+			var item = '<tr>  ';
+			item += '<td>'+n+'</td>';
+			item += '<td><input type="text" class="inp full" /></td>';
+			item += '<td><input type="text" class="inp full" /></td>';
+			item += '<td><input type="text" class="inp full" /></td>';
+			item += '<td><input type="text" class="inp full" /></td>';
+			item += '<td><input type="text" class="inp full" /></td>';
+			item += '<td><input type="text" class="inp full" /></td>';
+			item += '<td><input type="text" class="inp full" /></td>';
+			item += '</tr>'; 
+			$("#columTable tbody").append(item );
+			
+			$(".sumRows").attr("rowspan", n+1);
+
+		});
+	});
+	</script>
+		 
+	</body>
+</html>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dataTransfer">
+	
+	
+	<insert id="insertReq" parameterType="hashMap">
+        INSERT INTO request_list ( user_id, req_no, resource_id, reg_ts )
+        VALUES ( #{ user_id }, #{ req_no }, #{ resource_id }, NOW() )
+    </insert>
+	
+	<delete id="deleteReq" parameterType="hashMap">
+        DELETE FROM request_list 
+        WHERE 
+        req_no = #{ req_no }
+		<if test="resource_id != null">
+			AND resource_id = #{ resource_id }
+		</if>          
+    </delete>
+    
+	 <insert id="insertTransDataReq" parameterType="hashMap">
+        INSERT INTO data_trans_req(
+             req_seq, 
+             user_id
+            , grant_dt
+            , req_dt
+            , procs_state_cd
+            , trans_table_name
+            , OPEN_DATA_NM
+            , INFO_LINK_SRV_NM
+            , INFO_LINK_SRV_REALM
+            )
+        VALUES (
+        	NEXTVAL('extension_req_seq')
+	        , #{USER_ID}
+	        , NOW()
+	        , NOW()
+	        , #{procs_state_cd}
+	        , #{map}
+	        , #{OPEN_DATA_NM}
+            , #{INFO_LINK_SRV_NM}
+            , #{INFO_LINK_SRV_REALM}
+	        )
+    </insert>
+    
+    <select id="selectDataTransReq" parameterType="hashMap" resultType="hashMap">
+    	select  * from data_trans_req where user_id = #{user_id} and trans_table_name = #{data_nm} order by req_seq desc
+    </select>
+    
+    <select id="selectCountDataTransReq" parameterType="hashMap" resultType="int">
+    	select count(*) from data_trans_req where user_id = #{user_id} and trans_table_name = #{data_nm};
+    </select>
+    
+    <select id="selectReqInfo" parameterType="hashMap" resultType="hashMap">
+    	select count(*) from data_trans_req where user_id = #{user_id} and trans_table_name = #{data_nm};
+    </select>
+    
+    <update id="updateTransDataReq" parameterType="hashMap">
+    	update data_trans_req SET procs_state_cd = #{procs_state_cd} , procs_content=#{procs_content} where user_id = #{user_id} and trans_table_name = #{data_nm}
+    </update>
+    
+</mapper>

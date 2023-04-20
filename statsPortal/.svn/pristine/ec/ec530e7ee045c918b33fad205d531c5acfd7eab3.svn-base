@@ -1,0 +1,2488 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="urban">
+
+	<!-- 테스트 조회 -->
+	<select id="selectTestInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			'니들이' as col1, '도시화 분석 지도를' as col2, '알어?' as col3
+		FROM dual
+	</select>
+
+
+	<select id="selectFacilityInfo" parameterType="hashmap" resultType="hashmap">
+			select
+				type_nm
+				,cnt
+				,ksic_5_cd
+				,urbar_id
+				,urbar_type
+			from(
+				select
+					type_nm
+					,cnt
+					,order_num
+					,ksic_5_cd
+					,urbar_id
+					,urbar_type
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , count(*) as cnt
+				from(
+				select
+				   a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				from(
+				select
+					distinct a.corp_nm
+				  , a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , ST_INTERSECTS(a.pt,b.bord) as area
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , b.pt
+				from(
+				select
+				  	a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  ,b.sufid
+				  ,b.corp_nm
+				  , b.ksic_5_cd
+				  , b.type_nm
+				  , b.order_num
+				from(
+					select
+						urbar_id
+					   ,urbar_nm
+					   ,adm_cd
+					   ,urbar_type
+					from srv_pg_urbar_facility
+					where urbar_type =#{urban_type} and urbar_id =#{urban_id} )a
+				,(select sufid,ksic_5_cd, corp_nm,type_nm,order_num,adm_cd from srv_dt_corpcensus_10_facility ) b
+				where a.adm_cd = b.adm_cd
+				)a join srv_pt_bd b
+				on a.sufid = b.sufid
+				)a join srv_pg_urbarbord b
+				on a.urbar_id = b.urbar_id
+				and a.urbar_type = b.urbar_type
+				and a.urbar_nm = b.urbar_nm
+				<![CDATA[
+					)a where area <>0
+				]]>
+				)a group by urbar_id,urbar_type,ksic_5_cd ,type_nm ,order_num
+
+					union all
+
+					select
+					  	null as urbar_id
+					  , null as urbar_type
+					  , null as ksic_5_cd
+					  , '어린이집' as type_nm
+					  , 1 as order_num
+					  , 0 as cnt
+					from dual
+					where not exists (
+					select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , count(*) as cnt
+				from(
+				select
+				  a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				from(
+				select
+				   distinct a.corp_nm
+				  ,	a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , ST_INTERSECTS(a.pt,b.bord) as area
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , b.pt
+				from(
+				select
+				  	a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  ,b.sufid
+				  ,b.corp_nm
+				  , b.ksic_5_cd
+				  , b.type_nm
+				  , b.order_num
+				from(
+					select
+						urbar_id
+					   ,urbar_nm
+					   ,adm_cd
+					   ,urbar_type
+					from srv_pg_urbar_facility
+					where urbar_type =#{urban_type} and urbar_id =#{urban_id} )a
+				,(select sufid,ksic_5_cd, corp_nm,type_nm,order_num,adm_cd from srv_dt_corpcensus_10_facility ) b
+				where a.adm_cd = b.adm_cd
+				and type_nm like '어린이집%'
+				)a join srv_pt_bd b
+				on a.sufid = b.sufid
+				)a join srv_pg_urbarbord b
+				on a.urbar_id = b.urbar_id
+				and a.urbar_type = b.urbar_type
+				and a.urbar_nm = b.urbar_nm
+				<![CDATA[
+					)a where area <>0
+				]]>
+				)a group by urbar_id,urbar_type,ksic_5_cd ,type_nm ,order_num
+					)
+					union all
+
+				select
+				  	null as urbar_id
+				  , null as urbar_type
+				  , null as ksic_5_cd
+				  , '유치원' as type_nm
+				  , 2 as order_num
+				  , 0 as cnt
+				from dual
+				where not exists (
+			select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , count(*) as cnt
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				from(
+				select
+				  distinct a.corp_nm
+				  ,a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , ST_INTERSECTS(a.pt,b.bord) as area
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , b.pt
+				from(
+				select
+				  	a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  ,b.sufid
+				  ,b.corp_nm
+				  , b.ksic_5_cd
+				  , b.type_nm
+				  , b.order_num
+				from(
+					select
+						urbar_id
+					   ,urbar_nm
+					   ,adm_cd
+					   ,urbar_type
+					from srv_pg_urbar_facility
+					where urbar_type =#{urban_type} and urbar_id =#{urban_id} )a
+				,(select sufid,ksic_5_cd, corp_nm,type_nm,order_num,adm_cd from srv_dt_corpcensus_10_facility ) b
+				where a.adm_cd = b.adm_cd
+				and type_nm like '유치원%'
+				)a join srv_pt_bd b
+				on a.sufid = b.sufid
+				)a join srv_pg_urbarbord b
+				on a.urbar_id = b.urbar_id
+				and a.urbar_type = b.urbar_type
+				and a.urbar_nm = b.urbar_nm
+				<![CDATA[
+					)a where area <>0
+				]]>
+				)a group by urbar_id,urbar_type,ksic_5_cd ,type_nm ,order_num
+				)
+				union all
+
+				select
+				  	null as urbar_id
+				  , null as urbar_type
+				  , null as ksic_5_cd
+				  , '초등학교' as type_nm
+				  , 3 as order_num
+				  , 0 as cnt
+				from dual
+				where not exists (
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , count(*) as cnt
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				from(
+				select
+					distinct a.corp_nm
+				  ,a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , ST_INTERSECTS(a.pt,b.bord) as area
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , b.pt
+				from(
+				select
+				  	a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  ,b.sufid
+				  ,b.corp_nm
+				  , b.ksic_5_cd
+				  , b.type_nm
+				  , b.order_num
+				from(
+					select
+						urbar_id
+					   ,urbar_nm
+					   ,adm_cd
+					   ,urbar_type
+					from srv_pg_urbar_facility
+					where urbar_type =#{urban_type} and urbar_id =#{urban_id} )a
+				,(select sufid,ksic_5_cd, corp_nm,type_nm,order_num,adm_cd from srv_dt_corpcensus_10_facility ) b
+				where a.adm_cd = b.adm_cd
+				and type_nm like '초등학교%'
+				)a join srv_pt_bd b
+				on a.sufid = b.sufid
+				)a join srv_pg_urbarbord b
+				on a.urbar_id = b.urbar_id
+				and a.urbar_type = b.urbar_type
+				and a.urbar_nm = b.urbar_nm
+				<![CDATA[
+					)a where area <>0
+				]]>
+				)a group by urbar_id,urbar_type,ksic_5_cd ,type_nm ,order_num
+				)
+				union all
+
+				select
+				  	null as urbar_id
+				  , null as urbar_type
+				  , null as ksic_5_cd
+				  , '중학교' as type_nm
+				  , 4 as order_num
+				  , 0 as cnt
+				from dual
+				where not exists (
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , count(*) as cnt
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				from(
+				select
+				distinct a.corp_nm
+				  ,a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , ST_INTERSECTS(a.pt,b.bord) as area
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , b.pt
+				from(
+				select
+				  	a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  ,b.sufid
+				  ,b.corp_nm
+				  , b.ksic_5_cd
+				  , b.type_nm
+				  , b.order_num
+				from(
+					select
+						urbar_id
+					   ,urbar_nm
+					   ,adm_cd
+					   ,urbar_type
+					from srv_pg_urbar_facility
+					where urbar_type =#{urban_type} and urbar_id =#{urban_id} )a
+				,(select sufid,ksic_5_cd, corp_nm,type_nm,order_num,adm_cd from srv_dt_corpcensus_10_facility ) b
+				where a.adm_cd = b.adm_cd
+				and type_nm like '중학교%'
+				)a join srv_pt_bd b
+				on a.sufid = b.sufid
+				)a join srv_pg_urbarbord b
+				on a.urbar_id = b.urbar_id
+				and a.urbar_type = b.urbar_type
+				and a.urbar_nm = b.urbar_nm
+				<![CDATA[
+					)a where area <>0
+				]]>
+				)a group by urbar_id,urbar_type,ksic_5_cd ,type_nm ,order_num
+				)
+				union all
+
+				select
+				  	null as urbar_id
+				  , null as urbar_type
+				  , null as ksic_5_cd
+				  , '고등학교' as type_nm
+				  , 5 as order_num
+				  , 0 as cnt
+				from dual
+				where not exists (
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , count(*) as cnt
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				from(
+				select
+				distinct a.corp_nm
+				  ,a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , ST_INTERSECTS(a.pt,b.bord) as area
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , b.pt
+				from(
+				select
+				  	a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  ,b.sufid
+				  ,b.corp_nm
+				  , b.ksic_5_cd
+				  , b.type_nm
+				  , b.order_num
+				from(
+					select
+						urbar_id
+					   ,urbar_nm
+					   ,adm_cd
+					   ,urbar_type
+					from srv_pg_urbar_facility
+					where urbar_type =#{urban_type} and urbar_id =#{urban_id} )a
+				,(select sufid,ksic_5_cd, corp_nm,type_nm,order_num,adm_cd from srv_dt_corpcensus_10_facility ) b
+				where a.adm_cd = b.adm_cd
+				and type_nm like '고등학교%'
+				)a join srv_pt_bd b
+				on a.sufid = b.sufid
+				)a join srv_pg_urbarbord b
+				on a.urbar_id = b.urbar_id
+				and a.urbar_type = b.urbar_type
+				and a.urbar_nm = b.urbar_nm
+				<![CDATA[
+					)a where area <>0
+				]]>
+				)a group by urbar_id,urbar_type,ksic_5_cd ,type_nm ,order_num
+				)
+				union all
+
+				select
+				  	null as urbar_id
+				  , null as urbar_type
+				  , null as ksic_5_cd
+				  , '병원' as type_nm
+				  , 6 as order_num
+				  , 0 as cnt
+				from dual
+				where not exists (
+			select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , count(*) as cnt
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				from(
+				select
+					distinct a.corp_nm
+					,a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , ST_INTERSECTS(a.pt,b.bord) as area
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , b.pt
+				from(
+				select
+				  	a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  ,b.sufid
+				  ,b.corp_nm
+				  , b.ksic_5_cd
+				  , b.type_nm
+				  , b.order_num
+				from(
+					select
+						urbar_id
+					   ,urbar_nm
+					   ,adm_cd
+					   ,urbar_type
+					from srv_pg_urbar_facility
+					where urbar_type =#{urban_type} and urbar_id =#{urban_id} )a
+				,(select sufid,ksic_5_cd, corp_nm,type_nm,order_num,adm_cd from srv_dt_corpcensus_10_facility ) b
+				where a.adm_cd = b.adm_cd
+				and type_nm like '병원%'
+				)a join srv_pt_bd b
+				on a.sufid = b.sufid
+				)a join srv_pg_urbarbord b
+				on a.urbar_id = b.urbar_id
+				and a.urbar_type = b.urbar_type
+				and a.urbar_nm = b.urbar_nm
+				<![CDATA[
+					)a where area <>0
+				]]>
+				)a group by urbar_id,urbar_type,ksic_5_cd ,type_nm ,order_num
+				)
+				union all
+
+				select
+				  	null as urbar_id
+				  , null as urbar_type
+				  , null as ksic_5_cd
+				  , '보건소' as type_nm
+				  , 8 as order_num
+				  , 0 as cnt
+				from dual
+				where not exists (
+			select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , count(*) as cnt
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				from(
+				select
+					distinct a.corp_nm
+					,a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , ST_INTERSECTS(a.pt,b.bord) as area
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , b.pt
+				from(
+				select
+				  	a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  ,b.sufid
+				  ,b.corp_nm
+				  , b.ksic_5_cd
+				  , b.type_nm
+				  , b.order_num
+				from(
+					select
+						urbar_id
+					   ,urbar_nm
+					   ,adm_cd
+					   ,urbar_type
+					from srv_pg_urbar_facility
+					where urbar_type =#{urban_type} and urbar_id =#{urban_id} )a
+				,(select sufid,ksic_5_cd, corp_nm,type_nm,order_num,adm_cd from srv_dt_corpcensus_10_facility ) b
+				where a.adm_cd = b.adm_cd
+				and type_nm like '보건소%'
+				)a join srv_pt_bd b
+				on a.sufid = b.sufid
+				)a join srv_pg_urbarbord b
+				on a.urbar_id = b.urbar_id
+				and a.urbar_type = b.urbar_type
+				and a.urbar_nm = b.urbar_nm
+				<![CDATA[
+					)a where area <>0
+				]]>
+				)a group by urbar_id,urbar_type,ksic_5_cd ,type_nm ,order_num
+				)
+				union all
+
+				select
+				  	null as urbar_id
+				  , null as urbar_type
+				  , null as ksic_5_cd
+				  , '경찰서' as type_nm
+				  , 9 as order_num
+				  , 0 as cnt
+				from dual
+				where not exists (
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , count(*) as cnt
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				from(
+				select
+					distinct a.corp_nm
+					,a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , ST_INTERSECTS(a.pt,b.bord) as area
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , b.pt
+				from(
+				select
+				  	a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  ,b.sufid
+				  ,b.corp_nm
+				  , b.ksic_5_cd
+				  , b.type_nm
+				  , b.order_num
+				from(
+					select
+						urbar_id
+					   ,urbar_nm
+					   ,adm_cd
+					   ,urbar_type
+					from srv_pg_urbar_facility
+					where urbar_type =#{urban_type} and urbar_id =#{urban_id} )a
+				,(select sufid,ksic_5_cd, corp_nm,type_nm,order_num,adm_cd from srv_dt_corpcensus_10_facility ) b
+				where a.adm_cd = b.adm_cd
+				and type_nm like '경찰서%'
+				)a join srv_pt_bd b
+				on a.sufid = b.sufid
+				)a join srv_pg_urbarbord b
+				on a.urbar_id = b.urbar_id
+				and a.urbar_type = b.urbar_type
+				and a.urbar_nm = b.urbar_nm
+				<![CDATA[
+					)a where area <>0
+				]]>
+				)a group by urbar_id,urbar_type,ksic_5_cd ,type_nm ,order_num
+				)
+				union all
+
+				select
+				  	null as urbar_id
+				  , null as urbar_type
+				  , null as ksic_5_cd
+				  , '소방서' as type_nm
+				  , 10 as order_num
+				  , 0 as cnt
+				from dual
+				where not exists (
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , count(*) as cnt
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				from(
+				select
+					distinct a.corp_nm
+					,a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , ST_INTERSECTS(a.pt,b.bord) as area
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , b.pt
+				from(
+				select
+				  	a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  ,b.sufid
+				  ,b.corp_nm
+				  , b.ksic_5_cd
+				  , b.type_nm
+				  , b.order_num
+				from(
+					select
+						urbar_id
+					   ,urbar_nm
+					   ,adm_cd
+					   ,urbar_type
+					from srv_pg_urbar_facility
+					where urbar_type =#{urban_type} and urbar_id =#{urban_id} )a
+				,(select sufid,ksic_5_cd, corp_nm,type_nm,order_num,adm_cd from srv_dt_corpcensus_10_facility ) b
+				where a.adm_cd = b.adm_cd
+				and type_nm like '소방서%'
+				)a join srv_pt_bd b
+				on a.sufid = b.sufid
+				)a join srv_pg_urbarbord b
+				on a.urbar_id = b.urbar_id
+				and a.urbar_type = b.urbar_type
+				and a.urbar_nm = b.urbar_nm
+				<![CDATA[
+					)a where area <>0
+				]]>
+				)a group by urbar_id,urbar_type,ksic_5_cd ,type_nm ,order_num
+				)
+				union all
+
+				select
+				  	null as urbar_id
+				  , null as urbar_type
+				  , null as ksic_5_cd
+				  , '사회복지' as type_nm
+				  , 11 as order_num
+				  , 0 as cnt
+				from dual
+				where not exists (
+			select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , count(*) as cnt
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				from(
+				select
+					distinct a.corp_nm
+					,a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , ST_INTERSECTS(a.pt,b.bord) as area
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , b.pt
+				from(
+				select
+				  	a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  ,b.sufid
+				  ,b.corp_nm
+				  , b.ksic_5_cd
+				  , b.type_nm
+				  , b.order_num
+				from(
+					select
+						urbar_id
+					   ,urbar_nm
+					   ,adm_cd
+					   ,urbar_type
+					from srv_pg_urbar_facility
+					where urbar_type =#{urban_type} and urbar_id =#{urban_id} )a
+				,(select sufid,ksic_5_cd, corp_nm,type_nm,order_num,adm_cd from srv_dt_corpcensus_10_facility ) b
+				where a.adm_cd = b.adm_cd
+				and type_nm like '사회복지%'
+				)a join srv_pt_bd b
+				on a.sufid = b.sufid
+				)a join srv_pg_urbarbord b
+				on a.urbar_id = b.urbar_id
+				and a.urbar_type = b.urbar_type
+				and a.urbar_nm = b.urbar_nm
+				<![CDATA[
+					)a where area <>0
+				]]>
+				)a group by urbar_id,urbar_type,ksic_5_cd ,type_nm ,order_num
+				)
+				union all
+
+				select
+				  	null as urbar_id
+				  , null as urbar_type
+				  , null as ksic_5_cd
+				  , '도서관' as type_nm
+				  , 12 as order_num
+				  , 0 as cnt
+				from dual
+				where not exists (
+			select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , count(*) as cnt
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				from(
+				select
+					distinct a.corp_nm
+					,a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , ST_INTERSECTS(a.pt,b.bord) as area
+				from(
+				select
+					a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  , a.ksic_5_cd
+				  , a.type_nm
+				  , a.order_num
+				  , a.corp_nm
+				  , a.sufid
+				  , b.pt
+				from(
+				select
+				  	a.urbar_id
+				  , a.urbar_type
+				  , a.urbar_nm
+				  ,b.sufid
+				  ,b.corp_nm
+				  , b.ksic_5_cd
+				  , b.type_nm
+				  , b.order_num
+				from(
+					select
+						urbar_id
+					   ,urbar_nm
+					   ,adm_cd
+					   ,urbar_type
+					from srv_pg_urbar_facility
+					where urbar_type =#{urban_type} and urbar_id =#{urban_id} )a
+				,(select sufid,ksic_5_cd, corp_nm,type_nm,order_num,adm_cd from srv_dt_corpcensus_10_facility ) b
+				where a.adm_cd = b.adm_cd
+				and type_nm like '도서관%'
+				)a join srv_pt_bd b
+				on a.sufid = b.sufid
+				)a join srv_pg_urbarbord b
+				on a.urbar_id = b.urbar_id
+				and a.urbar_type = b.urbar_type
+				and a.urbar_nm = b.urbar_nm
+				<![CDATA[
+					)a where area <>0
+				]]>
+				)a group by urbar_id,urbar_type,ksic_5_cd ,type_nm ,order_num
+				)
+			)a
+
+ 			union all
+
+			select
+			  '응급의료' as type_nm
+			  ,count(*) as cnt
+			  ,7 as order_num
+			  ,b.ksic_5_cd
+			  ,urbar_id
+			  ,urbar_type
+			from(
+				select
+					urbar_id
+				   ,urbar_nm
+				   ,adm_cd
+				   ,urbar_type
+				from srv_pg_urbar_facility
+				where urbar_type =#{urban_type} and urbar_id =#{urban_id})a
+			,(select  adm_cd,ksic_5_cd from srv_dt_srvarea_poi_extrl where ksic_5_cd ='E0001') b
+			where a.adm_cd = b.adm_cd
+			 group by ksic_5_cd,urbar_id,urbar_type
+
+			 union all
+
+			 select
+			  '응급의료' as type_nm
+			  ,0 as cnt
+			  ,7 as order_num
+			  ,null as ksic_5_cd
+			  ,null as urbar_id
+			  ,null as urbar_type
+			  from dual
+			  where not exists (
+			 	 select
+				  '응급의료' as type_nm
+				  ,count(*) as cnt
+				  ,7 as order_num
+				  ,b.ksic_5_cd
+				  ,urbar_id
+				  ,urbar_type
+				from(
+				select
+					urbar_id
+				   ,urbar_nm
+				   ,adm_cd
+				   ,urbar_type
+				from srv_pg_urbar_facility
+				where urbar_type =#{urban_type} and urbar_id =#{urban_id})a
+				,(select  adm_cd,ksic_5_cd from srv_dt_srvarea_poi_extrl where ksic_5_cd ='E0001') b
+				where a.adm_cd = b.adm_cd
+				 group by ksic_5_cd,urbar_id,urbar_type )
+	)a
+	order by order_num asc
+
+	</select>
+
+	<select id="selectFacilitySearchList" parameterType="hashmap" resultType="hashmap">
+				select
+					distinct a.corp_nm
+				   ,a.x_coor
+				   ,a.y_coor
+				from(
+					select
+						a.urbar_id
+					  , a.urbar_nm
+					  ,a.corp_nm
+					  ,  ST_INTERSECTS(a.pt,b.bord) as area
+					  ,a.x_coor
+					  ,a.y_coor
+					from(
+						select
+							a.urbar_id
+						    ,a.urbar_nm
+							,st_x(b.pt) as x_coor
+							,st_y(b.pt) as y_coor
+							,corp_nm
+							,b.pt
+						from(
+						select
+						    a.urbar_id
+						   ,a.urbar_nm
+						   ,b.sufid
+						   ,b.corp_nm
+							from(
+								select
+									urbar_id
+								   ,urbar_nm
+								   ,adm_cd
+								   ,urbar_type
+								from srv_pg_urbar_facility
+								where urbar_type =#{urban_type} and urbar_id =#{urban_id} )a
+							,(select sufid,ksic_5_cd, corp_nm,type_nm,order_num,adm_cd from srv_dt_corpcensus_10_facility where ksic_5_cd=#{ksic_5_cd} ) b
+							where a.adm_cd = b.adm_cd
+						)a join srv_pt_bd b
+						on a.sufid = b.sufid
+					)a join srv_pg_urbarbord b
+					on a.urbar_id = b.urbar_id
+					and a.urbar_nm =b.urbar_nm
+					<![CDATA[
+					)a where area <>0
+					]]>
+	</select>
+
+	<select id="selectFacilitySearchList1" parameterType="hashmap" resultType="hashmap">
+			select
+				count(*) as cnt
+				,x1 as x_coor
+				,y1 as y_coor
+				from (
+					select
+					distinct a.corp_nm
+				   ,a.x_coor
+				   ,a.y_coor
+				   ,x1
+				   ,y1
+			from(
+				select
+					a.urbar_id
+				  , a.urbar_nm
+				  ,a.corp_nm
+				  ,  st_intersects(a.pt,b.bord) as area
+				  ,a.x_coor
+				  ,a.y_coor
+				  ,x1
+				  ,y1
+				from(
+					select
+						a.urbar_id
+					    ,a.urbar_nm
+						,st_x(b.pt) as x_coor
+						,st_y(b.pt) as y_coor
+						,corp_nm
+						,b.pt
+						,x1
+						,y1
+					from(
+						select
+						    a.urbar_id
+						   ,a.urbar_nm
+						   ,b.sufid
+						   ,b.corp_nm
+						   ,x1
+						   ,y1
+						from(
+							select
+								urbar_id
+							   ,urbar_nm
+							   ,adm_cd
+							   ,sido_cd
+							   ,urbar_type
+							   ,x_coor as x1
+							   ,y_coor as y1
+							from srv_pg_urbar_facility
+							where urbar_type ='01' and urbar_id ='center_006' and sido_cd ='11')a
+								,(select sufid,ksic_5_cd, corp_nm,type_nm,order_num,adm_cd from srv_dt_corpcensus_10_facility where ksic_5_cd='87210' ) b
+									where a.adm_cd = b.adm_cd
+							)a join srv_pt_bd b
+								on a.sufid = b.sufid
+						)a join srv_pg_urbarbord  b
+							on a.urbar_id = b.urbar_id
+							and a.urbar_nm =b.urbar_nm
+					<![CDATA[
+					)a where area <>0
+					]]>
+				)a group  by x1 ,y1
+
+						union all
+
+						select
+							count(*) as cnt
+							,x1 as x_coor
+							,y1 as y_coor
+							from (
+							select
+							distinct a.corp_nm
+						   ,a.x_coor
+						   ,a.y_coor
+						   ,x1
+						   ,y1
+						from(
+
+							select
+								a.urbar_id
+							  , a.urbar_nm
+							  ,a.corp_nm
+							  ,  st_intersects(a.pt,b.bord) as area
+							  ,a.x_coor
+							  ,a.y_coor
+							  ,x1
+							  ,y1
+							from(
+								select
+									a.urbar_id
+								    ,a.urbar_nm
+									,st_x(b.pt) as x_coor
+									,st_y(b.pt) as y_coor
+									,corp_nm
+									,b.pt
+									,x1
+									,y1
+								from(
+									select
+									    a.urbar_id
+									   ,a.urbar_nm
+									   ,b.sufid
+									   ,b.corp_nm
+									   ,x1
+									   ,y1
+										from(
+											select
+												urbar_id
+											   ,urbar_nm
+											   ,adm_cd
+											   ,sido_cd
+											   ,urbar_type
+											   ,x_coor as x1
+											   ,y_coor as y1
+											from srv_pg_urbar_facility
+											where urbar_type ='01' and urbar_id ='center_006' and sido_cd ='23')a
+									,(select sufid,ksic_5_cd, corp_nm,type_nm,order_num,adm_cd from srv_dt_corpcensus_10_facility where ksic_5_cd='87210' ) b
+										where a.adm_cd = b.adm_cd
+								)a join srv_pt_bd b
+									on a.sufid = b.sufid
+							)a join srv_pg_urbarbord  b
+								on a.urbar_id = b.urbar_id
+								and a.urbar_nm =b.urbar_nm
+					<![CDATA[
+						)a where area <>0
+					]]>
+					)a group  by x1 ,y1
+
+						union all
+
+						select
+							count(*) as cnt
+							,x1 as x_coor
+							,y1 as y_coor
+							from (
+							select
+							distinct a.corp_nm
+						   ,a.x_coor
+						   ,a.y_coor
+						   ,x1
+						   ,y1
+						from(
+							select
+								a.urbar_id
+							  , a.urbar_nm
+							  ,a.corp_nm
+							  ,  st_intersects(a.pt,b.bord) as area
+							  ,a.x_coor
+							  ,a.y_coor
+							  ,x1
+							  ,y1
+							from(
+								select
+									a.urbar_id
+								    ,a.urbar_nm
+									,st_x(b.pt) as x_coor
+									,st_y(b.pt) as y_coor
+									,corp_nm
+									,b.pt
+									,x1
+									,y1
+								from(
+									select
+									    a.urbar_id
+									   ,a.urbar_nm
+									   ,b.sufid
+									   ,b.corp_nm
+									   ,x1
+									   ,y1
+									from(
+										select
+											urbar_id
+										   ,urbar_nm
+										   ,adm_cd
+										   ,sido_cd
+										   ,urbar_type
+										   ,x_coor as x1
+										   ,y_coor as y1
+										from srv_pg_urbar_facility
+										where urbar_type ='01' and urbar_id ='center_006' and sido_cd ='31')a
+									,(select sufid,ksic_5_cd, corp_nm,type_nm,order_num,adm_cd from srv_dt_corpcensus_10_facility where ksic_5_cd='87210' ) b
+									where a.adm_cd = b.adm_cd
+								)a join srv_pt_bd b
+								on a.sufid = b.sufid
+							)a join srv_pg_urbarbord  b
+								on a.urbar_id = b.urbar_id
+								and a.urbar_nm =b.urbar_nm
+						<![CDATA[
+						)a where area <>0
+						]]>
+					)a group  by x1 ,y1
+
+
+	</select>
+
+	<select id="selectFacilitySearchList2" parameterType="hashmap" resultType="hashmap">
+
+			select
+				count(*) as cnt
+				,x1 as x_coor
+				,y1 as y_coor
+				from (
+					select
+					distinct a.corp_nm
+				   ,a.x_coor
+				   ,a.y_coor
+				   ,x1
+				   ,y1
+			from(
+				select
+					a.urbar_id
+				  , a.urbar_nm
+				  ,a.corp_nm
+				  ,  st_intersects(a.pt,b.bord) as area
+				  ,a.x_coor
+				  ,a.y_coor
+				  ,x1
+				  ,y1
+				from(
+					select
+						a.urbar_id
+					    ,a.urbar_nm
+						,st_x(b.pt) as x_coor
+						,st_y(b.pt) as y_coor
+						,corp_nm
+						,b.pt
+						,x1
+						,y1
+					from(
+						select
+						    a.urbar_id
+						   ,a.urbar_nm
+						   ,b.sufid
+						   ,b.corp_nm
+						   ,x1
+						   ,y1
+						from(
+							select
+								urbar_id
+							   ,urbar_nm
+							   ,adm_cd
+							   ,sido_cd
+							   ,urbar_type
+							   ,x_coor as x1
+							   ,y_coor as y1
+							from srv_pg_urbar_facility
+							where urbar_type ='01' and urbar_id ='center_006' and sido_cd ='11')a
+								,(select sufid,ksic_5_cd, corp_nm,type_nm,order_num,adm_cd from srv_dt_corpcensus_10_facility where ksic_5_cd='85110' ) b
+									where a.adm_cd = b.adm_cd
+							)a join srv_pt_bd b
+								on a.sufid = b.sufid
+						)a join srv_pg_urbarbord  b
+							on a.urbar_id = b.urbar_id
+							and a.urbar_nm =b.urbar_nm
+					<![CDATA[
+					)a where area <>0
+					]]>
+				)a group  by x1 ,y1
+
+						union all
+
+						select
+							count(*) as cnt
+							,x1 as x_coor
+							,y1 as y_coor
+							from (
+							select
+							distinct a.corp_nm
+						   ,a.x_coor
+						   ,a.y_coor
+						   ,x1
+						   ,y1
+						from(
+
+							select
+								a.urbar_id
+							  , a.urbar_nm
+							  ,a.corp_nm
+							  ,  st_intersects(a.pt,b.bord) as area
+							  ,a.x_coor
+							  ,a.y_coor
+							  ,x1
+							  ,y1
+							from(
+								select
+									a.urbar_id
+								    ,a.urbar_nm
+									,st_x(b.pt) as x_coor
+									,st_y(b.pt) as y_coor
+									,corp_nm
+									,b.pt
+									,x1
+									,y1
+								from(
+									select
+									    a.urbar_id
+									   ,a.urbar_nm
+									   ,b.sufid
+									   ,b.corp_nm
+									   ,x1
+									   ,y1
+										from(
+											select
+												urbar_id
+											   ,urbar_nm
+											   ,adm_cd
+											   ,sido_cd
+											   ,urbar_type
+											   ,x_coor as x1
+											   ,y_coor as y1
+											from srv_pg_urbar_facility
+											where urbar_type ='01' and urbar_id ='center_006' and sido_cd ='23')a
+									,(select sufid,ksic_5_cd, corp_nm,type_nm,order_num,adm_cd from srv_dt_corpcensus_10_facility where ksic_5_cd='85110' ) b
+										where a.adm_cd = b.adm_cd
+								)a join srv_pt_bd b
+									on a.sufid = b.sufid
+							)a join srv_pg_urbarbord  b
+								on a.urbar_id = b.urbar_id
+								and a.urbar_nm =b.urbar_nm
+						<![CDATA[
+						)a where area <>0
+						]]>
+					)a group  by x1 ,y1
+
+						union all
+
+						select
+							count(*) as cnt
+							,x1 as x_coor
+							,y1 as y_coor
+							from (
+							select
+							distinct a.corp_nm
+						   ,a.x_coor
+						   ,a.y_coor
+						   ,x1
+						   ,y1
+						from(
+							select
+								a.urbar_id
+							  , a.urbar_nm
+							  ,a.corp_nm
+							  ,  st_intersects(a.pt,b.bord) as area
+							  ,a.x_coor
+							  ,a.y_coor
+							  ,x1
+							  ,y1
+							from(
+								select
+									a.urbar_id
+								    ,a.urbar_nm
+									,st_x(b.pt) as x_coor
+									,st_y(b.pt) as y_coor
+									,corp_nm
+									,b.pt
+									,x1
+									,y1
+								from(
+									select
+									    a.urbar_id
+									   ,a.urbar_nm
+									   ,b.sufid
+									   ,b.corp_nm
+									   ,x1
+									   ,y1
+									from(
+										select
+											urbar_id
+										   ,urbar_nm
+										   ,adm_cd
+										   ,sido_cd
+										   ,urbar_type
+										   ,x_coor as x1
+										   ,y_coor as y1
+										from srv_pg_urbar_facility
+										where urbar_type ='01' and urbar_id ='center_006' and sido_cd ='31')a
+									,(select sufid,ksic_5_cd, corp_nm,type_nm,order_num,adm_cd from srv_dt_corpcensus_10_facility where ksic_5_cd='85110' ) b
+									where a.adm_cd = b.adm_cd
+								)a join srv_pt_bd b
+								on a.sufid = b.sufid
+							)a join srv_pg_urbarbord  b
+								on a.urbar_id = b.urbar_id
+								and a.urbar_nm =b.urbar_nm
+						<![CDATA[
+						)a where area <>0
+						]]>
+					)a group  by x1 ,y1
+
+	</select>
+
+
+	<select id="selectEmergency" parameterType="hashmap" resultType="hashmap">
+				select
+					x_coor
+				  , y_coor
+				  , b.corp_nm
+				from(
+					select
+						urbar_id
+					   ,urbar_nm
+					   ,adm_cd
+					   ,urbar_type
+					from srv_pg_urbar_facility
+						where urbar_type =#{urban_type} and urbar_id =#{urban_id} )a
+					,(select
+						adm_cd
+						,ksic_5_cd
+						,x_coor
+						,y_coor
+						,corp_nm
+					from srv_dt_srvarea_poi_extrl
+					where ksic_5_cd ='E0001') b
+				where a.adm_cd = b.adm_cd
+	</select>
+
+	<!-- (대)권역 목록 조회 -->
+	<select id="selectDistrictList" parameterType="hashmap" resultType="hashmap">
+		select
+			DSTRCT_LCLAS_CD
+			, DSTRCT_LCLAS_NM
+			, DSTRCT_LCLAS_EXP
+			, ORDER_NO
+		from SRV_DT_URBAR_DSTRCT_LCLAS with (nolock)
+		where
+			USE_YN = 'Y'
+			and SRV_YN = 'Y'
+		order by ORDER_NO
+	</select>
+
+	<!-- 도시지역 목록 조회 -->
+	<select id="selectUrbanAreaList" parameterType="hashmap" resultType="hashmap">
+		<if test='urban_cls_gb == "cls_un"'>
+			select
+				distinct
+				ua.urbar_id as URBAN_ID
+				, ua.URBAR_NM as URBAN_NM
+				, ua.AREA
+				, ua.X_COOR
+				, ua.Y_COOR
+				, ua.BASE_YEAR
+				, ds.DSTRCT_LCLAS_CD
+				, ua.urbar_type as TYPE
+				, '' as SIDO_CD
+				, '' as SGG_CD
+				, m_mp.main_urbar_id as MAIN_URBAN_ID
+			from srv_pg_urbarbord with (nolock) ua
+				left outer join srv_pg_urbarsggbord with (nolock) ua_sgg
+					on ua_sgg.BASE_YEAR = ua.BASE_YEAR and ua_sgg.urbar_id = ua.urbar_id and ua_sgg.urbar_type = ua.urbar_type
+				left outer join SRV_DT_URBAR_DSTRCT_MAPPING with (nolock) mp
+					on mp.SIDO_CD = ua_sgg.SIDO_CD and mp.USE_YN = 'Y'
+				left outer join SRV_DT_URBAR_DSTRCT_LCLAS with (nolock) ds
+					on ds.DSTRCT_LCLAS_CD = mp.DSTRCT_LCLAS_CD and ds.USE_YN = 'Y' and ds.SRV_YN = 'Y'
+				left outer join srv_dt_urbar_main_mapping with (nolock) m_mp
+					on m_mp.BASE_YEAR = ua.BASE_YEAR and m_mp.urbar_id = ua.urbar_id and m_mp.urbar_type = ua.urbar_type
+			where
+				ua.BASE_YEAR = #{base_year}
+				<if test='urban_type != null and urban_type != ""'>
+					and ua.urbar_type = #{urban_type}
+				</if>
+				<if test='dstrct_lclas_cd != null and dstrct_lclas_cd != ""'>
+					and ds.DSTRCT_LCLAS_CD = #{dstrct_lclas_cd}
+				</if>
+				<if test='urban_sido_cd != null and urban_sido_cd != ""'>
+					and ua_sgg.SIDO_CD = #{urban_sido_cd}
+				</if>
+				<if test='urban_sgg_cd != null and urban_sgg_cd != ""'>
+					and ua_sgg.SGG_CD = #{urban_sgg_cd}
+				</if>
+			order by ua.urbar_nm
+		</if>
+		<if test='urban_cls_gb == "cls_sgis"'>
+			select
+				distinct
+				ua.UA_CD as URBAN_ID
+				, ua.UA_NM as URBAN_NM
+				, ua.AREA
+				, ua.X_COOR
+				, ua.Y_COOR
+				, ua.BASE_YEAR
+				, ds.DSTRCT_LCLAS_CD
+				, '' as TYPE
+				, ua.SIDO_CD
+				, ua.SGG_CD
+				, m_mp.main_urbar_id as MAIN_URBAN_ID
+			from SRV_PG_UABORD with (nolock) ua
+				left outer join SRV_DT_URBAR_DSTRCT_MAPPING with (nolock) mp
+					on mp.SIDO_CD = ua.SIDO_CD and mp.USE_YN = 'Y'
+				left outer join SRV_DT_URBAR_DSTRCT_LCLAS with (nolock) ds
+					on ds.DSTRCT_LCLAS_CD = mp.DSTRCT_LCLAS_CD and ds.USE_YN = 'Y' and ds.SRV_YN = 'Y'
+				left outer join srv_dt_urbar_main_mapping with (nolock) m_mp
+					on m_mp.BASE_YEAR = ua.BASE_YEAR and m_mp.urbar_id = ua.ua_cd and m_mp.urbar_type = '03'
+			where
+				ua.BASE_YEAR = #{base_year}
+				<if test='dstrct_lclas_cd != null and dstrct_lclas_cd != ""'>
+					and ds.DSTRCT_LCLAS_CD = #{dstrct_lclas_cd}
+				</if>
+				<if test='urban_sido_cd != null and urban_sido_cd != ""'>
+					and ua.SIDO_CD = #{urban_sido_cd}
+				</if>
+				<if test='urban_sgg_cd != null and urban_sgg_cd != ""'>
+					and ua.SGG_CD = #{urban_sgg_cd}
+				</if>
+			order by ua.ua_nm
+		</if>
+	</select>
+
+	<!-- 도시지역 하위 지역 조회 -->
+	<select id="selectSubRegionList" parameterType="hashmap" resultType="hashmap">
+		<if test='urban_cls_gb == "cls_un"'>
+			select
+				distinct
+				ua.SIDO_CD
+				, ua.SGG_CD
+				, ua.URBAR_ID as URBAN_ID
+				, ua.URBAR_NM as URBAN_NM
+				, ua.BASE_YEAR
+				, ua.urbar_type as TYPE
+				, ua.X_COOR
+				, ua.Y_COOR
+				, bord.SIDO_NM
+				, bord.SGG_NM
+			from srv_pg_urbarsggbord with (nolock) ua
+				inner join SRV_PG_SGGBORD with (nolock) bord
+					on bord.SIDO_CD = ua.SIDO_CD and bord.SGG_CD = ua.SGG_CD and bord.BASE_YEAR = #{base_year}
+			where
+				ua.BASE_YEAR = #{base_year}
+				and ua.urbar_id = #{urban_id}
+				<if test='urban_type != null and urban_type != ""'>
+					and ua.urbar_type = #{urban_type}
+				</if>
+			order by SIDO_CD, SGG_CD
+		</if>
+		<if test='urban_cls_gb == "cls_sgis"'>
+			select
+				distinct
+				ua.SIDO_CD
+				, ua.SGG_CD
+				, ua.UA_CD as URBAN_ID
+				, ua.UA_NM as URBAN_NM
+				, ua.BASE_YEAR
+				, '' as TYPE
+				, ua.X_COOR
+				, ua.Y_COOR
+				, bord.SIDO_NM
+				, bord.SGG_NM
+			from SRV_PG_UABORD with (nolock) ua
+				inner join SRV_PG_SGGBORD with (nolock) bord
+					on bord.SIDO_CD = ua.SIDO_CD and bord.SGG_CD = ua.SGG_CD and bord.BASE_YEAR = #{base_year}
+			where
+				ua.BASE_YEAR = #{base_year}
+				and ua.UA_CD = #{urban_id}
+			order by SIDO_CD, SGG_CD
+		</if>
+	</select>
+
+	<!-- 도시지역 도형정보 조회 -->
+	<!-- 주의) urban_id는 다수의 sido_cd에 걸쳐있다. -->
+	<select id="selectUrbanAreaGeometry" parameterType="hashmap" resultType="hashmap">
+		<if test='urban_cls_gb == "cls_un"'>
+			<choose>
+				<when test='comparison_gb == "CG1"'>
+					<!-- SGIS4_220211_도시화_수정_시작 -->
+					select
+						bord.SIDO_CD || bord.SGG_CD  as URBAN_ID
+						, bord.SIDO_NM || ' ' || bord.SGG_NM as URBAN_NM
+						, bord.AREA
+						, bord.X_COOR
+						, bord.Y_COOR
+						, bord.BASE_YEAR
+						, '' as TYPE
+						, bord.SIDO_CD
+						, bord.SGG_CD
+						, 'bord' as URBAN_CLS_GB
+						<if test='strFormat != null'>
+							, st_asbinary(bord.lighten_bord) as GEOMETRY
+						</if>
+						<if test='strFormat == null'>
+							, st_astext(bord.lighten_bord) as GEOMETRY
+						</if>
+					from SRV_PG_SGGBORD with (nolock) bord
+					where
+						bord.BASE_YEAR = #{base_year}
+						and bord.SIDO_CD = #{urban_sido_cd}
+						and bord.SGG_CD = #{urban_sgg_cd}
+					union all
+					<!-- SGIS4_220211_도시화_수정_끝 -->
+					select
+						ua.urbar_id as URBAN_ID
+						, ua.URBAR_NM as URBAN_NM
+						, ua.AREA
+						, ua.X_COOR
+						, ua.Y_COOR
+						, ua.BASE_YEAR
+						, ua.urbar_type as TYPE
+						, ua.SIDO_CD
+						, ua.SGG_CD
+						, 'cls_un' as URBAN_CLS_GB
+						<if test='strFormat != null'>
+							, st_asbinary(ua.BORD) as GEOMETRY
+						</if>
+						<if test='strFormat == null'>
+							, st_astext(ua.BORD) as GEOMETRY
+						</if>
+					from srv_pg_urbarsggbord with (nolock) ua
+					where
+						ua.BASE_YEAR = #{base_year}
+						and ua.SIDO_CD = #{urban_sido_cd}
+						and ua.SGG_CD = #{urban_sgg_cd}
+						and ua.urbar_id = #{urban_id}
+						and ua.urbar_type = #{urban_type}
+				</when>
+				<when test='comparison_gb == "CG2"'>
+					select
+						ua.urbar_id as URBAN_ID
+						, ua.URBAR_NM as URBAN_NM
+						, ua.AREA
+						, ua.X_COOR
+						, ua.Y_COOR
+						, ua.BASE_YEAR
+						, ua.urbar_type as TYPE
+						, '' as SIDO_CD
+						, '' as SGG_CD
+						, 'cls_un' as URBAN_CLS_GB
+						<if test='strFormat != null'>
+							, st_asbinary(ua.BORD) as GEOMETRY
+						</if>
+						<if test='strFormat == null'>
+							, st_astext(ua.BORD) as GEOMETRY
+						</if>
+					from srv_pg_urbarbord with (nolock) ua
+					where
+						ua.BASE_YEAR = #{base_year}
+						and (ua.urbar_id = #{urban_id} or ua.urbar_id = #{comparison_urban_id})
+						and ua.urbar_type = #{urban_type}
+				</when>
+				<when test='comparison_gb == "GRID"'>
+					select
+						ua.BASE_YEAR
+						, ua.grid_1k_cd
+						, ua.SIDO_CD
+						, ua.SGG_CD
+						, ua.SIDO_NM
+						, ua.SGG_NM
+						, ua.urbar_id as URBAN_ID
+						, ua.urbar_type as TYPE
+						<if test='strFormat != null'>
+							, st_asbinary(ua.BORD) as GEOMETRY
+						</if>
+						<if test='strFormat == null'>
+							, st_astext(ua.BORD) as GEOMETRY
+						</if>
+					from srv_pg_urbar_1k_bord with (nolock) ua
+					where
+						ua.BASE_YEAR = #{base_year}
+						and ua.urbar_id = #{urban_id}
+				</when>
+				<otherwise>
+					select
+						ua.urbar_id as URBAN_ID
+						, ua.URBAR_NM as URBAN_NM
+						, ua.AREA
+						, ua.X_COOR
+						, ua.Y_COOR
+						, ua.BASE_YEAR
+						, ua.urbar_type as TYPE
+						, '' as SIDO_CD
+						, '' as SGG_CD
+						, 'cls_un' as URBAN_CLS_GB
+						<if test='strFormat != null'>
+							, st_asbinary(ua.BORD) as GEOMETRY
+						</if>
+						<if test='strFormat == null'>
+							, st_astext(ua.BORD) as GEOMETRY
+						</if>
+					from srv_pg_urbarbord with (nolock) ua
+					where
+						ua.BASE_YEAR = #{base_year}
+						<!--
+						<if test='urban_type != null and urban_type != ""'>
+							and ua.urbar_type = #{urban_type}
+						</if>
+						-->
+						<if test='urban_id != null and urban_id != ""'>
+							and ua.urbar_id = #{urban_id}
+						</if>
+				</otherwise>
+			</choose>
+		</if>
+		<if test='urban_cls_gb == "cls_sgis"'>
+			select
+				ua.UA_CD as URBAN_ID
+				, ua.UA_NM as URBAN_NM
+				, ua.AREA
+				, ua.X_COOR
+				, ua.Y_COOR
+				, ua.BASE_YEAR
+				, '' as TYPE
+				, ua.SIDO_CD
+				, ua.SGG_CD
+				, 'cls_sgis' as URBAN_CLS_GB
+				<if test='strFormat != null'>
+					, st_asbinary(ua.BORD) as GEOMETRY
+				</if>
+				<if test='strFormat == null'>
+					, st_astext(ua.BORD) as GEOMETRY
+				</if>
+			from SRV_PG_UABORD with (nolock) ua
+			where
+				ua.BASE_YEAR = #{base_year}
+				<!-- BASE_YEAR & UA_CD가 실질적 pk, 이 규칙이 깨지면 비교대상 2개에 대한 sido/sgg 코드 모두 전달받아야 함
+				<if test='urban_sido_cd != null and urban_sido_cd != ""'>
+					and ua.SIDO_CD = #{urban_sido_cd}
+				</if>
+				<if test='urban_sgg_cd != null and urban_sgg_cd != ""'>
+					and ua.SGG_CD = #{urban_sgg_cd}
+				</if>
+				-->
+				<choose>
+					<when test='comparison_gb == "CG2"'>
+						and (ua.UA_CD = #{urban_id} or ua.UA_CD = #{comparison_urban_id})
+					</when>
+					<otherwise>
+						<if test='urban_id != null and urban_id != ""'>
+							and ua.UA_CD = #{urban_id}
+						</if>
+					</otherwise>
+				</choose>
+				<if test='urban_sido_list != null'>
+					and ua.SIDO_CD in
+					<foreach collection="urban_sido_list" item="sido" open="(" close=")" separator=",">
+						#{sido}
+					</foreach>
+				</if>
+		</if>
+	</select>
+
+	<select id="selectAreaSize" parameterType="hashmap" resultType="hashmap">
+		<choose>
+			<!-- <when test='comparison_gb == "CT2"'>
+				select
+					area as area_size
+					, sido_nm || ' ' || sgg_nm as area_nm
+				from SRV_PG_SGGBORD with (nolock)
+				where
+					BASE_YEAR = #{base_year}
+					and SIDO_CD = #{urban_sido_cd}
+					and SGG_CD = #{urban_sgg_cd}
+			</when> -->
+			<when test='comparison_gb == "CT2"'>
+				select
+					 base_year
+					,area as area_size
+					, sido_nm || ' ' || sgg_nm as area_nm
+				from SRV_PG_SGGBORD
+				where
+					 SIDO_CD = #{urban_sido_cd}
+					and SGG_CD =#{urban_sgg_cd}
+					and base_year between  '2015' and #{base_year}
+			</when>
+
+
+			<otherwise>
+				<!-- <if test='urban_cls_gb == "cls_un"'>
+					select
+						area as area_size
+						, urbar_nm as area_nm
+					from srv_pg_urbarsggbord with (nolock)
+					where
+						BASE_YEAR = #{base_year}
+						and SIDO_CD = #{urban_sido_cd}
+						and SGG_CD = #{urban_sgg_cd}
+						and urbar_id = #{urban_id}
+						and urbar_type = #{urban_type}
+				</if> -->
+				select
+						base_year1
+					  , area1
+					  ,	base_year2
+					  , area2
+					  ,	base_year3
+					  , area3
+					  ,	base_year4
+					  , area4
+					  ,	base_year5
+					  , area5
+					  ,	base_year6
+					  , area6
+					from srv_pg_urbarbord_map_area_mapping with (nolock)
+					where
+						<if test='base_year == "2020"'>
+						BASE_YEAR1 = #{base_year}
+						</if>
+						<if test='base_year == "2019"'>
+						BASE_YEAR2 = #{base_year}
+						</if>
+						<if test='base_year == "2018"'>
+						BASE_YEAR3 = #{base_year}
+						</if>
+						<if test='base_year == "2017"'>
+						BASE_YEAR4 = #{base_year}
+						</if>
+						<if test='base_year == "2016"'>
+						BASE_YEAR5 = #{base_year}
+						</if>
+						<if test='base_year == "2015"'>
+						BASE_YEAR6 = #{base_year}
+						</if>
+						and urbar_id1 = #{urban_id}
+						and urbar_type = #{urban_type}
+				<if test='urban_cls_gb == "cls_sgis"'>
+					select
+						area as area_size
+						, ua_nm as area_nm
+					from srv_pg_uabord with (nolock)
+					where
+						BASE_YEAR = #{base_year}
+						and SIDO_CD = #{urban_sido_cd}
+						and SGG_CD = #{urban_sgg_cd}
+						and UA_CD = #{urban_id}
+				</if>
+			</otherwise>
+		</choose>
+	</select>
+
+	<select id="selectUrbarsStatsPops" parameterType="hashmap" resultType="hashmap">
+		<if test='urban_cls_gb == "cls_un"'>
+			select
+				<!-- 총합 -->
+				sum(dat.PPLTN_CNT) AS TOT_CNT
+				<!-- 남자 -->
+				, sum(case when dat.GENDER = '1' then dat.PPLTN_CNT else 0 end) as MAN_CNT
+				<!-- 여자 -->
+				, sum(case when dat.GENDER = '2' then dat.PPLTN_CNT else 0 end) as WOMAN_CNT
+				<!-- 0~9세 -->
+				, sum(case when dat.AGE_GROUP_CD in ('01', '02') then dat.PPLTN_CNT else 0 end) as AGE_1_CNT
+				<!-- 10~19세 -->
+				, sum(case when dat.AGE_GROUP_CD in ('03', '04') then dat.PPLTN_CNT else 0 end) as AGE_2_CNT
+				<!-- 20~29세 -->
+				, sum(case when dat.AGE_GROUP_CD in ('05', '06') then dat.PPLTN_CNT else 0 end) as AGE_3_CNT
+				<!-- 30~39세 -->
+				, sum(case when dat.AGE_GROUP_CD in ('07', '08') then dat.PPLTN_CNT else 0 end) as AGE_4_CNT
+				<!-- 40~49세 -->
+				, sum(case when dat.AGE_GROUP_CD in ('09', '10') then dat.PPLTN_CNT else 0 end) as AGE_5_CNT
+				<!-- 50~59세 -->
+				, sum(case when dat.AGE_GROUP_CD in ('11', '12') then dat.PPLTN_CNT else 0 end) as AGE_6_CNT
+				<!-- 60~69세 -->
+				, sum(case when dat.AGE_GROUP_CD in ('13', '14') then dat.PPLTN_CNT else 0 end) as AGE_7_CNT
+				<!-- 70~79세 -->
+				, sum(case when dat.AGE_GROUP_CD in ('15', '16') then dat.PPLTN_CNT else 0 end) as AGE_8_CNT
+				<!-- 80세 이상 -->
+				, sum(case when dat.AGE_GROUP_CD in ('17', '18', '19', '20', '21') then dat.PPLTN_CNT else 0 end) as AGE_9_CNT
+			from SRV_DT_GRID_POPS_URBAR with (nolock) dat
+			where
+				dat.BASE_YEAR = #{base_year}
+				and dat.URBAR_TYPE = #{urban_type}
+				and dat.URBAR_ID = #{urban_id}
+				<if test='urban_sido_cd != null and urban_sido_cd != ""'>
+					and dat.SIDO_CD = #{urban_sido_cd}
+				</if>
+				<if test='urban_sgg_cd != null and urban_sgg_cd != ""'>
+					and dat.SGG_CD = #{urban_sgg_cd}
+				</if>
+		</if>
+		<if test='urban_cls_gb == "cls_sgis"'>
+			select
+				<!-- 총합 -->
+				sum(dat.PPLTN_CNT) AS TOT_CNT
+				<!-- 남자 -->
+				, sum(case when dat.GENDER = '1' then dat.PPLTN_CNT else 0 end) as MAN_CNT
+				<!-- 여자 -->
+				, sum(case when dat.GENDER = '2' then dat.PPLTN_CNT else 0 end) as WOMAN_CNT
+				<!-- 0~9세 -->
+				, sum(case when dat.AGE_GROUP_CD in ('01', '02') then dat.PPLTN_CNT else 0 end) as AGE_1_CNT
+				<!-- 10~19세 -->
+				, sum(case when dat.AGE_GROUP_CD in ('03', '04') then dat.PPLTN_CNT else 0 end) as AGE_2_CNT
+				<!-- 20~29세 -->
+				, sum(case when dat.AGE_GROUP_CD in ('05', '06') then dat.PPLTN_CNT else 0 end) as AGE_3_CNT
+				<!-- 30~39세 -->
+				, sum(case when dat.AGE_GROUP_CD in ('07', '08') then dat.PPLTN_CNT else 0 end) as AGE_4_CNT
+				<!-- 40~49세 -->
+				, sum(case when dat.AGE_GROUP_CD in ('09', '10') then dat.PPLTN_CNT else 0 end) as AGE_5_CNT
+				<!-- 50~59세 -->
+				, sum(case when dat.AGE_GROUP_CD in ('11', '12') then dat.PPLTN_CNT else 0 end) as AGE_6_CNT
+				<!-- 60~69세 -->
+				, sum(case when dat.AGE_GROUP_CD in ('13', '14') then dat.PPLTN_CNT else 0 end) as AGE_7_CNT
+				<!-- 70~79세 -->
+				, sum(case when dat.AGE_GROUP_CD in ('15', '16') then dat.PPLTN_CNT else 0 end) as AGE_8_CNT
+				<!-- 80세 이상 -->
+				, sum(case when dat.AGE_GROUP_CD in ('17', '18', '19', '20', '21') then dat.PPLTN_CNT else 0 end) as AGE_9_CNT
+			from SRV_DT_POPS_UA with (nolock) dat
+			where
+				dat.BASE_YEAR = #{base_year}
+				and dat.UA_CD = #{urban_id}
+				<if test='urban_sido_cd != null and urban_sido_cd != ""'>
+					and dat.SIDO_CD = #{urban_sido_cd}
+				</if>
+				<if test='urban_sgg_cd != null and urban_sgg_cd != ""'>
+					and dat.SGG_CD = #{urban_sgg_cd}
+				</if>
+		</if>
+	</select>
+
+	<select id="selectUrbarsStatsPops_sgg" parameterType="hashmap" resultType="hashmap">
+		select
+			<!-- 총합 -->
+			sum(dat.PPLTN_CNT) AS TOT_CNT
+			<!-- 남자 -->
+			, sum(case when dat.GENDER = '1' then dat.PPLTN_CNT else 0 end) as MAN_CNT
+			<!-- 여자 -->
+			, sum(case when dat.GENDER = '2' then dat.PPLTN_CNT else 0 end) as WOMAN_CNT
+			<!-- 0~9세 -->
+			, sum(case when (dat.AGE <![CDATA[>=]]> 0 and dat.AGE <![CDATA[<=]]> 9) then dat.PPLTN_CNT else 0 end) as AGE_1_CNT
+			<!-- 10~19세 -->
+			, sum(case when (dat.AGE <![CDATA[>=]]> 10 and dat.AGE <![CDATA[<=]]> 19) then dat.PPLTN_CNT else 0 end) as AGE_2_CNT
+			<!-- 20~29세 -->
+			, sum(case when (dat.AGE <![CDATA[>=]]> 20 and dat.AGE <![CDATA[<=]]> 29) then dat.PPLTN_CNT else 0 end) as AGE_3_CNT
+			<!-- 30~39세 -->
+			, sum(case when (dat.AGE <![CDATA[>=]]> 30 and dat.AGE <![CDATA[<=]]> 39) then dat.PPLTN_CNT else 0 end) as AGE_4_CNT
+			<!-- 40~49세 -->
+			, sum(case when (dat.AGE <![CDATA[>=]]> 40 and dat.AGE <![CDATA[<=]]> 49) then dat.PPLTN_CNT else 0 end) as AGE_5_CNT
+			<!-- 50~59세 -->
+			, sum(case when (dat.AGE <![CDATA[>=]]> 50 and dat.AGE <![CDATA[<=]]> 59) then dat.PPLTN_CNT else 0 end) as AGE_6_CNT
+			<!-- 60~69세 -->
+			, sum(case when (dat.AGE <![CDATA[>=]]> 60 and dat.AGE <![CDATA[<=]]> 69) then dat.PPLTN_CNT else 0 end) as AGE_7_CNT
+			<!-- 70~79세 -->
+			, sum(case when (dat.AGE <![CDATA[>=]]> 70 and dat.AGE <![CDATA[<=]]> 79) then dat.PPLTN_CNT else 0 end) as AGE_8_CNT
+			<!-- 80세 이상 -->
+			, sum(case when (dat.AGE <![CDATA[>=]]> 80) then dat.PPLTN_CNT else 0 end) as AGE_9_CNT
+		from srv_dt_popsgg_${base_year} with (nolock) dat
+		where
+			dat.SIDO_CD = #{urban_sido_cd}
+			and dat.SGG_CD = #{urban_sgg_cd}
+	</select>
+
+	<select id="selectUrbarsStatsFamily" parameterType="hashmap" resultType="hashmap">
+		<if test='urban_cls_gb == "cls_un"'>
+			select
+				<!-- 총합 -->
+				sum(dat.FAMILY_CNT) AS TOT_CNT
+				<!-- 1인가구 -->
+				, sum(case when dat.RD_HOUSEHOLD_TYPE = 'A0' then dat.FAMILY_CNT else 0 end) as FAMILY_1_CNT
+				<!-- 비친족 가구 -->
+				, sum(case when dat.RD_HOUSEHOLD_TYPE = 'B0' then dat.FAMILY_CNT else 0 end) as FAMILY_2_CNT
+				<!-- 친족 가구 -->
+				, sum(case when dat.RD_HOUSEHOLD_TYPE not in ('A0', 'B0') then dat.FAMILY_CNT else 0 end) as FAMILY_3_CNT
+			from SRV_DT_GRID_FAMILY_URBAR with (nolock) dat
+			where
+				dat.BASE_YEAR = #{base_year}
+				and dat.URBAR_TYPE = #{urban_type}
+				and dat.URBAR_ID = #{urban_id}
+				<if test='urban_sido_cd != null and urban_sido_cd != ""'>
+					and dat.SIDO_CD = #{urban_sido_cd}
+				</if>
+				<if test='urban_sgg_cd != null and urban_sgg_cd != ""'>
+					and dat.SGG_CD = #{urban_sgg_cd}
+				</if>
+		</if>
+		<if test='urban_cls_gb == "cls_sgis"'>
+			select
+				<!-- 총합 -->
+				sum(dat.FAMILY_CNT) AS TOT_CNT
+				<!-- 1인가구 -->
+				, sum(case when dat.RD_HOUSEHOLD_TYPE = 'A0' then dat.FAMILY_CNT else 0 end) as FAMILY_1_CNT
+				<!-- 비친족 가구 -->
+				, sum(case when dat.RD_HOUSEHOLD_TYPE = 'B0' then dat.FAMILY_CNT else 0 end) as FAMILY_2_CNT
+				<!-- 친족 가구 -->
+				, sum(case when dat.RD_HOUSEHOLD_TYPE not in ('A0', 'B0') then dat.FAMILY_CNT else 0 end) as FAMILY_3_CNT
+			from SRV_DT_FAMILY_UA with (nolock) dat
+			where
+				dat.BASE_YEAR = #{base_year}
+				and dat.UA_CD = #{urban_id}
+				<if test='urban_sido_cd != null and urban_sido_cd != ""'>
+					and dat.SIDO_CD = #{urban_sido_cd}
+				</if>
+				<if test='urban_sgg_cd != null and urban_sgg_cd != ""'>
+					and dat.SGG_CD = #{urban_sgg_cd}
+				</if>
+		</if>
+	</select>
+
+	<select id="selectUrbarsStatsFamily_sgg" parameterType="hashmap" resultType="hashmap">
+		select
+			<!-- 총합 -->
+			sum(dat.FAMILY_CNT) AS TOT_CNT
+			<!-- 1인가구 -->
+			, sum(case when dat.RD_HOUSEHOLD_TYPE = 'A0' then dat.FAMILY_CNT else 0 end) as FAMILY_1_CNT
+			<!-- 비친족 가구 -->
+			, sum(case when dat.RD_HOUSEHOLD_TYPE = 'B0' then dat.FAMILY_CNT else 0 end) as FAMILY_2_CNT
+			<!-- 친족 가구 -->
+			, sum(case when dat.RD_HOUSEHOLD_TYPE not in ('A0', 'B0') then dat.FAMILY_CNT else 0 end) as FAMILY_3_CNT
+		from srv_dt_familysgg_${base_year} with (nolock) dat
+		where
+			dat.SIDO_CD = #{urban_sido_cd}
+			and dat.SGG_CD = #{urban_sgg_cd}
+	</select>
+
+	<select id="selectUrbarsStatsHouse" parameterType="hashmap" resultType="hashmap">
+		<if test='urban_cls_gb == "cls_un"'>
+			select
+				<!-- 총합 -->
+				sum(dat.RESID_CNT) AS TOT_CNT
+				<!-- 단독주택 -->
+				, sum(case when dat.HOUSE_TYPE_CD = '01' then dat.RESID_CNT else 0 end) as HOUSE_1_CNT
+				<!-- 아파트 -->
+				, sum(case when dat.HOUSE_TYPE_CD = '02' then dat.RESID_CNT else 0 end) as HOUSE_2_CNT
+				<!-- 연립주택 -->
+				, sum(case when dat.HOUSE_TYPE_CD = '03' then dat.RESID_CNT else 0 end) as HOUSE_3_CNT
+				<!-- 다세대주택 -->
+				, sum(case when dat.HOUSE_TYPE_CD = '04' then dat.RESID_CNT else 0 end) as HOUSE_4_CNT
+				<!-- 비거주용 건물내 주택 -->
+				, sum(case when dat.HOUSE_TYPE_CD = '05' then dat.RESID_CNT else 0 end) as HOUSE_5_CNT
+			from SRV_DT_GRID_HOUSE_URBAR with (nolock) dat
+			where
+				dat.BASE_YEAR = #{base_year}
+				and dat.URBAR_TYPE = #{urban_type}
+				and dat.URBAR_ID = #{urban_id}
+				<if test='urban_sido_cd != null and urban_sido_cd != ""'>
+					and dat.SIDO_CD = #{urban_sido_cd}
+				</if>
+				<if test='urban_sgg_cd != null and urban_sgg_cd != ""'>
+					and dat.SGG_CD = #{urban_sgg_cd}
+				</if>
+				and dat.HOUSE_TYPE = 'resid_type'
+				and dat.HOUSE_TYPE_CD in ('01', '02', '03', '04', '05')	<!-- 주택이외의 거처 제외 -->
+		</if>
+		<if test='urban_cls_gb == "cls_sgis"'>
+			select
+				<!-- 총합 -->
+				sum(dat.RESID_CNT) AS TOT_CNT
+				<!-- 단독주택 -->
+				, sum(case when dat.HOUSE_TYPE_CD = '01' then dat.RESID_CNT else 0 end) as HOUSE_1_CNT
+				<!-- 아파트 -->
+				, sum(case when dat.HOUSE_TYPE_CD = '02' then dat.RESID_CNT else 0 end) as HOUSE_2_CNT
+				<!-- 연립주택 -->
+				, sum(case when dat.HOUSE_TYPE_CD = '03' then dat.RESID_CNT else 0 end) as HOUSE_3_CNT
+				<!-- 다세대주택 -->
+				, sum(case when dat.HOUSE_TYPE_CD = '04' then dat.RESID_CNT else 0 end) as HOUSE_4_CNT
+				<!-- 비거주용 건물내 주택 -->
+				, sum(case when dat.HOUSE_TYPE_CD = '05' then dat.RESID_CNT else 0 end) as HOUSE_5_CNT
+			from SRV_DT_HOUSE_UA with (nolock) dat
+			where
+				dat.BASE_YEAR = #{base_year}
+				and dat.UA_CD = #{urban_id}
+				<if test='urban_sido_cd != null and urban_sido_cd != ""'>
+					and dat.SIDO_CD = #{urban_sido_cd}
+				</if>
+				<if test='urban_sgg_cd != null and urban_sgg_cd != ""'>
+					and dat.SGG_CD = #{urban_sgg_cd}
+				</if>
+				and dat.HOUSE_TYPE = 'resid_type'
+				and dat.HOUSE_TYPE_CD in ('01', '02', '03', '04', '05')	<!-- 주택이외의 거처 제외 -->
+		</if>
+	</select>
+
+	<select id="selectUrbarsStatsHouse_sgg" parameterType="hashmap" resultType="hashmap">
+		select
+			<!-- 총합 -->
+			sum(dat.RESID_CNT) AS TOT_CNT
+			<!-- 단독주택 -->
+			, sum(case when dat.rd_resid_1_type = '01' then dat.RESID_CNT else 0 end) as HOUSE_1_CNT
+			<!-- 아파트 -->
+			, sum(case when dat.rd_resid_1_type = '02' then dat.RESID_CNT else 0 end) as HOUSE_2_CNT
+			<!-- 연립주택 -->
+			, sum(case when dat.rd_resid_1_type = '03' then dat.RESID_CNT else 0 end) as HOUSE_3_CNT
+			<!-- 다세대주택 -->
+			, sum(case when dat.rd_resid_1_type = '04' then dat.RESID_CNT else 0 end) as HOUSE_4_CNT
+			<!-- 비거주용 건물내 주택 -->
+			, sum(case when dat.rd_resid_1_type = '05' then dat.RESID_CNT else 0 end) as HOUSE_5_CNT
+		from srv_dt_housesgg_${base_year} with (nolock) dat
+		where
+			dat.SIDO_CD = #{urban_sido_cd}
+			and dat.SGG_CD = #{urban_sgg_cd}
+			and dat.rd_resid_1_type in ('01', '02', '03', '04', '05')	<!-- 주택이외의 거처 제외 -->
+	</select>
+
+	<select id="selectUrbarsStatsCorp" parameterType="hashmap" resultType="hashmap">
+		<if test='urban_cls_gb == "cls_un"'>
+			select
+				dat.KSIC_3_CD as KSIC_CD
+				, sum(dat.CORP_CNT) as CORP_CNT
+				, sum(dat.EMPLOYEE_CNT) as EMPLOYEE_CNT
+				, max(cls.KSIC_3_NM) as KSIC_NM
+			from SRV_DT_GRID_CORP_URBAR with (nolock) dat
+				left outer join (
+							select
+								KSIC_3_CD
+								, max(KSIC_3_NM) as KSIC_3_NM
+							from
+								CMM_CD_CORPCLASS with (nolock)
+							where
+								CLASS_DEG = #{class_deg}
+							group by KSIC_3_CD
+				) cls on cls.KSIC_3_CD = dat.KSIC_3_CD
+			where
+				dat.BASE_YEAR = #{base_year}
+				and dat.URBAR_TYPE = #{urban_type}
+				and dat.URBAR_ID = #{urban_id}
+				<if test='urban_sido_cd != null and urban_sido_cd != ""'>
+					and dat.SIDO_CD = #{urban_sido_cd}
+				</if>
+				<if test='urban_sgg_cd != null and urban_sgg_cd != ""'>
+					and dat.SGG_CD = #{urban_sgg_cd}
+				</if>
+				and dat.KSIC_3_CD != '000'
+			group by dat.KSIC_3_CD
+		</if>
+		<if test='urban_cls_gb == "cls_sgis"'>
+			select
+				dat.KSIC_3_CD as KSIC_CD
+				, sum(dat.CORP_CNT) as CORP_CNT
+				, sum(dat.EMPLOYEE_CNT) as EMPLOYEE_CNT
+				, max(cls.KSIC_3_NM) as KSIC_NM
+			from SRV_DT_CORP_UA with (nolock) dat
+				left outer join (
+							select
+								KSIC_3_CD
+								, max(KSIC_3_NM) as KSIC_3_NM
+							from
+								CMM_CD_CORPCLASS with (nolock)
+							where
+								CLASS_DEG = #{class_deg}
+							group by KSIC_3_CD
+				) cls on cls.KSIC_3_CD = dat.KSIC_3_CD
+			where
+				dat.BASE_YEAR = #{base_year}
+				and dat.UA_CD = #{urban_id}
+				<if test='urban_sido_cd != null and urban_sido_cd != ""'>
+					and dat.SIDO_CD = #{urban_sido_cd}
+				</if>
+				<if test='urban_sgg_cd != null and urban_sgg_cd != ""'>
+					and dat.SGG_CD = #{urban_sgg_cd}
+				</if>
+				<!-- 이 테이블엔 00000 없음 :  and dat.KSIC_3_CD != '000' -->
+			group by dat.KSIC_3_CD
+		</if>
+	</select>
+
+	<select id="selectUrbarsStatsCorp_sgg" parameterType="hashmap" resultType="hashmap">
+		select
+			dat.KSIC_3_CD as KSIC_CD
+			, dat.CORP_CNT as CORP_CNT
+			, dat.EMPLOYEE_CNT as EMPLOYEE_CNT
+			, cls.KSIC_3_NM as KSIC_NM
+		from
+			(
+				select
+					substring(ksic_5_cd, 1, 3) as ksic_3_cd
+					, sum(corp_cnt) as corp_cnt
+					, sum(employee_cnt) as employee_cnt
+				from
+					srv_dt_corpclasssgg with (nolock)
+				where
+					base_year = #{base_year}
+					and SIDO_CD = #{urban_sido_cd}
+					and SGG_CD = #{urban_sgg_cd}
+					and ksic_5_cd != '00000'
+				group by substring(ksic_5_cd, 1, 3)
+
+			) dat
+			inner join (
+						select
+							KSIC_3_CD
+							, max(KSIC_3_NM) as KSIC_3_NM
+						from
+							CMM_CD_CORPCLASS with (nolock)
+						where
+							CLASS_DEG = #{class_deg}
+						group by KSIC_3_CD
+			) cls on cls.KSIC_3_CD = dat.KSIC_3_CD
+	</select>
+
+	<select id="selectUrbarsIndexes" parameterType="hashmap" resultType="hashmap">
+		<if test='urban_cls_gb == "cls_un"'>
+			select
+				dat.base_year
+				, dat.urbar_id as URBAN_ID
+				, dat.urbar_type as TYPE
+				, dat.sido_cd
+				, dat.sgg_cd
+				, dat.ppltn_density
+				, dat.avg_age
+				, dat.old_child_ratio
+				, dat.psn_1_family_per
+				, dat.apt_per
+				, dat.new_bild_per
+				, dat.old_bild_per
+				, dat.greens_per
+				, ua.urbar_nm as URBAN_NM
+				, ua.area
+				, ua.x_coor
+				, ua.y_coor
+				, m_mp.main_urbar_id as MAIN_URBAN_ID
+			from srv_dt_grid_urbar_index with (nolock) dat
+				left outer join srv_pg_urbarbord with (nolock) ua
+					on ua.base_year = dat.base_year and ua.urbar_id = dat.urbar_id and ua.urbar_type = dat.urbar_type
+				left outer join srv_dt_urbar_main_mapping with (nolock) m_mp
+					on m_mp.base_year = ua.base_year and m_mp.urbar_id = ua.urbar_id and m_mp.urbar_type = ua.urbar_type
+			where
+				dat.base_year = #{base_year}
+				<!-- and dat.urbar_id = #{urban_id} -->
+				and dat.urbar_type = #{urban_type}
+				and dat.sido_cd = '00'
+				<!-- 시도/시군구 코드로 조회하지 않음
+				<choose>
+					<when test='(urban_sido_cd == null or urban_sido_cd == "") and (urban_sgg_cd == null or urban_sgg_cd == "")'>
+						and dat.sido_cd = '00'
+					</when>
+					<otherwise>
+						<if test='urban_sido_cd != null and urban_sido_cd != ""'>
+							and dat.sido_cd = #{urban_sido_cd}
+						</if>
+						<if test='urban_sgg_cd != null and urban_sgg_cd != ""'>
+							and dat.sgg_cd = #{urban_sgg_cd}
+						</if>
+					</otherwise>
+				</choose>
+				-->
+		</if>
+		<if test='urban_cls_gb == "cls_sgis"'>
+			select
+				dat.base_year
+				, dat.ua_cd  as URBAN_ID
+				, '' as TYPE
+				, dat.sido_cd
+				, dat.sgg_cd
+				, dat.ppltn_density
+				, dat.avg_age
+				, dat.old_child_ratio
+				, dat.psn_1_family_per
+				, dat.apt_per
+				, dat.new_bild_per
+				, dat.old_bild_per
+				, dat.greens_per
+				, ua.ua_nm as URBAN_NM
+				, ua.area
+				, ua.x_coor
+				, ua.y_coor
+				, m_mp.main_urbar_id as MAIN_URBAN_ID
+			from srv_dt_ua_index with (nolock) dat
+				left outer join srv_pg_uabord with (nolock) ua
+					on ua.base_year = dat.base_year and ua.sido_cd = dat.sido_cd and ua.sgg_cd = dat.sgg_cd and ua.ua_cd = dat.ua_cd
+				left outer join srv_dt_urbar_main_mapping with (nolock) m_mp
+					on m_mp.base_year = dat.base_year and m_mp.urbar_id = dat.ua_cd and m_mp.urbar_type = '03'
+			where
+				dat.base_year = #{base_year}
+		</if>
+	</select>
+
+	<select id="selectUrbarsIndexesByYear" parameterType="hashmap" resultType="hashmap">
+		<if test='urban_cls_gb == "cls_un"'>
+			select
+				dat.base_year
+				<!-- SGIS4_220211_도시화_수정_시작 -->
+				, round(avg(dat.ppltn_density), 1) as ppltn_density_all
+				, round(avg(dat.avg_age), 1) as avg_age_all
+				, round(avg(dat.old_child_ratio), 1) as old_child_ratio_all
+				, round(avg(dat.psn_1_family_per), 1) as psn_1_family_per_all
+				, round(avg(dat.apt_per), 1) as apt_per_all
+				, round(avg(dat.new_bild_per), 1) as new_bild_per_all
+				, round(avg(dat.old_bild_per), 1) as old_bild_per_all
+				, round(avg(dat.greens_per), 1) as greens_per_all
+
+				<!-- SGIS4_220211_도시화_수정_끝 -->
+				<if test='main_urban_id != null and main_urban_id != ""'>
+					, sum(case when m_mp.main_urbar_id = #{main_urban_id} then dat.ppltn_density else 0 end) as ppltn_density_itm
+					, sum(case when m_mp.main_urbar_id = #{main_urban_id} then dat.avg_age else 0 end) as avg_age_itm
+					, sum(case when m_mp.main_urbar_id = #{main_urban_id} then dat.old_child_ratio else 0 end) as old_child_ratio_itm
+					, sum(case when m_mp.main_urbar_id = #{main_urban_id} then dat.psn_1_family_per else 0 end) as psn_1_family_per_itm
+					, sum(case when m_mp.main_urbar_id = #{main_urban_id} then dat.apt_per else 0 end) as apt_per_itm
+					, sum(case when m_mp.main_urbar_id = #{main_urban_id} then dat.new_bild_per else 0 end) as new_bild_per_itm
+					, sum(case when m_mp.main_urbar_id = #{main_urban_id} then dat.old_bild_per else 0 end) as old_bild_per_itm
+					, sum(case when m_mp.main_urbar_id = #{main_urban_id} then dat.greens_per else 0 end) as greens_per_itm
+					, sum(case when m_mp.main_urbar_id = #{main_urban_id} then 1 else 0 end) as exist_itm
+				</if>
+				<if test='comparison_main_urban_id != null and comparison_main_urban_id != ""'>
+					, sum(case when m_mp.main_urbar_id = #{comparison_main_urban_id} then dat.ppltn_density else 0 end) as ppltn_density_cmprsn
+					, sum(case when m_mp.main_urbar_id = #{comparison_main_urban_id} then dat.avg_age else 0 end) as avg_age_cmprsn
+					, sum(case when m_mp.main_urbar_id = #{comparison_main_urban_id} then dat.old_child_ratio else 0 end) as old_child_ratio_cmprsn
+					, sum(case when m_mp.main_urbar_id = #{comparison_main_urban_id} then dat.psn_1_family_per else 0 end) as psn_1_family_per_cmprsn
+					, sum(case when m_mp.main_urbar_id = #{comparison_main_urban_id} then dat.apt_per else 0 end) as apt_per_cmprsn
+					, sum(case when m_mp.main_urbar_id = #{comparison_main_urban_id} then dat.new_bild_per else 0 end) as new_bild_per_cmprsn
+					, sum(case when m_mp.main_urbar_id = #{comparison_main_urban_id} then dat.old_bild_per else 0 end) as old_bild_per_cmprsn
+					, sum(case when m_mp.main_urbar_id = #{comparison_main_urban_id} then dat.greens_per else 0 end) as greens_per_cmprsn
+					, sum(case when m_mp.main_urbar_id = #{comparison_main_urban_id} then 1 else 0 end) as exist_cmprsn
+				</if>
+				<!--
+				<if test='urban_id != null and urban_id != ""'>
+					, sum(case when dat.urbar_id = #{urban_id} then dat.ppltn_density else 0 end) as ppltn_density_itm
+					, sum(case when dat.urbar_id = #{urban_id} then dat.avg_age else 0 end) as avg_age_itm
+					, sum(case when dat.urbar_id = #{urban_id} then dat.old_child_ratio else 0 end) as old_child_ratio_itm
+					, sum(case when dat.urbar_id = #{urban_id} then dat.psn_1_family_per else 0 end) as psn_1_family_per_itm
+					, sum(case when dat.urbar_id = #{urban_id} then dat.apt_per else 0 end) as apt_per_itm
+					, sum(case when dat.urbar_id = #{urban_id} then dat.new_bild_per else 0 end) as new_bild_per_itm
+					, sum(case when dat.urbar_id = #{urban_id} then dat.old_bild_per else 0 end) as old_bild_per_itm
+					, sum(case when dat.urbar_id = #{urban_id} then dat.greens_per else 0 end) as greens_per_itm
+				</if>
+				<if test='comparison_urban_id != null and comparison_urban_id != ""'>
+					, sum(case when dat.urbar_id = #{comparison_urban_id} then dat.ppltn_density else 0 end) as ppltn_density_cmprsn
+					, sum(case when dat.urbar_id = #{comparison_urban_id} then dat.avg_age else 0 end) as avg_age_cmprsn
+					, sum(case when dat.urbar_id = #{comparison_urban_id} then dat.old_child_ratio else 0 end) as old_child_ratio_cmprsn
+					, sum(case when dat.urbar_id = #{comparison_urban_id} then dat.psn_1_family_per else 0 end) as psn_1_family_per_cmprsn
+					, sum(case when dat.urbar_id = #{comparison_urban_id} then dat.apt_per else 0 end) as apt_per_cmprsn
+					, sum(case when dat.urbar_id = #{comparison_urban_id} then dat.new_bild_per else 0 end) as new_bild_per_cmprsn
+					, sum(case when dat.urbar_id = #{comparison_urban_id} then dat.old_bild_per else 0 end) as old_bild_per_cmprsn
+					, sum(case when dat.urbar_id = #{comparison_urban_id} then dat.greens_per else 0 end) as greens_per_cmprsn
+				</if>
+				 -->
+			from srv_dt_grid_urbar_index with (nolock) dat
+				left outer join srv_dt_urbar_main_mapping with (nolock) m_mp
+					on m_mp.base_year = dat.base_year and m_mp.urbar_id = dat.urbar_id and m_mp.urbar_type = dat.urbar_type
+			where
+				dat.urbar_type = #{urban_type}
+				and dat.sido_cd = '00'
+				and dat.base_year <![CDATA[>=]]> '2015'
+			group by
+				dat.base_year
+			order by
+				dat.base_year
+		</if>
+		<if test='urban_cls_gb == "cls_sgis"'>
+			select
+				dat.base_year
+				<!-- SGIS4_220211_도시화_수정_시작 -->
+				, round(avg(dat.ppltn_density), 1) as ppltn_density_all
+				, round(avg(dat.avg_age), 1) as avg_age_all
+				, round(avg(dat.old_child_ratio), 1) as old_child_ratio_all
+				, round(avg(dat.psn_1_family_per), 1) as psn_1_family_per_all
+				, round(avg(dat.apt_per), 1) as apt_per_all
+				, round(avg(dat.new_bild_per), 1) as new_bild_per_all
+				, round(avg(dat.old_bild_per), 1) as old_bild_per_all
+				, round(avg(dat.greens_per), 1) as greens_per_all
+				<!-- SGIS4_220211_도시화_수정_끝 -->
+				<if test='main_urban_id != null and main_urban_id != ""'>
+					, sum(case when m_mp.main_urbar_id = #{main_urban_id} then dat.ppltn_density else 0 end) as ppltn_density_itm
+					, sum(case when m_mp.main_urbar_id = #{main_urban_id} then dat.avg_age else 0 end) as avg_age_itm
+					, sum(case when m_mp.main_urbar_id = #{main_urban_id} then dat.old_child_ratio else 0 end) as old_child_ratio_itm
+					, sum(case when m_mp.main_urbar_id = #{main_urban_id} then dat.psn_1_family_per else 0 end) as psn_1_family_per_itm
+					, sum(case when m_mp.main_urbar_id = #{main_urban_id} then dat.apt_per else 0 end) as apt_per_itm
+					, sum(case when m_mp.main_urbar_id = #{main_urban_id} then dat.new_bild_per else 0 end) as new_bild_per_itm
+					, sum(case when m_mp.main_urbar_id = #{main_urban_id} then dat.old_bild_per else 0 end) as old_bild_per_itm
+					, sum(case when m_mp.main_urbar_id = #{main_urban_id} then dat.greens_per else 0 end) as greens_per_itm
+					, sum(case when m_mp.main_urbar_id = #{main_urban_id} then 1 else 0 end) as exist_itm
+				</if>
+				<if test='comparison_main_urban_id != null and comparison_main_urban_id != ""'>
+					, sum(case when m_mp.main_urbar_id = #{comparison_main_urban_id} then dat.ppltn_density else 0 end) as ppltn_density_cmprsn
+					, sum(case when m_mp.main_urbar_id = #{comparison_main_urban_id} then dat.avg_age else 0 end) as avg_age_cmprsn
+					, sum(case when m_mp.main_urbar_id = #{comparison_main_urban_id} then dat.old_child_ratio else 0 end) as old_child_ratio_cmprsn
+					, sum(case when m_mp.main_urbar_id = #{comparison_main_urban_id} then dat.psn_1_family_per else 0 end) as psn_1_family_per_cmprsn
+					, sum(case when m_mp.main_urbar_id = #{comparison_main_urban_id} then dat.apt_per else 0 end) as apt_per_cmprsn
+					, sum(case when m_mp.main_urbar_id = #{comparison_main_urban_id} then dat.new_bild_per else 0 end) as new_bild_per_cmprsn
+					, sum(case when m_mp.main_urbar_id = #{comparison_main_urban_id} then dat.old_bild_per else 0 end) as old_bild_per_cmprsn
+					, sum(case when m_mp.main_urbar_id = #{comparison_main_urban_id} then dat.greens_per else 0 end) as greens_per_cmprsn
+					, sum(case when m_mp.main_urbar_id = #{comparison_main_urban_id} then 1 else 0 end) as exist_cmprsn
+				</if>
+				<!--
+				<if test='urban_id != null and urban_id != ""'>
+					, sum(case when dat.ua_cd = #{urban_id} then dat.ppltn_density else 0 end) as ppltn_density_itm
+					, sum(case when dat.ua_cd = #{urban_id} then dat.avg_age else 0 end) as avg_age_itm
+					, sum(case when dat.ua_cd = #{urban_id} then dat.old_child_ratio else 0 end) as old_child_ratio_itm
+					, sum(case when dat.ua_cd = #{urban_id} then dat.psn_1_family_per else 0 end) as psn_1_family_per_itm
+					, sum(case when dat.ua_cd = #{urban_id} then dat.apt_per else 0 end) as apt_per_itm
+					, sum(case when dat.urbar_id = #{urban_id} then dat.new_bild_per else 0 end) as new_bild_per_itm
+					, sum(case when dat.urbar_id = #{urban_id} then dat.old_bild_per else 0 end) as old_bild_per_itm
+					, sum(case when dat.urbar_id = #{urban_id} then dat.greens_per else 0 end) as greens_per_itm
+				</if>
+				<if test='comparison_urban_id != null and comparison_urban_id != ""'>
+					, sum(case when dat.ua_cd = #{comparison_urban_id} then dat.ppltn_density else 0 end) as ppltn_density_cmprsn
+					, sum(case when dat.ua_cd = #{comparison_urban_id} then dat.avg_age else 0 end) as avg_age_cmprsn
+					, sum(case when dat.ua_cd = #{comparison_urban_id} then dat.old_child_ratio else 0 end) as old_child_ratio_cmprsn
+					, sum(case when dat.ua_cd = #{comparison_urban_id} then dat.psn_1_family_per else 0 end) as psn_1_family_per_cmprsn
+					, sum(case when dat.ua_cd = #{comparison_urban_id} then dat.apt_per else 0 end) as apt_per_cmprsn
+					, sum(case when dat.urbar_id = #{comparison_urban_id} then dat.new_bild_per else 0 end) as new_bild_per_cmprsn
+					, sum(case when dat.urbar_id = #{comparison_urban_id} then dat.old_bild_per else 0 end) as old_bild_per_cmprsn
+					, sum(case when dat.urbar_id = #{comparison_urban_id} then dat.greens_per else 0 end) as greens_per_cmprsn
+				</if>
+				-->
+			from srv_dt_ua_index with (nolock) dat
+				left outer join srv_dt_urbar_main_mapping with (nolock) m_mp
+					on m_mp.base_year = dat.base_year and m_mp.urbar_id = dat.ua_cd and m_mp.urbar_type = '03'
+			where
+				dat.base_year <![CDATA[>=]]> '2015'
+			group by
+				dat.base_year
+			order by
+				dat.base_year
+		</if>
+	</select>
+
+	<select id="selectCodeList" parameterType="hashmap" resultType="hashmap">
+		select
+			B_CLASS_CD
+			, S_CLASS_CD
+			, B_CLASS_CD_NM
+			, S_CLASS_CD_NM
+			, CD_EXP
+			, S_CLASS_CD_ORDER
+		from CMM_CD_COMCD with (nolock)
+		where
+			B_CLASS_CD = #{b_class_cd}
+			<if test='s_class_cd != null and s_class_cd != ""'>
+				and S_CLASS_CD = #{s_class_cd}
+			</if>
+			<if test='cd_exp != null and cd_exp != ""'>
+				and CD_EXP = #{cd_exp}
+			</if>
+		order by S_CLASS_CD_ORDER
+	</select>
+</mapper>

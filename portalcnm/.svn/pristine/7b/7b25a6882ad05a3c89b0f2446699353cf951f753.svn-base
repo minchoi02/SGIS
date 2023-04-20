@@ -1,0 +1,284 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd" >
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>SGIS 관리자사이트(CNM)</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<link rel="stylesheet" href="./../include/css/login.css" />
+<link rel="stylesheet" href="./../include/css/default.css" />
+<script type="text/javascript" src="./../include/js/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="./../include/js/default.js"></script>
+<script type="text/javascript" src="../../js/common/includeHead.js"></script>
+<script src="../../js/common/common.js"></script>
+<link rel="stylesheet" href="../../css/jquery-ui-1.10.4.custom.css" />
+<script type="text/javascript" src="../../js/plugins/jquery-ui-1.10.3.custom.js"></script>
+<script type="text/javascript" src="../../js/plugins/jquery-ui-timepicker-addon.js"></script>
+<script type="text/javascript" src="../../js/AK/USESRVSearch.js"></script>
+</head>
+
+<body>
+	<div class="wrapper">
+		<!-- cls:header start -->
+		<div class="header">
+			<div class="defaultbox">
+				<div class="logo">
+					<a href="#"><img src="./../include/img/pic/pic_logo.png"
+						alt="logo" /></a>
+				</div>
+				<div class="navi">
+				</div>
+			</div>
+			<div class="menuWrapper">
+				<div class="menuCnm">
+					<ul>
+						<li><a>서비스 현황</a></li>
+						<li><a class="on">사용자 현황</a></li>
+						<li><a>서비스 관리</a></li>
+						<li><a>정보 관리</a></li>
+						<li><a>게시판 관리</a></li>
+						<li><a>회원 관리</a></li>
+					</ul>
+				</div>
+			</div>
+			<div class="subMenuWrapper">
+				<div class="subMenu"></div>
+			</div>
+		</div>
+		<!-- cls:header end -->
+		<div class="contents">
+			<!-- cls:left start -->
+			<div class="lefitMenuWrapper">
+				<div class="leftTitle">사용자 현황</div>
+				<div class="leftMenu">
+					<ul>
+						<li><a class="on" href="./../AK/USESRVStat.html">인증키 현황</a>
+							<ul class="sub">
+								<li><a href="./../AK/USESRVStat.html">종합</a></li>
+								<li><a class="on" href="./../AK/USESRVSearch.html">상세</a></li>
+							</ul>
+						</li>
+						<li><a a href="./../AK/UPLOADData.html">업로드 데이터 현황</a></li>
+					</ul>
+				</div>
+			</div>
+			<!-- cls:left end -->
+			<div class="acticle">
+				<div class="location">
+					<p>
+						<a><img src="./../include/img/ico/ico_home.png" alt="home" /></a>
+						<span><img src="./../include/img/ico/ico_navi.png" alt="다음" /></span>
+						<span>사용자 현황</span> <span><img
+							src="./../include/img/ico/ico_navi.png" alt="다음" /></span> <span
+							class="fontS"> 인증키 현황</span>
+					</p>
+				</div>
+				<p class="title01">인증키 현황</p>
+				<div class="keyBox03">
+					<div class="keyBoxTitle">접수중</div>
+					<div class="keyBoxText" style="cursor: pointer;" id="SRV_APPLCT">
+						0<span>건</span>
+					</div>
+				</div>
+				<div class="keyBox03">
+					<div class="keyBoxTitle">반려</div>
+					<div class="keyBoxText" id="SRV_RETURN" style="cursor: pointer;">
+						0<span>건</span>
+					</div>
+				</div>
+				<div class="keyBox03">
+					<div class="keyBoxTitle">신청 건수</div>
+					<div class="keyBoxText" id="SRV_TOTAL" style="cursor: pointer;">
+						0<span>건</span>
+					</div>
+				</div>
+				<div class="keyBox04">
+					<div class="keyBoxTitle">발급건수</div>
+					<div class="keyBoxText" id="SRV_ASSENT" style="cursor: pointer;">
+						0<span>건</span>
+					</div>
+				</div>
+				<div class="clear">
+					<div class="tilte03">조회조건</div>
+					<div class="searchBtn04" id="searchButton">
+						<a style="cursor: pointer"><img
+							src="./../include/img/btn/btn_search.png" alt="검색" /></a>
+					</div>
+					<form id="toolbarForm">
+						<table class="apiTable02" summary="기본정보">
+							<caption>기본정보입니다.</caption>
+							<colgroup>
+								<col width="141" />
+								<col width="230" />
+								<col width="141" />
+								<col width="230" />
+							</colgroup>
+							<tbody>
+								<tr>
+									<th>종류</th>
+									<td><select class="input_use08" id="API_AUTH_KEY_TYPE"
+										name="API_AUTH_KEY_TYPE">
+											<option value="ALL" selected>전체</option>
+									</select></td>
+									<th class="right">상태</th>
+									<td><select class="input_use08" id="GRANT_STATE"
+										name="GRANT_STATE">
+											<option value="ALL" selected>전체</option>
+									</select></td>
+								</tr>
+								<tr>
+									<th>활용사례 공개</th>
+									<td><select class="input_use08" id="CASE_APP_OPEN_YN"
+										name="CASE_APP_OPEN_YN">
+											<option value="ALL" selected>전체</option>
+											<option value="Y">예</option>
+											<option value="N">아니오</option>
+									</select></td>
+									<th class="right">활용사례 공유</th>
+									<td><select class="input_use08" id="CASE_APP_SHARE_YN"
+										name="CASE_APP_SHARE_YN">
+											<option value="ALL" selected>전체</option>
+											<option value="Y">예</option>
+											<option value="N">아니오</option>
+									</select></td>
+								</tr>
+								<tr>
+									<th>기간</th>
+									<td colspan="3"><select class="input_use08"
+										id="SEARCHTYPE" name="SEARCHTYPE">
+											<option value="SRV_GRANT_DT" selected>발급일</option>
+											<option value="SRV_APPLY_DT">신청일</option>
+									</select>
+										<div class="searchBtn02" style="margin-left: 41px">
+											<a> <input type="text" class="input_use06" id="startDate"
+												name="STARTDATE" style="width: 90px; margin-right: 1px"
+												readonly />
+											</a>
+										</div> <!-- <a class="searchBtn02"><img src="./../include/img/ico/ico_calendar.png" alt="달력" /></a> -->~
+										<div class="searchBtn02" style="margin-left: 8px">
+											<a> <input type="text" class="input_use06" id="endDate"
+												name="ENDDATE" style="width: 90px; margin-right: 1px"
+												readonly />
+											</a>
+										</div> <!-- <a class="searchBtn02"><img src="./../include/img/ico/ico_calendar.png" alt="달력" /></a> -->
+									</td>
+								</tr>
+								<!-- <tr>
+										<th>검색어</th>
+										<td colspan="3"><input type="text" value="통계주무관" class="input_use03"/></td>
+									</tr> -->
+							</tbody>
+						</table>
+						<input type='hidden' value='DAILY' name="TIMETYPE" />
+					</form>
+				</div>
+				<div class="tilte03">검색결과</div>
+				<div class="searchBtn04" id="delButton">
+					<a style="cursor: pointer"><img
+						src="./../include/img/btn/btn_del.png" alt="삭제" /></a>
+				</div>
+				<table class="apiTable03" summary="검색결과"></table>
+				<table id="searchResultTable" summary="검색결과"></table>
+				<div class="searchWrapper02" id="noSearchResult"
+					style="margin-top: -95px; border-left: 0; border-top: 0; border-right: 0; position: absolute; height: 30px; padding-top: 0px; text-align: center">검색
+					결과가 없습니다</div>
+			</div>
+			<!-- acticle end -->
+		</div>
+	</div>
+
+	<!-- cls:footer start -->
+	<div class="footerWrapper"></div>
+	<!-- popup -->
+	<div class="popupWrapper">
+		<div class="aplPopupWrapper">
+			<div class="aplPopupTitle">
+				<div class="myTitleFont">상세정보</div>
+				<div class="myXbtn" id="closePopupButton" style="cursor: pointer">
+					<a><img src="./../include/img/btn/btn_popupX.png" alt="종료" /></a>
+				</div>
+			</div>
+			<input type="hidden" id="SRV_ID" />
+			<table class="popupTable" summary="API 상세정보popup">
+				<caption>API 상세정보popup</caption>
+				<colgroup>
+					<col width="141" />
+					<col width="192" />
+					<col width="141" />
+					<col width="192" />
+				</colgroup>
+				<tbody id="popTBody">
+					<tr>
+						<th>서비스명</th>
+						<td></td>
+						<th>신청일</th>
+						<td></td>
+					</tr>
+					<tr>
+						<th>서비스 설명</th>
+						<td colspan="3"></td>
+					</tr>
+					<tr>
+						<th>서비스ID/시크릿키</th>
+						<td colspan="3"></td>
+					</tr>
+					<tr>
+						<th>신청자</th>
+						<td></td>
+						<th>종류</th>
+						<td></td>
+					</tr>
+					<tr>
+						<th>시작일</th>
+						<td></td>
+						<th>만료일</th>
+						<td><input type="text" class="input_use06" id="ENDDATE_INFO"
+							style="width: 90px; margin-right: 1px" readonly /></td>
+					</tr>
+					<tr>
+						<th>서비스URL</th>
+						<td colspan="3"><a></a></td>
+					</tr>
+					<tr>
+						<th>활용사례 공개</th>
+						<td><select class="input_use08">
+								<option value="Y">공개</option>
+								<option value="N">비공개</option>
+						</select></td>
+						<th>활용사례 공유</th>
+						<td><select class="input_use08">
+								<option value="Y">공유</option>
+								<option value="N">공유안함</option>
+						</select></td>
+					</tr>
+					<tr>
+						<th>상태</th>
+						<td colspan="3"><select class="input_use08"
+							id="GRANT_STATE_SELECT">
+
+						</select></td>
+					</tr>
+					<tr>
+						<th>변경사유</th>
+						<td colspan="3"><textarea rows="2" cols="20"
+								class="input_use10" style="resize: none" id="changeReasonInput"
+								maxlength="199"></textarea></td>
+					</tr>
+					<tr>
+						<th>발급이력</th>
+						<td colspan="3"><textarea rows="2" cols="20"
+								class="input_use10" style="resize: none" readonly></textarea></td>
+					</tr>
+				</tbody>
+			</table>
+			<input type="hidden" id="API_AUTH_KEY_TYPE_Pupop" />
+			<div class="btnbox">
+				<a id="modifyButton" style="cursor: pointer"><img
+					src="./../include/img/btn/btn_modify.png" alt="수정" /></a> <a
+					id="cancelButton" style="cursor: pointer"><img
+					src="./../include/img/btn/btn_cancel.png" alt="취소" /></a>
+			</div>
+		</div>
+	</div>
+
+</body>
+</html>

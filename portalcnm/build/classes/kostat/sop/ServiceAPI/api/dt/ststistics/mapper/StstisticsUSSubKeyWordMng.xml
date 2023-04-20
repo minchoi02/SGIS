@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ststistics"> 
+
+	<select id="getStstisticsUSSubKeyWordMng"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		/** getStstisticsUSSubKeyWordMng start ... **/
+		<include refid="ststisticsCmmn.pageHeader" />
+			SELECT
+				ROW_NUMBER() OVER(ORDER BY CTLG_SIMILR_KWRD_SERIAL DESC) AS RNUM 
+				, CTLG_SIMILR_KWRD_SERIAL
+				, CTLG_SIMILR_KWRD
+				, USE_YN
+				, DECODE(USE_YN , 'Y' , '활성' ,'비활성')  AS USE_YN_VALUE
+				, (SELECT COUNT(T1.CTLG_MAIN_KWRD_SERIAL) FROM SRV_DT_CTLG_MAIN_SIMILR_KWRD T1 WHERE T1.CTLG_SIMILR_KWRD_SERIAL = T2.CTLG_SIMILR_KWRD_SERIAL) AS SUM_CNT 
+			FROM 
+				SRV_DT_CTLG_SIMILR_KWRD_LIST T2
+			<include refid="SubKeyWordcommonWhere"/>
+			ORDER BY CTLG_SIMILR_KWRD_SERIAL DESC
+		<include refid="ststisticsCmmn.pageFotter" />
+	</select>
+	
+	<select id="getStstisticsUSSubKeyWordTotal"  parameterType="java.util.HashMap" resultType="int">
+		/** getStstisticsUSSubKeyWordTotal start ... **/
+		SELECT 	COUNT(CTLG_SIMILR_KWRD_SERIAL) 
+		FROM 	SRV_DT_CTLG_SIMILR_KWRD_LIST
+		<include refid="SubKeyWordcommonWhere"/>
+	</select>
+	
+	<select id="getStstisticsUSSubKeyWordIsExists"  parameterType="java.util.HashMap" resultType="int">
+		/** getStstisticsUSSubKeyWordIsExists start ... **/
+		SELECT 	COUNT(CTLG_SIMILR_KWRD_SERIAL) 
+		FROM	SRV_DT_CTLG_SIMILR_KWRD_LIST
+		WHERE	CTLG_SIMILR_KWRD_SERIAL = #{ctlgSimilrKwrdSerial}
+	</select>
+	
+	<update id="editStstisticsUSSubKeyWordMng" parameterType="java.util.HashMap">
+		/** editStstisticsUSSubKeyWordMng start ... **/
+		UPDATE 	SRV_DT_CTLG_SIMILR_KWRD_LIST SET
+           		 CTLG_SIMILR_KWRD = #{ctlgSimilrKwrd}
+           		, USE_YN = #{useYn}
+           		, MOD_TS = SYSDATE
+           		, MOD_MANAGER_ID = #{modManagerId} 
+        WHERE 	CTLG_SIMILR_KWRD_SERIAL = #{ctlgSimilrKwrdSerial}
+	</update>
+	
+	<insert id="registerStstisticsUSSubKeyWordMng" parameterType="java.util.HashMap">
+		<selectKey resultType="string" keyProperty="ctlgSubKwrdSerial" order="BEFORE" >
+			SELECT SRV_DT_CTLG_SIMILR_KWRD_LIST_SERIAL.NEXTVAL FROM DUAL
+		</selectKey>
+		/** registerStstisticsUSSubKeyWordMng start ... **/
+        INSERT INTO SRV_DT_CTLG_SIMILR_KWRD_LIST (
+        	CTLG_SIMILR_KWRD_SERIAL
+			,CTLG_SIMILR_KWRD
+			,USE_YN
+			,REG_TS
+			,REG_MANAGER_ID
+			,MOD_TS
+			,MOD_MANAGER_ID
+        ) VALUES (
+        	 #{ctlgSimilrKwrdSerial}
+			,#{ctlgSimilrKwrd}
+			,#{useYn}
+			,SYSDATE
+			,#{regManagerId}
+			,SYSDATE
+			,#{modManagerId}
+        )
+	</insert>
+	
+	<select id="idcheckStstisticsUSSubKeyWordMng"  parameterType="java.util.HashMap" resultType="int">
+		SELECT	COUNT(CTLG_SIMILR_KWRD_SERIAL) 
+		FROM	SRV_DT_CTLG_SIMILR_KWRD_LIST
+		WHERE	CTLG_SIMILR_KWRD = #{ctlgSimilrKwrd}
+	</select>
+
+	<sql id="SubKeyWordcommonWhere">
+		<where>
+			<if test="word != null and word != ''">
+				AND INSTR(CTLG_SIMILR_KWRD ,#{word}) <![CDATA[>]]> 0 
+			</if>
+			<if test="useYn != null and useYn != ''">
+				AND USE_YN = #{useYn}
+			</if>
+		</where>
+	</sql>
+	
+</mapper>

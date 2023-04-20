@@ -1,0 +1,549 @@
+var bFromData = null; 
+var test =1;
+var checkCd = "00";
+var mapfirst = 0;
+ 
+
+$(document).ready(function(){
+	
+	bFromData = $('#searchFrom').serialize();
+	
+	$(".selected").click(function(){
+		
+		if(!$(this).siblings('.optionContainer').hasClass('active')){
+			$(".selected").siblings('.optionContainer').removeClass('active');
+			$(".selected").removeClass('active');	
+		}
+			
+		$(this).siblings('.optionContainer').toggleClass('active');
+		$(this).toggleClass('active');
+		
+	});
+	
+	$(".rankWrapper").hide();
+	
+	
+	$('.searchRadioOption').click(function(){
+		
+		var radio  = $(this).find('input[type=radio]');
+		var label  = $(this).find('label').text();
+		var data = radio.val();
+		var name = radio.attr('name');
+		
+		var searchInput = $('#searchFrom').find("input[name='"+name+"']");
+		var parentDiv =  $(this).parent('.optionContainer').parent('.selectBox');
+		
+		if(data == searchInput.val()){
+			$(parentDiv).find('.active').toggleClass('active');	
+			return;
+		}
+		
+		searchInput.val(data);
+		$(parentDiv).find('.active').toggleClass('active');
+		$(parentDiv).find('.selected').find('.text').html(label);
+		setDetailSetting();
+		
+		if(!checkFormData()){
+			console.log("변경");
+			$sbrActiveMap.ui.mapList[0].getMapPolygon();
+		}
+		//$map
+		//getReversGeoCode();
+	});
+	
+	
+	$('#areaSearchBtn').click(function(){
+		if($(this).hasClass("active")){
+			$(this).removeClass('active');
+			$('#divAreaPopup').hide();	
+		}else{
+			$(this).toggleClass('active');
+			$('#divAreaPopup').show();
+		}
+	});
+	
+	
+	$('.bizCodeTitle').click(function(){
+		$(this).find('i').toggleClass('active');
+		$(this).siblings('ul').toggle();
+	});
+	
+	$('.bizCodeOpen').click(function(){
+		var obj = $(this).parent('ul').siblings('.optionAcc');
+		obj.find('.bizCodeTitle').find('i').removeClass('active');
+		obj.find('ul').show();
+	});
+	
+	$('.bizCodeClose').click(function(){
+		var obj = $(this).parent('ul').siblings('.optionAcc');
+		obj.find('.bizCodeTitle').find('i').removeClass('active');
+		obj.find('.bizCodeTitle').find('i').toggleClass('active');
+		obj.find('ul').hide();
+	});
+	
+	$('.bizCodeSelect').click(function(){
+		var data = $(this).find('.valueBiz').val();
+		var name = $(this).find('.nameBiz').val();
+		
+		$('.bizCodeSelect').find('i').removeClass('active');
+		$(this).find('i').toggleClass('active');
+		$('.bizMenuTitle').find('.text').html(name);
+		$('#searchFrom').find('input[name=biz_cd]').val(data);
+		
+		$(".selected").siblings('.optionContainer').removeClass('active');
+		$(".selected").removeClass('active');	
+		
+		
+		if(!checkFormData()){
+			$sbrActiveMap.ui.mapList[0].getMapPolygon();
+			alert(data);
+			console.log("변경");
+		}
+		
+	});
+	
+	//setRank("00");
+	//설정초기화
+	setDetailSetting();
+	//랭킹 보이는거 초기화
+	rankExpandSet();
+	
+	$sbrActiveMap.ui.mapList[0].getMapPolygon();
+	
+	$("body").on("click",".colorck li>a",function(){
+		$sbrActiveMap.ui.mapList[0].getMapPolygon();
+	});
+	
+	
+	 // 세대 옵션 최대 3개 
+    $('input[name="homeGroup"]').on('click', (e) => {
+        let count = $("input:checked[name='homeGroup']").length
+        if(count > 3) {
+            alert('세대 선택은 최대 3개까지 할 수 있습니다.')
+            $(e.target).prop('checked',false);
+        }
+    })
+
+    // 함께보기 주제 선택 변경 UI셀렉트 박스 
+    $('input[name=halfGubun]').on('click', e => {
+        selectBoxChange(e.target);
+    })
+	
+});
+
+
+function testBtn(){
+	//vMap.moveMap(1000,1000);
+	
+	$sbrActiveMap.ui.mapList[0].moveMap(1000,1000);
+}
+
+function checkFormData(){
+	var formData = $('#searchFrom').serialize();
+	
+	if(bFromData == formData){
+		return true;
+	}else{
+		bFromData = formData;
+		return false;
+	}
+}
+
+
+function naviPopupSelect(obj){
+	console.log(obj);
+}
+
+function rankViewMode() {
+  $(".navRank").toggleClass('mini')
+  //$(".naviWrapper").toggleClass('mini');
+  $(".rankWrapper").toggle();
+  resetSidoWrapper();
+}
+
+
+function rankExpand() {
+	
+	if (!$(".rankWrapper").hasClass('expand')) {
+        $(".rankWrapper, .naviWrapper").addClass('expand')
+
+        // 가 데이터 삽입
+        //var html = "";
+        
+        $('.rankList.table li').show();
+        $(".rankBtn .btnLine p").text("축소보기");
+
+    } else {
+        $(".rankWrapper, .naviWrapper").removeClass('expand')
+        $(".rankBtn .btnLine p").text("펼쳐보기");
+
+        $('.rankList.table li').each(function (index, item) {
+        	if(index> 10 )  $(item).hide();
+        });
+    }
+	 
+}
+
+function rankExpandSet(){
+	$('.rankList.table li').each(function (index, item) {
+    	if(index> 10 )  $(item).hide();
+    });
+}
+
+
+function resetSidoWrapper(){
+	$(".rankWrapper, .naviWrapper").removeClass('expand1')
+    $(".rankBtn .btnLine p").text("펼쳐보기");
+
+    $('.rankList.table li').each(function(index, item){
+      if($(item).hasClass('add')) $(item).remove();
+    });
+}
+
+
+function getCodeList(code){
+	/*alert("aaaa");*/
+	
+	jQuery.ajax({
+		type:"POST",
+		url: "/view/sbrStats/codeList",
+		data: {codeId: code},
+		dataType:"json",
+		async: true,
+		success:function(data){
+			
+			return data;
+		},
+		error:function(data) {
+			
+			return "faill";
+		}
+	});
+	
+}
+
+//설정 토글
+function toggleSetting(){
+    $(".leftContent").not('.settingBox').hide();
+    $(".filter li.setting button").toggleClass('active');
+    $(".settingBox").toggle();
+}
+
+
+//지역랭킹 아이템 클릭
+function showRankDetail(data,x,y){
+    // 지역랭킹 오버 일때 나오는 팝업 화면
+	closeLeftAll();
+	$sbrActiveMap.ui.mapList[0].moveMap(x,y);
+	setXY(x,y);
+	
+	$('.popup.rankResult').show();
+	$(".leftContent.rankResult").show();
+	
+	$('#searchAdmCd').val(data);
+	sMap.map.selectAdmCd = data;
+    getAreaInfo(data);
+    //openLeftData();
+}
+
+
+function openLeftData(){
+	
+	var formData = $('#searchFrom').serialize();
+	
+/*	
+	$.ajax({
+		method: "POST",
+		async: true,
+		url: "/view/sbrStats/sbrLeftDataList",
+		data: formData,
+		dataType: "json",
+		success: function(res) {
+
+			
+		}
+	});*/
+	
+}
+
+
+
+//지역랭킹 결과조회 지역시그널 클릭 이벤트
+function openSignal(obj){
+    const target =$(obj).data('content');
+
+    $('.rankResult .signal li').removeClass('active')
+    $(obj).addClass('active');
+
+    $(".leftSub").hide();
+    $(".leftSub").each((i, item) => {
+        if($(item).data('content') == target) $(item).show();
+    })
+}
+
+
+//종합분석 탭
+function layerBoxTab(obj){
+    var tabName = $(obj).data('tab');
+    $(".layerLg .menuWrap .tab li").removeClass('active');
+    $(obj).addClass('active');
+    $('#allResult .container > .content').each((i, item) => {
+        $(item).hide();
+        if(tabName == $(item).data('content')) $(item).show();
+    })
+    
+    //alert($(obj).data("tab"));
+    
+    if($(obj).data("tab") == "company"){
+    	setMapChart();
+    }
+    
+}
+
+
+//종합분석 > 공간분석 > 맵 레이어
+function openDifferAreaMap(){
+    $(".differArea .mapArea").show();
+    setAreaMpa();
+}
+function closeDifferAreaMap(){
+    $(".differArea .mapArea").hide();
+}
+ 
+
+
+//좌측 컨텐츠 닫기
+function closeLeft(leftContent){
+    // 설정 버튼 초기화
+    $(".filter li.setting button").removeClass('active');
+    $(leftContent).closest('.leftContent, .leftSub').hide();
+
+}
+
+//팝업 닫기
+function closePopup(popup){
+    $(popup).closest('.popup').hide();
+}
+
+function closeResult(){
+    $(".layerOverlay").hide();
+    $("#allResult").hide();
+}
+
+//종합분석 팝업 열기
+function showAllResult(){
+    $(".layerOverlay").show();
+    $("#allResult").show();
+    
+    setChart();
+
+}
+
+//좌측 컨텐츠 전체 닫기(초기화)
+function closeLeftAll(){
+    $(".leftContent").hide();
+    $('.closeBtn').click();
+}
+
+
+function setNaviPopupArea(obj){
+
+}
+
+
+
+
+
+
+function getCash(str){
+	return str.toLocaleString(navigator.language);
+}
+
+
+function setCompayMap(){
+	
+	$('.mainTopMenu').show();
+	$('.subTopMenu').hide();
+	$('.mainTopMenuDiv').css("width","calc(100% - 40px)");
+	$('.subTopMenuDiv').hide();
+	
+	
+	$('#mapRgn_box').css("width","100%");
+	$('#togetherMapDiv').hide();
+	//$sbrActiveMap.ui.createMap("mapRgn_2", 1);
+	
+	$('.dataWithView').hide();
+	
+	$sbrActiveMap.ui.mapList[0].update();
+	//$sbrActiveMap.ui.mapList[1].remove();
+}
+
+function setTogetherMap(){
+	
+	
+	
+	var center = $sbrActiveMap.ui.mapList[0].center;
+	
+	if($sbrActiveMap.ui.mapList[0].zoom < 4){
+		$sbrActiveMap.ui.mapList[0].moveMapCenter($sbrActiveMap.ui.mapList[0].center,4);
+	}
+	
+	$('.mainTopMenu').hide();
+	$('.subTopMenu').show();
+	$('.mainTopMenuDiv').css("width","calc(50% - 40px)");
+	$('.subTopMenuDiv').show();
+	
+	
+	$('#mapRgn_box').css("width","50%");
+	$('#togetherMapDiv').show();
+	
+	if($sbrActiveMap.ui.mapList[1] == null ){
+		$sbrActiveMap.ui.createMap("mapRgn_2", 1);
+	}
+	
+	$('.dataWithView').show();
+	
+	 $(".navRank").removeClass('mini')
+	 $(".rankWrapper").hide();
+	
+	//$('.sop-control-container').hide();
+	
+	//좌표 재설정
+	$sbrActiveMap.ui.mapList[0].update();
+	
+	//moveMap
+	$sbrActiveMap.ui.mapList[1].moveMapCenter($sbrActiveMap.ui.mapList[0].center,$sbrActiveMap.ui.mapList[0].zoom);
+	
+	
+}
+
+
+
+function showDataWithViewPopup(){
+    $(".layerOverlay").show();
+    $("#dataWithViewPopup").show();
+    
+    setTimeout(function() {
+    	setTogetherChart();
+	}, 50);
+    
+}
+function hideDataWithViewPopup(){
+	$(".layerOverlay").hide();
+    $("#dataWithViewPopup").hide();
+}
+
+
+
+
+
+selectBoxChange = (obj) => {
+
+    const group =  {
+            "people":['year','sex','age'],
+            "house":['year','homeGroup'],
+            "home":['year','type','bulidYear','allAreaSize'],
+            "other":['farmType','year','sexType2','age']
+        }
+
+        let filterName = $(obj).data('filter')
+        $("#rightSelectArea > li").not('.halfGubun').hide();
+
+        group[filterName].forEach((item) => {
+            $("#rightSelectArea > li").each((i, target) => {
+                if(target.classList.contains(item))  $(target).show()
+            })
+        })
+
+}
+
+
+
+// 연령 선택 옵션 토글
+toggleCustomOption = (param, type, obj) => {
+
+    switch (type) {
+        case "age" :
+            if(param == 'hide') { // 선택하지 않음
+                $('.selectBox.age .tab').removeClass('active');
+                $('.selectBox.age ul.tabContent li').not('.btnWrap').hide()
+                
+            } else if (param == 'show') { // 연령선택
+                $('.selectBox.age ul.tab').addClass('active');
+                $('.selectBox.age ul.tabContent li:first-child').show();
+            
+                makeAgeSlider('ageSlider','ageSliderContent')
+            }
+            break;
+        case "allAreaSize" :
+            if(param == 'hide'){
+                $(obj).closest('.selectBox').find('.tabContent li:first-child').hide();
+            }
+             else if (param == 'show'){
+                $(obj).closest('.selectBox').find('.tabContent li:first-child').show();
+                makeAgeSlider('allAreaSizeSlider','allAreaSizeSliderContent')
+             }
+            break;
+        default: 
+            if(param == 'hide')          $(obj).closest('.selectBox').find('.tabContent li:first-child').hide();
+             else if (param == 'show')    $(obj).closest('.selectBox').find('.tabContent li:first-child').show();
+            break;
+    }
+}
+
+// 연령 선택 탭 
+selectAgeTab = (obj, param = "slider") => {
+    let tabName = param
+    $(".selectBox .tab li").removeClass('active')
+    $(obj).addClass('active');
+    
+    if(param == 'slider' ) makeAgeSlider('sliderSelect','sliderContent');
+
+    $(obj).closest('.tab').siblings('.tabContent').children('li').each((i, item) => {
+        $(item).hide();
+        if($(item).data('content') == tabName) $(item).show();
+        if($(item).hasClass('btnWrap')) $(item).show();
+    })
+}
+
+// 슬라이더 생성
+makeAgeSlider = (id,parent="") => {
+    // 돔 있는지 확인
+    if($("#"+id).length < 1) { // 슬라이더 객체 생성
+
+        let sliderInput = document.createElement('input');
+        sliderInput.setAttribute('id',id)
+        sliderInput.setAttribute('type','text');
+        $("."+parent).append(sliderInput);
+
+        new rSlider({
+            target: '#'+ id,
+            values: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+            range: true,
+            tooltip: true,
+            scale: true,
+            labels: false,
+            set: [10, 90],
+            onChange:(value)=> {
+                // value [10,90]
+                // method: sliderTs.getValue() 벨류값 가져오기 ex) [10,90]
+                // todo 
+            }
+        });
+        
+    } 
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

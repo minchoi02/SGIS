@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link href="./include/css/interactiveFunc.css" rel="stylesheet"
+	type="text/css">
+<script type="text/javascript" src="./include/js/jquery-1.11.0.min.js"></script>
+<script type='text/javascript' src='.././js/plugins/jquery.form.js'></script>
+<script type='text/javascript' src='.././js/plugins/jquery.min.js'></script>
+<script type="text/javascript"
+	src=".././js/plugins/jquery-easyui-1.4/sop-src.js"></script>
+<script type="text/javascript"
+	src=".././js/plugins/colResizable-1.5.min.js"></script>
+</head>
+<body>
+	<div class="popBox" id="guganSettingLayer" style="display: block;">
+		<div class="topbar">
+			<span>범례 구간설정</span> <select class="lvSelect" id="lvSelect"
+				title="범례 구간설정">
+				<option value="10" selected="selected">10레벨</option>
+				<option value="9">9레벨</option>
+				<option value="8">8레벨</option>
+				<option value="7">7레벨</option>
+				<option value="6">6레벨</option>
+				<option value="5">5레벨</option>
+			</select> <a href="javascript:void(0)">닫기</a>
+		</div>
+		<div class="popContents" id="popContents01">
+			<div class="tabs" id="guganSettingButton_20151216195711553">
+				<span>분류방법</span><a href="javascript:void(0)"
+					id="guganAuto_20151216195711553" class="btnStyle01 al">자동범례</a><a
+					href="javascript:void(0)" id="guganEqual_20151216195711553"
+					class="btnStyle01 ac">균등범례</a><a href="javascript:void(0)"
+					id="guganUser_20151216195711553" class="btnStyle01 ar on">사용자정의</a>
+			</div>
+			<div class="goganDisabled" id="goganDisabled"></div>
+			<div class="JCLRgrips" style="width: 380px;">
+				<div class="JCLRgrip" style="left: 35px; height: 100px;">
+					<div class="grip">
+						<div class="legendTooltip" id="legendTooltip_0"
+							style="display: none;"></div>
+					</div>
+					<div class="JColResizer"></div>
+				</div>
+				<div class="JCLRgrip" style="left: 70px; height: 100px;">
+					<div class="grip">
+						<div class="legendTooltip" id="legendTooltip_1"
+							style="display: none;"></div>
+					</div>
+					<div class="JColResizer"></div>
+				</div>
+				<div class="JCLRgrip" style="left: 104px; height: 100px;">
+					<div class="grip">
+						<div class="legendTooltip" id="legendTooltip_2"
+							style="display: none;"></div>
+					</div>
+					<div class="JColResizer"></div>
+				</div>
+				<div class="JCLRgrip" style="left: 139px; height: 100px;">
+					<div class="grip">
+						<div class="legendTooltip" id="legendTooltip_3"
+							style="display: none;"></div>
+					</div>
+					<div class="JColResizer"></div>
+				</div>
+				<div class="JCLRgrip" style="left: 173px; height: 100px;">
+					<div class="grip">
+						<div class="legendTooltip" id="legendTooltip_4"
+							style="display: none;"></div>
+					</div>
+					<div class="JColResizer"></div>
+				</div>
+				<div class="JCLRgrip" style="left: 208px; height: 100px;">
+					<div class="grip">
+						<div class="legendTooltip" id="legendTooltip_5"
+							style="display: none;"></div>
+					</div>
+					<div class="JColResizer"></div>
+				</div>
+				<div class="JCLRgrip" style="left: 242px; height: 100px;">
+					<div class="grip">
+						<div class="legendTooltip" id="legendTooltip_6"
+							style="display: none;"></div>
+					</div>
+					<div class="JColResizer"></div>
+				</div>
+				<div class="JCLRgrip" style="left: 277px; height: 100px;">
+					<div class="grip">
+						<div class="legendTooltip" id="legendTooltip_7"
+							style="display: none;"></div>
+					</div>
+					<div class="JColResizer"></div>
+				</div>
+				<div class="JCLRgrip" style="left: 311px; height: 100px;">
+					<div class="grip">
+						<div class="legendTooltip" id="legendTooltip_8"
+							style="display: none;"></div>
+					</div>
+					<div class="JColResizer"></div>
+				</div>
+				<div class="JCLRgrip JCLRLastGrip"
+					style="left: 381px; height: 100px;"></div>
+			</div>
+			<table class="goganList JColResizer" id="goganList_20151216195711553"
+				style="table-layout: fixed; width: 380px;">
+				<tbody>
+					<tr>
+						<td style="width: 34px; background: rgb(204, 204, 204);"
+							class="on"></td>
+						<td style="width: 35px; background: rgb(198, 188, 193);"
+							class="on"></td>
+						<td style="width: 34px; background: rgb(193, 173, 183);"
+							class="on"></td>
+						<td style="width: 35px; background: rgb(187, 157, 173);"
+							class="on"></td>
+						<td style="width: 34px; background: rgb(182, 142, 163);"
+							class="on"></td>
+						<td style="width: 35px; background: rgb(176, 127, 153);"
+							class="on"></td>
+						<td style="width: 34px; background: rgb(171, 111, 142);"
+							class="on"></td>
+						<td style="width: 35px; background: rgb(165, 96, 132);" class="on"></td>
+						<td style="width: 34px; background: rgb(160, 80, 122);" class="on"></td>
+						<td style="width: 70px; background: rgb(154, 65, 112);" class="on"></td>
+					</tr>
+				</tbody>
+			</table>
+			<div class="btnBox">
+				<a href="javascript:void(0)" class="btnStyle01" id="goganEvent">적용</a>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>SGIS 관리자사이트(CNM)</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<link rel="stylesheet" href="./../include/css/login.css" />
+<link rel="stylesheet" href="./../include/css/default.css" />
+<script type="text/javascript"
+	src="./../include/js/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="./../include/js/default.js"></script>
+<script type="text/javascript" src="../../js/common/includeHead.js"></script>
+<script src="../../js/common/common.js"></script>
+<script type="text/javascript"
+	src="../../js/plugins/plupload/plupload.full.min.js"></script>
+<script type="text/javascript" src="../../js/DT/themaMapMainManage.js"></script>
+</head>
+
+<body>
+	<div class="wrapper">
+		<!-- cls:header start -->
+		<div class="header">
+			<div class="defaultbox">
+				<div class="logo">
+					<a href="#"><img src="./../include/img/pic/pic_logo.png"
+						alt="logo" /></a>
+				</div>
+				<div class="navi">
+					<a href="#">마이페이지</a>
+				</div>
+			</div>
+			<div class="menuWrapper">
+				<div class="menuCnm">
+					<ul>
+						<li><a>서비스 현황</a></li>
+						<li><a>사용자 현황</a></li>
+						<li><a class="on">서비스 관리</a></li>
+						<li><a>정보 관리</a></li>
+						<li><a>게시판 관리</a></li>
+						<li><a>회원 관리</a></li>
+					</ul>
+				</div>
+			</div>
+			<div class="subMenuWrapper">
+				<div class="subMenu"></div>
+			</div>
+		</div>
+		<!-- cls:header end -->
+		<div class="contents">
+			<!-- cls:left start -->
+			<div class="lefitMenuWrapper">
+				<!-- <div class="leftTitle">서비스 관리</div>
+				<div class="leftMenu">
+					<ul>
+						<li><a href="./../DT/policyMapManager.html">정책통계지도</a>
+						</li>
+						<li><a class="on" href="./../DT/themaMapManage.html">주제도</a>
+							<ul class="sub">
+								<li><a href="./../DT/themaMapManage.html">카테고리</a></li>
+								<li><a class="on" href="./../DT/themaMapMainManage.html">주제도</a>
+								<li><a href="./../DT/themaMapRegManager.html">데이터 관리</a>
+							</ul></li>
+						<li><a href="./../DT/Community.html">통계 소통지도</a></li>	
+						<li><a href="./../DT/KOSISManage.html">KOSIS목록 관리</a></li>
+						<li><a href="./../DT/PUBDataManage.html">공공데이터 관리</a></li>
+						<li><a href="./../DT/BannerManage.html">배너관리</a></li>
+						<li><a href="/s-portalcnm/contents/gsks/gsks_01_04.jsp">자료제공 관리</a></li>
+						<li><a href="./../DT/Gallerylist.html">통계갤러리 관리</a></li>
+						<li><a href="./../DT/MobileManage.html">모바일 서비스 관리</a></li>
+					</ul>
+				</div> -->
+				<script type="text/javascript">
+						makeLeftMenu("3", "2", "2");	//탑메뉴순서, 선택된 왼쪽 빅메뉴, 선택된 왼쪽 small메뉴
+				</script>
+			</div>
+			<!-- cls:left end -->
+			<div class="acticle">
+				<div class="location">
+					<p>
+						<a><img src="./../include/img/ico/ico_home.png" alt="home" /></a>
+						<span><img src="./../include/img/ico/ico_navi.png" alt="다음" /></span>
+						<span>데이터관리</span> <span><img
+							src="./../include/img/ico/ico_navi.png" alt="다음" /></span> <span
+							class="fontS"> 통계주제도  데이터 관리</span>
+					</p>
+				</div>
+				<p class="title01">통계주제도 데이터 관리</p>
+				<div class="tilte03">조회조건</div>
+				<div class="searchBtn04" id="searchButton">
+					<a style="cursor: pointer"><img
+						src="./../include/img/btn/btn_search.png" alt="검색" /></a>
+				</div>
+				<form id="resetForm">
+					<table class="apiTable02" summary="조회조건">
+						<caption>조회조건</caption>
+						<colgroup>
+							<col width="141" />
+							<col width="230" />
+							<col width="141" />
+							<col width="230" />
+						</colgroup>
+						<tbody>
+							<tr>
+								<th>통계 카테고리</th>
+								<td><select class="input_use08" id="CATEGORY_NM">
+										<option value="ALL" selected>전체</option>
+								</select></td>
+								<th class="right">서비스여부</th>
+								<td><select class="input_use08" id="SRV_YN">
+										<option value="ALL" selected>전체</option>
+										<option value="N">아니오</option>
+										<option value="Y">네</option>
+								</select></td>
+							</tr>
+							<tr>
+								<th>제목검색</th>
+								<td colspan="3"><input type="text" class="input_use03"
+									id="TITLE" maxlength="33" style="width: 158px" /></td>
+							</tr>
+						</tbody>
+					</table>
+				</form>
+				<div class="tilte03">검색결과</div>
+				<div class="searchBtn04">
+					<a id="addThemaMapButton" style="cursor: pointer"><img
+						src="./../include/img/btn/btn_regist02.png" alt="등록" /></a> <a
+						id="delThemaMapButton" style="cursor: pointer"><img
+						src="./../include/img/btn/btn_del.png" alt="삭제" /></a>
+				</div>
+				<table class="apiTable03" summary="기본정보"></table>
+				<table summary="기본정보" id="searchResultTable"></table>
+				<div class="searchWrapper02" id="noSearchResult"
+					style="margin-top: -95px; border-left: 0; border-top: 0; border-right: 0; position: absolute; height: 30px; padding-top: 0px; text-align: center">
+					검색 결과가 없습니다</div>
+			</div>
+		</div>
+	</div>
+	<!-- cls:footer start -->
+	<div class="footerWrapper"></div>
+	<div class="popupWrapper" id="confirmThemaMapPopup">
+		<div class="myPopupWrapper">
+			<div class="aplPopupTitle">
+				<div class="myTitleFont">주제도 확인</div>
+				<div class="myXbtn">
+					<a style="cursor: pointer"><img
+						src="./../include/img/btn/btn_popupX.png" alt="종료" /></a>
+				</div>
+			</div>
+			<table class="popupTable" summary="통계주제도 등록popup">
+				<caption>통계주제도 등록popup</caption>
+				<colgroup>
+					<col width="141" />
+					<col width="" />
+				</colgroup>
+				<tbody></tbody>
+			</table>
+			<div class="btnbox">
+				<a class="cancel" style="cursor: pointer"><img
+					src="./../include/img/btn/btn_confirm.png" alt="취소" /></a>
+			</div>
+		</div>
+	</div>
+	<!-- CNM-DT-002 -->
+	<!-- 2017.07.24[개발팀]이동형 주제도 등록-->
+	<!-- <div class="popupWrapper" id="addThemaMapPopup">
+		<div class="myPopupWrapper">
+			<div class="aplPopupTitle">
+				<div class="myTitleFont">통계주제도 등록 - 종류선택</div>
+				<div class="myXbtn">
+					<a style="cursor: pointer"><img
+						src="./../include/img/btn/btn_popupX.png" alt="종료" /></a>
+				</div>
+			</div>
+			<table class="popupTable" summary="통계주제도 등록popup">
+				<caption>통계주제도 등록popup</caption>
+				<colgroup>
+					<col width="141" />
+					<col width="" />
+				</colgroup>
+				<tbody>
+					<tr>
+						<th>주제도 종류</th>
+						<td>
+							<form id="THEMA_MAP_TYPEForm">
+								<select class="input_use29" id="THEMA_MAP_TYPE">
+									<option value="03" selected>관리형 (색상, 시계열, 증감, 분할, POI)</option>
+									<option value="02">업로드형(파일업로드)</option>
+								</select>
+							</form>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<div class="btnbox">
+				<a id="addThemaMapNextButton" style="cursor: pointer"><img
+					src="./../include/img/btn/btn_next02.png" alt="다음" /></a> <a
+					class="cancel" id="addThemaMapCancelButton" style="cursor: pointer"><img
+					src="./../include/img/btn/btn_cancel.png" alt="취소" /></a>
+			</div>
+		</div>
+	</div> -->
+	<!-- CNM-DT-005 -->
+	<div class="popupWrapper" id="addThemaMapFilePopup">
+		<div class="aplPopupWrapper">
+			<div class="aplPopupTitle">
+				<div class="myTitleFont">통계주제도 등록</div>
+				<div class="myXbtn">
+					<a style="cursor: pointer"><img
+						src="./../include/img/btn/btn_popupX.png" alt="종료" /></a>
+				</div>
+			</div>
+			<form id="addThemaMapFileForm">
+				<table class="popupTable" summary="통계주제도 등록popup">
+					<caption>통계주제도 등록popup</caption>
+					<colgroup>
+						<col width="141" />
+						<col width="192" />
+						<col width="141" />
+						<col width="192" />
+					</colgroup>
+					<tbody>
+						<tr>
+							<th>카테고리</th>
+							<td><select class="input_use08" id="CATEGORY_AddFile">
+							</select></td>
+							<th>서비스 여부</th>
+							<td><select class="input_use08" id="SRV_YN_MapInfo">
+									<option value="N">아니오</option>
+									<option value="Y">네</option>
+							</select> <input type="hidden" id="STAT_THEMA_MAP_ID_MapInfo" /> <input
+								type="hidden" id="THEMA_MAP_TYPE_MapInfo" /> <select
+								class="input_use08" id="ARTICLE_DIV_AddFile"
+								style="display: none;">
+									<option value="STATE">현황</option>
+									<option value="ANALYS">분석</option>
+							</select></td>
+						</tr>
+						<tr>
+							<th>표출레벨</th>
+							<td><select class="input_use08" id="DISTLEVEL_AddFile">
+									<option value="01" selected>시도</option>
+									<option value="02">시군구</option>
+									<option value="03">읍면동</option>
+									<option value="04">집계구</option>
+							</select></td>
+							<th>출처</th>
+							<td><input type="text" class="input_use25"
+								id="RELATEINFO_AddFile" maxlength="50" /></td>
+						</tr>
+						<tr>
+							<th>표출방법</th>
+							<td colspan="3"><input type="text" class="input_use13"
+								id="METHOD_AddFile" maxlength="99" /></td>
+						</tr>
+						<tr>
+							<th>제목</th>
+							<td colspan="3"><input type="text" class="input_use13"
+								id="TITLE_AddFile" maxlength="99" /></td>
+						</tr>
+						<tr>
+							<th>설명</th>
+							<td colspan="3"><textarea rows="20" cols="100"
+									class="input_use15" style="resize: none" id="EXP_AddFile"
+									maxlength="4000"></textarea></td>
+						</tr>
+						<tr>
+							<th>파일 업로드</th>
+							<td colspan="3">
+								<div class="noticeFont">( 첨부 용량 제한: 20 MB)</div> <!-- <input type="text" class="input_use20" id="fileName" readonly/> -->
+								<!-- <a id="pickfiles" style="cursor: pointer"><img src="./../include/img/btn/btn_file.png" alt="파일선택"/></a> -->
+								<a id="pickfiles" style="cursor: pointer"><img
+									src="./../include/img/btn/btn_file_attach.png" alt="파일선택" /></a><span
+								id="fileName"></span> <!-- <input type="file" id="FILE" name="FILE"/> -->
+								<div class="text">* 업로드 파일형식 : zip파일</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</form>
+			<div class="btnbox">
+				<a id="addButton_AddFile" style="cursor: pointer"><img
+					src="./../include/img/btn/btn_regist02.png" alt="등록" /></a> <a
+					id="cancelButton_AddFile" style="cursor: pointer"><img
+					src="./../include/img/btn/btn_cancel.png" alt="취소" /></a>
+			</div>
+		</div>
+	</div>
+	<!-- CNM-DT-006 수정창 인터렉티브 통계주제도 등록 -->
+	<div class="popupWrapper" id="themaMapInfoMapPopup">
+		<div class="aplPopupWrapper">
+			<div class="aplPopupTitle">
+				<div class="myTitleFont">통계주제도 조회/수정</div>
+				<div class="myXbtn">
+					<a style="cursor: pointer"><img
+						src="./../include/img/btn/btn_popupX.png" alt="종료" /></a>
+				</div>
+			</div>
+			<form id="themaMapInfoMapForm">
+				<table class="popupTable" summary="통계주제도 등록popup">
+					<caption>통계주제도 조회/수정</caption>
+					<colgroup>
+						<col width="141" />
+						<col width="192" />
+						<col width="141" />
+						<col width="192" />
+					</colgroup>
+					<tbody>
+						<tr>
+							<th>카테고리</th>
+							<td><select class="input_use08" id="CATEGORY_MapInfo">
+							</select></td>
+							<th>서비스 여부</th>
+							<td><select class="input_use08" id="SRV_YN_MapInfo">
+									<option value="N">아니오</option>
+									<option value="Y">네</option>
+							</select> <input type="hidden" id="STAT_THEMA_MAP_ID_MapInfo" /> <input
+								type="hidden" id="THEMA_MAP_TYPE_MapInfo" /> <select
+								class="input_use08" id="ARTICLE_DIV_MapInfo"
+								style="display: none;">
+									<option value="STATE">현황</option>
+									<option value="ANALYS">분석</option>
+							</select></td>
+						</tr>
+						<tr>
+							<th>지역</th>
+							<td><select class="input_use08" id="AREA_SET">
+									<option value="00">전국</option>
+									<option value="11">서울</option>
+									<option value="31">경기도</option>
+									<option value="32">강원도</option>
+									<option value="23">인천</option>
+									<option value="34">충남</option>
+									<option value="33">충북</option>
+									<option value="25">대전</option>
+									<option value="29">세종</option>
+									<option value="36">전남</option>
+									<option value="35">전북</option>
+									<option value="24">광주</option>
+									<option value="37">경북</option>
+									<option value="38">경남</option>
+									<option value="22">대구</option>
+									<option value="21">부산</option>
+									<option value="26">울산</option>
+									<option value="39">제주</option>
+							</select></td>
+							<th>표출레벨</th>
+							<td><select class="input_use08" id="STAT_DISP_LEVEL">
+									<option value="01">시도</option>
+									<option value="02">시군구</option>
+									<option value="03">읍면동</option>
+									<option value="04">집계구</option>
+							</select></td>
+						</tr>
+						<tr>
+							<th>출처</th>
+							<td colspan="3"><input type="text" class="input_use13"
+								id="RELATEINFO_form" maxlength="99" /></td>
+						</tr>
+						<tr>
+							<th>표출방법</th>
+							<td colspan="3"><input type="text" class="input_use13"
+								id="METHOD_form" maxlength="99" /></td>
+						</tr>
+						<tr>
+							<th>제목</th>
+							<td colspan="3"><input type="text" class="input_use13"
+								id="TITLE_MapInfo" maxlength="99" /></td>
+						</tr>
+						<tr>
+							<th>설명</th>
+							<td colspan="3"><textarea rows="20" cols="100"
+									class="input_use15" id="EXP_MapInfo" style="resize: none"
+									maxlength="4000"></textarea></td>
+						</tr>
+					</tbody>
+				</table>
+			</form>
+			<div class="btnbox">
+				<a id="modifyButton_MapInfo" style="cursor: pointer"><img
+					src="./../include/img/btn/btn_modify.png" alt="수정" /></a> <a
+					id="cancelButton_MapInfo" style="cursor: pointer"><img
+					src="./../include/img/btn/btn_cancel.png" alt="취소" /></a>
+			</div>
+		</div>
+	</div>
+	<!-- CNM-DT-007 파일업로드 팝업창 -->
+	<div class="popupWrapper" id="themaMapInfoFilePopup">
+		<form id="themaMapInfoFileForm">
+			<div class="aplPopupWrapper">
+				<div class="aplPopupTitle">
+					<div class="myTitleFont">통계주제도 조회/수정</div>
+					<div class="myXbtn">
+						<a style="cursor: pointer"><img
+							src="./../include/img/btn/btn_popupX.png" alt="종료" /></a>
+					</div>
+				</div>
+				<table class="popupTable" summary="통계주제도 등록popup">
+					<caption>통계주제도 조회/수정</caption>
+					<colgroup>
+						<col width="141" />
+						<col width="192" />
+						<col width="141" />
+						<col width="192" />
+					</colgroup>
+					<tbody>
+						<tr>
+							<th>카테고리</th>
+							<td><select class="input_use08" id="CATEGORY_FileInfo">
+									
+							</select></td>
+
+							<th>서비스 여부</th>
+							<td><select class="input_use08" id="SRV_YN_FileInfo">
+									<option value="N">아니오</option>
+									<option value="Y">네</option>
+							</select> <input type="hidden" id="STAT_THEMA_MAP_ID_FileInfo" /> <input
+								type="hidden" id="THEMA_MAP_TYPE_FileInfo" /></td>
+						</tr>
+						<tr>
+							<th>표출레벨</th>
+							<td><select class="input_use08" id="DISTLEVEL_updateFile">
+									<option value="01" selected>시도</option>
+									<option value="02">시군구</option>
+									<option value="03">읍면동</option>
+									<option value="04">집계구</option>
+							</select></td>
+							<th>표출방법</th>
+							<td><input type="text" class="input_use25"
+								id="METHOD_updateFile" maxlength="99" /></td>
+						</tr>
+						<tr>
+							<th>출처</th>
+							<td colspan="3"><input type="text" class="input_use13"
+								id="RELATEINFO_updateFile" maxlength="50" /></td>
+
+						</tr>
+						<tr>
+							<th>제목</th>
+							<td colspan="3"><input type="text" class="input_use13"
+								id="TITLE_FileInfo" maxlength="99" /></td>
+						</tr>
+						<tr>
+							<th>설명</th>
+							<td colspan="3"><textarea rows="100" cols="100"
+									class="input_use15" id="EXP_FileInfo" style="resize: none"
+									maxlength="4000"></textarea></td>
+						</tr>
+						<tr>
+							<th>파일 업로드</th>
+							<td colspan="3">
+								<!-- <input type="text" value="" class="input_use20"/>
+                                <a style="cursor: pointer"><img src="./../include/img/btn/btn_file.png" alt="파일선택"/></a> -->
+								<div id="FILEUpdate">
+									<div class="noticeFont">( 첨부 용량 제한: 20 MB)</div>
+									<a id="pickfilesUpdateFile" style="cursor: pointer"><img
+										src="./../include/img/btn/btn_file_attach.png" alt="파일선택" /></a>
+									<span id="fileNameUpdateFile"></span>
+									<div class="text">* 업로드 파일형식 : zip파일</div>
+								</div> <!-- <input type="file" id="FILEUpdate" name="FILE"/> -->
+								<div class="text" id="STAT_THEMA_MAP_FILE_URL"></div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				<div class="btnbox">
+					<a id="modifyButton_FileInfo" style="cursor: pointer"><img
+						src="./../include/img/btn/btn_modify.png" alt="수정" /></a> <a
+						id="cancelButton_FileInfo" style="cursor: pointer"><img
+						src="./../include/img/btn/btn_cancel.png" alt="취소" /></a>
+				</div>
+			</div>
+		</form>
+	</div>
+	<div class="maskbg"></div>
+	<div class="maskcontent"></div>
+</body>
+</html>

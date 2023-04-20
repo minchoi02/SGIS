@@ -1,0 +1,536 @@
+package kostat.sop.ServiceAPI.sbr.service.Impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.apache.ibatis.exceptions.PersistenceException;
+import org.springframework.stereotype.Service;
+
+import com.neighborsystem.durian.exception.NotSupportFormatException;
+
+import egovframework.rte.fdl.cmmn.EgovAbstractServiceImpl;
+import kostat.sop.ServiceAPI.api.catchmentArea.ServiceAreaBSCA;
+import kostat.sop.ServiceAPI.common.controller.Properties;
+import kostat.sop.ServiceAPI.common.util.StringUtil;
+import kostat.sop.ServiceAPI.exception.ApiException;
+import kostat.sop.ServiceAPI.exception.DurianSQLException;
+import kostat.sop.ServiceAPI.exception.NoResultException;
+import kostat.sop.ServiceAPI.exception.ApiException.COMM_ERR_CODE;
+import kostat.sop.ServiceAPI.sbr.mapper.SbrStatsMapper;
+import kostat.sop.ServiceAPI.sbr.service.SbrStatsService;
+import kostat.sop.ServiceAPI.sbr.vo.SbrVo;
+
+@Service("sbrStatsService")
+public class SbrStatsServiceImpl  extends EgovAbstractServiceImpl implements SbrStatsService {
+	
+	@Resource( name = "SbrStatsMapper" )
+	private SbrStatsMapper sbrStatsMapper;
+
+	@Override
+	public List<Map<String, Object>> selectAllCensusThemeInfo() throws Exception {
+		List<Map<String, Object>> bigList = selectCensusBigThemeInfo();
+		
+		for(int i = 0 ; i < bigList.size() ; i++) {
+			//System.out.println(bigList.get(i));
+			Map<String, Object> param = bigList.get(i);
+			List<Map<String, Object>> smallList = selectCensusSmallThemeInfo((String)param.get("b_theme_cd"));
+			bigList.get(i).put("s_theme_list", smallList);
+		}
+		
+		return bigList;
+	}
+	
+	
+	public List<Map<String, Object>> selectCensusBigThemeInfo() {
+		return sbrStatsMapper.selectCensusBigThemeInfo();
+	}
+	
+	public List<Map<String, Object>> selectCensusSmallThemeInfo(String b_theme_cd) {
+		return sbrStatsMapper.selectCensusSmallThemeInfo(b_theme_cd);
+	}
+
+
+	@Override
+	public String getDdata() throws Exception {
+		return sbrStatsMapper.selectTestData();
+	}
+
+	@Override
+	public List<Map<String, Object>> getCodeList(SbrVo sbrVo) throws Exception {
+		return sbrStatsMapper.selectCodeList(sbrVo);
+	}
+	
+	@Override
+	public List<String> getCompanyCountByAll() throws Exception {
+		return sbrStatsMapper.selectCompanyCountByAll();
+	}
+
+
+	@Override
+	public Map<String, Object> getActiveCompanyCount(SbrVo sbrVo) throws Exception {
+		sbrVo = checkData(sbrVo);
+		return sbrStatsMapper.selectActiveCompanyCount(sbrVo);
+	}
+
+	// 종합분석 - 업종분석 - 계폐업현황
+	@Override
+	public List<Map<String, String>> getOpenCloseCompanyCount() throws Exception {
+		// TODO Auto-generated method stub
+		
+		return sbrStatsMapper.selectOpenCloseCompanyCount();
+	}
+
+
+	@Override
+	public List getBizCodeList() throws Exception {
+		return sbrStatsMapper.selectBizCodeList();
+	}
+
+
+	@Override
+	public Map<String, Object> getAreaInfo(SbrVo sbrVo) throws Exception {
+		
+		sbrVo = checkData(sbrVo);
+		sbrVo = getBordCd(sbrVo);
+		return sbrStatsMapper.selectAreaInfo(sbrVo);
+	}
+	
+	@Override
+	public List getSbrRankListInfo(SbrVo sbrVo) throws Exception {
+		
+		
+		sbrVo = checkData(sbrVo);
+		sbrVo = getBordCd(sbrVo);
+		
+		List data = null;
+		
+		
+		if(sbrVo.getBord_type().equals("11") || sbrVo.getBord_type().equals("12") || sbrVo.getBord_type().equals("13") )data = sbrStatsMapper.selectRanklistInfo(sbrVo);
+		else                                data = sbrStatsMapper.selectRanklistInfo2(sbrVo);
+		//data = sbrStatsMapper.selectRanklistInfo(sbrVo);
+		
+		return data;
+	}
+	
+	
+	private SbrVo getBordCd(SbrVo sbrVo) {
+		String bordCd = sbrVo.getAdm_cd();
+		if(bordCd.length() >= 2) sbrVo.setSido_cd(bordCd.substring(0,2));
+		if(bordCd.length()>2) sbrVo.setSigungu_cd(bordCd.substring(2,5));
+		if(bordCd.length()>5) sbrVo.setDong_cd(bordCd.substring(5,7));
+		return sbrVo;
+	}
+	
+	private SbrVo checkData(SbrVo sbrVo) {
+		if( sbrVo.getBiz_cd() == null || sbrVo.getBiz_cd().equals(""))sbrVo.setBiz_cd("999"); 
+		
+		if( sbrVo.getKisc_cd_1() == null || sbrVo.getKisc_cd_1().equals(""))sbrVo.setKisc_cd_1("@");
+		if( sbrVo.getKisc_cd_2() == null || sbrVo.getKisc_cd_2().equals(""))sbrVo.setKisc_cd_2("00");
+		
+		
+		if(sbrVo.getBord_type() != null && sbrVo.getBord_type().equals("1")) {
+		  int zoom  = Integer.parseInt(sbrVo.getZoom());
+			
+		  if(zoom < 4) {
+			  sbrVo.setBord_type(sbrVo.getBord_type()+"1");
+		  }else if(zoom < 7){
+			  sbrVo.setBord_type(sbrVo.getBord_type()+"2");
+		  }else{
+			  sbrVo.setBord_type(sbrVo.getBord_type()+"3");
+		  }
+		}else{
+			sbrVo.setBord_type(sbrVo.getBord_type()+"0");
+		}
+		
+		if(sbrVo.getOptionList() != null && sbrVo.getOptionList().size() >0 ) {
+			
+			String optionValue = "";
+			
+			for(int i=0; i< sbrVo.getOptionList().size();i++) {
+				optionValue = optionValue + "'"+(String) sbrVo.getOptionList().get(i)+"'"+",";
+			}
+			optionValue = optionValue.substring(0,optionValue.length()-1);
+			sbrVo.setCnd_cd(optionValue);
+		}else {
+		   sbrVo.setCnd_cd("999");
+		}
+		
+		//if( sbrVo.getCnd_cd() == null || sbrVo.getCnd_cd().equals(""))sbrVo.setCnd_cd("999");
+		
+		return sbrVo;
+	}
+	
+
+
+	@Override
+	public List getSbrMapList(SbrVo sbrVo) throws Exception {
+		// TODO Auto-generated method stub
+		
+		
+		sbrVo = checkData(sbrVo);
+		sbrVo = getBordCd(sbrVo);
+		
+		return sbrStatsMapper.selectSbrMapList(sbrVo);
+	}
+
+
+	@Override
+	public List<?> getSbrCompanyInfoList(SbrVo sbrVo) throws Exception {
+
+		
+		sbrVo = checkData(sbrVo);
+		return sbrStatsMapper.selectSbrCompanyInfoList(sbrVo);
+	}
+
+
+	@Override
+	public List<Map<String, String>> getGrowthChart(SbrVo sbrVo) throws Exception {
+		
+		if( sbrVo.getBiz_cd() == null || sbrVo.getBiz_cd().equals(""))sbrVo.setBiz_cd("1");
+		sbrVo = checkData(sbrVo);
+		
+		return sbrStatsMapper.selectSbrGrowthList(sbrVo);
+	}
+
+
+	@Override
+	public Map<String, String> getAvgData(SbrVo sbrVo) throws Exception {
+		
+		sbrVo = checkData(sbrVo);
+		return sbrStatsMapper.selectSbrAvgData(sbrVo);
+	}
+
+
+	@Override
+	public Map<String, String> getCompanyAnalysis(SbrVo sbrVo) throws Exception {
+		sbrVo = checkData(sbrVo);
+		return sbrStatsMapper.selectCompanyAnalysis(sbrVo);
+	}
+
+
+	@Override
+	public List<Map<String, String>> getCompanyMain(SbrVo sbrVo) throws Exception {
+		sbrVo = getBordCd(sbrVo);
+		return sbrStatsMapper.selectCompanyMainList(sbrVo);
+	}
+
+
+	@Override
+	public List<Map<String, String>> getAreaDataList(SbrVo sbrVo) throws Exception {
+		//sbrVo = checkData(sbrVo);
+		if(sbrVo.getBord_type() != null && !sbrVo.getBord_type().equals("1")  ) {
+			sbrVo.setBord_type(sbrVo.getBord_type()+"0");
+		}
+		return sbrStatsMapper.selectAreaDataList(sbrVo);
+	}
+
+
+	@Override
+	public List getLeftDataList(SbrVo sbrVo) throws Exception {
+		sbrVo = checkData(sbrVo);
+		return sbrStatsMapper.selectLeftDataList(sbrVo);
+	}
+
+
+	@Override
+	public List innersearchpopulationForBorough(SbrVo sbrVo) throws Exception {
+		
+		SbrVo mapParameter = optimizeParameterMap(sbrVo);
+		
+		int year = Integer.parseInt(mapParameter.getYear());
+		
+		List<String> list = new ArrayList<String>();
+		
+		boolean flag1 = true;
+		boolean flag2 = true;
+		
+		for(int i = (year-4) ;i <= year ; i++) {
+			
+			if(i <= 2005 && flag1 == true) {
+				list.add("2005");
+			}else if(i <= 2010 && flag2 == true) {
+				list.add("2010");
+			}else {
+				list.add(i+"");
+			}
+		}
+		
+		if(list.size() <=0) list.add(year+"");
+		
+		mapParameter.setYear_list(list);
+		
+		return sbrStatsMapper.innersearchpopulationForBorough(mapParameter);
+	}
+
+	@Override
+	public Map<String, String> getRegionSignalDataList( SbrVo sbrVo) throws Exception {
+		return sbrStatsMapper.selectRegionSignalDataList(sbrVo);
+	}
+
+	
+	protected SbrVo optimizeParameterMap( SbrVo mapParameter ) throws Exception
+	{
+		String year = mapParameter.getYear();
+		String gender = mapParameter.getGender();
+		String area_type = mapParameter.getArea_type();
+		String low_search = mapParameter.getLow_search();
+		String age_from = mapParameter.getAge_from();
+		String age_to = mapParameter.getAge_to();
+		String adm_length = "7";
+		String bnd_year = (String) mapParameter.getBnd_year();
+		String zoom = (String) mapParameter.getZoom(); //mng_s
+		
+		//2020년수정변경 시작 (ggm)
+		String is_zoom_lvl4 = mapParameter.getIs_zoom_lvl4();
+		if(is_zoom_lvl4 == "") {
+			mapParameter.setIs_zoom_lvl4("N");
+		}
+		String is_non_self = (String) mapParameter.getIs_non_self();
+		if(is_non_self == "") {
+			mapParameter.setIs_non_self("N");;
+		}
+		//2020년수정변경 끝		
+
+		// 2016.08.29 년도가 2015일때는 교육정도별, 혼인정보별 파라미터 입력 불가. 
+		
+		// mng_s 2017. 10. 30 j.h.Seok
+		int tempYear = Integer.parseInt(year);
+		//if(year.equals( "2015" ))
+		if(tempYear >= 2015)
+		// mng_e 2017. 10. 30 j.h.Seok
+		{
+			boolean booEdu = (mapParameter.getEdu_level() == "")?true : false;
+			boolean booMrg = (mapParameter.getMrg_state() == "")?true : false;
+			
+			if( booEdu && booMrg )
+			{
+				// throw Exception
+				throw new ApiException( "해당 조사년도에서는 교육정도, 혼인정도를 검색할 수 없습니다." );
+			}
+			else if( booEdu )
+			{
+				
+				throw new ApiException( "해당 조사년도에서는 교육정도를 검색할 수 없습니다." );
+			}
+			else if( booMrg )
+			{
+				
+				throw new ApiException( "해당 조사년도에서는 혼인정도를 검색할 수 없습니다." );
+			}
+			
+		}
+
+		//경계년도 체크
+		if( bnd_year == null || true)
+		{
+			//mapParameter.setBnd_year(Properties.getDefult_bnd_year());
+		}
+		else if( !Properties.getBnd_year_list().contains( bnd_year ) )
+		{
+			throw new ApiException( "경계데이터 년도 정보를 확인해주세요", COMM_ERR_CODE.ERR_PARAM );
+		}
+
+		//년도 체크
+		if( !Properties.getYear_list().contains( year ) )
+		{
+			throw new ApiException( "년도 정보를 확인해주세요", COMM_ERR_CODE.ERR_PARAM );
+		}
+
+		//성별 체크
+		if( gender == null )
+		{
+			//mapParameter.put( "gender", "0" );
+			mapParameter.setGender("0");
+		}
+		else if( !Properties.getGender_list().contains( gender ) )
+		{
+			throw new ApiException( "성별 정보를 확인해주세요", COMM_ERR_CODE.ERR_PARAM );
+		}
+
+		//영역 체크
+		if( area_type == null )
+		{
+			area_type = "0";
+			mapParameter.setArea_type("0");
+		}
+		else if( !Properties.getArea_type_list().contains( area_type ) )
+		{
+			throw new ApiException( "영역검색 정보를 확인해주세요", COMM_ERR_CODE.ERR_PARAM );
+		}
+
+		//하위 경계 체크
+		if( low_search == null )
+		{
+			low_search = "0";
+			mapParameter.setLow_search("0");
+		}
+		else if( !Properties.getLow_search_list().contains( low_search ) )
+		{
+			throw new ApiException( "하위통계정보 유무를 확인해주세요", COMM_ERR_CODE.ERR_PARAM );
+		}
+
+		//교육수준
+		// 2016.02.03 수학여부 빠짐
+		if( mapParameter.getEdu_level() != null && mapParameter.getEdu_level() != "" &&  mapParameter.getEdu_level().length() > 0)
+		{
+			String [] arrEdu_levels = mapParameter.getEdu_level().split( "," );
+			mapParameter.setEdu_level_list(arrEdu_levels);
+
+		}
+
+		//연령정보체크
+		if( age_from == null && age_to == null )
+		{
+		}
+		else if( age_from == null || age_to == null || !StringUtil.NumberChk( age_from ) || !StringUtil.NumberChk( age_to ) )
+		{
+			throw new ApiException( "to from 연령정보를 입력해주세요", COMM_ERR_CODE.ERR_PARAM );
+		}
+		else if( Integer.parseInt( age_to ) < Integer.parseInt( age_from ) )
+		{
+			throw new ApiException( "to from 연령정보 범위를 확인해주세요", COMM_ERR_CODE.ERR_PARAM );
+		}
+		else if( Integer.parseInt( age_to ) > 150 || Integer.parseInt( age_from ) > 150 )
+		{
+			throw new ApiException( "to from 연령정보를 0~150사이의 범위로 입력해주세요", COMM_ERR_CODE.ERR_PARAM );
+		}
+
+		//결혼 상태 체크
+		if( mapParameter.getMrg_state() != null  && mapParameter.getMrg_state() != "" &&  mapParameter.getMrg_state().length() > 0)
+		{
+			String mrg_state[] = mapParameter.getMrg_state().split( "," );
+			mapParameter.setMrg_state_list(mrg_state);
+			
+			// 2015.10.23 결혼 상태 체크 일때 연령 시작이 15세이상으로 조건 수정.
+			if( age_from != null )
+			{
+				int intAgeFrom = Integer.parseInt( age_from );
+				if( intAgeFrom < 15 )
+				{
+					age_from = "15";
+				}
+				mapParameter.setAge_from(age_from);
+			}
+		}
+
+		//동코드 분할
+		if("bnd_grid".equals(mapParameter.getBnd_grid())) { //mng_s 행정구역 그리드이면
+			low_search = "0";
+			mapParameter.setLow_search(low_search);
+		} else {
+			if( area_type.equals( "0" ) )
+			{
+				String adm_cd = mapParameter.getAdm_cd();
+				String sido_cd = null;
+				String sgg_cd = null;
+				String emdong_cd = null;
+				if( adm_cd == null )
+				{
+					adm_length = "0";
+					low_search = "1";
+					mapParameter.setLow_search(low_search);
+				}
+				else if( adm_cd.length() == 2 )
+				{
+	
+					if( low_search.equals( "0" ) )
+					{
+						adm_length = "2";
+					}
+					else if( low_search.equals( "1" ) )
+					{
+						adm_length = "5";
+					}
+					else if( low_search.equals( "2" ) )
+					{
+						adm_length = "7";
+					}
+	
+					sido_cd = adm_cd;
+				}
+				else if( adm_cd.length() == 5 )
+				{
+	
+					if( low_search.equals( "0" ) )
+					{
+						adm_length = "5";
+					}
+					else if( low_search.equals( "1" ) )
+					{
+						//2020년수정변경 시작 (ggm)
+						//is_non_self 가 "Y"일 때 한단계 아래는 비자치구
+						if("Y".equals(is_non_self)) {
+							adm_length = "5";
+						}else {
+							adm_length = "7";
+						}
+						//2020년수정변경 끝
+					}
+					else if( low_search.equals( "2" ) )
+					{
+						adm_length = "13";
+					}
+	
+					sido_cd = adm_cd.substring( 0, 2 );
+					sgg_cd = adm_cd.substring( 2, 5 );
+				}
+				else if( adm_cd.length() == 7  || adm_cd.length() == 8 )
+				{
+	
+					if( low_search.equals( "0" ) )
+					{
+						adm_length = "7";
+					}
+					else if( low_search.equals( "1" ) )
+					{
+						adm_length = "13";
+					}
+					else if( low_search.equals( "2" ) )
+					{
+						adm_length = "13";
+						low_search = "1";
+					}
+	
+					sido_cd = adm_cd.substring( 0, 2 );
+					sgg_cd = adm_cd.substring( 2, 5 );
+					emdong_cd = adm_cd.substring( 5, 7 );
+				}
+				else
+				{
+					throw new ApiException( "행정동 코드를 확인해주세요", COMM_ERR_CODE.ERR_PARAM );
+				}
+				
+				mapParameter.setSido_cd(sido_cd);
+				mapParameter.setSigungu_cd(sgg_cd);// sgg_cd 대체
+				mapParameter.setDong_cd(emdong_cd); //emdong_cd 대체
+				mapParameter.setAdm_length(adm_length);
+				mapParameter.setLow_search(low_search);
+				mapParameter.setZoom(zoom);
+	
+			}
+			else if( area_type.equals( "1" ) )
+			{
+				//userareackeck( mapParameter );
+			}
+		}
+		
+		return mapParameter;
+	}
+
+
+	@Override
+	public List getSbrAreaData(SbrVo sbrVo) throws Exception {
+		
+		sbrVo = checkData(sbrVo);
+		sbrVo = getBordCd(sbrVo);
+		List  result  = sbrStatsMapper.selectSbrAreaData(sbrVo);
+		return result;
+	}
+
+	
+	
+}

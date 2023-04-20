@@ -1,0 +1,540 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.sgis.map.service.mapper.kairos.ThematicMapper">
+	<sql id="paingCommonWhere">
+		s.thema_map_category = t.thema_map_category
+		AND t.category_icon_id = d.category_icon_id
+		AND s.srv_yn='Y'
+		AND t.srv_yn='Y'
+		<if test="type != null and type != ''">
+		AND s.thema_map_category = #{type}
+		</if>
+		<if test="keywords != null and keywords != ''">
+		AND s.title like '%' || #{keywords} || '%'
+		</if>
+		<if test="id != null and id != ''">
+		AND	s.stat_thema_map_id= #{id}
+		</if>
+	</sql>
+
+	<!--
+	<select id="selectThematicList" parameterType="String" resultType="egovMap">
+		SELECT
+			s.stat_thema_map_id AS stat_thema_map_id,
+			s.title AS title,
+			s.thema_map_exp AS thema_exp,
+			s.max_expnsn_level,
+			s.disp_mthd AS disp_method,
+			s.rel_stat_info,
+			s.year_info,
+			s.thema_map_type AS type
+		FROM mng_dt_themamaplist s, mng_dt_themamapcategory t, mng_dt_themamapicon d
+		<where>
+				s.thema_map_category = t.thema_map_category
+			AND t.category_icon_id = d.category_icon_id
+			AND s.srv_yn='Y'
+			AND t.srv_yn = 'Y'
+			<if test="value != null and value != ''">
+				AND	s.thema_map_category = #{value}
+			</if>
+		</where>
+		ORDER BY s.priority_disp_yn DESC, s.reg_ts DESC
+	</select>
+	 -->
+
+	 <select id="selectThematicList" parameterType="HashMap" resultType="egovMap">
+	select 
+	b.stat_thema_map_id,
+	b.title,
+	b.thema_exp,
+	b.max_expnsn_level,
+	b.disp_method,
+	b.rel_stat_info,
+	b.year_info,
+	b.type,
+	b.param_adm_cd,
+	b.left_sep_value,
+<!-- 	case when b.stat_thema_map_id ='sAXkcVzk5V202007141335257355ued9032uw' then -->
+<!-- 	(select incdec from srv_dt_thema_covid19_status where -->
+<!-- 		base_year||base_month||base_day = (select top 1 base_year||base_month||base_day  from srv_dt_thema_covid19_status order by reg_ts desc) and sido_cd = substr(${ref_adm_id}, 0, 2) ) -->
+<!-- 	when b.stat_thema_map_id ='uHaX8JJqyh20201014110114231lgMgsJnINP' then -->
+<!-- 	(select new_cancer_patnt_cnt from srv_dt_thema_cancer_patnt_data where -->
+<!-- 		base_year = (select top 1 base_year from srv_dt_thema_cancer_patnt_data order by base_year desc) and sido_cd = substr(${ref_adm_id}, 0, 2) and cancer_type_div_cd = '0' ) -->
+<!-- 	when b.stat_thema_map_id ='MmLSKu8PgQ20201022173339083sOVy6YCGQj' then -->
+<!-- 	(select icd_patnt_cnt from srv_dt_thema_icd_patnt_data where -->
+<!-- 		base_year = (select top 1 base_year from srv_dt_thema_icd_patnt_data order by base_year desc) and sido_cd = substr(${ref_adm_id}, 0, 2) and chart_disp_order = '0' and icd_clst_nm = '제1군' ) -->
+<!-- 	when b.stat_thema_map_id ='RZ3pr7Maou20201106160851389D0RGtYCGpW' then -->
+<!-- 	(select avg_tmprt_value from srv_dt_thema_wether_data where -->
+<!-- 		base_year = (select top 1 base_year from srv_dt_thema_wether_data order by base_year desc) and sido_cd = substr(${ref_adm_id}, 0, 2) ) -->
+<!-- 	when b.stat_thema_map_id ='wPsSdFX8Wt20210520161423833UZjHClj5U3' then -->
+<!-- 	(select sum(dprs_cnt) from srv_pt_thema_tfcacd_data where -->
+<!-- 		occrrnc_year = (select top 1 occrrnc_year from srv_pt_thema_tfcacd_data order by occrrnc_year desc) and sido_cd = substr(${ref_adm_id}, 0, 2) ) -->
+<!-- 	else b.left_sep_value end left_sep_value, -->
+
+<!-- 	case when b.stat_thema_map_id ='sAXkcVzk5V202007141335257355ued9032uw' then -->
+<!-- 	(select top 1 sido_cd from srv_dt_thema_covid19_status where sido_cd = substr(${ref_adm_id}, 0, 2)) -->
+<!-- 	when b.stat_thema_map_id ='uHaX8JJqyh20201014110114231lgMgsJnINP' then (select top 1 sido_cd from srv_dt_thema_cancer_patnt_data where sido_cd = substr(${ref_adm_id}, 0, 2)) -->
+<!-- 	when b.stat_thema_map_id ='MmLSKu8PgQ20201022173339083sOVy6YCGQj' then (select top 1 sido_cd from srv_dt_thema_icd_patnt_data where sido_cd = substr(${ref_adm_id}, 0, 2) ) -->
+<!-- 	when b.stat_thema_map_id ='RZ3pr7Maou20201106160851389D0RGtYCGpW' then (select top 1 sido_cd from srv_dt_thema_wether_data where sido_cd = substr(${ref_adm_id}, 0, 2) ) -->
+<!-- 	when b.stat_thema_map_id ='wPsSdFX8Wt20210520161423833UZjHClj5U3' then (select top 1 sido_cd from srv_pt_thema_tfcacd_data where sido_cd = substr(${ref_adm_id}, 0, 2) ) -->
+<!-- 	else b.adm_cd end adm_cd, -->
+
+<!-- 	case when b.stat_thema_map_id ='sAXkcVzk5V202007141335257355ued9032uw' then -->
+<!-- 	(select top 1 base_year from srv_dt_thema_covid19_status where sido_cd = substr('2503060', 0, 2) order by reg_ts desc) -->
+<!-- 	when b.stat_thema_map_id ='uHaX8JJqyh20201014110114231lgMgsJnINP' then (select top 1 base_year from srv_dt_thema_cancer_patnt_data where sido_cd = substr(${ref_adm_id}, 0, 2) and cancer_type_div_cd = '0' order by base_year desc) -->
+<!-- 	when b.stat_thema_map_id ='MmLSKu8PgQ20201022173339083sOVy6YCGQj' then (select top 1 base_year from srv_dt_thema_icd_patnt_data where sido_cd = substr(${ref_adm_id}, 0, 2) and chart_disp_order = '0' and icd_clst_nm = '제1군' order by base_year desc) -->
+<!-- 	when b.stat_thema_map_id ='RZ3pr7Maou20201106160851389D0RGtYCGpW' then (select top 1 base_year from srv_dt_thema_wether_data where sido_cd = substr(${ref_adm_id}, 0, 2) order by base_year desc) -->
+<!-- 	when b.stat_thema_map_id ='wPsSdFX8Wt20210520161423833UZjHClj5U3' then (select top 1 occrrnc_year from srv_pt_thema_tfcacd_data where sido_cd = substr(${ref_adm_id}, 0, 2) order by occrrnc_year desc) -->
+<!-- 	else b.data_base_year end data_base_year, -->
+
+<!-- 	case when b.stat_thema_map_id ='sAXkcVzk5V202007141335257355ued9032uw' then -->
+<!-- 	(select top 1 'covid19_status' from srv_dt_thema_covid19_status) -->
+<!-- 	when b.stat_thema_map_id ='uHaX8JJqyh20201014110114231lgMgsJnINP' then (select top 1 'cancer_data' from srv_dt_thema_cancer_patnt_data) -->
+<!-- 	when b.stat_thema_map_id ='MmLSKu8PgQ20201022173339083sOVy6YCGQj' then (select top 1 'infection_data' from srv_dt_thema_icd_patnt_data) -->
+<!-- 	when b.stat_thema_map_id ='RZ3pr7Maou20201106160851389D0RGtYCGpW' then (select top 1 'weather_data' from srv_dt_thema_wether_data) -->
+<!-- 	when b.stat_thema_map_id ='wPsSdFX8Wt20210520161423833UZjHClj5U3' then (select top 1 'car_accident_data' from srv_pt_thema_tfcacd_data) -->
+<!-- 	else b.data_thema_map_data_id end data_thema_map_data_id, -->
+	b.disp_rank,
+	 LOG_DET_CD.cnt from (
+select
+	a.stat_thema_map_id,
+	a.title,
+	a.thema_exp,
+	a.max_expnsn_level,
+	a.disp_method,
+	a.rel_stat_info,
+	a.year_info,
+	a.type,
+   trim(a.param_adm_cd) as param_adm_cd,
+   nvl(data.left_sep_value, 0) || ' ' || a.left_sep_unit as left_sep_value,
+   nvl(data.adm_cd,substr(a.param_adm_cd,0,2)) as adm_cd,
+   nvl(data.base_year,a.base_year) as data_base_year,
+   nvl(data.thema_map_data_id,a.thema_map_data_id) as data_thema_map_data_id,
+   a.disp_rank
+from (
+SELECT
+		s.stat_thema_map_id AS stat_thema_map_id,
+		s.title AS title,
+		s.thema_map_exp AS thema_exp,
+		s.max_expnsn_level,
+		s.left_sep_unit,
+		s.disp_mthd AS disp_method,
+		s.rel_stat_info,
+		s.year_info,
+		s.thema_map_type AS type,
+		s.priority_disp_yn,
+		s.reg_ts,
+		s.disp_rank,
+		s.thema_map_data_id,
+		right(s.year_info, 4) as base_year,
+		cast (case when s.max_expnsn_level = '01'
+		then substr(${ref_adm_id}, 0, 2) when s.max_expnsn_level = '02'
+		then substr(${ref_adm_id}, 0, 5)||'   ' when s.max_expnsn_level = '03'
+		then ${ref_adm_id} when s.max_expnsn_level = '04'
+		then ${ref_adm_id} end as char(7)) as param_adm_cd
+		FROM mng_dt_themamaplist s,
+			  mng_dt_themamapcategory t,
+			  mng_dt_themamapicon d
+		WHERE s.thema_map_category = t.thema_map_category
+		AND t.category_icon_id = d.category_icon_id
+		AND s.srv_yn='Y'
+		AND t.srv_yn = 'Y'
+		and s.mobile_srv_yn = 'Y'
+		AND s.thema_map_category = #{CTGR}
+		AND s.title like '%' || #{title} || '%'
+) a, mng_dt_themamapdata data
+where a.thema_map_data_id  = data.thema_map_data_id (+) and data.base_year (+) = a.base_year
+and data.adm_cd (+)  = a.param_adm_cd
+) b, (
+			SELECT trim(DET_CD) as det_cd,
+				sum(call_cnt) AS CNT
+			FROM SRV_LOG
+			WHERE
+			CALL_ts BETWEEN to_char(ADD_MONTHS(SYSDATE, -1),'yyyyMMdd') and to_char(SYSDATE - 1, 'yyyyMMdd')
+			AND F_CLASS_1_CD = 'B0'
+			AND F_CLASS_2_CD = '03'
+			AND F_CLASS_3_CD = '01'
+			AND F_CLASS_4_CD = '00'
+			GROUP BY trim(DET_CD)
+) LOG_DET_CD
+where b.title	= log_det_cd.DET_CD (+)
+order by b.disp_rank
+				<!-- 2020.09.16[한광희] 메인 조회시 limit 관련 변수 추가 START -->
+				<if test="mainType != null and mainType == 'main'">
+					LIMIT 3
+				</if>
+				<!-- 2020.09.16[한광희] 메인 조회시 limit 관련 변수 추가 END -->
+			<!-- 2020.09.14[한광희] 코로나19 추가 END -->
+	</select>
+
+
+
+	<select id="selectThematicInfo" resultType="egovMap">
+		SELECT
+			 stat_thema_map_id,  							 /*통계주제도ID*/
+			 thema_map_category,					 		 /*주제도카테고리*/
+			 manager_id,							 		 /*관리자ID*/
+			 title,								     		 /*제목*/
+			 thema_map_exp,									 /*설명 exp는 대문자로*/
+			 reg_ts,							     		 /*등록일시*/
+			 thema_map_type,					     		 /*주제도종류 */
+			 /*stat_disp_level,					     통계표출레벨 */
+			 hits,									  		 /*조회수*/
+			 max_expnsn_level,					     		 /*최대 확대레벨*/
+			 min_redctn_level,								 /*최소 축소레벨*/
+			 start_x_coor,									 /*시작 X좌표*/
+			 start_y_coor,							 		 /*시작 Y좌표*/
+			 base_year,										 /*경계년도 A*/
+			 left_sep_nm,									 /*표출정보 A 명*/
+			 left_sep_unit,									 /*표출정보 A 단위*/
+			 right_sep_nm,									 /*표출정보 B 명*/
+			 right_sep_unit,								 /*표출정보 B 단위*/
+			 stat_data_base_year,							 /*데이터 년도*/
+			 trim(thema_map_data_id) as thema_map_data_id,   /*주제도데이터ID*/
+			 left_sep_ttip_title,							 /*표출정보 A 툴팁 타이틀*/
+			 right_sep_ttip_title,							 /*표출정보 B 툴팁 타이틀*/
+			 left_sep_chart_title,							 /*표출정보 B 차트 타이틀*/
+			 right_sep_chart_title,							 /*표출정보 B 차트 타이틀*/
+			 trim(sep_map_data_id) as sep_map_data_id,   	 /*주제도데이터ID*/
+			 sep_map_data_year,							     /*분할맵 데이터 년도*/
+			 sep_map_left_sep_nm,							 /*분할맵 데이터 ID*/
+			 sep_map_left_sep_unit,							 /*분할맵 표출정보 A 명*/
+			 sep_map_right_sep_nm,							 /*분할맵 표출정보 A 단위*/
+			 sep_map_right_sep_unit,						 /*분할맵 표출정보 B 명*/
+			 sep_map_left_sep_ttip_title,					 /*분할맵 표출정보 B 단위*/
+			 sep_map_right_sep_ttip_title,					 /*분할맵 표출정보 A 출처*/
+			 sep_map_left_sep_source,						 /*분할맵 표출정보 B 출처*/
+			 sep_map_right_sep_source,						 /*분할맵 데이터 년도*/
+			 left_sep_source,								 /*분할맵 표출정보 B 출처*/
+			 right_sep_source,						 		/*분할맵 데이터 년도*/
+			 exmpl_type,									/*범례종류*/
+			 atdrc_yn,										/*자치구 여부*/
+			 bord_fix_yn,									/*시계열경계년도*/
+			 add_data_disp_yn,								/*추가데이터유무*/
+			 poi_disp_yn,									/*poi 표출 유무*/
+			 theme_cd,										/*poi 표출 테마코드*/
+			 stat_thema_map_file_url                        /*old*/
+		FROM mng_dt_themamaplist
+		WHERE stat_thema_map_id = #{value}
+		and mobile_srv_yn = 'Y'
+
+		ORDER BY priority_disp_yn DESC, reg_ts DESC
+	</select>
+	<select id="selectThemaMapBaseYearType04" parameterType="String" resultType="String">
+		SELECT
+			irds_year as BASE_YEAR
+		FROM mng_dt_themamapchange
+		WHERE thema_map_data_id = #{value}
+		GROUP BY irds_year
+		ORDER BY irds_year
+	</select>
+	<select id="selectThemaMapBaseYearType05" parameterType="String" resultType="String">
+<!-- 	<select id="selectThemaMapBaseYearType05" parameterType="HashMap" resultType="HashMap"> -->
+		<if test ="_parameter =='cancer_data'">
+ 			SELECT
+				base_year
+ 			FROM srv_dt_thema_cancer_patnt_data
+			GROUP by base_year
+			ORDER BY base_year
+		</if>
+		<if test ="_parameter =='infection_data'">
+			SELECT
+				base_year
+ 			FROM srv_dt_thema_icd_patnt_data
+			GROUP by base_year
+			ORDER BY base_year
+		</if>
+		<if test ="_parameter =='weather_data'">
+ 			SELECT
+				base_year
+ 			FROM srv_dt_thema_wether_data
+			GROUP by base_year
+			ORDER BY base_year
+		</if>
+		<if test ="_parameter =='car_accident_data'">
+			SELECT distinct occrrnc_year as base_year
+			FROM srv_pt_thema_tfcacd_data with (nolock)
+			ORDER BY occrrnc_year
+		</if>
+		<if test ="_parameter !='cancer_data' and _parameter !='infection_data'  and _parameter !='weather_data' and _parameter != 'car_accident_data'">
+			SELECT
+				BASE_YEAR				/*기준년도*/
+			FROM mng_dt_themamapdata
+			WHERE trim(thema_map_data_id) =  #{thema_map_data_id}
+			GROUP BY BASE_YEAR
+			ORDER BY BASE_YEAR
+		</if>
+	</select>
+
+	<!-- 2020.09.15[한광희] 코로나19 추가 START -->
+	<!-- 2020.09.15[한광희] 코로나19 맵정보 조회 -->
+	<select id="selectThematicInfoCovid19" resultType="egovMap">
+		SELECT
+			 'sAXkcVzk5V202007141335257355ued9032uw' AS stat_thema_map_id,  							 /*통계주제도ID*/
+			 'CTGR_005' AS thema_map_category,					 		 /*주제도카테고리*/
+			 '' as manager_id,							 		 /*관리자ID*/
+			 '코로나19 발생 현황'title,								     		 /*제목*/
+			 '코로나19 발생 전국 현황, 시·도별 확진 환자 현황 제공 주제도&lt;br /&gt;※ 출처 : 코로나19 시도 발생현황(보건복지부)' as thema_map_exp,									 /*설명 exp는 대문자로*/
+			 '' as reg_ts,							     		 /*등록일시*/
+			 '05' as thema_map_type,					     		 /*주제도종류 */
+			 /*stat_disp_level,					     통계표출레벨 */
+			 '' as hits,									  		 /*조회수*/
+			 '01' as max_expnsn_level,					     		 /*최대 확대레벨*/
+			 '01' as min_redctn_level,								 /*최소 축소레벨*/
+			 '989674' as start_x_coor,									 /*시작 X좌표*/
+			 '1818313' as start_y_coor,							 		 /*시작 Y좌표*/
+			 base_year-1 as base_year,										 /*경계년도 A*/
+			 '신규' as left_sep_nm,									 /*표출정보 A 명*/
+			 '명' as left_sep_unit,									 /*표출정보 A 단위*/
+			 '누적' as right_sep_nm,									 /*표출정보 B 명*/
+			 '명' as right_sep_unit,								 /*표출정보 B 단위*/
+			 base_year as stat_data_base_year,							 /*데이터 년도*/
+			 base_month as stat_data_base_month,							 /*데이터 월*/
+			 base_day as stat_data_base_day,							 /*데이터 일*/
+			 'COVID19' as thema_map_data_id,   /*주제도데이터ID*/
+			 '신규 확진자' as left_sep_ttip_title,							 /*표출정보 A 툴팁 타이틀*/
+			 '누적 확진자' as right_sep_ttip_title,							 /*표출정보 B 툴팁 타이틀*/
+			 '' as left_sep_chart_title,							 /*표출정보 B 차트 타이틀*/
+			 '' as right_sep_chart_title,							 /*표출정보 B 차트 타이틀*/
+			 '' as sep_map_data_id,   	 /*주제도데이터ID*/
+			 '' as sep_map_data_year,							     /*분할맵 데이터 년도*/
+			 '' as sep_map_left_sep_nm,							 /*분할맵 데이터 ID*/
+			 '' as sep_map_left_sep_unit,							 /*분할맵 표출정보 A 명*/
+			 '' as sep_map_right_sep_nm,							 /*분할맵 표출정보 A 단위*/
+			 '' as sep_map_right_sep_unit,						 /*분할맵 표출정보 B 명*/
+			 '' as sep_map_left_sep_ttip_title,					 /*분할맵 표출정보 B 단위*/
+			 '' as sep_map_right_sep_ttip_title,					 /*분할맵 표출정보 A 출처*/
+			 '' as sep_map_left_sep_source,						 /*분할맵 표출정보 B 출처*/
+			 '' as sep_map_right_sep_source,						 /*분할맵 데이터 년도*/
+			 '코로나19 시도 발생현황(보건복지부)' as left_sep_source,								 /*분할맵 표출정보 B 출처*/
+			 '코로나19 시도 발생현황(보건복지부)' as right_sep_source,						 		/*분할맵 데이터 년도*/
+			 '1' as exmpl_type,									/*범례종류*/
+			 '0' as atdrc_yn,										/*자치구 여부*/
+			 'Y' as bord_fix_yn,									/*시계열경계년도*/
+			 '' as add_data_disp_yn,								/*추가데이터유무*/
+			 'N' as poi_disp_yn,									/*poi 표출 유무*/
+			 '' as theme_cd,										/*poi 표출 테마코드*/
+			 '' as stat_thema_map_file_url                        /*old*/
+		 from SRV_DT_THEMA_COVID19_STATUS
+		 where base_year||base_month||base_day = (select max(base_year||base_month||base_day) from SRV_DT_THEMA_COVID19_STATUS)
+		   and sido_cd = '00'
+	</select>
+
+	<!-- 코로나19 예방접종 맵정보 조회 -->
+	<select id="selectThematicInfoCovid19Vacc" resultType="egovMap">
+		SELECT
+			 'kmOpHLH5cK202106100936161097g5G9nLCFE' AS stat_thema_map_id,  							 /*통계주제도ID*/
+			 'CTGR_005' AS thema_map_category,					 		 /*주제도카테고리*/
+			 '' as manager_id,							 		 /*관리자ID*/
+			 '코로나19 예방접종 현황'title,								     		 /*제목*/
+			 '코로나19 예방접종 전국 현황, 회차별 신규,누적 접종현황 제공 주제도&lt;br /&gt;※ 출처 : 코로나19 예방접종 현황(질병관리청)' as thema_map_exp,									 /*설명 exp는 대문자로*/
+			 '' as reg_ts,							     		 /*등록일시*/
+			 '05' as thema_map_type,					     		 /*주제도종류 */
+			 /*stat_disp_level,					     통계표출레벨 */
+			 '' as hits,									  		 /*조회수*/
+			 '01' as max_expnsn_level,					     		 /*최대 확대레벨*/
+			 '01' as min_redctn_level,								 /*최소 축소레벨*/
+			 '989674' as start_x_coor,									 /*시작 X좌표*/
+			 '1818313' as start_y_coor,							 		 /*시작 Y좌표*/
+			 base_year-1 as base_year,										 /*경계년도 A*/
+			 '신규' as left_sep_nm,									 /*표출정보 A 명*/
+			 '명' as left_sep_unit,									 /*표출정보 A 단위*/
+			 '누적' as right_sep_nm,									 /*표출정보 B 명*/
+			 '명' as right_sep_unit,								 /*표출정보 B 단위*/
+			 base_year as stat_data_base_year,							 /*데이터 년도*/
+			 base_month as stat_data_base_month,							 /*데이터 월*/
+			 base_day as stat_data_base_day,							 /*데이터 일*/
+			 'covid_vacc_data' as thema_map_data_id,   /*주제도데이터ID*/
+			 '신규 접종자' as left_sep_ttip_title,							 /*표출정보 A 툴팁 타이틀*/
+			 '누적 접종자' as right_sep_ttip_title,							 /*표출정보 B 툴팁 타이틀*/
+			 '' as left_sep_chart_title,							 /*표출정보 B 차트 타이틀*/
+			 '' as right_sep_chart_title,							 /*표출정보 B 차트 타이틀*/
+			 '' as sep_map_data_id,   	 /*주제도데이터ID*/
+			 '' as sep_map_data_year,							     /*분할맵 데이터 년도*/
+			 '' as sep_map_left_sep_nm,							 /*분할맵 데이터 ID*/
+			 '' as sep_map_left_sep_unit,							 /*분할맵 표출정보 A 명*/
+			 '' as sep_map_right_sep_nm,							 /*분할맵 표출정보 A 단위*/
+			 '' as sep_map_right_sep_unit,						 /*분할맵 표출정보 B 명*/
+			 '' as sep_map_left_sep_ttip_title,					 /*분할맵 표출정보 B 단위*/
+			 '' as sep_map_right_sep_ttip_title,					 /*분할맵 표출정보 A 출처*/
+			 '' as sep_map_left_sep_source,						 /*분할맵 표출정보 B 출처*/
+			 '' as sep_map_right_sep_source,						 /*분할맵 데이터 년도*/
+			 '코로나19 예방접종 현황(질병관리청)' as left_sep_source,								 /*분할맵 표출정보 B 출처*/
+			 '코로나19 예방접종 현황(질병관리청)' as right_sep_source,						 		/*분할맵 데이터 년도*/
+			 '1' as exmpl_type,									/*범례종류*/
+			 '0' as atdrc_yn,										/*자치구 여부*/
+			 'Y' as bord_fix_yn,									/*시계열경계년도*/
+			 '' as add_data_disp_yn,								/*추가데이터유무*/
+			 'N' as poi_disp_yn,									/*poi 표출 유무*/
+			 '' as theme_cd,										/*poi 표출 테마코드*/
+			 '' as stat_thema_map_file_url                        /*old*/
+		 from SRV_DT_THEMA_COVID19_VACNTN
+		 where base_year||base_month||base_day = (select max(base_year||base_month||base_day) from SRV_DT_THEMA_COVID19_STATUS)
+		   and sido_cd = '00'
+	</select>
+
+	<!-- 개인카드 사용금액 연도정보 조회 -->
+	<select id="selectThemaMapBaseMonthYear05CreditCard" parameterType="String" resultType="String">
+ 			 SELECT
+			distinct(left(BASE_YEAR,2)) as base_year
+ 			FROM mng_dt_themamapdata
+			WHERE trim(thema_map_data_id) = #{value}
+			AND BASE_YEAR <![CDATA[<>]]> '9016'
+			GROUP by left(BASE_YEAR,2)
+			ORDER BY left(BASE_YEAR,2)
+	</select>
+
+	<!-- 개인카드 사용금액 월정보 조회 -->
+	<select id="selectThemaMapBaseMonthType05CreditCard" parameterType="String" resultType="String">
+			 SELECT
+			distinct(right(BASE_YEAR,2)) as base_year
+ 			FROM mng_dt_themamapdata
+			WHERE trim(thema_map_data_id) = 'credit_card_amount'
+			AND BASE_YEAR <![CDATA[<>]]> '9016'
+			AND left(BASE_YEAR,2) = #{value}
+			GROUP by right(BASE_YEAR,2)
+			ORDER BY right(BASE_YEAR,2)
+	</select>
+
+	<!-- 2020.09.15[한광희] 코로나19 연도정보 조회 -->
+	<select id="selectThemaMapBaseMonthYear05Covid19" parameterType="String" resultType="String">
+		SELECT
+			BASE_YEAR				/*기준년도*/
+		FROM SRV_DT_THEMA_COVID19_STATUS
+		group by base_year
+		order by base_year
+	</select>
+
+	<!-- 2020.09.15[한광희] 코로나19 월 정보 조회 -->
+	<select id="selectThemaMapBaseMonthType05Covid19" parameterType="String" resultType="String">
+		SELECT
+			BASE_MONTH				/*기준월*/
+		FROM SRV_DT_THEMA_COVID19_STATUS
+		where base_year = #{value}
+		group by base_month
+		order by base_month
+	</select>
+
+	<!-- 2020.09.15[한광희] 코로나19 일자정보 조회 -->
+	<select id="selectThemaMapBaseDayType05Covid19" parameterType="String" resultType="String">
+		SELECT
+			BASE_DAY				/*기준일*/
+		FROM SRV_DT_THEMA_COVID19_STATUS
+		where base_year||base_month = #{value}
+		group by base_day
+		order by base_day
+	</select>
+
+	<!-- 코로나19 예방접종 연도정보 조회 -->
+	<select id="selectThemaMapBaseMonthYear05Covid19Vacc" parameterType="String" resultType="String">
+		SELECT
+			BASE_YEAR				/*기준년도*/
+		FROM SRV_DT_THEMA_COVID19_VACNTN
+		group by base_year
+		order by base_year
+	</select>
+
+	<!-- 코로나19 예방접종 월 정보 조회 -->
+	<select id="selectThemaMapBaseMonthType05Covid19Vacc" parameterType="String" resultType="String">
+		SELECT
+			BASE_MONTH				/*기준월*/
+		FROM SRV_DT_THEMA_COVID19_VACNTN
+		where base_year = #{value}
+		group by base_month
+		order by base_month
+	</select>
+
+	<!-- 코로나19 예방접종 일자정보 조회 -->
+	<select id="selectThemaMapBaseDayType05Covid19Vacc" parameterType="String" resultType="String">
+		SELECT
+			BASE_DAY				/*기준일*/
+		FROM SRV_DT_THEMA_COVID19_VACNTN
+		where base_year||base_month = #{value}
+		group by base_day
+		order by base_day
+	</select>
+
+	<!-- 2020.09.15[한광희] 코로나19 맵정보 조회 -->
+	<select id="selectCovid19ThematicMapData" parameterType="hashmap" resultType="hashmap">
+		SELECT '1' AS AREA_TYPE	/* 지역구분 */
+			 , BASE_YEAR			/* 기준년도 */
+			 , BASE_MONTH			/* 기준월 */
+			 , BASE_DAY				/* 기준일 */
+			 , SIDO_CD AS ADM_CD	/* 지역코드 */
+			 , (LOCALOCCCNT+OVERFLOWCNT) AS LEFT_DATA_VAL	/* 신규 수치 */
+			 , DEFCNT AS RIGHT_DATA_VAL /* 누적 수치 */
+		FROM SRV_DT_THEMA_COVID19_STATUS
+		WHERE 1=1
+		  AND BASE_YEAR||BASE_MONTH||BASE_DAY = #{stat_data_base_year}||#{stat_data_base_month}||#{stat_data_base_day}
+		  AND SIDO_CD <![CDATA[<>]]> '00'
+		  AND SIDO_CD <![CDATA[<>]]> '99'
+	</select>
+
+	<!-- 코로나19 예방접종 맵정보 조회 -->
+	<select id="selectCovid19VaccThematicMapData" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			'1' as area_type,
+			base_year,
+			sido_cd as adm_cd,
+			<if test ='covid_vacc_cd =="1"'>
+			today_fst_lnocl_cnt as left_data_val
+			</if>
+			<if test ='covid_vacc_cd =="2"'>
+			today_scd_lnocl_cnt as left_data_val
+			</if>
+			<if test ='covid_vacc_cd =="3"'>
+			today_third_lnocl_cnt as left_data_val
+			</if>
+			<if test ='covid_vacc_cd =="4"'>
+			total_scd_lnocl_cnt as right_data_val
+			</if>
+			<if test ='covid_vacc_cd =="5"'>
+			total_scd_lnocl_cnt as right_data_val
+			</if>
+			<if test ='covid_vacc_cd =="6"'>
+			total_third_lnocl_cnt as right_data_val
+			</if>
+		FROM srv_dt_thema_covid19_vacntn
+		WHERE base_year = #{stat_data_base_year}
+		AND	base_month = #{stat_data_base_month}
+		AND base_day = #{stat_data_base_day}
+		AND sido_cd <![CDATA[<>]]> '00'
+	</select>
+
+	<!-- 2020.09.15[한광희] 코로나19 현황판 조회 -->
+	<select id="selectCovid19Stats" parameterType="hashmap" resultType="hashmap">
+		SELECT A.BASE_YEAR 											/* 기준년도 */
+			 , A.BASE_MONTH 										/* 기준월 */
+			 , A.BASE_DAY											/* 기준일 */
+			 , A.LOCALOCCCNT + A.OVERFLOWCNT AS TODAYCNT			/* 일일확진자 */
+			 , A.LOCALOCCCNT										/* 국내발생 */
+			 , A.OVERFLOWCNT										/* 해외발생 */
+			 , A.DEFCNT 											/* 확진환자 */
+			 , A.DEFCNT - B.DEFCNT AS INC_DEFCNT					/* 확진환자-증감률 */
+			 , A.ISOLCLEARCNT										/* 완치 */
+			 , A.ISOLCLEARCNT - B.ISOLCLEARCNT AS INC_ISOLCLEARCNT	/* 완치-증감률 */
+			 , A.ISOLINGCNT											/* 치료중 */
+			 , A.ISOLINGCNT - B.ISOLINGCNT AS INC_ISOLINGCNT		/* 치료중-증감률 */
+			 , A.DEATHCNT											/* 사망 */
+			 , A.DEATHCNT - B.DEATHCNT AS INC_DEATHCNT				/* 사망-증감률 */
+		  FROM (SELECT *
+				  FROM SRV_DT_THEMA_COVID19_STATUS
+				 WHERE BASE_YEAR||BASE_MONTH||BASE_DAY = (SELECT MAX(BASE_YEAR||BASE_MONTH||BASE_DAY) FROM SRV_DT_THEMA_COVID19_STATUS)
+				   AND SIDO_CD = '00'
+			   ) A
+			 , (SELECT *
+				  FROM SRV_DT_THEMA_COVID19_STATUS
+				 WHERE BASE_YEAR||BASE_MONTH||BASE_DAY = (TO_CHAR(TO_DATE((SELECT MAX(BASE_YEAR||BASE_MONTH||BASE_DAY) FROM SRV_DT_THEMA_COVID19_STATUS), 'YYYYMMDD') -1, 'YYYYMMDD'))
+				   AND SIDO_CD = '00'
+			   ) B
+	</select>
+	<!-- 2020.09.15[한광희] 코로나19 추가 END -->
+
+	<!-- 코로나 예방접종 현황판 추가 -->
+	<select id="selectCovid19VaccStats" parameterType="hashmap" resultType="hashmap">
+			SELECT * FROM  root.srv_dt_thema_covid19_vacntn
+			WHERE base_year||base_month||base_day=(select max(base_year||base_month||base_day) max_day from srv_dt_thema_covid19_vacntn)
+			AND sido_cd = '00'
+	</select>
+	<!-- 코로나 예방접종 현황판 추가 -->
+</mapper>

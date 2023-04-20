@@ -1,0 +1,1970 @@
+<%
+/**************************************************************************************************************************
+* Program Name  : 지역변화분석지도 JSP  
+* File Name     : statsMain.jsp
+* Comment       : 
+* History       : (주)아이티밴드, 조재호 2022-10-17
+*
+**************************************************************************************************************************/
+%>
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<!DOCTYPE html>
+<html lang="ko" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <title>지역변화분석지도</title>
+  <link rel="stylesheet" href="/css/lvs/reset.css">
+  <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.js"></script>
+
+  
+  <!-- highchart local -->
+  <script src="/js/lvs/hightcharts/highcharts.js"></script>
+  <script src="/js/lvs/hightcharts/highcharts-more.js"></script>
+  <script src="/js/lvs/hightcharts/solid-gauge.js"></script>
+  <script src="/js/lvs/hightcharts/exporting.js"></script>
+  <script src="/js/lvs/hightcharts/export-data.js"></script>
+  <script src="/js/lvs/hightcharts/accessibility.js"></script>
+  <script src="/js/lvs/hightcharts/funnel.js"></script>
+  <script src="/js/lvs/hightcharts/heatmap.js"></script>
+  <script src="/js/lvs/hightcharts/treemap.js"></script>
+  
+  <script type="text/javascript" src="https://sgisapi.kostat.go.kr/OpenAPI3/auth/javascriptAuth?consumer_key=a99e5d61217a450e941f"></script>  
+  
+
+  <!-- highchart CDN -->
+  <!-- <script src="https://code.highcharts.com/highcharts.js"></script>
+  <script src="https://code.highcharts.com/modules/funnel.js"></script>
+  <script src="https://code.highcharts.com/modules/exporting.js"></script>
+  <script src="https://code.highcharts.com/modules/export-data.js"></script>
+  <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+  <script src="https://code.highcharts.com/modules/heatmap.js"></script>
+  <script src="https://code.highcharts.com/modules/treemap.js"></script>
+  <script src="https://code.highcharts.com/highcharts-more.js"></script>
+  <script src="https://code.highcharts.com/modules/solid-gauge.js"></script> -->
+  
+  <!-- rSlider  -->
+  <script src="/js/lvs/rSlider.min.js"></script>
+
+  <link rel="stylesheet" href="/css/lvs/rSlider.css">
+  <link rel="stylesheet" href="/css/lvs/font.css">
+  <link rel="stylesheet" href="/css/lvs/component.css">
+  <link rel="stylesheet" href="/css/lvs/extendBoard.css">
+
+  <script>
+     //페이지 전체변수
+    const mapInfo ={
+		    map: null,    		 
+		    x:953820,   // 현재자기위치
+		    y:1953437, 
+		    x2:953820,  // 화면 외쪽으로 이동한 위치
+		    y2:1953437,
+		    options : {
+                ollehTileLayer: false,
+                scale: false, // 축척 컨트롤
+                panControl: false, // 지도 이동 컨트롤
+                zoom: false,
+                zoomSliderControl: false, //줌 컨트롤
+                measureControl: false, // 측정 컨트롤 (면적, 길이)
+                zoomAnimation: true,
+                statisticTileLayer: true,
+                attributionControl: false // 지도속성 컨트롤
+            }, 
+            
+            data:  { 
+            	population: null,  // 총조사 주요지표
+            },
+            
+            dataType:'population',
+            dataKind:'tot_ppltn',
+            mode: 'hide',
+            curAdm: '',
+            consumer_key: 'a99e5d61217a450e941f',
+            consumer_secret: 'a1b738cf78ee4c76a334',
+            accessToken: null,
+            year: '2020',
+            adm_cd: '25030',   // 대전 25030 대전서구
+            legendColor: ["#f51d05"],
+            borderColor: ["#000000"],            
+            level: 6,
+            oriArea: null,
+            sopArea: null,
+            addrObj: null,  //현재주소정보
+            sidoObj: null,  //시도정보
+            sggObj: null, //시군구정보
+            sliderCnt: 18, //슬라이더 안의 차트개수
+            sliderPage: 4, //슬라이더 안의 차트개수
+            intervalId: null, // 지도로딩 여부체크
+            dummy: null
+	} ;
+     
+  
+    $(document).ready(function () {
+    	  init_event_config();
+    	  init_map();
+    	  
+     });
+    
+    
+	 function init_map(){
+	   	 if (navigator.geolocation) {
+	   	      navigator.geolocation.getCurrentPosition(function (position) {
+		   	      var utmkXY = new sop.LatLng (position.coords.latitude, position.coords.longitude);
+		   	  	  mapInfo.x = utmkXY.x;
+		   	  	  mapInfo.y = utmkXY.y ;
+		   	  	  //mapInfo.x2 = mapInfo.x + 5000 ;
+		   	  	  //mapInfo.y2 = mapInfo.y + 1000 ;
+		   	  	  
+		   	  	  mapInfo.x2 = parseFloat(parseFloat(mapInfo.x) + 1000)  ;
+		   	  	  mapInfo.y2 = parseFloat(parseFloat(mapInfo.y) + -1000)  ;		   	  	  
+		   	  	  
+		   	   	  mapInfo.map = sop.map("map",mapInfo.options);
+		   		  mapInfo.map.setView(sop.utmk(mapInfo.x2, mapInfo.y2), mapInfo.level);
+		   		
+		   		  getToken();
+	   	      });
+	   	  } else {
+	   	   	  mapInfo.map = sop.map("map",mapInfo.options);
+	   		  mapInfo.map.setView(sop.utmk(mapInfo.x, mapInfo.y), mapInfo.level);
+	   		  mapInfo.map.dragging.enable();
+	   		  getToken();
+	   	  }
+   	  }
+	 
+	 function changeLocation(){
+		 getSggInfo($("#sido_select option:selected").val(), 2);
+	 }
+	 
+	 function selectViewMode(mode){
+		 if(mode==1) {
+			 $('.province').addClass('active');
+			 $('.county').removeClass('active');
+			 $('.subCounty').removeClass('active');
+			 $('.subCounty').hide();	
+			 mapInfo.curAdm = "" ;
+		 } else if (mode==2) {
+			 $('.province').removeClass('active');
+			 $('.county').addClass('active');			 
+			 $('.subCounty').removeClass('active');
+			 $('.subCounty').hide();
+			 mapInfo.curAdm = "" ;			 
+		 } else if (mode==3) {
+			 $('.province').removeClass('active');
+			 $('.county').removeClass('active');			 
+			 $('.subCounty').addClass('active');
+			 $('.subCounty').show();			 
+		 }
+	 }
+	 
+	 
+	 function redrawMap(){
+		 //선택된 시도/시군구 여부에 따라 x, y좌표를 알아온다.
+		 let sido_cd = $("#sido_select option:selected").val() ;
+		 let sgg_cd = $("#sgg_select option:selected").val() ;
+		 
+		 
+		 
+		 if (sgg_cd=="0") {
+			 for(let i=0; i< mapInfo.sidoObj.length; i++){
+				 if (mapInfo.sidoObj[i].cd == sido_cd ){
+					 mapInfo.x =  mapInfo.sidoObj[i].x_coor ;
+					 mapInfo.y =  mapInfo.sidoObj[i].y_coor ;
+				 }
+			 }
+		 } else {
+			 for(let i=0; i< mapInfo.sggObj.length; i++){
+				 if (mapInfo.sggObj[i].cd == sgg_cd ){
+					 mapInfo.x =  mapInfo.sggObj[i].x_coor ;
+					 mapInfo.y =  mapInfo.sggObj[i].y_coor ;					 
+				 }
+			 }
+		 }
+		 
+  	  	  mapInfo.x2 = parseFloat(parseFloat(mapInfo.x) + 1000)  ;
+   	  	  mapInfo.y2 = parseFloat(parseFloat(mapInfo.y) + -1000)  ;		   	  	  
+		 
+		 $('#btn_close').trigger("click");
+		 runDrawMap();
+	 }
+	 
+	 function runDrawMap(){
+		getReverseGeo();  //지오코딩
+						
+	 }
+	 
+	 function getToken(){
+			$.ajax({
+	              url : "https://sgisapi.kostat.go.kr/OpenAPI3/auth/authentication.json" +
+	              		"?consumer_key="+mapInfo.consumer_key+"&consumer_secret="+mapInfo.consumer_secret,
+	              type : "get",
+					success: function (res, status) {
+						mapInfo.accessToken = res.result.accessToken;
+
+					},
+					complete : function(){
+						getReverseGeo();  //지오코딩						
+						
+				    },
+					
+				});
+	 }
+	 
+	 function getReverseGeo(){
+			$.ajax({
+  	              url : "https://sgisapi.kostat.go.kr/OpenAPI3/addr/rgeocode.json?accessToken="+mapInfo.accessToken+"&x_coor="+mapInfo.x+"&y_coor="+mapInfo.y+"&addr_type=20",	              				
+	              type : "get",
+					success: function (res, status) {
+						mapInfo.addrObj = res.result[0] ;
+						mapInfo.adm_cd = mapInfo.addrObj.sido_cd + mapInfo.addrObj.sgg_cd ;
+				   		mapInfo.map.setView(sop.utmk(mapInfo.x2, mapInfo.y2), mapInfo.level);						
+						displayAddrInfo();						
+					},
+					complete : function(){
+						getArea();						
+				    },
+				});
+	 }
+	 
+	 function displayAddrInfo(){
+			$("#curSido").html(mapInfo.addrObj.sido_nm);
+			$("#curSgg").html(mapInfo.addrObj.sgg_nm);
+			$("#myFullAddr").html(mapInfo.addrObj.full_addr);			
+			
+			setTimeout(getSidoInfo, 100);
+	 }
+	 
+	 function getSidoInfo(){
+			$.ajax({
+	              url : "https://sgisapi.kostat.go.kr/OpenAPI3/addr/stage.json?accessToken="+mapInfo.accessToken,	              				
+	              type : "get",
+					success: function (res, status) {
+						mapInfo.sidoObj = res.result ;
+						getSggInfo(mapInfo.addrObj.sido_cd,1);						
+					},
+					complete : function(){
+				    },
+				});
+	 }
+	 
+	 function getSggInfo(cd,mode){
+			$.ajax({
+	              url : "https://sgisapi.kostat.go.kr/OpenAPI3/addr/stage.json?accessToken="+mapInfo.accessToken+"&cd="+cd,	              				
+	              type : "get",
+					success: function (res, status) {
+						mapInfo.sggObj = res.result ;
+						displayAddrCombo(mode);
+					},
+					complete : function(){
+				    },
+				});
+	 }
+	 
+ 
+	 function displayAddrCombo(mode){
+		  if (mode==1) {
+			makeSelect("sido_select",mapInfo.sidoObj, mapInfo.addrObj.sido_cd, "<option selected='selected' disabled >시/도</option>" );
+			makeSelect("sgg_select", mapInfo.sggObj, mapInfo.addrObj.sido_cd+mapInfo.addrObj.sgg_cd, "<option selected='selected' value='0'>시/군/구</option>" );
+		  } else if(mode==2) {
+				makeSelect("sgg_select", mapInfo.sggObj, '', "<option selected='selected' value='0'>시/군/구</option>" );			  
+		  }
+	 }
+	 
+	 function makeSelect(id,obj,curValue,preOption){
+		 $("#"+id).empty();
+	     $("#"+id).append(preOption);
+         for (var i=0; i<obj.length; i++ ) {
+        	 let selected = "" ;
+        	 if (obj[i].cd == curValue) selected = " selected " ;
+	         $("#"+id).append("<option value='"+obj[i].cd+"' "+selected+">" + obj[i].addr_name+"</option>");
+	      }			
+	 }
+	 
+	 
+	 function getArea(){
+		    clear();
+			$.ajax({
+	              url : "https://sgisapi.kostat.go.kr/OpenAPI3/boundary/hadmarea.geojson?accessToken="+mapInfo.accessToken+"&year="+mapInfo.year+"&adm_cd="+mapInfo.adm_cd,
+	              type : "get",
+					success: function (res, status) {
+						// layer add 
+						mapInfo.oriArea = res;						
+	                	mapInfo.sopArea = sop.geoJson(res).addTo(mapInfo.map);	
+	                	//var obj = mapInfo.map.fitBounds(mapInfo.sopArea.getBounds());
+						getStatistic('color');
+				   		mapInfo.map.setView(sop.utmk(mapInfo.x2, mapInfo.y2), mapInfo.level);
+	                		
+					},
+					complete : function(){
+				    },
+				});
+	 }
+	 
+	 
+	 //현재 영역선택
+	 function selectCurAdm(curAdm, dongNm) {
+		 mapInfo.curAdm = curAdm ;
+		 $("#curYmd").html(dongNm);
+		 selectViewMode(3);
+		 reDrawArea();
+	 } 
+	 
+	 function reDrawArea(){
+		    mapInfo.sopArea.remove();
+           	mapInfo.sopArea = sop.geoJson(mapInfo.oriArea).addTo(mapInfo.map);
+			setDataForLayer(mapInfo.dataType, mapInfo.dataKind, mapInfo.curAdm);
+	 }
+	 
+	 function checkLoad(bChk) {
+		 console.log("로딩여부") ;
+		 console.log(bChk);
+		 
+		 if (bChk) {
+			 clearInterval(mapInfo.intervalId);
+			  var center = mapInfo.map.getCenter();
+			  var x = center.x;
+			  var y = center.y;
+			  
+			  x = x + 300000 ;
+			  //y = y - 1000 ;			  
+			  
+			  mapInfo.map.mapMove([x,y],mapInfo.level,true);
+			 
+		 }
+	 }
+	 
+	 
+	 function getStatistic(type){
+			$.ajax({
+	              url : "https://sgisapi.kostat.go.kr/OpenAPI3/stats/population.json?accessToken="+mapInfo.accessToken+"&year="+mapInfo.year+"&adm_cd="+mapInfo.adm_cd+"&low_search=1",	            		  
+	              type : "get",
+					success: function (res, status) {
+						
+						//인구통계에다 담는다.
+						console.log("----------- [ 가구통계 조회 성공 ] -----------");
+						console.log(res.result);
+						mapInfo.data.population = res.result ;
+						setDataForLayer('population','tot_ppltn','');
+					},
+					complete : function(){
+				    },
+				});
+	 }
+	 
+
+	 function setDataForLayer(dataType, dataKind, curAdmCd){
+			//target = res.result;  //mapInfo.data.population;
+			
+			if (dataType=="population") {
+				target = mapInfo.data.population ;
+			}
+			
+			var idx, len, target, conComplite = {}, key, value, strToolTip;
+
+			for (idx = 0, len = target.length; idx < len; idx ++) {
+				conComplite[target[idx].adm_cd] = target[idx];
+			}
+			var objectList = new Array();
+			
+			mapInfo.sopArea.eachLayer(function (layer) {
+				key = layer.feature.properties.adm_cd;
+				value = conComplite[key];
+
+				if (!value) { return; }
+
+				strToolTip = "<p>지역(구)명 : " + value.adm_nm + "</p>";
+				strToolTip += "<p>총인구 : " + value.tot_ppltn + "</p>";
+				strToolTip += "<p>ADM : " + key + "</p>";
+
+				layer.bindToolTip(strToolTip);
+				
+				const dong_nm = value.adm_nm + "" ;
+				const curAdm = key + "" ;
+				
+				layer.on("click",function(e){selectCurAdm(curAdm, dong_nm);});
+				
+				console.log(mapInfo.mode)
+				
+				if (mapInfo.mode=="show") 
+					layer.setCaption({title:value.tot_ppltn, color:"black"});
+				
+				var object = new Object();
+				object.value = value.tot_ppltn;
+				object.admCd = key;
+				objectList.push(object);
+			});
+			
+			//var legend = calculateLegend(objectList);
+			var legend = calLegend(objectList);						
+			areaFillColor(objectList,legend);					 
+		 
+	 }
+	 
+	 
+	 
+	function calLegend(objectList){
+		var minVal = -999;
+		var maxVal = -999;
+		var arithmeticVal = 0.00 ;
+		var arData = [] ;
+		
+		if(objectList == null || objectList.length == 0){
+			return arData;
+		}
+		
+		for(var i=0; i<objectList.length; i++){
+			if (minVal== -999 || objectList[i].value < minVal)
+			    minVal  = parseFloat(parseFloat(objectList[i].value).toFixed(2));				
+			
+			if (maxVal== -999 || objectList[i].value >= maxVal)
+			    maxVal  = parseFloat(parseFloat(objectList[i].value).toFixed(2));
+		}
+		
+		arithmeticVal = parseFloat(parseFloat((maxVal + minVal)/7).toFixed(2));
+		
+		arData[0] = minVal ;
+		arData[6] = maxVal ;
+		
+		for(var i=1; i<=5; i++){
+			arData[i] = parseFloat(parseFloat(i*arithmeticVal+minVal).toFixed(2));
+		}
+		return arData ;
+	}
+	 
+		
+	function areaFillColor(objectList,legend){
+			
+			mapInfo.sopArea.eachLayer(function (layer) {
+				var admCd = layer.feature.properties.adm_cd;
+				
+				for(var i =0; i < objectList.length; i++){
+					if(objectList[i].admCd == admCd){
+						var pos = -1 ;
+						
+						if(objectList[i].value <=legend[0]){
+							pos = 0 ;
+						} 
+						
+						if(objectList[i].value >=legend[legend.length-1]){
+							pos = legend.length-1 ;
+						} 
+						
+						for(var j=0; j<legend.length-1; j++){
+							if(objectList[i].value  < legend[j+1] ){
+								pos = j ;
+								break;
+							}
+						}
+						
+						var  weight_val = 1 ;
+						if (admCd == mapInfo.curAdm) weight_val = 5 ;
+ 
+						let opactiy = (1+pos)* 0.125 ;
+						layer.setStyle({
+							weight : weight_val,
+							color : mapInfo.borderColor[mapInfo.borderColor.length-1],
+							fillColor : mapInfo.legendColor[mapInfo.legendColor.length-1],
+							fillOpacity : opactiy,    //투명도
+						});
+					}
+				}
+			});
+		}
+		
+		
+	 
+	 
+	 function clear(){
+		if (mapInfo.sopArea) {
+			mapInfo.sopArea.remove();
+		}
+		mapInfo.sopArea = undefined;
+		mapInfo.oriArea = undefined;
+	 }
+	 
+	 
+    //이벤트 등록
+    function init_event_config(){
+          $(".map_data").click(function () {
+            if (!$(this).hasClass("active")) {
+              $(this).addClass("active");
+              mapInfo.mode = 'show';
+            } else {
+              $(this).removeClass("active");
+              mapInfo.mode = 'hide';              
+            }
+            reDrawArea();
+          });   //데이터 표시
+
+          $('.location_more').click(function () {
+            if (!$(this).hasClass("active")) {
+              $(this).addClass("active");
+
+            } else {
+              $(this).removeClass("active");
+            }
+            $('.location_more_box').toggle();
+          });
+
+          $('#btn_close').click(function () {
+            $('.location_more_box').hide();
+            $('.location_more').removeClass("active");
+          });
+    }
+
+
+  </script>
+</head>
+
+<body>
+  <style>
+
+	body {position: relative; width:100vw; height: 100vh;}
+    .mapWrapper {position: absolute;height: 100%;width:100%;}
+    /* -----------------------------------header------------------------------------------- */
+    
+    .menu {padding: 20px 15px;background: #fff;}
+    .gnb {display: flex;justify-content: space-between;}
+
+    .gnb li {
+      font-size: 12px;
+      color: #444;
+      text-align: center;
+    }
+
+    .gnb li a {
+      display: block;
+      width: 100%;
+    }
+
+    .gnb li div {
+      width: 45px;
+      height: 45px;
+      border: 1px solid #ccc;
+      border-radius: 50%;
+      margin-left: 5px;
+      padding: 9px;
+      margin-bottom: 10px;
+    }
+
+    .gnb li .round_box1 {
+      background: url("/images/lvs/icon/gnb_icon_1.png") center center no-repeat;
+    }
+
+    .gnb li .round_box2 {
+      background: url("/images/lvs/icon/gnb_icon_2.png") center center no-repeat;
+    }
+
+    .gnb li .round_box3 {
+      background: url("/images/lvs/icon/gnb_icon_3.png") center center no-repeat;
+    }
+
+    .gnb li .round_box4 {
+      background: url("/images/lvs/icon/gnb_icon_4.png") center center no-repeat;
+    }
+
+    .gnb li .round_box5 {
+      background: url("/images/lvs/icon/gnb_icon_5.png") center center no-repeat;
+    }
+
+    .gnb li.active .round_box1 {
+      background: url("/images/lvs/icon/gnb_icon_color_1.png") center center no-repeat;
+    }
+
+    .gnb li.active .round_box2 {
+      background: url("/images/lvs/icon/gnb_icon_color_2.png") center center no-repeat;
+    }
+
+    .gnb li.active .round_box3 {
+      background: url("/images/lvs/icon/gnb_icon_color_3.png") center center no-repeat;
+    }
+
+    .gnb li.active .round_box4 {
+      background: url("/images/lvs/icon/gnb_icon_color_4.png") center center no-repeat;
+    }
+
+    .gnb li.active .round_box5 {
+      background: url("/images/lvs/icon/gnb_icon_color_5.png") center center no-repeat;
+    }
+
+    .gnb li.active a span {
+      color: #2A62FF;
+    }
+
+    .gnb li.active div {
+      border: 1px solid #2A62FF;
+    }
+
+    /* ------tab1--------------- */
+
+    .tabs {height: 35px;}
+    .tabs li {
+      width: 145px;
+      height: 35px;
+      border: 1px solid #ccc;
+      float: left;
+      line-height: 35px;
+      text-align: center;
+    }
+
+    .tabs li:first-child {
+      border-radius: 2px 0 0 2px;
+    }
+
+    .tabs li:last-child {
+      border-radius: 0 2px 2px 0;
+    }
+
+    .tabs li.active {
+      background-color: #2A62FF;
+      border: 1px solid #2A62FF;
+    }
+
+    .tabs li.active a {
+      color: #fff;
+    }
+
+    .tabs li a {
+      font-size: 14px;
+      color: #0B0E11;
+      display: block;
+      font-weight: bold;
+    }
+
+
+    .tab_content::-webkit-scrollbar {
+      width: 3px;
+      border-radius: 10px;
+    }
+
+    .tab_content::-webkit-scrollbar-thumb {
+      height: 10%;
+      background: rgba(102, 102, 102, 0.5);
+      border-radius: 10px;
+    }
+
+    .tab_content::-webkit-scrollbar-track {
+      background: #ccc;
+    }
+
+    /* --------------------- */
+    /* --------------------- */
+    
+
+
+
+    /* -----------------------tab2------------------- */
+    .tab_container2 {
+      height: 100%;
+    }
+
+    .tab_container2>span {
+      float: left;
+    }
+
+    .tab_container2 .tab_content2 {
+      width: 432px;
+      height: 140px;
+      box-sizing: border-box;
+      clear: both;
+    }
+
+    .tabs2 {
+      width: auto;
+      height: auto;
+      float: right;
+      margin-bottom: 10px;
+    }
+
+    .tabs2 li {
+      width: 26px;
+      height: 26px;
+      border: 1px solid #E2E2E2;
+      float: left;
+      border-radius: 2px;
+    }
+
+    .tabs2 li:first-child {
+      margin-right: 5px;
+      background: url("/images/lvs/icon/icon-reports-grey.png") center center no-repeat;
+    }
+
+    .tabs2 li:last-child {
+      background: url("/images/lvs/icon/icon-page-grey.png") center center no-repeat;
+    }
+
+    .tabs2 li a {
+      display: block;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .tabs2 li:first-child.active {
+      background: url("/images/lvs/icon/icon-reports.png") center center no-repeat;
+      border: 1px solid #00B271;
+    }
+
+    .tabs2 li:last-child.active {
+      background: url("/images/lvs/icon/icon-page.png") center center no-repeat;
+      border: 1px solid #00B271;
+    }
+
+    .tab_content.tabs2 li.active a {
+      color: #000;
+    }
+
+
+
+
+    .tab_content2:last-child::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .tab_content2:last-child::-webkit-scrollbar-thumb {
+      height: 30%;
+      background: rgba(102, 102, 102, 0.5);
+      border-radius: 10px;
+    }
+
+    .tab_content2:last-child::-webkit-scrollbar-track {
+      background: #ccc;
+    }
+
+    .tab_content2:last-child p {
+      margin-bottom: 20px;
+    }
+
+    .tab_content2:last-child span {
+      font-weight: bold;
+      color: #FF5F5F;
+    }
+
+    /* --------------------slider----------------- */
+
+    /* -----------------------tab3--------------------- */
+    .tab_container3 {
+      width: 100%;
+    }
+
+    .tab_container3>span {
+      display: block;
+      width: 100%;
+      text-align: right;
+      float: left;
+    }
+
+    .slide_tab {
+      height: 20px;
+      margin-bottom: 10px;
+      float: right;
+    }
+
+    .slide_tab li {
+      width: 45px;
+      border: 1px solid #ccc;
+      float: left;
+      line-height: 20px;
+      text-align: center;
+    }
+
+    .slide_tab li:first-child {
+      border-radius: 2px 0 0 2px;
+    }
+
+    .slide_tab li:last-child {
+      border-radius: 0 2px 2px 0;
+    }
+
+    .slide_tab li.active {
+      background-color: #3ECF9A;
+      border: 1px solid #00B271;
+    }
+
+    .slide_tab li.active a {
+      color: #fff;
+    }
+
+    .slide_tab li a {
+      font-size: 12px;
+      color: #666;
+      display: block;
+      font-weight: bold;
+    }
+
+    /* -------------------------------------------------------------------------------------- */
+
+    /* .extend_data_02 .main_sec01 .content{width: 187px;height: auto;background:#fff;padding: 18px;} */
+
+
+    /* -----------------------tab4--------------------- */
+
+
+
+
+
+    /* --------------------------------------------------------------- */
+    .br {
+      border: 1px solid #ccc;
+    }
+  </style>
+
+  	<div class="mapWrapper" id="map">지도영역</div>
+    <div class="header">
+      <div class="logo_box">
+        <a rel="" href="#popup01" class="layerOpen logo">
+          <img src="/images/lvs/img/logo.png" alt="">
+        </a>
+        <h1 onclick="openPopup('type1')">지역변화 분석지도</h1>
+      </div>
+      <div class="menu">
+        <button type="button" name="button" class="btn_extend active" id="btn_extend"
+          onclick="boardController(this,'type1')" data-type="type1" data-link="board1">
+          <p>우리동네 상황판</p>
+        </button>
+        <ul class="gnb" id="tabIndicator">
+          <li onclick="boardController(this,'type2','tab1')" data-link="tab1"><a href="javascript:void(0)">
+              <div class="round_box1"></div><span>인구·가구</span>
+            </a></li>
+          <li onclick="boardController(this,'type2','tab2')" data-link="tab2"><a href="javascript:void(0)">
+              <div class="round_box2"></div><span>주거·교통</span>
+            </a></li>
+          <li onclick="boardController(this,'type2','tab3')" data-link="tab3"><a href="javascript:void(0)">
+              <div class="round_box3"></div><span>복지·문화</span>
+            </a></li>
+          <li onclick="boardController(this,'type2','tab4')" data-link="tab4"><a href="javascript:void(0)">
+              <div class="round_box4"></div><span>노동·경제</span>
+            </a></li>
+          <li onclick="boardController(this,'type2','tab5')" data-link="tab5"><a href="javascript:void(0)">
+              <div class="round_box5"></div><span>안전·환경</span>
+            </a></li>
+        </ul>
+
+      </div>
+      <div class="tab_container">
+        <!--탭 메뉴 영역 -->
+        <div class="tabs">
+          <ul id="tabIndicatorSub" class="tabCommon">
+            <li><a href="javascript:void(0)" rel="sub1" data-tabname="tab3" onclick="boardController(this,'type3')"
+                data-link="sub1">추천 지표 보기</a></li>
+            <li><a href="javascript:void(0)" rel="sub2" data-tabname="tab3" onclick="boardController(this,'type3')"
+                data-link="sub2">모든 지표 보기</a></li>
+          </ul>
+        </div>
+        
+      </div>
+      <div id="sub2" class="tab_content3">
+        <div class="resultAcc" data-link="tab1">
+          <button class="btn_top active" type="button" name="button" onclick="accordian(this)">인구주택총조사(인구조건/가구조건)</button>
+          <div class="result_box accContent">
+            <div class="cate_menu tabCommon">
+              <ul>
+                <li class="active"><a href="#" rel="step01" data-tabname="tab6">인구조건</a></li>
+                <li><a href="#" rel="step02" data-tabname="tab6">가구조건</a></li>
+              </ul>
+            </div>
+            <div id="step01" class="step_box tab_content6" style="display: block;">
+              <form class="">
+                <div class="select_box">
+                  <p>조사년도</p>
+                  <div>
+                    <select name="year">
+                      <option value="none" selected>선택</option>
+                      <option value="2019">2019</option>
+                      <option value="2020">2020</option>
+                      <option value="2021">2021</option>
+                      <option value="2022">2022</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="select_box">
+                  <p>성별</p>
+                  <div>
+                    <input id="all" type="radio" name="pol" value="">
+                    <label for="all">전체</label>
+                    <input id="male" type="radio" name="pol" value="">
+                    <label for="male">남자</label>
+                    <input id="female" type="radio" name="pol" value="">
+                    <label for="female">여자</label>
+                  </div>
+                </div>
+
+                <div class="select_box rxRanger">
+                  <p>연령</p>
+                  <ul class="tab tabCommon">
+                      <li><input id="ab1" type="radio" name="ab" value="" checked><label for="ab1" onclick="themeInnerTab('theme1AgeRanger')">구간선택</label></li>
+                      <li><input id="ab2" type="radio" name="ab" value=""><label for="ab2" onclick="themeInnerTab('theme1AgeList')">목록선택</label></li>
+                  </ul>
+                  
+                  <div class="rxSlider option_box tabBox show" data-tabName="theme1AgeRanger" style="display: block">
+                    <div class="optionText">
+                      <div class="select_area">
+                        <select name="year">
+                          <option value="none">10세</option>
+                          <option value="2019">20세</option>
+                          <option value="2020">30세</option>
+                        </select>
+                        <span>이상~</span>
+                        <select name="year">
+                          <option value="none">90세</option>
+                          <option value="2019">100세</option>
+                          <option value="2019">100+</option>
+                        </select>
+                        <span>미만</span>
+                      </div>
+                    </div>
+                    <div class="rangeWrap">
+                      <input type="text" id="ageRangeSlider" />
+                    </div>
+
+                  </div>
+                  <div class="option_box tabBox" data-tabName="theme1AgeList">
+                    <div class="step_family">
+                      <div class="checkbox_list">
+                        <div class="list_text"><input type="checkbox" name="" id="step_family01" value=""><label for="step_family01">0세~7세미만</label></div>
+                        <div class="tooltip" data-title="ss"></div>
+                      </div>
+                      <div class="checkbox_list">
+                        <div class="list_text"><input type="checkbox" name="" id="step_family02" value=""><label for="step_family02">7세 ~ 13세 미만</label></div>
+                        <div class="tooltip"></div>
+                      </div>
+                      <div class="checkbox_list">
+                        <div class="list_text"><input type="checkbox" name="" id="step_family03" value=""><label for="step_family03">13세 ~ 16세 미만</label></div>
+                        <div class="tooltip"></div>
+                      </div>
+                      <div class="checkbox_list">
+                        <div class="list_text"><input type="checkbox" name="" id="step_family04" value=""><label for="step_family04">16세 ~ 19세 미만</label></div>
+                        <div class="tooltip"></div>
+                      </div>
+                    </div>
+                    <div class="step_family">
+                      <div class="checkbox_list">
+                        <div class="list_text"><input type="checkbox" name="" id="step_family05" value=""><label for="step_family05">0세 ~ 15세 미만</label></div>
+                        <div class="tooltip"></div>
+                      </div>
+
+                      <div class="checkbox_list">
+                        <div class="list_text"><input type="checkbox" name="" id="step_family06" value=""><label for="step_family06">15세 ~ 65세 미만</label></div>
+                        <div class="tooltip"></div>
+                      </div>
+
+                      <div class="checkbox_list">
+                        <div class="list_text"><input type="checkbox" name="" id="step_family07" value=""><label for="step_family07">65세 이상</label></div>
+                        <div class="tooltip"></div>
+                      </div>
+
+                    </div>
+                  </div>
+
+                </div>
+
+                <div class="btn_botton">
+                  <button class="btn_botton" type="button" name="button">인구조건 검색</button>
+                </div>
+              </form>
+            </div>
+            <div id="step02" class="step_box tab_content6">
+              <form class="">
+                <p>세대구성(다중선택 가능)</p>
+                <div class="option_box">
+                  <div class="step_family">
+                    <div class="checkbox_list">
+                      <div class="list_text"><input type="checkbox" name="" id="step_kind01" value=""><label for="step_kind01">1세대 가구</label></div>
+                      <div class="tooltip"></div>
+                    </div>
+                    <div class="checkbox_list">
+                      <div class="list_text"><input type="checkbox" name="" id="step_kind02" value=""><label for="step_kind02">2세대 가구</label></div>
+                      <div class="tooltip"></div>
+                    </div>
+                    <div class="checkbox_list">
+                      <div class="list_text"><input type="checkbox" name="" id="step_kind03" value=""><label for="step_kind03">3세대 가구</label></div>
+                      <div class="tooltip"></div>
+                    </div>
+                    <div class="checkbox_list">
+                      <div class="list_text"><input type="checkbox" name="" id="step_kind04" value=""><label for="step_kind04">4세대 이상 가구</label></div>
+                      <div class="tooltip"></div>
+                    </div>
+                  </div>
+
+                  <div class="step_family">
+                    <div class="checkbox_list">
+                      <div class="list_text"><input type="checkbox" name="" id="step_kind05" value=""><label for="step_kind05">1인가구</label></div>
+                      <div class="tooltip"></div>
+                    </div>
+                    <div class="checkbox_list">
+                      <div class="list_text"><input type="checkbox" name="" id="step_kind06" value=""><label for="step_kind06">비친족가구</label></div>
+                      <div class="tooltip"></div>
+                    </div>
+
+                  </div>
+                </div>
+
+                <div class="btn_botton">
+                  <button class="btn_botton" type="button" name="button">가구조건 검색</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div class="resultAcc" data-link="tab2">
+          <button class="btn_top active" type="button" name="button" onclick="accordian(this)">인구주택총조사(주택조건)</button>
+          <div class="result_box accContent" data-link="tab2">
+            <div id="step03" class="step_box tab_content6">
+              <form class="">
+                <div class="select_box">
+                  <p>조사년도</p>
+                  <select name="year">
+                    <option value="none" selected>선택</option>
+                    <option value="2019">2019</option>
+                    <option value="2020">2020</option>
+                    <option value="2021">2021</option>
+                    <option value="2022">2022</option>
+                  </select>
+                </div>
+
+                <div class="select_box acc">
+                  <p onclick="accordian(this)">주택유형(다중선택 가능)</p>
+                  <div class="option_box accContent">
+                    <div class="checkbox_list">
+                      <div class="list_text"><input type="checkbox" name="stkind" id="st3kine1" value=""><label for="st3kine1">단독주택</label></div>
+                      <div class="tooltip"></div>
+                    </div>
+                    <div class="checkbox_list">
+                      <div class="list_text"><input type="checkbox" name="stkind" id="st3kine2" value=""><label for="st3kine2">아파트</label></div>
+                      <div class="tooltip"></div>
+                    </div>
+                    <div class="checkbox_list">
+                      <div class="list_text"><input type="checkbox" name="stkind" id="st3kine3" value=""><label for="st3kine3">연립주택</label></div>
+                      <div class="tooltip"></div>
+                    </div>
+                    <div class="checkbox_list">
+                      <div class="list_text"><input type="checkbox" name="stkind" id="st3kine4" value=""><label for="st3kine4">다세대주택</label></div>
+                      <div class="tooltip"></div>
+                    </div>
+                    <div class="checkbox_list">
+                      <div class="list_text"><input type="checkbox" name="stkind" id="st3kine5" value=""><label for="st3kine5">비주거용건물</label></div>
+                      <div class="tooltip"></div>
+                    </div>
+                    <div class="checkbox_list">
+                      <div class="list_text"><input type="checkbox" name="stkind" id="st3kine6" value=""><label for="st3kine6">주택이외의 거처</label></div>
+                      <div class="tooltip"></div>
+                    </div>
+                  </div>
+                </div>
+                  
+                
+                <div class="select_box">
+                  <p>건축년도</p>
+                  <select name="year">
+                    <option value="none" selected>선택</option>
+                    <option value="2019">2019</option>
+                    <option value="2020">2020</option>
+                    <option value="2021">2021</option>
+                    <option value="2022">2022</option>
+                  </select>
+                </div>
+
+                <div class="select_box acc">
+                  <p onclick="accordian(this)">연면적</p>
+                  <div class="option_box accContent">
+                    <div class="optionText">
+                      <div class="select_area">
+                        <select name="year">
+                          <option value="">0</option>
+                          <option value="">20</option>
+                          <option value="">30</option>
+                        </select>
+                        <span>초과~</span>
+                        <select name="year">
+                          <option value="">90</option>
+                          <option value="">100</option>
+                          <option value="">100</option>
+                        </select>
+                        <span>이하</span>
+                      </div>
+                    </div>
+                    <input type="text" id="theme2SizeSlider">
+
+                  </div>
+                </div>
+                <div class="btn_botton">
+                  <button class="btn_botton" type="button" name="button">주택 조건 검색</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div class="checkbox_listWrap">
+          <div class="checkbox_list">
+            <div class="list_text">
+              <input type="radio" name="ex3Type" id="extype1" value="">
+              <label for="extype1" onclick="excuteIndicator('aType')">A 타입</label>
+            </div>
+            <div class="tooltip" data-title="A 타입" data-desc="지표 설명" data-level="시도" data-year="2015~2021"></div>
+          </div>
+          <div class="checkbox_list">
+            <div class="list_text">
+              <input type="radio" name="ex3Type" id="extype2" value="">
+              <label for="extype2" onclick="excuteIndicator('bType')">B 타입</label>
+            </div>
+            <div class="tooltip" data-title="B 타입" data-desc="지표 설명" data-level="시도" data-year="2015~2021"></div>
+          </div>
+          <div class="checkbox_list">
+            <div class="list_text">
+              <input type="radio" name="ex3Type" id="extype3" value="">
+              <label for="extype3" onclick="excuteIndicator('cType')">C 타입</label>
+            </div>
+            <div class="tooltip" data-title="C 타입" data-desc="지표 설명" data-level="시도" data-year="2015~2021"></div>
+          </div>
+          <div class="checkbox_list">
+            <div class="list_text">
+              <input type="radio" name="ex3Type" id="extype4" value="">
+              <label for="extype4" onclick="excuteIndicator('dType')">D 타입</label>
+            </div>
+            <div class="tooltip" data-title="D 타입" data-desc="지표 설명" data-level="시도" data-year="2015~2021"></div>
+          </div>
+        </div>
+        
+
+
+        
+
+        <script>
+          // 단순 반복 checkbox Append
+          for (i = 0; i < 5; i++) {
+            let html = "";
+            html += '<div class="checkbox_list">'
+            html += '<div class="list_text">'
+            html += '<input type="radio" name="ex3Type" id="radioDummy' + i + '" value="">'
+            html += '<label for="radioDummy' + i + '">다문화가구 현황</label>'
+            html += '</div>'
+            html += '<div class="tooltip"></div>'
+            html += '</div>'
+
+            $(".checkbox_listWrap").append(html)
+
+          }
+        </script>
+      </div>
+    </div>
+    
+      <div class="control_top">
+        <div class="localinfo">
+          <div class="province active">
+            <!-- <img src="" alt=""> -->
+            <span id="curSido" onclick="selectViewMode(1)">대전광역시</span>
+          </div>
+          <div class="county">
+            <span id="curSgg" onclick="selectViewMode(2)">서구</span>
+          </div>
+          
+          <div class="subCounty" style='display:none'>
+            <span id="curYmd" onclick="selectViewMode(3)">가장동</span>
+          </div>
+
+          <div class="selected_data">
+            <span id="curStat">총인구</span>
+          </div>
+        </div>
+        
+      </div>
+      <button class="btn_data_open" type="button" name="button" onclick="toggleBoard()">데이터보드</button>
+      <div class="extend_data_wrap active exBoard" id="extendBoard">
+        <div class="extend_data_header" data-attr="header">
+          <h2 id="exBoardTitle">우리동네 상황판</h2>
+          <div class="extend_panel">
+            <button class="data_player" type="button" name="button" data-status="play" onclick="sliderControl(this)">
+              <i class="icon controller"></i>
+            </button>
+            <button class="data_player" type="button" name="button" data-status="pause" onclick="sliderControl(this)">
+              <i class="icon controller"></i>
+            </button>
+            <a href="#" class="location_more">다른 지역 선택</a>
+            <span></span>
+            <a href="#">이용가이드</a>
+            <button class="btn_download" type="button" name="button">
+              <img src="/images/lvs/icon/icon-import.png" alt="">
+            </button>
+            <button class="btn_data_close" type="button" name="button" onclick="toggleBoard()">
+              <img src="/images/lvs/icon/icon-close.png" alt="">
+            </button>
+            <div class="location_more_box">
+              <div class="heading">
+                <span>다른지역 선택하기</span>
+                <button id="btn_close" type="button" name="button"></button>
+              </div>
+              <div class="content">
+                <strong>내위치</strong>
+                <span id="myFullAddr">대전광역시 서구 대덕대로 242번길 15</span>
+                <div>
+                  <form>
+                    <select name="location_select" id="sido_select" onchange="changeLocation();">
+                    </select>
+                    <select name="location_select" id="sgg_select">
+                      <option value="" selected="selected">시/군/구</option>
+                      <option value="청주시">세종특별자치시</option>
+                      <option value="서구">서구</option>
+                    </select>
+                  </form>
+                  <button type="button" name="button" onclick="redrawMap();">검색</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="extend_data_01 extendBoard" data-attr="type1">
+          <div class="main">
+            <ul class="main_wrap">
+              <li class="main_sec01">
+                <dl>
+                  <dd class="thisYear">
+                    <h5>총 인구 <span>2021년</span></h5>
+                    <h4>1,451,305</h4>
+                    <div>
+                      <span>남자</span>
+                      <span>230,382</span>
+                      <span>여자</span>
+                      <span>239,923</span>
+                    </div>
+                    <p>(단위:명)</p>
+                  </dd>
+                  <dd class="lastYear">
+                    <span>2021년</span>
+                    <span>1,458,415</span>
+                  </dd>
+                </dl>
+              </li>
+              <li class="main_sec02">
+                <!-- ---------------------------------------->
+                <div class="tab_container2">
+                  <!--탭 메뉴 영역 -->
+                  <span>(단위:명)</span>
+                  <div class="tabs2 tabCommon">
+                    <ul>
+                      <li class="active"><a href="#" data-tabName="tab2" rel="tab2_1"></a></li>
+                      <li><a href="#" data-tabName="tab2" rel="tab2_2"></a></li>
+                    </ul>
+                  </div>
+                  <div id="tab2_1" class="tab_content2">
+                    <!-- 고경남 차트 추가 -->
+                    <div id="tab_content2_chart" style="width: 100%;"></div>
+                  </div>
+                  <div id="tab2_2" class="tab_content2">
+                    <p>총 인구 증가가 가장 큰 지역은
+                      <span class="local_txt">
+                        <대전광역시 유성구 (3,100명)>
+                      </span> 순입니다.
+                    </p>
+                    <p>총 인구 감소가 가장 큰 지역은
+                      <span class="local_txt">
+                        <대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)>
+                      </span> 순입니다.
+                    </p>
+                    <p>총 인구 감소가 가장 큰 지역은
+                      <span class="local_txt">
+                        <대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)>
+                      </span> 순입니다.
+                    </p>
+                    <p>총 인구 감소가 가장 큰 지역은
+                      <span class="local_txt">
+                        <대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)>
+                      </span> 순입니다.
+                    </p>
+                    <p>총 인구 감소가 가장 큰 지역은
+                      <span class="local_txt">
+                        <대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)>
+                      </span> 순입니다.
+                    </p>
+                    <p>총 인구 감소가 가장 큰 지역은
+                      <span class="local_txt">
+                        <대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)>
+                      </span> 순입니다.
+                    </p>
+                    <p>총 인구 감소가 가장 큰 지역은
+                      <span class="local_txt">
+                        <대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)>
+                      </span> 순입니다.
+                    </p>
+
+                  </div>
+                </div>
+                <!-- ---------------------------------------->
+              </li>
+            </ul>
+          </div>
+          <div class="sliderWrap">
+
+            <div class="arrows">
+              <div class="prev_arrow">
+                <img src="/images/lvs/icon/icon-arrow-left.png" alt="">
+              </div>
+              <div class="next_arrow">
+                <img src="/images/lvs/icon/icon-arrow-right.png" alt="">
+              </div>
+            </div>
+            <div class="slick_slider sliderContent">
+              <div class="slider" id="sliderContent0"></div>
+              <div class="slider" id="sliderContent1"></div>
+            </div>
+
+          </div>
+        </div>
+        <div class="extend_data_02 extendBoard" data-attr="type2">
+          <div class="main">
+            <ul class="main_wrap">
+              <li class="main_sec01" id="tabType2Content">
+
+              </li>
+              <li class="main_sec02">
+                <div class="tab_container4">
+                  <!--탭 메뉴 영역 -->
+                  <div class="tabs4 tabCommon">
+                    <ul>
+                      <li class="active"><a href="#" data-tabName="tab4" rel="tab4_1">변화 그래프</a></li>
+                      <li><a href="#" data-tabName="tab4" rel="tab4_2">변화 지도</a></li>
+                      <li><a href="#" data-tabName="tab4" rel="tab4_3">지역내순위</a></li>
+                      <li><a href="#" data-tabName="tab4" rel="tab4_4">타 지자체 비교</a></li>
+                    </ul>
+                    <a href="javascript:void(0)" class="btn_other_area layerOpen" onclick="openPopup('type2')">소지역보기</a>
+                  </div>
+
+                  <div id="tab4_1" class="tab4">
+                    <h5 class="title">대전광역시 서구</h5>
+                    <div id="tab4_chart1"></div>
+                  </div>
+                  <div id="tab4_2" class="tab4">
+                    <ul class="area_map">
+                      <li>
+                        <div>
+                          <h5>가장동</h5>
+                          <select name="year">
+                            <option value="none" selected="">선택</option>
+                            <option value="2019">2019</option>
+                            <option value="2020">2020</option>
+                            <option value="2021">2021</option>
+                            <option value="2022">2022</option>
+                          </select>
+                        </div>
+                        <div class="map_type2"></div>
+                      </li>
+                      <li>
+                        <div>
+                          <h5>가장동</h5>
+                          <select name="year">
+                            <option value="none" selected="">선택</option>
+                            <option value="2019">2019</option>
+                            <option value="2020">2020</option>
+                            <option value="2021">2021</option>
+                            <option value="2022">2022</option>
+                          </select>
+                        </div>
+                        <div class="map_type2"></div>
+                      </li>
+                      <li>
+                        <div>
+                          <h5>가장동</h5>
+                          <select name="year">
+                            <option value="none" selected="">선택</option>
+                            <option value="2019">2019</option>
+                            <option value="2020">2020</option>
+                            <option value="2021">2021</option>
+                            <option value="2022">2022</option>
+                          </select>
+                        </div>
+                        <div class="map_type2"></div>
+                      </li>
+                    </ul>
+                  </div>
+                  <div id="tab4_3" class="tab4">
+                    <div class="tabFlex">
+                      <h5 class="title">대전광역시 서구</h5>
+                      <select name="year">
+                        <option value="none" selected="">선택</option>
+                        <option value="2019">2019</option>
+                        <option value="2020">2020</option>
+                        <option value="2021">2021</option>
+                        <option value="2022">2022</option>
+                      </select>
+                    </div>
+                    <div id="tab4_chart3"></div>
+                  </div>
+                  <div id="tab4_4" class="tab4 tab4_4">
+                    <div class="row">
+                      <div class="title">
+                        <div class="crnt">
+                          <p>대전광역시 서구</p>
+                          <button type="button" class="" onclick="openVrsRegionPopup(this)" data-target="row1">비교지역
+                            추가</button>
+                        </div>
+                        <div class="vrs row1Target">
+                          <p class="vs">VS</p>
+                          <p class="regionName">대전광역시 서구</p>
+                          <button type="button" class="" onclick="vrsRegionDelete('row1')">삭제</button>
+                        </div>
+                      </div>
+                      <div class="content">
+                        <div class="sec1">
+                          <div class="chartArea">
+                            <div id="vrsChart1" style="width:100%; height:100%"></div>
+                          </div>
+                        </div>
+                        <div class="sec2">
+                          <div class="current">
+                            <table>
+                              <colgroup>
+                                <col width="40%">
+                                <col width="60%">
+                              </colgroup>
+                              <thead>
+                                <tr>
+                                  <th>연도</th>
+                                  <th>가구</th>
+                                </tr>
+                              </thead>
+                              <tbody id="crnt_tbdoy1">
+
+                              </tbody>
+                            </table>
+                          </div>
+                          <div class="vursus" id="row1_vrs_off">
+                            <p>지역을 선택해주세요.</p>
+                          </div>
+
+                          <div class="vursus table" id="row1_vrs_on">
+                            <table>
+                              <colgroup>
+                                <col width="40%">
+                                <col width="60%">
+                              </colgroup>
+                              <thead>
+                                <tr>
+                                  <th>연도</th>
+                                  <th>가구</th>
+                                </tr>
+                              </thead>
+                              <tbody id="vrs_tbdoy1">
+
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                    <div class="row">
+                      <div class="title">
+                        <div class="crnt">
+                          <p>대전광역시 서구</p>
+                          <button type="button" class="" onclick="openVrsRegionPopup(this)" data-target="row2">비교지역
+                            추가</button>
+                        </div>
+                        <div class="vrs row2Target">
+                          <p class="vs">VS</p>
+                          <p class="regionName">대전광역시 서구</p>
+                          <button type="button" class="" onclick="vrsRegionDelete('row2')">삭제</button>
+                        </div>
+                      </div>
+                      <div class="content">
+
+                        <div class="sec1">
+                          <div class="chartArea">
+                            <div id="vrsChart2" style="width:100%; height:100%"></div>
+                          </div>
+                        </div>
+                        <div class="sec2">
+                          <div class="current">
+                            <table>
+                              <colgroup>
+                                <col width="40%">
+                                <col width="60%">
+                              </colgroup>
+                              <thead>
+                                <tr>
+                                  <th>연도</th>
+                                  <th>가구</th>
+                                </tr>
+                              </thead>
+                              <tbody id="crnt_tbdoy2">
+
+                              </tbody>
+                            </table>
+                          </div>
+                          <div class="vursus" id="row2_vrs_off">
+                            <p>지역을 선택해주세요.</p>
+                          </div>
+
+                          <div class="vursus table" id="row2_vrs_on">
+                            <table>
+                              <colgroup>
+                                <col width="40%">
+                                <col width="60%">
+                              </colgroup>
+                              <thead>
+                                <tr>
+                                  <th>연도</th>
+                                  <th>가구</th>
+                                </tr>
+                              </thead>
+                              <tbody id="vrs_tbdoy2">
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+
+                      </div>
+
+
+                    </div>
+
+                    <div class="vrsRegionPopup">
+                      <input type="hidden" disabled value="" id="vrsRegionElement">
+                      <div class="heading">
+                        <span>소지역보기</span>
+                        <button id="btn_close" type="button" name="button"
+                          onclick="selectVrsRegionPopupClose()"></button>
+                      </div>
+
+                      <div class="content">
+                        <span>타지역을 선택하여 값을 비교해 볼 수 있습니다.</span>
+                        <div>
+                          <select class="vrsSelectBox" name="level1">
+                            <option value="" selected="selected" disabled>시/도</option>
+                            <option value="1">서울특별시</option>
+                            <option value="2">세종특별자치시</option>
+                          </select>
+                          <select class="vrsSelectBox" name="level2">
+                            <option value="" selected disabled>시/군/구</option>
+                            <option value="1">유성구</option>
+                            <option value="2">서구</option>
+                            <option value="3">중구</option>
+                            <option value="4">대덕구</option>
+                          </select>
+                          <select class="vrsSelectBox" name="level3">
+                            <option value="" selected disabled>읍/면/동</option>
+                            <option value="1">둔산동</option>
+                            <option value="2">갈마동</option>
+                            <option value="3">도안동</option>
+                          </select>
+                        </div>
+                        <div class="btnWrap">
+                          <button type="button" class="line" name="button"
+                            onclick="selectVrsRegionPopupClose()">취소</button>
+                          <button type="button" class="primary" name="button"
+                            onclick="vrsRegionPopupSelect()">확인</button>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="extend_data_03 extendBoard" data-attr="type3">
+          <div class="main">
+            <div class="main_wrap">
+              <div class="headerWrap">
+                <p class="title">다문화가구</p> 
+                <div class="btnWrap">
+                  <a href="javascript:void(0)" class="link">통계주제도</a>
+                  <a href="javascript:void(0)" class="link">대화형 통계지도</a>
+                  <a href="javascript:void(0)" class="link">정책통계지도</a>
+                </div>
+              </div>
+              <ul class="text">
+                <li><span class="title">제목: </span><span class="content">다문화가구 현황</span></li>
+                <li><span class="title">출처: </span><span class="content">통계청, 인구주택총조사 (2020년)</span></li>
+                <li><span class="title">지역: </span><span class="content">대전광역시 서구</span></li>
+                <li><span class="title">합계: </span><span class="content">1,966현황</span></li>
+              </ul>
+
+              <div class="exboardType active aType">
+                <div class="section chartArea">
+                  <div class="accHeader">데이터보기</div>  
+                  <div class="accContent">
+                    <div class="chart chart_wrap">
+                      <div id="aType_chart"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="exboardType bType">
+                <div class="section chartArea">
+                  <div class="accHeader">데이터보기</div>
+                  <div class="accContent">
+                    <ul class="tabCommon">
+                      <li class="active"><a href="javascript:void(0)" class="chart" data-tab="bTypeTab1" data-tabname="tab8">차트</a></li>
+                      <li><a href="javascript:void(0)" class="table" data-tab="bTypeTab2" data-tabname="tab8">표</a></li>
+                    </ul>
+                    <ul class="tabContent8 tabContent">
+                      <li class="chart chart_wrap active" data-link="bTypeTab1">
+                        <div id="bType_chart" style="width:100%;"></div>
+                      </li>
+                      <li class="table table_wrap" data-link="bTypeTab2">
+                        <table>
+                          <colgroup>
+                            <col width="25%">
+                            <col width="*">
+                            <col width="15%">
+                            <col width="15%">
+                            <col width="15%">
+                          </colgroup>
+                          <thead>
+                            <tr>
+                              <th>항목</th>
+                              <th>집계구번호</th>
+                              <th>순위</th>
+                              <th>값</th>
+                              <th>비율(%)</th>
+                            </tr>
+                          </thead>
+                          <tbody id="bType_table">
+                          </tbody>
+                        </table>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                
+                <div class="section year">
+                  <div class="accHeader">시계열조회</div>
+                  <div class="accContent">
+                    <div class="yearSlider">
+                      <ul class="yearList">
+                        <li class="active">2000</li>
+                        <li>2005</li>
+                        <li>2010</li>
+                        <li>2015</li>
+                        <li>2016</li>
+                        <li>2017</li>
+                        <li>2018</li>
+                        <li>2019</li>
+                        <li>2020</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="exboardType cType">
+                <div class="section halfSection chartArea">
+                  <div class="half">
+                    <div class="accHeader">데이터보기</div>
+                    <div class="accContent">
+                      <ul class="tabCommon">
+                        <li class="active"><a href="javascript:void(0)" class="chart" data-tab="cTypeTab1" data-tabname="tab8">차트</a></li>
+                        <li><a href="javascript:void(0)" class="table" data-tab="cTypeTab2" data-tabname="tab8">표</a></li>
+                      </ul>
+                      <ul class="tabContent8 tabContent">
+                        <li class="chart chart_wrap active" data-link="cTypeTab1">
+                          <div id="cType_chart1" style="width:100%;"></div>
+                        </li>
+                        <li class="table table_wrap" data-link="cTypeTab2">
+                          <table>
+                            <colgroup>
+                              <col width="25%">
+                              <col width="*">
+                              <col width="15%">
+                              <col width="15%">
+                              <col width="15%">
+                            </colgroup>
+                            <thead>
+                              <tr>
+                                <th>항목</th>
+                                <th>집계구번호</th>
+                                <th>순위</th>
+                                <th>값</th>
+                                <th>비율(%)</th>
+                              </tr>
+                            </thead>
+                            <tbody id="cType_table1">
+                            </tbody>
+                          </table>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+  
+                  <div class="half">
+                    <div class="accHeader">상위 지역 비교 데이터 보기</div>
+                    <div class="accContent">
+                      <ul class="tabCommon">
+                        <li class="active"><a href="javascript:void(0)" class="chart" data-tab="cTypeTab3" data-tabname="tab8">차트</a></li>
+                        <li><a href="javascript:void(0)" class="table" data-tab="cTypeTab4" data-tabname="tab8">표</a></li>
+                      </ul>
+                      <ul class="tabContent9 tabContent">
+                        <li class="chart chart_wrap active" data-link="cTypeTab3">
+                          <div id="cType_chart2"></div>
+                        </li>
+                        <li class="table table_wrap" data-link="cTypeTab4">
+                          <table>
+                            <colgroup>
+                              <col width="50%">
+                              <col width="50%">                            
+                            </colgroup>
+                            <thead>
+                              <tr>
+                                <th>항목</th>
+                                <th>값</th>
+                              </tr>
+                            </thead>
+                            <tbody id="cType_table2">
+                            </tbody>
+                          </table>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                  
+                </div>
+  
+                <div class="section year">
+                  <div class="accHeader">시계열조회</div>
+                  <div class="accContent">
+                    <div class="yearSlider">
+                      <!-- <div class="icons">
+                        <i class="icon"><span class="play"></span></i>
+                        <i class="icon"><span class="setting"></span></i>
+                        <i class="icon"><span class="layer"></span></i>
+                      </div> -->
+                      <ul class="yearList">
+                        <li class="active">2000</li>
+                        <li>2005</li>
+                        <li>2010</li>
+                        <li>2015</li>
+                        <li>2016</li>
+                        <li>2017</li>
+                        <li>2018</li>
+                        <li>2019</li>
+                        <li>2020</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="exboardType dType">
+                <div class="section chartArea">
+                  <div class="accHeader">데이터보기</div>
+                  <div class="accContent">
+                    <ul class="tabCommon">
+                      <li class="active"><a href="javascript:void(0)" class="chart" data-tab="dTypeTab1" data-tabname="tab8">차트</a></li>
+                      <li><a href="javascript:void(0)" class="table" data-tab="dTypeTab2" data-tabname="tab8">표</a></li>
+                    </ul>
+                    <ul class="tabContent8 tabContent">
+                      <li class="chart chart_wrap active" data-link="dTypeTab1">
+                        <div id="dType_chart" style="width:100%;"></div>
+                      </li>
+                      <li class="table table_wrap" data-link="dTypeTab2">
+                        <table>
+                          <colgroup>
+                            <col width="25%">
+                            <col width="*">
+                            <col width="15%">
+                            <col width="15%">
+                            <col width="15%">
+                          </colgroup>
+                          <thead>
+                            <tr>
+                              <th>항목</th>
+                              <th>집계구번호</th>
+                              <th>순위</th>
+                              <th>값</th>
+                              <th>비율(%)</th>
+                            </tr>
+                          </thead>
+                          <tbody id="dType_table">
+                          </tbody>
+                        </table>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+              </div>
+
+              
+
+              
+
+
+
+              
+
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="control_foot extend">
+
+        <button class="map_data" type="button" name="button" onclick="">데이터</button>
+        
+        <div class="control_btn_wrap">
+          <button class="pl" type="button" name="button" onclick="mapInfo.map.zoomIn()">
+            <img src="/images/lvs/icon/icon-zoom-in.png" alt="지도축소">
+          </button>
+          
+          <button class="dot" type="button" name="button" onclick="mapInfo.map.setView(sop.utmk(mapInfo.x2, mapInfo.y2), mapInfo.level)">
+            <img src="/images/lvs/icon/dot.png" alt="초기화">
+            <!-- 시군구 -->
+          </button>
+          <button class="mi" type="button" name="button" onclick="mapInfo.map.zoomOut()">
+            <img src="/images/lvs/icon/icon-zoom-out.png" alt="지도확대">
+          </button>
+        </div>
+      </div>
+     
+    
+
+    <!--소지역 보기 팝업-2022년 10월 19일------------------------->
+    <div class="popup_layer type1">
+      <div class="layer_box popup_home">
+        <div class="info_text">
+          <img src="/images/lvs/icon/icon-i.png" alt="">
+          <p>현재 화면에서 벗어나</p>
+          <p><strong>[우리동네 상황판(메인)]</strong>화면으로</p>
+          <p>이동하시겠습니까?</p>
+        </div>
+        <div class="popup_btn">
+          <a href="#">예</a>
+          <!-- 2022/10/19 -->
+          <a href="#" class="layer_close">아니요</a>
+        </div>
+      </div>
+      <div class="popup_bg"></div>
+    </div>
+
+    <div class="popup_layer type2 success">
+      <!-- 2022/10/19 -->
+      <div class="layer_box popup_location">
+        <!-- 2022/10/19 -->
+        <div class="heading">
+          <span>소지역 보기</span>
+          <button id="btn_close" class="layer_close" type="button" name="button"></button>
+        </div>
+        <div class="content">
+          <div class="title">
+            <h4>가장동</h4>
+            <span>-</span>
+            <span>지표명</span>
+          </div>
+          
+          
+          <div class="tab_container5">
+            <div class="tabs5 tabCommon">
+              <ul>
+                <li class="active"><a href="#" data-tabName="tab5" rel="tab5_1">집계구 보기</a></li>
+                <li><a href="#" data-tabName="tab5" rel="tab5_2">변화 지도</a></li>
+                <li><a href="#" data-tabName="tab5" rel="tab5_3">변화 그래프</a></li>
+              </ul>
+            </div>
+            <div id="tab5_1" class="tab_content5 active">
+              <div class="area_map map_type1"></div>
+              <div class="sop_control"></div>
+            </div>
+            <div id="tab5_2" class="tab_content5">
+              <ul class="area_map">
+                <li>
+                  <span>가장동</span>
+                  <form>
+                    <select name="year">
+                      <option value="none" selected>선택</option>
+                      <option value="2019">2019</option>
+                      <option value="2020">2020</option>
+                      <option value="2021">2021</option>
+                      <option value="2022">2022</option>
+                    </select>
+                  </form>
+                  <div class="map_type2"></div>
+                </li>
+                <li>
+                  <span>가장동</span>
+                  <form>
+                    <select name="year">
+                      <option value="none" selected>선택</option>
+                      <option value="2019">2019</option>
+                      <option value="2020">2020</option>
+                      <option value="2021">2021</option>
+                      <option value="2022">2022</option>
+                    </select>
+                  </form>
+                  <div class="map_type2"></div>
+                </li>
+                <li>
+                  <span>가장동</span>
+                  <form>
+                    <select name="year">
+                      <option value="none" selected>선택</option>
+                      <option value="2019">2019</option>
+                      <option value="2020">2020</option>
+                      <option value="2021">2021</option>
+                      <option value="2022">2022</option>
+                    </select>
+                  </form>
+                  <div class="map_type2"></div>
+                </li>
+              </ul>
+              <div class="sop_control"></div>
+            </div>
+            <div id="tab5_3" class="tab_content5">
+              <div id="popupChart1"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="popup_bg"></div>
+    </div>
+    <!--지도에서 읍면동을 선택하지 않고 비활성된 소지역보기 버튼을 누르면 나오는 팝업 -->
+
+    <!-- 1. 소지역보기에서 노출 
+    2. 테마별 지표가 읍면동 데이터가 없을 때 노출
+    -->
+    <div class="popup_layer type2 failed">
+      <div class="layer_box popup_noti">
+        <div class="info_text">
+          <img src="/images/lvs/icon/icon-i.png" alt="">
+          <p>소지역 보기 기능은 읍면동을 먼저 선택해야 합니다.</p>  
+          <!-- <p>현재 통계는 시군구까지만 조회가 가능하며, 선택된 지역의 읍면동 통계를 볼 수 없습니다.</p> -->
+          <a href="#" class="layer_close ">닫기</a>
+        </div>
+      </div>
+      <div class="popup_bg"></div>
+    </div>
+
+
+
+
+    <!-- 툴팁  -->
+    <div class="tooltip_layer" id="tipLayer">
+      <h5 class="title">지표명</h5>
+      <p class="desc">지표에 대한 정의가 들어갈 공간입니다.</p>
+      <div class="badge">
+        <span class="level active">시도</span>
+        <span class="year">2015~2021</span>
+      </div>
+      <p class="noti">*이 지표는 시도 현황판에서만 활성화 되는 메뉴입니다.</p>
+    </div>
+
+  
+
+  <!-- <script async="defer" src="/js/lvs/func.js"></script> -->
+
+  <script async="defer" src="/js/lvs/common.js"></script>
+  <script async="defer" src="/js/lvs/extendBoardType1.js"></script>
+  <script async="defer" src="/js/lvs/extendBoardType2.js"></script>
+  <script async="defer" src="/js/lvs/extendBoardType3.js"></script>
+  <script async="defer" src="/js/lvs/chartConfig.js"></script>
+
+</body>
+</html>

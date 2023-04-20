@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Login">
+	
+	<insert id="gpkiManagerInsert" parameterType="Map">
+	INSERT INTO mng_dt_managerinfo
+			(
+				 	manager_id
+				, 	manager_nm
+				, 	gpki_key
+				, 	manager_grade
+				, 	dept
+				, 	job_pos
+				, 	tel_no
+				, 	ext_no
+				,	cp_no
+				, 	email
+				,	auth_cert_reg_yn						
+			)
+		VALUES
+			(
+				 	#{manager_id}
+				, 	#{manager_nm}
+				, 	#{gpki_key}
+				, 	#{manager_grade}
+				, 	#{dept}
+				, 	#{job_pos}
+				, 	#{tel_no}
+				, 	#{ext_no}
+				, 	#{cp_no}
+				, 	#{email}
+				, 	'Y'								
+			)		 
+	</insert>
+	
+	<select id="gpkiManagerInfo" parameterType="Map" resultType="Map">
+		SELECT  manager_id,manager_nm ,gpki_key ,manager_grade,dept , job_pos , tel_no , ext_no , cp_no , email , auth_cert_reg_yn , last_access_ip , last_access_ts , last_logout_ts , dupl_login_session_key
+		FROM    mng_dt_managerinfo
+		WHERE   manager_nm = #{manager_nm} and manager_id=#{manager_id}
+	</select>
+		<select id="gpkiManagerInfoGrade" parameterType="Map" resultType="Map">
+		SELECT  manager_id,manager_nm ,gpki_key ,manager_grade,dept , job_pos , tel_no , ext_no , cp_no , email , auth_cert_reg_yn , last_access_ip , last_access_ts , last_logout_ts , dupl_login_session_key
+		FROM    mng_dt_managerinfo
+		WHERE   manager_nm = #{manager_nm} and manager_id=#{manager_id} and  manager_grade not in ('NN')
+	</select>	
+	<select id="gpkiManagerKeyCheck" parameterType="Map" resultType="Map">
+		SELECT  manager_id,manager_nm ,gpki_key ,manager_grade,dept , job_pos , tel_no , ext_no , cp_no , email , auth_cert_reg_yn , last_access_ip , last_access_ts , last_logout_ts , dupl_login_session_key
+		FROM    mng_dt_managerinfo
+		WHERE   manager_nm = #{manager_nm} and manager_id=#{manager_id} and gpki_key=#{gpki_key};
+	</select>
+	
+	<select id="getManagerOverlapCheck" parameterType="Map" resultType="int">
+        SELECT  count(*)
+        FROM    mng_dt_managerinfo
+        WHERE   manager_nm = #{manager_nm} and manager_id=#{manager_id} and gpki_key=#{gpki_key};
+    </select>
+	
+	<update id="gpkiManagerKeyUpdate" parameterType="Map">
+		update mng_dt_managerinfo 
+		set gpki_key = #{gpki_key}
+		where manager_id=#{manager_id}
+	</update>		
+	
+	<select id="loginPost" parameterType="String" resultType="String">
+		select 
+		PW
+		from MNG_DT_MANAGERINFO
+		where MANAGER_ID = #{MANAGER_ID}
+	</select>
+	<update id="loginSuccess" parameterType="Map">
+	update MNG_DT_MANAGERINFO 
+	 <trim suffix="" suffixOverrides=",">
+	 <set>
+		<if test="LAST_ACCESS_TS != null">
+		 LAST_ACCESS_TS = #{LAST_ACCESS_TS},
+		 </if>
+		 <if test="LAST_ACCESS_IP != null">
+		 LAST_ACCESS_IP = #{LAST_ACCESS_IP},
+		 </if>
+		 <if test="DUPL_LOGIN_SESSION_KEY != null">
+		 DUPL_LOGIN_SESSION_KEY = #{DUPL_LOGIN_SESSION_KEY},
+		 </if>
+	 </set>
+	 </trim>  
+	 where MANAGER_ID=#{MANAGER_ID}
+	</update>
+	<update id="loginFail" parameterType="String">
+	 update MNG_DT_MANAGERINFO 
+	 set PW_FAIL_CNT =(PW_FAIL_CNT+1)
+	 where MANAGER_ID = #{MANAGER_ID}
+	</update>
+	<select id="dupl_login" parameterType="Map" resultType="int">
+        SELECT  count(*)
+        FROM    mng_dt_managerinfo
+        WHERE   DUPL_LOGIN_SESSION_KEY=#{DUPL_LOGIN_SESSION_KEY}
+    </select>
+    <select id="ipCheck" parameterType="Map" resultType="int">
+        SELECT  count(*)
+        FROM    MNG_DT_ACCESSMNG
+        WHERE   IP=#{IP}
+        	AND PERMIT_YN='Y'        	
+    </select>
+</mapper>

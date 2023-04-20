@@ -1,0 +1,1429 @@
+<%
+/**************************************************************************************************************************
+* Program Name  : 대화형 통계지도 JSP  
+* File Name     : interactiveMap.jsp
+* Comment       : 
+* History       : 네이버시스템 권차욱, 김성현 2015-09-03
+*
+**************************************************************************************************************************/
+%>
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="java.util.List" %> 
+<%@ page import="org.json.JSONObject" %> 
+<%@ page import="org.json.JSONArray" %> 
+<%@ page import="kostat.sop.ServiceAPI.common.security.Security" %>
+<%
+	String strType = "";
+	String paramObj = "";
+	try {
+		Map map = (Map)request.getAttribute("paramInfo");
+		strType = (String)map.get("type");	
+		if ( strType != null  ){  
+			strType = strType.replaceAll("<","&lt;");  
+			strType = strType.replaceAll(">","&gt;"); 
+		}
+		//2017.12.04 [개발팀] 시큐어코딩
+		strType = Security.cleanXss(strType);
+		if ( strType != null  ){  
+			strType = strType.replaceAll("<","&lt;");  
+			strType = strType.replaceAll(">","&gt;"); 
+		}
+		if (strType.equals("bookmark")   		|| 
+			strType.equals("sharedata")  		||
+			strType.equals("totalindex") 		||
+			strType.equals("population") 		||
+			strType.equals("company") 	 		||
+			strType.equals("household")	 		||
+			strType.equals("house")		 		||
+			strType.equals("farmhousehold") 	||
+			strType.equals("forestryhousehold") ||
+			strType.equals("fisheryhousehold") 	||
+			strType.equals("householdmember") 	||
+			strType.equals("kosis")				||
+			strType.equals("recentdata")		||
+			strType.equals("publicdata")		|| //2017.07.13 [개발팀] 공공데이터 url
+			strType.equals("userdata")			||
+			strType.equals("ecountry")) {
+			paramObj = (String)map.get("paramObj");
+		}
+		if ( paramObj != null  ){  
+			paramObj = paramObj.replaceAll("<","&lt;");  
+			paramObj = paramObj.replaceAll(">","&gt;"); 
+		}
+	} catch (IllegalArgumentException e) {
+		System.out.println("처리중 에러가 발생하였습니다.");
+	} catch (Exception e) {
+		System.out.println("처리중 에러가 발생하였습니다.");
+	}
+%>
+
+<!DOCTYPE html>
+<html lang="ko">
+	<head>
+	    <meta charset="utf-8" />
+	    <meta name="format-detection" content="telephone=no" />
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	    <title>대화형 통계지도 | 통계지리정보서비스</title>
+	    
+	    <!-- <link rel="stylesheet" type="text/css" href="/css/um.css" /> -->
+	    <!-- <link href="/css/common.css" rel="stylesheet" type="text/css" />-->
+	    <!-- <link href="/css/default.css" rel="stylesheet" type="text/css" /> -->
+		<!-- <link href="/css/jquery-ui-1.10.4.custom.css" rel="stylesheet" type="text/css" /> -->
+	    <!-- <link href="/css/wheelcolorpicker.css" rel="stylesheet" type="text/css" /> -->
+	    <link rel="stylesheet"  href="/js/plugins/jquery-easyui-1.4/sop.css" />
+	    <link href="/css/sbr/sbrActiveFunc.css" rel="stylesheet" type="text/css" />
+
+	    <!-- <link rel="stylesheet" type="text/css" href="/css/jquery.mCustomScrollbar.css" />
+	    <link rel="stylesheet" href="/js/plugins/EasyTree/skin-lion/ui.easytree_new.css">
+	    <link rel="stylesheet" type="text/css" href="/js/plugins/colorpicker/css/colpick.css"> -->
+	    <!-- <link rel="stylesheet" href="/css/popup.css">
+	    <link rel="stylesheet" href="/css/tutorial/interactive_tutorial.css"> -->
+	    <!-- <link rel="stylesheet" type="text/css" href="/css/tutorial/common.css"> -->
+	    
+	    <!-- 20221005 김흥교 -->
+	    
+	    <link rel="stylesheet" href="/css/sbr/base.css">
+    	<link rel="stylesheet" href="/css/sbr/font.css">
+    	<link rel="stylesheet" href="/css/sbr/layout.css">
+    	<link rel="stylesheet" href="/css/sbr/component.css">
+	    
+	    <!-- 20221005 이용하 : cdn highchart 사용을 위해 관련 js 주석 처리 -->
+	   	<script src="/js/plugins/jquery.min.js"></script>
+	    <script src="/js/plugins/jquery-ui-1.10.3.custom.js"></script>  
+	    <script src="/js/plugins/jquery.mCustomScrollbar.concat.min.js"></script>  
+	    <script src="/js/plugins/colorpicker/js/colpick.js"></script>
+	    <script src="/js/plugins/jquery.wheelcolorpicker.js"></script>
+	    <script src="/js/plugins/colorpicker/js/jquery.xcolor.js"></script>
+	    <script src="/js/plugins/EasyTree/jquery.easytree.js"></script> 
+	    <script src="/js/plugins/colResizable-1.5.min.js"></script>
+	     
+	    <!-- <script src="/js/plugins/highcharts/highcharts.js"></script> -->
+	    <!-- <script src="/js/plugins/highcharts/highcharts-more.js"></script> -->
+		<!-- <script src="/jsp/pyramid/js/highchart/js/highcharts-3d.src.js"></script> -->
+	    <!-- <script src="/js/plugins/highcharts/modules/exporting.js"></script> -->
+	    <script src="/js/plugins/btoa.js"></script>
+	    <!-- <script src="/js/plugins/highcharts/highchart.drag.js"></script> -->
+	    
+	    <script src="https://code.highcharts.com/highcharts.js"></script>
+		<script src="https://code.highcharts.com/modules/funnel.js"></script>
+		<script src="https://code.highcharts.com/modules/exporting.js"></script>
+		<script src="https://code.highcharts.com/modules/export-data.js"></script>
+		<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+	    
+	    
+	    <!-- 2016.03.23 j.h.Seok -->
+		<!-- <link rel="stylesheet" type="text/css" href="/css/handsontable.full.css"> -->
+	    <script src="/js/plugins/handsontable.full.js"></script>
+	    
+		<script src="/js/plugins/jquery-easyui-1.4/sop-src.js"></script>
+		<script src="/js/plugins/jquery.sha256.js"></script>
+		<script src="/js/plugins/durian-v2.0.js"></script>
+		<script src="/js/common/sop.portal.absAPI.js"></script>
+			   
+		<!-- mng_s 20200402 이진호 / 캐쉬 사용 자동 방지--> 
+	    <script src="/js/common/map.js?version=1.2"></script>
+	    <!-- mng_e 20200402 이진호 -->
+	    
+	    <script src="/js/common/common.js"></script>
+	    <script src="/js/common/mapNavigation.js"></script>
+	    <script src="/js/common/mapInfo/publicDataBoard.js"></script>
+	    <script src="/js/common/mapInfo/mydataDataBoard.js"></script>
+	    <!-- <script src="/js/interactive/interactiveMap.js"></script> -->
+	    <script src="/js/sbr/sbrActiveMap.js"></script>
+	    <script src="/js/interactive/interactiveTutorial.js"></script>
+ 	    <script src="/js/interactive/rotation/jquery.slides.min.js"></script> 
+ 	    <script src="/js/interactive/rotation/interactiveRotation.js"></script> 
+ 
+ 		<script src="/js/interactive/eMapAPI/interactiveSearch.js"></script>
+ 
+	    <script src="/js/interactive/interactiveMapApi.js"></script>
+	    <!-- <script src="/js/interactive/interactiveMapBtn.js"></script> -->
+	    <script src="/js/sbr/sbrActiveMapBtn.js"></script>
+	    <script src="/js/interactive/interactiveMap_kosis.js"></script>
+		<script src="/js/interactive/interactiveMap_ecountry.js"></script>
+	    <!-- <script src="/js/interactive/interactiveLeftMenu.js"></script> -->
+		<script src="/js/interactive/interactiveDataBoard.js"></script>
+	    <script src="/js/common/mapInfo/bookmarkAndShareInfo.js"></script>
+	    
+	
+	    <!-- 사용자지정 컨트롤  -->
+		<script src="/js/thematicMap/thematicMap_api.js"></script>
+	    <script src="/js/common/mapDraw/Draw.Feature.js"></script>
+        <script src="/js/common/mapDraw/Draw.Control.Manager.js"></script>
+        <script src="/js/common/mapDraw/draw/Draw.Cricle.js"></script>
+        <script src="/js/common/mapDraw/draw/Draw.Rectangle.js"></script>
+        <script src="/js/common/mapDraw/draw/Draw.Polygon.js"></script>
+        <script src="/js/common/mapDraw/Draw.Control.Overlay.js"></script>
+        <script src="/js/common/mapDraw/measure/Draw.AreaMeasure.js"></script>
+        <script src="/js/common/mapDraw/measure/Draw.DistanceMeasure.js"></script>
+        <script src="/js/common/mapDraw/Draw.Control.Distance.js"></script>
+        <script src="/js/common/mapDraw/Draw.Control.Poi.js"></script>
+        <script src="/js/common/mapDraw/poi/Poi.InteractiveMap.js"></script>
+        <script src="/js/common/mapDraw/Draw.Control.Measure.js"></script>
+        
+        <script src="/js/board/jquery.paging.js"></script>
+        <script src="/js/common/mapInfo/legendInfo.js"></script>
+     	<script src='/js/plugins/jquery.form.js'></script>
+        <!--[If IE 9]>    
+			<script src="/js/common/classList.js"></script>
+		<![endif]-->
+		
+        <!-- 공유  -->
+        <script  src="/js/interactive/kakao_script_api.js"></script>
+        <!-- 통계갤러리 -->
+        <script src="/js/plugins/slick.min.js"></script>  
+        <script src="/js/plugins/jquery.tagsinput.min.js"></script>
+	    <link rel="stylesheet" type="text/css" href="/sample2/include/css/gallery_pop.css" />  
+    	<script src="/js/gallery/galleryEtc.js"></script>
+    	<script src="/js/plugins/imageCapture/rgbcolor.js"></script>
+    	<script src="/js/plugins/imageCapture/canvg.js"></script>
+        <script src="/js/plugins/imageCapture/html2canvas.js"></script>
+        <script src="/js/plugins/imageCapture/html2canvas.svg.js"></script> <!-- 2017.03.14 svg 이슈 -->
+        
+        <!-- <link rel="stylesheet" type="text/css" href="/css/sbr/data_board.css"> -->
+
+		<!-- 미니맵 -->
+        <link rel="stylesheet" type="text/css" href="/js/plugins/miniMap/Control.MiniMap.css">
+        <script src="/js/plugins/miniMap/Control.MiniMap.js"></script>
+         
+        
+        <!-- SGIS_4 다중시계열 시작-->
+        <link rel="stylesheet" href="/css/map/interactiveMultiTimeStyle.css" />
+		<script src="/js/interactive/interactiveMultiTimeSeries.js"></script>
+        <!-- SGIS_4 다중시계열 끝-->
+        
+        <!-- SGIS_4 다중시계열 시작-->
+        <script src="/js/sbr/sbrChartDataBoard.js"></script>
+        <!-- SGIS_4 다중시계열 끝-->
+        
+        
+        <script src='/js/sbr/sbr.js?var=1'></script>
+        <script src='/js/sbr/sbrtest1.js'></script>
+		<script src="/js/sbr/sbrTotalAnalysis.js"></script>
+        <script src='/js/sbr/sbrChart.js?var=2'></script>
+        <script>
+        
+        var strType;
+       		$(document).ready(
+    			function() {
+	    			//mng_s 20180412_김건민	
+					/* if(getCookie("confirmMsg") == ""){
+		       				$(".Popup_Info").hide();
+	    					readyTutorial();
+	    				} */
+	    			//mng_e 20180412_김건민	
+	    			
+    				var tutorialFlag = true;
+	       			if($(location).attr('search').match("tutorial_mode")){
+	       				$(".Popup_Info").hide();
+	    				readyTutorial();
+	    				tutorialFlag = false;
+	    				$(".list_btn").click();
+	       			}
+	       			
+	       			if(!tutorialFlag){return false;}
+	       			
+	       			console.log("strType = " + "<%=strType%>");
+	       			
+	       			strType= "<%=strType%>";
+	       			
+    				//북마크나 최신데이터는 조건설정창을 자동으로 열지않는다.
+    				if ("<%=strType%>" != "bookmark"   		  && 
+    					"<%=strType%>" != "recentdata" 		  && 
+    					"<%=strType%>" != "userdata"   		  && 
+    					"<%=strType%>" != "sharedata"  		  &&
+    					"<%=strType%>" != "totalindex" 		  &&
+    					"<%=strType%>" != "population" 		  &&
+    					"<%=strType%>" != "company"    		  &&
+    					"<%=strType%>" != "household"  		  &&
+    					"<%=strType%>" != "house"      		  &&
+    					"<%=strType%>" != "farmhousehold" 	  &&
+    					"<%=strType%>" != "forestryhousehold" &&
+    					"<%=strType%>" != "fisheryhousehold"  &&
+    					"<%=strType%>" != "householdmember"   &&
+    					"<%=strType%>" != "kosis"			  &&
+    					"<%=strType%>" != "ecountry") {
+    					if("<%=strType%>"){
+    						$(".sideQuick.sq02").trigger("click");
+    					}
+//     					$(".sideQuick.sq02").removeClass("on");
+    				}
+    				
+    				var param = null;
+    				var length = <%=paramObj.length()%>;
+    				if (length == 0) {
+    					param = "";
+    				}else {
+    					param = JSON.parse(<%=paramObj%>);
+    				}
+    				if("<%=strType%>"){
+	    				$interactiveMap.ui.doAnalysisShareInfo("<%=strType%>", param);
+    					
+    				}
+    				
+    		});
+       		
+    	    function popupRotation(){
+    	    	popX=$(".PopupCont")[0].offsetLeft;
+    	    	popY=$(".PopupCont")[0].offsetTop;
+    	    	var url = '/jsp/board/popRotation.jsp';
+    	    	
+				//mng_s 20200113 이진호 / 팝업창 크기 조절
+    		    var options = 'toolbar=yes,scrollbars=yes,resizable=yes,copyhistory=yes,'+
+    		                  'status=yes,location=yes,menubar=no,width=1100,height=600,top='+popY+',left='+popX; 
+				//mng_e 20200113 이진호
+
+    		   window.open(url, '', options);
+    		   $(".Popup_Info").hide();
+    	    }
+    	    
+    		function gridPop(){
+    			var url = '/view/board/gridWrite?write';
+    		    var options = 'toolbar=no,scrollbars=no,resizable=no,copyhistory=no,'+
+    		                  'status=no,location=no,menubar=no,top=200,left=200'; 
+    		   window.open(url, '', options);
+ 	  		   $(".Grid_Info").hide();
+    		}
+    	    
+    		function callTutorial(){
+    			if(confirm("<대화형 통계지도> \n처음 사용자를 위한 튜토리얼이 준비되어 있습니다.\n진행하시겠습니까?")) 
+    				window.open('/view/map/interactiveMap?tutorial_mode', '_blank'); 
+    		}
+    		
+    		
+    		
+        </script>
+        
+	</head>
+	
+	 <form id="searchFrom">
+		 	<input type="hidden" id="searchCategory" name="category">
+		 	<input type="hidden" id="searchYear" name="year">
+		 	<input type="hidden" id="searchArea" name="area">
+	 </form>
+
+	<body>  
+		<header>
+        <!-- 우측 주 메뉴 -->
+        <ul class="lnb">
+            <li><a class="home" href="javascript:void(0)"><span class="lnb_text">SGIS</span></a></li>
+            <li class="active" onclick="selectLnb(this)" data-content="company"><a class="company" href="javascript:void(0)"><span class="lnb_text">기업</span></a></li>
+            <li onclick="selectLnb(this)" data-content="halfview"><a class="halfview" href="javascript:void(0)"><span class="lnb_text">함께보기</span></a></li>
+            <li onclick="selectLnb(this)" data-content="help"><a class="help" href="javascript:void(0)" onclick="toggleHint()"><span class="lnb_text">도움말</span></a></li>
+        </ul>
+
+        <!-- 상단 헤더 -->
+        <div class="topNav">
+            <ul class="navTitle">
+                <li><span class="btnPrimary">기업생태분석지도</span></li>
+                <li>
+                    <div class="selectBox category">
+                        <div class="optionContainer">
+                            <div class="option searchRadioOption">
+                                <input type="radio" class="radio" id="menu1" name="category" value="area" checked="checked">
+                                <label for="menu1">지도로 생태분석</label>
+                            </div>
+                            <div class="option searchRadioOption">
+                                <input type="radio" class="radio" id="menu2" name="category" value="search">
+                                <label for="menu2">조건별 지역찾기</label>
+                            </div>
+                        </div>
+                        <div class="selected"><span class="text">지도로생태분석</span></div>
+                    </div>
+                </li>
+            </ul>
+
+            
+            <ul class="filter">
+                <li class="selectBox icon year">
+                    <div class="optionContainer">
+                        <div class="option searchRadioOption">
+                            <input type="radio" class="radio" id="year2020" value="2020" name="year">
+                            <label for="year2020">2020</label>
+                        </div>
+                        <div class="option searchRadioOption">
+                            <input type="radio" class="radio" id="year2019" value="2019"  name="year">
+                            <label for="year2019">2019</label>
+                        </div>
+                    </div>
+                    <div class="selected"><span class="icon"></span><span class="text">2020</span></div>
+                </li>
+
+                <li class="selectBox icon area" data-type="area">
+                    <div class="optionContainer">
+                        <div class="option searchRadioOption">
+                            <input type="radio" class="radio" id="area1" name="area">
+                            <label for="area1">행정구역</label>
+                        </div>
+                        <!-- <div class="option">
+                            <input type="radio" class="radio" id="area2" name="area">
+                            <label for="area2">1㎢ 격자</label>
+                        </div> -->
+                        <div class="option searchRadioOption">
+                            <input type="radio" class="radio" id="area3" name="area">
+                            <label for="area3">산업단지</label>
+                        </div>
+                        <div class="option searchRadioOption">
+                            <input type="radio" class="radio" id="area4" name="area">
+                            <label for="area4">상권</label>
+                        </div>
+                        <div class="option searchRadioOption">
+                            <input type="radio" class="radio" id="area5" name="area">
+                            <label for="area5">전통시장</label>
+                        </div>
+                        <div class="option searchRadioOption">
+                            <input type="radio" class="radio" id="area6" name="area">
+                            <label for="area6">도시화</label>
+                        </div>
+                    </div>
+                    <div class="selected"><span class="icon"></span><span class="text">행정구역</span></div>
+                </li>
+
+                <li class="selectBox icon gubun">
+                    <div class="optionContainer depth">
+
+                        <ul class="optionHead">
+                            <li>전체업종</li>
+                            <li class="open">펼치기</li>
+                            <li class="close">접기</li>
+                        </ul>
+                        <div class="optionAcc scroll">
+                            <div class="item">
+                                <div class="parent accTarget">
+                                    <i class="accTarget"></i>
+                                    <span class="accTarget">대분류명</span>
+                                </div>
+                                <ul class="child">
+                                    <li><i class="radio active"></i><span class="title">중분류명</span><span>[code]</span></li>
+                                    
+                                </ul>
+                            </div> 
+                            <div class="item">
+                                <div class="parent accTarget">
+                                    <i class="accTarget"></i>
+                                    <span class="accTarget">대분류명</span>
+                                </div>
+                                <ul class="child">
+                                    
+                                </ul>
+                            </div>
+                            <div class="item">
+                                <div class="parent accTarget">
+                                    <i class="accTarget"></i>
+                                    <span class="accTarget">대분류명</span>
+                                </div>
+                                <ul class="child">
+                                    
+                                </ul>
+                                <script>
+                                    for(i=0;i<10;i++) {
+                                        html = '<li><i class="radio"></i><span  class="title">중분류명'+i+'</span><span>[code]</span></li>';
+                                        $(".child").append(html);
+                                    }
+                                </script>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="selected"><span class="icon"></span><span class="text">전체 업종</span></div>
+                </li>
+
+                <li class="selectBox icon gubun2" data-type="theme">
+                    <div class="optionContainer">
+                        <div class="option">
+                            <input type="radio" class="radio" id="theme1" name="theme">
+                            <label for="theme1">기업이 많은</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" class="radio" id="theme2" name="theme">
+                            <label for="theme2">개업이 많은</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" class="radio" id="theme3" name="theme">
+                            <label for="theme3">폐업이 많은</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" class="radio" id="theme4" name="theme">
+                            <label for="theme4">활동기업이 많은</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" class="radio" id="theme5" name="theme">
+                            <label for="theme5">비활동기업이 많은</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" class="radio" id="theme6" name="theme">
+                            <label for="theme6">생존율이 높은</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" class="radio" id="theme7" name="theme">
+                            <label for="theme7">영업기간이 높은</label>
+                        </div>
+                        <div class="option">
+                            <input type="radio" class="radio" id="theme8" name="theme">
+                            <label for="theme8">성장기업이 높은</label>
+                        </div>
+                    </div>
+                    <div class="selected"><span class="icon"></span><span class="text">기업이 많은</span></div>
+                </li>
+
+                <li class="setting">
+                    <button type="button" onclick="toggleSetting();"><i class="icon setting"></i><span>설정</span></button>
+                </li>
+
+            </ul>
+
+            <ul class="navRank mini">
+                <ul class="option">
+                    <li onclick="rankViewMode()"><i class="icon rank"></i> 전국시도</li>
+                    <!-- <li class="active"><i class="icon table"></i></li>
+                    <li><i class="icon chart"></i></li> -->
+                    <li onclick="rankViewMode()"><i class="icon view"></i></li>
+                </ul>
+            </ul>
+        </div>
+
+    </header>
+    
+    <div class="containerBox">
+    
+        <!-- 지도 영역 -->
+- 	    <div id="mapRgn_box" style="width: 100%;height: 100%;">	
+			<div class="mapContents" id="mapRgn_1"></div>맵영역 
+		</div>
+		<!-- 지도 영역 끝-->
+		
+		<!-- 전국시도 시작 -->
+		<!-- 지역 순위 -->
+		    <div class="rankWrapper">
+		        <div class="rankContent">
+		            <ul class="rankList table active">
+		                <li class="header">
+		                    <span class="area">지역</span>
+		                    <span class="company">기업 <i class="default"></i></span>
+		                    <span class="year">전년대비 <i class="sortDown"></i></span>
+		                    <span class="dist">분포 <i class="sortUp"></i></span>
+		                </li>
+		                <li onclick="showRankDetail()">
+		                    <span><i class="rank">1</i>서울특별시 서대문구</span>
+		                    <span>2,223,422개</span>
+		                    <span>15% <i class="up"></i></span>
+		                    <span>50.0%</span>
+		                </li>
+		                <li onclick="showRankDetail()">
+		                    <span><i class="rank">2</i>부산광역시</span>
+		                    <span>1,323,900개</span>
+		                    <span>14.5% <i class="up"></i></span>
+		                    <span>40.0%</span>
+		                </li>
+		                <li onclick="showRankDetail()">
+		                    <span><i class="rank">3</i>대구광역시</span>
+		                    <span>1,323,900개</span>
+		                    <span>14% <i class="up"></i></span>
+		                    <span>30.0%</span>
+		                </li>
+		                <li onclick="showRankDetail()">
+		                    <span><i class="rank">4</i>인천광역시</span>
+		                    <span>1,323,900개</span>
+		                    <span>13% <i class="up"></i></span>
+		                    <span>20.0%</span>
+		                </li>
+		                <li onclick="showRankDetail()">
+		                    <span><i class="rank">5</i>광주광역시</span>
+		                    <span>1,323,900개</span>
+		                    <span>12% <i class="up"></i></span>
+		                    <span>10.0%</span>
+		                </li>
+		                <li onclick="showRankDetail()">
+		                    <span><i class="rank">6</i>울산광역시</span>
+		                    <span>1,323,900개</span>
+		                    <span>10% <i class="up"></i></span>
+		                    <span>9.0%</span>
+		                </li>
+		                <li onclick="showRankDetail()">
+		                    <span><i class="rank">7</i>세종특별자치시</span>
+		                    <span>1,323,900개</span>
+		                    <span>9% <i class="up"></i></span>
+		                    <span>8.0%</span>
+		                </li>
+		                <li onclick="showRankDetail()">
+		                    <span><i class="rank">8</i>경기도</span>
+		                    <span>1,323,900개</span>
+		                    <span>8% <i class="down"></i></span>
+		                    <span>7.0%</span>
+		                </li>
+		                <li onclick="showRankDetail()">
+		                    <span><i class="rank">9</i>강원도</span>
+		                    <span>1,323,900개</span>
+		                    <span>7% <i class="down"></i></span>
+		                    <span>6.0%</span>
+		                </li>
+		                <li onclick="rankAlarm('4')">
+		                    <span><i class="rank">10</i>조회조건 결과 없음</span>
+		                    <span>4개</span>
+		                    <span>6% <i class="down"></i></span>
+		                    <span>5.0%</span>
+		                </li>
+		            </ul>
+		            <ul class="rankList chart">chart</ul>
+		            <div class="rankBtn">
+		                <button class="btnLine" onclick="rankExpand()">
+		                    <i class="iconExpand"></i><p>펼쳐보기</p>
+		                </button>
+		            </div>
+		            <!-- <div class="rankReduce"><i class="reduce"></i></div> -->
+		        </div>
+		    </div>
+	  	<!-- 전국시도 끝 -->
+    
+    
+    	<!-- 상세 설정 -->
+		<div class="leftContent settingBox htFit">
+		        <!-- 스크롤 영역 -->
+		        <div class="scroll container ht100per">
+		            <div class="titleWrap">
+		                <div class="title">
+		                    상세설정
+		                </div>
+		                <ul class="subTitle">
+		                    <li class="title">지도로 생태분석</li>
+		                    <li><span class="badge"><i class="company"></i>기업이 많은</span></li>
+		                </ul>
+		            </div>
+		    
+		            <!-- 단일선택 input type radio -->
+		            <div class="settingCheckbox">
+		                <div class="title">
+		                    <span class="icon icon_group">조직형태</span>
+		                    <span class="text">조직형태</span>
+		                </div>
+		                <ul class="content">
+		                    <li>
+		                        <input type="radio" id="settingGroup1" name="settingGroup">
+		                        <label for="settingGroup1">법인</label>
+		                    </li>
+		                    <li>
+		                        <input type="radio" id="settingGroup2" name="settingGroup">
+		                        <label for="settingGroup2">개인</label>
+		                    </li>                
+		                </ul>
+		            </div>
+		    
+		            <!-- 다중선택 input type checkbox -->
+		            <div class="settingCheckbox">
+		                <div class="title">
+		                    <span class="icon icon_ceo">기업대표</span>
+		                    <span class="text">기업대표(다중선택)</span>
+		                    <button class="btn btnRound" onclick="selectAllfalse(this)">전체해제</button>
+		                </div>
+		                <ul class="tab">
+		                    <li class="on">전체</li>
+		                    <li>남성</li>
+		                    <li>여성</li>
+		                </ul>
+		                <ul class="content">
+		                    <li>
+		                        <input type="checkbox" id="ceo1" name="settingCeo">
+		                        <label for="ceo1">30대 미만</label>
+		                    </li>
+		                    <li>
+		                        <input type="checkbox" id="ceo2" name="settingCeo">
+		                        <label for="ceo2">30대</label>
+		                    </li>
+		                    <li>
+		                        <input type="checkbox" id="ceo3" name="settingCeo">
+		                        <label for="ceo3">40대</label>
+		                    </li>
+		                    <li>
+		                        <input type="checkbox" id="ceo4" name="settingCeo">
+		                        <label for="ceo4">50대</label>
+		                    </li>
+		                    <li>
+		                        <input type="checkbox" id="ceo5" name="settingCeo">
+		                        <label for="ceo5">60대</label>
+		                    </li>
+		                    <li>
+		                        <input type="checkbox" id="ceo6" name="settingCeo">
+		                        <label for="ceo6">여성</label>
+		                    </li>
+		                </ul>
+		            </div>
+		
+		            <div class="settingCheckbox">
+		                <div class="title">
+		                    <span class="icon icon_ceo">기업대표</span>
+		                    <span class="text">기업대표(다중선택)</span>
+		                    <button class="btn btnRound" onclick="selectAllfalse(this)">전체해제</button>
+		                </div>
+		                <ul class="tab">
+		                    <li class="on">전체</li>
+		                    <li>남성</li>
+		                    <li>여성</li>
+		                </ul>
+		                <ul class="content">
+		                    <li>
+		                        <input type="checkbox" id="ceo11" name="settingCeo1">
+		                        <label for="ceo11">30대 미만</label>
+		                    </li>
+		                    <li>
+		                        <input type="checkbox" id="ceo21" name="settingCeo1">
+		                        <label for="ceo21">30대</label>
+		                    </li>
+		                    <li>
+		                        <input type="checkbox" id="ceo31" name="settingCeo1">
+		                        <label for="ceo31">40대</label>
+		                    </li>
+		                    <li>
+		                        <input type="checkbox" id="ceo41" name="settingCeo1">
+		                        <label for="ceo41">50대</label>
+		                    </li>
+		                    <li>
+		                        <input type="checkbox" id="ceo51" name="settingCeo1">
+		                        <label for="ceo51">60대</label>
+		                    </li>
+		                    <li>
+		                        <input type="checkbox" id="ceo61" name="settingCeo1">
+		                        <label for="ceo61">여성</label>
+		                    </li>
+		                </ul>
+		            </div>
+		    
+		            
+		        </div>
+		        <div class="close" onclick="toggleSetting();"><i class="closeBtn"></i></div>
+		    </div>
+   		</div>
+   		<!--  상세 설정 끝 -->
+    
+    
+    
+    	<!-- 지역랭킹 클릭 팝업 시작 -->
+	    <div class="popup rankResult shadow">
+	        <div class="popupContainer">
+	            <div class="titleWrap">
+	                <i class="station"></i>
+	                <p class="title">세종특별자치시</p>
+	                <i class="closeBtn" onclick="closePopup(this)"></i>
+	            </div>
+	            
+	            <ul class="content">
+	                <li>
+	                    <i class="company"></i>
+	                    <span class="text">기업</span>
+	                    <span class="countWrap"><span class="count">0</span>개</span>
+	                </li>
+	                <li>
+	                    <i class="lastYear"></i>
+	                    <span class="text">전년대비</span>
+	                    <span class="countWrap up"><span class="count">0.0</span>%</span>
+	                </li>
+	                <li>
+	                    <i class="area"></i>
+	                    <span class="text">지역 내 기업분포</span>
+	                    <span class="countWrap down"><span class="count">0.0</span>%</span>
+	                </li>
+	                <li>
+	                    <i class="rank"></i>
+	                    <span class="text">지역순위</span>
+	                    <span class="countWrap"><span class="count">0</span>위</span>
+	                </li>
+	            </ul>
+	        </div>
+	    </div>
+        <!-- 지역랭킹 클릭 팝업  끝-->
+        
+        
+        
+		<!-- 지도로 생태분석 결과 조회 1뎁스 -->
+	    <div class="leftContent rankResult htFit">
+	
+	        <div class="scroll container ht100per">
+	            <div class="titleWrap">
+	                <div class="title">
+	                    세종특별자치시
+	                </div>
+	                <ul class="subTitle">
+	                    <li class="title">2020 '제조업' 현황</li>            
+	                </ul>
+	
+	            </div>
+	            
+	
+	            <ul class="section signal">
+	                <li class="title">
+	                    <i class="icon_signal"></i>
+	                    <span>지역 시그널</span>                
+	                </li>
+	                <li class="sub" onclick="openSignal(this)" data-content="sales">
+	                    <i class="icon_sales"></i>
+	                    <span>매출 100대 대기업 <span class="point">100개</span>위치</span>
+	                </li>
+	                <li class="sub" onclick="openSignal(this)" data-content="house">
+	                    <i class="icon_house"></i>
+	                    <span><span class="point">제조업</span>이 전년대비 <span class="point">99.9%</span>증가</span>
+	                </li>
+	                <li class="sub" onclick="openSignal(this)" data-content="chart">
+	                    <i class="icon_chart"></i>
+	                    <span>개업이 폐업보다<span class="point">99.9%</span>강세</span>                
+	                </li>
+	                <li class="sub" onclick="openSignal(this)" data-content="people">
+	                    <i class="icon_people"></i>
+	                    <span>청장년 인구 3년 연속<span class="point">99.9%</span>증가 추세</span>
+	                </li>
+	                <li class="sub" onclick="openSignal(this)" data-content="area">
+	                    <i class="icon_area"></i>
+	                    <span>토지 공시지가 평균<span class="point">9,999만원</span></span>
+	                </li>
+	                <li class="sub" onclick="openSignal(this)" data-content="kind">
+	                    <i class="icon_kind"></i>
+	                    <span>선택 업종 관련<span class="point">10,000건</span> 구인중</span>
+	                </li>
+	            </ul>
+	
+	            <ul class="section activity">
+	                <li class="title">
+	                    <i class="icon_activity"></i>
+	                    <span>기업활력</span>                
+	                </li>
+	
+	                <li>
+	                    <div class="hintType1">
+	                        <p>제조업 전체기업 수는 <span class="bold">1,000,000</span>개이며<br>전년 대비 <span class="bold">10,000개(1.0%)</span>증가했어요.</p>
+	                    </div>
+	                    <div class="chartArea" style="width:100%; height:200px; background: #dedede;">chart area</div>
+	                </li>
+	                <li>
+	                    <div class="hintType1">
+	                        <p>제조업 전체기업 수는 <span class="bold">1,000,000</span>개이며<br>전년 대비 <span class="bold">10,000개(1.0%)</span>증가했어요.</p>
+	                    </div>
+	                    <div class="chartArea" style="width:100%; height:200px; background: #dedede;">chart area</div>
+	                </li>
+	                
+	            </ul>
+	        </div>
+	
+	        <div class="resultBtn" onclick="showAllResult();">종합분석</div>
+	
+	        <div class="close" onclick="closeLeft(this)"><i class="closeBtn"></i></div>
+	    </div>
+		<!-- 생태분석 결과 조회 1뎁스 끝 -->
+		
+		
+		<!-- 지도로 생태분석 시그널 확장 레이어 sales -->
+	    <div class="leftSub sales htFit" data-content="sales">
+	        <div class="container scroll ht100per">
+	            <article class="title">
+	                <span class="bold">세종특별자치시</span>의<br> <span class="bold">기업 분포</span>와 유사한지역
+	            </article>
+	            <article class="content">
+	                <p class="title">1. 서울특별시</p>
+	                <ul>
+	                    <li class="on"><i class="icon_sales"></i>매출 100대 대기업 <span class="bold">99개</span> 위치</li>
+	                    <li class=""><i class="icon_house"></i><span class="bold">제조업</span>이 전년대비 <span class="bold">99.9%</span> 증가</li>
+	                    <li class=""><i class="icon_chart"></i>개업이 폐업보다<span class="bold">99.9%</span> 강세</li>
+	                    <li class=""><i class="icon_people"></i>청장년 인구 3년 연속 <span class="bold">99.9%</span> 증가 추세</li>
+	                    <li class=""><i class="icon_area"></i>토지 공시지가 평균<span class="bold">9,999만원</span></li>
+	                    <li class=""><i class="icon_kind"></i>선택 업종 관련 <span class="bold">10,000건</span> 구인중</li>
+	                </ul>
+	            </article>
+	
+	            <article class="content">
+	                <p class="title">2. 대구광역시</p>
+	                <ul>
+	                    <li class="on"><i class="icon_sales"></i>매출 100대 대기업 <span class="bold">99개</span> 위치</li>
+	                    <li class=""><i class="icon_house"></i><span class="bold">제조업</span>이 전년대비 <span class="bold">99.9%</span> 증가</li>
+	                    <li class=""><i class="icon_chart"></i>개업이 폐업보다<span class="bold">99.9%</span> 강세</li>
+	                    <li class=""><i class="icon_people"></i>청장년 인구 3년 연속 <span class="bold">99.9%</span> 증가 추세</li>
+	                    <li class=""><i class="icon_area"></i>토지 공시지가 평균<span class="bold">9,999만원</span></li>
+	                    <li class=""><i class="icon_kind"></i>선택 업종 관련 <span class="bold">10,000건</span> 구인중</li>
+	                </ul>
+	            </article>
+	
+	            <article class="content">
+	                <p class="title">3. 인천광역시</p>
+	                <ul>
+	                    <li class="on"><i class="icon_sales"></i>매출 100대 대기업 <span class="bold">99개</span> 위치</li>
+	                    <li class=""><i class="icon_house"></i><span class="bold">제조업</span>이 전년대비 <span class="bold">99.9%</span> 증가</li>
+	                    <li class=""><i class="icon_chart"></i>개업이 폐업보다<span class="bold">99.9%</span> 강세</li>
+	                    <li class=""><i class="icon_people"></i>청장년 인구 3년 연속 <span class="bold">99.9%</span> 증가 추세</li>
+	                    <li class=""><i class="icon_area"></i>토지 공시지가 평균<span class="bold">9,999만원</span></li>
+	                    <li class=""><i class="icon_kind"></i>선택 업종 관련 <span class="bold">10,000건</span> 구인중</li>
+	                </ul>
+	            </article>
+	
+	            <article class="content">
+	                <p class="title">4. 대전광역시</p>
+	                <ul>
+	                    <li class="on"><i class="icon_sales"></i>매출 100대 대기업 <span class="bold">99개</span> 위치</li>
+	                    <li class=""><i class="icon_house"></i><span class="bold">제조업</span>이 전년대비 <span class="bold">99.9%</span> 증가</li>
+	                    <li class=""><i class="icon_chart"></i>개업이 폐업보다<span class="bold">99.9%</span> 강세</li>
+	                    <li class=""><i class="icon_people"></i>청장년 인구 3년 연속 <span class="bold">99.9%</span> 증가 추세</li>
+	                    <li class=""><i class="icon_area"></i>토지 공시지가 평균<span class="bold">9,999만원</span></li>
+	                    <li class=""><i class="icon_kind"></i>선택 업종 관련 <span class="bold">10,000건</span> 구인중</li>
+	                </ul>
+	            </article>
+	            <div class="close" onclick="closeLeft(this)"><i class="closeBtn"></i></div>
+	        </div>
+	    </div>
+	    <!-- 생태분석 결과 조회 2뎁스 -->
+		
+		<!-- 종합분석 팝업 시작 -->
+		<div class="layerOverlay"></div>
+	    <div class="layerLg shadow" id="allResult">
+	        <div class="container" style="height: 800px;">
+	            <div class="titleWrap">
+	                <p>대전광역시 서구 종합분석</p>
+	                <i class="close" onclick="closeResult()"></i>
+	            </div>
+	            <div class="menuWrap">
+	                <ul class="tab">
+	                    <li class="active" data-tab="kind" onclick="layerBoxTab(this)"><i class="icon kind"></i><p>업종분석</p></li>
+	                    <li data-tab="company" onclick="layerBoxTab(this)"><i class="icon company"></i><p>기업분석</p></li>
+	                    <li data-tab="area" onclick="layerBoxTab(this)"><i class="icon area"></i><p>공간분석</p></li>
+	                </ul>
+	                <ul class="btnWrap">
+	                    <!-- selectbox gubun -->
+	                    <li class="gubun" onclick="gubunTrigger(this);">
+	                        <i class="icon menu"></i>
+	                        <div class="optionContainer depth shadow">
+	                            <ul class="optionHead">
+	                                <li>전체업종</li>
+	                                <li class="open">펼치기</li>
+	                                <li class="close">접기</li>
+	                            </ul>
+	                            <div class="optionAcc scroll">
+	                                <div class="item">
+	                                    <div class="parent accTarget">
+	                                        <i class="accTarget"></i>
+	                                        <span class="accTarget">대분류명</span>
+	                                    </div>
+	                                    <ul class="child">
+	                                        <li><i class="radio active"></i><span class="title">중분류명</span><span>[code]</span></li>
+	                                        
+	                                    </ul>
+	                                </div> 
+	                                <div class="item">
+	                                    <div class="parent accTarget">
+	                                        <i class="accTarget"></i>
+	                                        <span class="accTarget">대분류명</span>
+	                                    </div>
+	                                    <ul class="child">
+	                                        
+	                                    </ul>
+	                                </div>
+	                                <div class="item">
+	                                    <div class="parent accTarget">
+	                                        <i class="accTarget"></i>
+	                                        <span class="accTarget">대분류명</span>
+	                                    </div>
+	                                    <ul class="child">
+	                                        
+	                                    </ul>
+	                                    <script>
+	                                        for(i=0;i<10;i++) {
+	                                            html = '<li><i class="radio"></i><span  class="title">중분류명'+i+'</span><span>[code]</span></li>';
+	                                            $(".child").append(html);
+	                                        }
+	                                    </script>
+	                                </div>
+	                            </div>
+	                        </div>
+	                    </li>
+	                    <li class="selectBox icon year">
+	                        <div class="optionContainer">
+	                            <div class="option">
+	                                <input type="radio" class="radio" id="year2020" name="year">
+	                                <label for="year2020">2020</label>
+	                            </div>
+	                            <div class="option">
+	                                <input type="radio" class="radio" id="year2019" name="year">
+	                                <label for="year2019">2019</label>
+	                            </div>
+	                        </div>
+	                        <div class="selected"><span class="icon"></span><span class="text">2020</span></div>
+	                    </li>
+	                    <li class="location">표준산업분류 > 제조업</li>
+	                    <li><i class="icon print"></i></li>
+	                </ul>
+	            </div>
+	
+	            <!-- 업종분석 -->
+	            <div class="content" data-content="kind" style="display:block">
+	                <div class="tabBox">
+	                    <section class="wd50 br bb">
+	                        <article class="wd100 kind">
+	                            <div class="titleWrap">
+	                                <!-- <i class="companyCount"></i>
+	                                <p class="title">전체기업수</p> -->
+	                                <li class="selectBox icon companyCount">
+	                                    <div class="optionContainer">
+	                                        <div class="option">
+	                                            <input type="radio" class="radio" id="custom1" name="allCompanyCount">
+	                                            <label for="custom1">전체기업수</label>
+	                                        </div>
+	                                        <div class="option">
+	                                            <input type="radio" class="radio" id="custom2" name="allCompanyCount">
+	                                            <label for="custom2">전체기업수2</label>
+	                                        </div>
+	                                    </div>
+	                                    <div class="selected"><span class="icon companyCount"></span><span class="text">전체기업수</span></div>
+	                                </li>
+	                            </div>
+	                            <div class="content">
+	                                
+	                                <div class="chartArea" id="layerLgChart1" style="width:100%; height:170px">
+
+	                                </div>
+	                                
+	                                <div class="textBox">
+	                                    <ul>
+	                                        <li><p>2020년 전체 기업</p> <i class="help"></i></li>
+	                                        <li>6,000,000개</li>
+	                                        <!-- class {up , down} 으로 상향 아이콘 조정 -->
+	                                        <li class="updown up">100,000</li> 
+	                                        <li class="badge">10.0%</li>
+	                                    </ul>
+	                                </div>
+	                            </div>
+	                        </article>
+	                    </section>
+	                    <section class="wd50 inner bb">
+	                        <article class="wd50 br activity">
+	                            <div class="titleWrap">
+	                                <i class="activity"></i>
+	                                <p class="title">활동현황</p>
+	                                <i class="help"></i>
+	                            </div>
+	                            <div class="content">
+	                                <div class="chartArea" id="layerLgChart2" style="width:100%; height:170px"></div>
+	                                <!-- <div class="chartDummy">chartArea</div> -->
+	                                <div class="textBox mt0">
+	                                    <ul>
+	                                        <li>
+	                                            <span>활동기업</span>
+	                                            <span class="count on">4,000,000 개</span>
+	                                        </li>
+	                                        <li>
+	                                            <span>비활동기업</span>
+	                                            <span class="count off">6,000,000 개</span>
+	                                        </li>
+	                                    </ul>
+	                                </div>
+	                            </div>  
+	                        </article>
+	                        <article class="wd50 openClose">
+	                            <div class="titleWrap ">
+	                                <i class="openClose"></i>
+	                                <p class="title">개폐업현황</p>
+	                                <i class="help"></i>
+	                            </div>
+	                            <div class="content">
+	                                <ul class="open">
+	                                    <li class="title">
+	                                        <span>개업</span>
+	                                        <span class="count">100 개</span>
+	                                    </li>
+	                                    <li>
+	                                        <span>지역 전체 가입</span>
+	                                        <span class="count">1,000 개</span>
+	                                    </li>
+	                                    <li>
+	                                        <span>선택 업종 비중</span>
+	                                        <span class="count">10.0 %</span>
+	                                    </li>
+	                                    <li class="badge">개업강세</li>
+	                                </ul>
+	                                <ul class="close">
+	                                    <li class="title">
+	                                        <span>폐업</span>
+	                                        <span class="count">100 개</span>
+	                                    </li>
+	                                    <li>
+	                                        <span>지역 전체 가입</span>
+	                                        <span class="count">1,000 개</span>
+	                                    </li>
+	                                    <li>
+	                                        <span>선택 업종 비중</span>
+	                                        <span class="count">10.0 %</span>
+	                                    </li>
+	                                    <li class="badge">폐업강세</li>
+	                                </ul>
+	                            </div>
+	                        </article>
+	                    </section>
+	                    <section class="wd100 inner">
+	                        <article class="wd50 br">
+	                            <div class="titleWrap">
+	                                <i class="growCompany"></i>
+	                                <p class="title">성장기업분포</p>
+	                                <i class="help"></i>
+	                            </div>
+	                            
+	                            <div class="growCompanyWrap">
+	                                <div class="chartWrap" style="height:250px">
+	                                    <div id="growCompanyDistChart" style="width:300px;height:250px;"></div>
+	                                </div>
+	                                <div class="content">
+	                                    <div class="dataBox shadow">
+	                                        <p class="title">전체성장기업</p>
+	                                        <div class="dim"></div>
+	                                        <p class="count">66,660 개</p>
+	                                        <p>전체기업의 1.1 <span>%</span></p>
+	                                    </div>
+	                                    <div class="legend">
+	                                        <ul class="legendContent">
+	                                            <li>
+	                                                <span>급성장</span>
+	                                                <span>60 개</span>
+	                                            </li>
+	                                            <li>
+	                                                <span>20% 이상</span>
+	                                                <span>540 개</span>
+	                                            </li>
+	                                            <li>
+	                                                <span>10% ~ 20%</span>
+	                                                <span>600 개</span>
+	                                            </li>
+	                                            <li>
+	                                                <span>10% 미만</span>
+	                                                <span>6,000 개</span>
+	                                            </li>
+	                                            <li>
+	                                                <span>그 외</span>
+	                                                <span>60,000 개</span>
+	                                            </li>
+	
+	                                        </ul>
+	                                    </div>
+	                                </div>
+	                            </div>
+	                            
+	                            
+	                        </article>
+	                        <div class="wd50">
+	                            <article class="wd100 bb avrCost">
+	                                <div class="titleWrap pb6">
+	                                    <i class="avrCost"></i>
+	                                    <p class="title">평균 매출액</p>
+	                                    <i class="help"></i>
+	                                </div>
+	                                <div class="content">
+	                                    <div class="gaugeBox">
+	                                        <div class="barBg"></div>
+	                                        <div class="gaugeInner">
+	                                            <div class="gaugeLen" id="avrCostGaugeLen"></div>
+	                                            <i class="pointer" id="avrCostPointer"></i>
+	                                            <div class="gaugeTip" id="avrCostBadge">
+	                                                <div class="badge" id="avrCostTargetData">700만원</div>
+	                                            </div>
+	                                        </div>
+	                                        
+	                                        <div class="clear_box clear_box"></div>
+	                                    </div>
+	                                    <ul class="gaugeText">
+	                                        <li class="low">
+	                                            <p class="count" id="avrCostLowData">100만원</p>
+	                                            <p class="desc">가장낮은업종</p>
+	                                            <p class="desc">(업종명)</p>
+	                                        </li>
+	                                        <li class="high">
+	                                            <p class="count" id="avrCostHighData">1,000만원</p>
+	                                            <p class="desc">가장높은업종</p>
+	                                            <p class="desc">(업종명)</p>
+	                                        </li>
+	                                    </ul>
+	                                </div>
+	                            </article>
+	                            <article class="wd100 avrTime">
+	                                <div class="titleWrap pb6">
+	                                    <i class="avrTime"></i>
+	                                    <p class="title">평균 영업기간</p>
+	                                    <i class="help"></i>
+	                                </div>
+	                                <div class="content">
+	                                    <div class="gaugeBox">
+	                                        <div class="barBg"></div>
+	                                        <div class="gaugeInner">
+	                                            <div class="gaugeLen" id="avrTimeGaugeLen"></div>
+	                                            <i class="pointer" id="avrTimePointer"></i>
+	                                            <div class="gaugeTip" id="avrTimeBadge" >
+	                                                <div class="badge" id="avrTimeTargetData">70.1년</div>
+	                                            </div>
+	                                        </div>
+	                                        
+	                                        <div class="clear_box clear_box"></div>
+	                                    </div>
+	                                    <ul class="gaugeText">
+	                                        <li class="low">
+	                                            <p class="count" id="avrTimeLowData">0.1년</p>
+	                                            <p class="desc">가장낮은업종</p>
+	                                            <p class="desc">(업종명)</p>
+	                                        </li>
+	                                        <li class="high">
+	                                            <p class="count" id="avrTimeHighData">100.1년</p>
+	                                            <p class="desc">가장높은업종</p>
+	                                            <p class="desc">(업종명)</p>
+	                                        </li>
+	                                    </ul>
+	                                </div>
+	                            </article>
+	
+	                        </div>
+	                        
+	                    </section>
+	                </div>
+	            </div>
+	
+	            <!-- 기업분석 -->
+	            <div class="content company" data-content="company">
+	                <div class="tabBox">
+	                    <section class="wd50 bb">
+	                        <article class="wd100 comapnyStatus">
+	                            <table class="dashedTable table">
+	                                <colgroup>
+	                                    <col width="20%">
+	                                    <col width="30%">
+	                                    <col width="20%">
+	                                    <col width="30%">
+	                                </colgroup>
+	                                <tbody>
+	                                    <tr class="head">
+	                                        <td></td>
+	                                        <td>2019</td>
+	                                        <td>증감률</td>
+	                                        <td>2020</td>
+	                                    </tr>
+	                                    <tr>
+	                                        <td class="title">
+	                                            <div>
+	                                                <i class="company"></i>
+	                                                <p>기업수</p>
+	                                            </div>
+	                                        </td>
+	                                        <td>
+	                                            <span class="count">100</span><span>개</span>
+	                                        </td>
+	                                        <td class="updown up">
+	                                            <div>
+	                                                <span>100.0%</span>
+	                                                <i class="up"></i>
+	                                            </div>
+	                                        </td>
+	                                        <td>
+	                                            <p><span class="count">200</span><span>개</span></p>
+	                                            <p>(+100개)</p>
+	                                        </td>
+	                                    </tr>
+	                                    <tr>
+	                                        <td class="title">
+	                                            <div>
+	                                                <i class="people"></i>
+	                                                <p>종사자</p>
+	                                            </div>
+	                                        </td>
+	                                        <td>
+	                                            <span class="count">100</span><span>개</span>
+	                                        </td>
+	                                        <td class="updown down">
+	                                            <div>
+	                                                <span>100.0%</span>
+	                                                <i class="down"></i>
+	                                            </div>
+	                                        </td>
+	                                        <td>
+	                                            <p><span class="count">200</span><span>개</span></p>
+	                                            <p>(+100개)</p>
+	                                        </td>
+	                                    </tr>
+	                                    <tr>
+	                                        <td class="title">
+	                                            <div>
+	                                                <i class="won"></i>
+	                                                <p>매출액</p>
+	                                            </div>
+	                                        </td>
+	                                        <td>
+	                                            <span class="count">100</span><span>개</span>
+	                                        </td>
+	                                        <td class="updown up">
+	                                            <div>
+	                                                <span>100.0%</span>
+	                                                <i class="up"></i>
+	                                            </div>
+	                                        </td>
+	                                        <td>
+	                                            <p><span class="count">200</span><span>개</span></p>
+	                                            <p>(+100개)</p>
+	                                        </td>
+	                                    </tr>
+	                                </tbody>
+	                            </table>
+	                        </article>
+	                    </section>
+	
+	                    <section class="wd50">
+	                        <article>
+	                            <div class="chartDummy" style="height:280px; width:100%">chart area</div>
+	                        </article>
+	                    </section>
+	                    <section class="wd50">
+	                        <article class="mostCompany">
+	                            <div class="titleWrap">
+	                                <i class="company"></i>
+	                                <p class="title">주요기업</p>
+	                                <span class="desc">사업체수 기준</span>
+	                            </div>
+	                            <div class="content">
+	                                <ul class="tabBox">
+	                                    <li class="active" data-tab="big" onclick="mostCompanyTab(this)">대기업</li>
+	                                    <li data-tab="middle" onclick="mostCompanyTab(this)">중견기업</li>
+	                                    <li data-tab="low" onclick="mostCompanyTab(this)">중소기업</li>
+	                                    <li data-tab="person" onclick="mostCompanyTab(this)">소상공인</li>
+	                                </ul>
+	                                <ul class="tabContent scroll" id="tableDummy">
+	                                    <!-- 임시로 테이블 반복생성 -->
+	                                    <script>
+	                                        $(function (){
+	                                            console.log("ready")
+	                                            array = ['big','middle','low','person']
+	                                            for(i=1;i<31;i++) {
+	                                                html = "";
+	                                                html += '<li data-content="'+array[Math.floor(Math.random() * array.length)]+'">';
+	                                                html += '<span class="number">'+i+'</span>'
+	                                                html += '<span class="title">현대'+i+'</span>'
+	                                                html += '<span class="count">'+(100 - i)+'개</span>'
+	                                                html += '</li>'
+	                                                $("#tableDummy").append(html)
+	                                            }
+	                                        })
+	
+	                                    </script>
+	                                </ul>
+	                            </div>  
+	                        </article>
+	                    </section>
+	
+	                    <section class="wd50">
+	                        <article class="companyMap">
+	                            <div class="titleWrap">
+	                                <p class="title">삼성전자</p>
+	                                <span class="desc">2020년 기업위치 현황</span>
+	                            </div>
+	                            <div class="content" style="height:100%">
+	                                <div class="mapBox" style="background: #ededed;">map Area</div>
+	                            </div>  
+	                        </article>
+	                    </section>
+	                </div>
+	            </div>
+	
+	            <!-- 공간분석 -->
+            <div class="content area" data-content="area">
+                <div class="differArea">
+                    <div class="verticalDim"></div>
+                    <ul class="titleWrap">
+                        <li class="left"><p class="title">대전광역시 서구</p></li>
+                        <li class="right"><p class="title">대전광역시 동구</p><button type="button" class="btnLine" onclick="openDifferAreaMap()">변경</button></li>
+                    </ul>
+                    <ul class="dataListWrap">
+                        <!-- <li>
+                            <div class="title"><p>토지면적</p></div>
+                            <div class="leftData" id="">
+                                <div class="bg"></div>
+                                <p>1,330,000 ㎢</p>
+                            </div>
+                            <div class="rightData" id="">
+                                <div class="bg"></div>
+                                <p>130,000 ㎢</p>
+                            </div>
+                            <div class="differ">
+                                <div>
+                                    <span class="equal">=</span>
+                                    <span class="count plus">data</span>
+                                    <i class="icon_chart"></i>
+                                </div>
+                            </div>
+                        </li> -->
+
+                        <script>
+                            $(function() {
+                                // title 항목명 
+                                // leftData 기준 항목 수치
+                                // rightData 비교 항목 수치
+                                // gap 항목 수치 비교 데이터
+                                // ** area 기준 , 비교 수치의 높은값을 100 으로 기준
+                                // leftArea 원본 데이터 퍼센트
+                                // rightData 비교데이터 퍼센트
+                                // gapClass 항목 수치 비교데이터의 음수 양수 "plus", "minus", ""
+                                const areaSampleData = [
+                                    {"title":"토지면적",           "leftData":"1,333,000 ㎢",   "rightData":"120,000 ㎢",       "gap":"- 1,210,000 ㎢", "leftArea":100, "rightArea":50, "gapClass":"minus"},
+                                    {"title":"전체인구",           "leftData":"10,000 명",       "rightData":"10,000 명",       "gap":"-", "leftArea":100, "rightArea":100, "gapClass":""},
+                                    {"title":"㎢당 인구",          "leftData":"1,000 명",        "rightData":"900 명",          "gap":"- 100 명", "leftArea":100, "rightArea":90, "gapClass":"minus"},
+                                    {"title":"청장년 인구",         "leftData":"1,000 명",       "rightData":"45,000 명",        "gap":"+ 40,000 명", "leftArea":20, "rightArea":100, "gapClass":"plus"},
+                                    {"title":"1인가구",            "leftData":"5,000 명",       "rightData":"35,000 명",        "gap":"+ 30,000 명", "leftArea":30, "rightArea":100, "gapClass":"plus"},
+                                    {"title":"전체 기업",          "leftData":"1,000 개",        "rightData":"800 개",          "gap":"-200 개", "leftArea":100, "rightArea":80, "gapClass":"minus"},
+                                    {"title":"전체 기업 매출",      "leftData":"9,995,000 억원",   "rightData":"3,995,000 억원",   "gap":" - 5,000,000 억원", "leftArea":100, "rightArea":45, "gapClass":"minus"},
+                                    {"title":"전체 기업 종사자",     "leftData":"500,000명",       "rightData":"50,000,000 명",   "gap":"+ 49,500,000 명", "leftArea":10, "rightArea":100, "gapClass":"plus"},
+                                    {"title":"토지 평균 공시지가",   "leftData":"500 만원",         "rightData":"5,000 만원",       "gap":"+ 4,500 만원", "leftArea":5, "rightArea":100, "gapClass":"plus"},
+                                    {"title":"토지 평균 실거래가",   "leftData":"5,000 만원",       "rightData":"3,000 만원",       "gap":"- 2,000 만원", "leftArea":100, "rightArea":80, "gapClass":"minus"},
+                                    {"title":"토지 거래 건수",      "leftData":"5,000 건",         "rightData":"5,000 건",       "gap":"- 100 건", "leftArea":100, "rightArea":100, "gapClass":"minus"},
+                                    {"title":"30년 이상 노후건물",  "leftData":"30.0 %",           "rightData":"80.0 %",         "gap":"+ 50.0 %", "leftArea":40, "rightArea":100, "gapClass":"plus"},
+                                ]
+
+                                areaSampleData.forEach((areaSampleData) => {
+
+                                    let html = "";
+                                    
+                                    html += '<li>';
+                                    html += '<div class="title"><p>'+areaSampleData.title+'</p></div>';
+                                    html += '<div class="leftData">'
+                                    html += '<div class="bg" style="width:'+areaSampleData.leftArea+'%"></div>'
+                                    html += '<p>'+areaSampleData.leftData+'</p>'
+                                    html += '</div>'
+                                    html += '<div class="rightData">'
+                                    html += '<div class="bg" style="width:'+areaSampleData.rightArea+'%"></div>'
+                                    html += '<p>'+areaSampleData.rightData+'</p>'
+                                    html += '</div>'
+                                    html += '<div class="differ">'
+                                    html += '<div>'
+                                    html += '<span class="equal">=</span>'
+                                    html += '<span class="count '+areaSampleData.gapClass+'">'+areaSampleData.gap+'</span>'
+                                    html += '<i class="icon_chart" onclick="openDifferAreaChart(this)"></i>'
+                                    html += '</div>'
+                                    html += '</.div>'
+                                    html += '</li>'
+
+                                    $(".dataListWrap").append(html);
+                                })
+                                
+                            })
+                        </script>
+                    </ul>
+ 
+                    <!-- 공간분석 이너 맵 레이어 -->
+                    <div class="mapArea innerPopup shadow">
+                        <div class="wrapper">
+                            <i class="close" onclick="closeDifferAreaMap()"></i>
+                            <!-- 맵 삽입 -->
+                            <div class="mapContent">map Area</div>
+                        </div>
+                        
+                    </div>
+
+                    <!-- 공간분석 이너 차트 레이어 -->
+                    <div class="chartArea innerPopup shadow">
+                        <div class="wrapper">
+                            <i class="close" onclick="closeDifferAreaChart()"></i>
+                            <!-- 맵 삽입 -->
+                            <div id="layerLgChart5" style="width:100%; height:450px;"></div>
+                        </div>
+                        
+                    </div>
+                
+                </div>
+            </div>
+	     </div>
+		 <!-- 종합분석 팝업 종료 -->
+	</body>
+
+</html>

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ststistics"> 
+
+	<select id="getStstisticsUSInterestsMng"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		/** getStstisticsUSInterestsMng start ... **/
+		<include refid="ststisticsCmmn.pageHeader" />
+			SELECT
+				ROW_NUMBER() OVER(ORDER BY DISP_RANK ASC) AS RNUM 
+				, USE_YN	
+				, DECODE(USE_YN , 'Y' , '활성' ,'비활성')  AS USE_YN_VALUE
+				, DISP_RANK 	
+				, STAT_DISTANCE_NM 
+				, STAT_DISTANCE_ID
+				, ICON_EXP
+				, ICON_EXP
+				, CONCAT(PATH_NM, SAVE_FILE_NM) AS ICON_URL
+				, ORI_FILE_NM AS TEMP_URL
+				, (SELECT COUNT(T1.LFE_CYCLE_ID) FROM SRV_DT_CTLG_CYCLE_DISTANCE T1 WHERE T1.STAT_DISTANCE_ID = T2.STAT_DISTANCE_ID) AS STAT_CNT
+				, (SELECT COUNT(T1.STAT_DISTANCE_ID) FROM SRV_DT_CTLG_CYCLE_DISTANCE T1 WHERE T1.STAT_DISTANCE_ID = T2.STAT_DISTANCE_ID) AS STAT_CNT
+			FROM 
+				SRV_DT_CTLG_DISTANCE_LIST T2
+			<include refid="commonWhere"/>
+			ORDER BY DISP_RANK
+		<include refid="ststisticsCmmn.pageFotter" />
+	</select>
+	
+	<select id="getStstisticsUSInterestsMngTotal"  parameterType="java.util.HashMap" resultType="int">
+		/** getStstisticsUSInterestsMngTotal start ... **/
+		SELECT 	COUNT(STAT_DISTANCE_ID) 
+		FROM 	SRV_DT_CTLG_DISTANCE_LIST
+		<include refid="commonWhere"/>
+	</select>
+	
+	<select id="getStstisticsUSInterestsIsExists"  parameterType="java.util.HashMap" resultType="int">
+		/** getStstisticsUSInterestsIsExists start ... **/
+		SELECT 	COUNT(STAT_DISTANCE_ID) 
+		FROM 	SRV_DT_CTLG_DISTANCE_LIST
+		WHERE	STAT_DISTANCE_ID = #{statDistanceId}
+	</select>
+	
+	<update id="editStstisticsUSInterestsMng" parameterType="java.util.HashMap">
+		/** editStstisticsUSInterestsMng start ... **/
+		UPDATE 	SRV_DT_CTLG_DISTANCE_LIST SET
+				MOD_TS = SYSDATE
+           		, MOD_MANAGER_ID = #{modManagerId} 
+				<if test="iconExp != null and iconExp !=''">
+	           		, ICON_EXP = #{iconExp}
+           		</if>
+           		<if test="pathNm != null and pathNm !=''">
+	           		, PATH_NM = #{pathNm}
+           		</if>
+           		<if test="saveFileNm != null and saveFileNm !=''">
+	           		, SAVE_FILE_NM = #{saveFileNm}
+           		</if>
+           		<if test="oriFileNm != null and oriFileNm !=''">
+	           		, ORI_FILE_NM = #{oriFileNm},
+           		</if>
+           		, STAT_DISTANCE_NM = #{statDistanceNm}
+           		, DISP_RANK = #{dispRank}
+           		, USE_YN = #{useYn}
+        WHERE 	STAT_DISTANCE_ID = #{statDistanceId}
+	</update>
+	
+	<insert id="registerStstisticsUSInterestsMng" parameterType="java.util.HashMap">
+		/** registerStstisticsUSInterestsMng start ... **/
+        INSERT INTO SRV_DT_CTLG_DISTANCE_LIST (
+        	STAT_DISTANCE_ID
+        	, STAT_DISTANCE_NM
+            , DISP_RANK
+        	, USE_YN
+        	, ICON_EXP
+			, PATH_NM
+			, SAVE_FILE_NM
+			, ORI_FILE_NM
+        	, REG_TS
+        	, MOD_TS
+        	, REG_MANAGER_ID
+        	, MOD_MANAGER_ID
+        ) VALUES (
+        	#{statDistanceId}
+        	, #{statDistanceNm}
+        	, #{dispRank}
+        	, #{useYn}
+        	, #{iconExp}
+			, #{pathNm}
+			, #{saveFileNm}
+			, #{oriFileNm}
+        	, SYSDATE
+        	, SYSDATE
+        	, #{regManagerId}
+        	, #{modManagerId}
+        )
+	</insert>
+	
+	<select id="idcheckStstisticsUSInterestsMng"  parameterType="java.util.HashMap" resultType="int">
+		SELECT	COUNT(*) 
+		FROM	SRV_DT_CTLG_DISTANCE_LIST
+		WHERE	STAT_DISTANCE_ID = #{statDistanceId}
+	</select>
+	
+		<insert id="excelUploadInterests" parameterType="java.util.HashMap">
+		/** registerStstisticsUSInterestsMng start ... **/
+        INSERT INTO SRV_DT_CTLG_DISTANCE_LIST (
+        	STAT_DISTANCE_ID
+        	, STAT_DISTANCE_NM
+            , DISP_RANK
+        	, USE_YN
+        	, ICON_EXP
+        	, REG_TS
+        	, MOD_TS
+        	, REG_MANAGER_ID
+        	, MOD_MANAGER_ID
+        	<if test="pathNm != null and pathNm !=''">
+        	, PATH_NM
+        	</if>
+        	<if test="saveFileNm != null and saveFileNm != ''">
+			, SAVE_FILE_NM
+			</if>
+			<if test="oriFileNm != null and oriFileNm !=''">
+			, ORI_FILE_NM
+			</if>
+        ) VALUES (
+        	#{column0}
+        	, #{column3}
+        	, #{column2}
+        	, #{column1}
+        	, #{column4}
+        	, SYSDATE
+        	, SYSDATE
+        	, #{regManagerId}
+        	, #{modManagerId}
+        	<if test="pathNm != null and pathNm !=''">
+        	, #{pathNm}
+        	</if>
+        	<if test="saveFileNm != null and saveFileNm != ''">
+			, #{saveFileNm}
+			</if>
+			<if test="oriFileNm != null and oriFileNm !=''">
+			, #{oriFileNm}
+			</if>
+        )
+	</insert>
+
+	<sql id="commonWhere">
+		<where>
+			<if test="word != null and word != ''">
+				AND INSTR(STAT_DISTANCE_NM ,#{word}) <![CDATA[>]]> 0 
+			</if>
+			<if test="useYn != null and useYn != ''">
+				AND USE_YN = #{useYn}
+			</if>
+		</where>
+	</sql>
+	
+	<!-- 2020년 SGIS고도화 3차 시작 -->
+	<delete id="removeDistanceData" parameterType="java.util.HashMap" >
+		DELETE 
+		FROM SRV_DT_CTLG_DISTANCE_LIST
+		WHERE STAT_DISTANCE_ID = #{statDistanceId}
+	</delete>
+	<delete id="removeDistanceDataMapping" parameterType="java.util.HashMap" >
+		DELETE 
+		FROM SRV_DT_CTLG_DISTANCE_DATA
+		WHERE STAT_DISTANCE_ID = #{statDistanceId}
+	</delete>
+	<!-- 2020년 SGIS고도화 3차 끝 -->
+</mapper>

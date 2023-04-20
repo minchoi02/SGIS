@@ -1,0 +1,750 @@
+<%@include file="/WEB-INF/jsp/includes/taglib.jsp"%>
+<%@page contentType="text/html; charset=UTF-8"%>
+
+
+<script>
+var accessToken;
+		$(document).ready(function() {
+			$("#common_popup_confirm_close").click(function() {
+				$("#common_popup_back").parent().hide();
+				$("#common_popup_confirm").hide();
+			});
+			$("#common_popup_alert_close").click(function() {
+				$("#common_popup_back").parent().hide();
+				$("#common_popup_alert").hide();
+			});
+			$("#lifeEnvironment_close").click(function() {
+				$("#common_popup_back").parent().hide();
+				$("#lifeEnvironment").hide();
+			});
+			$("#common_popup_area_detail_close").click(function() {
+				$("#common_popup_back").parent().hide();
+				$("#common_popup_area_click").hide();
+			});
+		});
+</script>
+
+	
+  <!-- 팝업 배경 START -->
+  <div class="popBack" style="display: none;">
+  	<div id="common_popup_back" class="aside_back"></div>
+  </div>
+  <!-- 팝업 배경 END -->
+  
+<!-- 알림 팝업 START -->
+<div id="common_popup_alert" class="popWrap" style="left: calc(50% - 120px); top: 100px; width: 240px; display: none;">
+	<div class="i_pop pCheck"></div>
+	<div class="popBox">
+		<div class="popHeader">
+			<button id="common_popup_alert_close" class="btn_popClose" type="button" title="닫기"></button> <!-- 2020.09.08 [신예리] 대체텍스트 추가 -->
+		</div>
+		<div class="popContentBox" style="border-bottom-right-radius: 10px; border-bottom-left-radius: 10px;" >
+			<div class="popContent">
+				<p id="common_popup_alert_message" class="alertMessage">비밀번호를 입력하세요.</p> 
+			</div>
+			<div class="popBtnBox" id="common_popup_alert_ok" >
+				<button class="btn_popType3" type="button">확인</button>
+			</div>
+		</div> 
+	</div>
+</div>
+<!-- 알림 팝업 END -->
+
+<!-- 확인 팝업 START -->
+<div id="common_popup_confirm" class="popWrap" style="left: calc(50% - 120px); top: 100px; width: 240px; display: none;">
+	<div class="i_pop pAlert"></div>
+	<div class="popBox">
+		<div class="popHeader">
+			<button id="common_popup_confirm_close" class="btn_popClose" type="button" title="닫기"></button> <!-- 2020.09.08 [신예리] 대체텍스트 추가 -->
+		</div>
+		<div class="popContentBox">
+			<div class="popContent">
+				<p id="common_popup_confirm_message" class="alertMessage">저장 하시겠습니까?</p> 
+			</div>
+			<div class="popBtnBoxCurrent">
+					<button id="common_popup_confirm_cancel" class="btn_popType2" type="button">취소</button>
+					<button id="common_popup_confirm_ok" class="btn_popType1" type="button">확인</button>
+				</div>
+		</div>
+	</div>
+</div>
+<!-- 확인 팝업 END -->
+
+<!--위치동의 팝업 START -->
+<div id="common_popup_location" class="popWrap" style="display: none;">
+	<div class="i_pop pin"></div>
+	<div class="popBox">
+		<div class="popHeader">     
+      	<button id="common_popup_location_close" class="btn_popClose" type="button" title="닫기"></button> <!-- 2020.09.08 [신예리] 대체텍스트 추가 -->
+		</div>
+		<div class="popContentBox">
+				
+				<!-- mng_s 20210223 이진호, IE 에서만 word-break가 안되어 br 태그 추가-->
+				<!-- 2020.09.15[한광희] 개행 수정 START -->
+				<span class="popTitle" style="padding-left: 0; margin-bottom:10px; word-break: keep-all;">"SGIS모바일"이 사용자의 위치를 <br/>사용하도록 허용하겠습니까?</span>
+				<p class="popMessage" style="word-break: keep-all;">
+					현재 접속위치와 가까운 지역을 검색하기<br/> 위해서 현재 위치를 확인합니다.
+				</p>
+				<!-- 2020.09.15[한광희] 개행 수정 END -->
+				<!-- mng_e 20210223 이진호 -->
+				
+		</div>
+		<div class="popBtnBoxLocation">
+				<button id="common_popup_location_ok" class="AllowBtn" type="button">허용</button>
+				<button id="common_popup_location_cancel" class="AllowBtnNot" type="button">허용 안함</button>
+		</div> 
+	</div>
+</div>
+<!--위치동의 팝업 END -->
+
+<!-- 관심지역 설정 팝업 START --> 
+<div id="common_popup_area" class="popWrap region" style="display: none;">
+	<div class="popBox">
+		<div class="popHeader">
+			<span class="popTitle" id="popupArea_title">관심지역변경</span>
+			<button id="common_popup_area_close" class="btn_popClose" type="button"></button>
+		</div>
+		<!-- <div class="popContentBox" style="padding:1.5em 0;">
+			<div class="select_wrap">
+				<select id="popupArea_sido" title="시도 선택">
+					<option value="00" data-x="990480.875" data-y="1815839.375">전국</option>
+				</select>
+				
+				<select id="popupArea_sgg" title="시군구 선택">
+					<option value="999" data-x="990480.875" data-y="1815839.375">전체</option>
+				</select> 
+				
+				<select id="popupArea_emdong" title="읍면동 선택" style="display: block;">
+					<option value="99" data-x="990480.875" data-y="1815839.375">전체</option>
+				</select>
+			</div>  
+		</div> -->	
+		<div class="area_select_wrap">
+	        <div class="area_select_inner">
+	          <a href="javascript:void(0);" class="area_select_item is-disabled">시/도</a>
+	          <span>
+	          	<svg width="12" height="8" viewBox="0 0 14 8" fill="#2277F2" xmlns="http://www.w3.org/2000/svg"><path d="M7 8C6.71875 8 6.46875 7.90625 6.28125 7.71875L1.28125 2.71875C0.875 2.34375 0.875 1.6875 1.28125 1.3125C1.65625 0.90625 2.3125 0.90625 2.6875 1.3125L7 5.59375L11.2812 1.3125C11.6562 0.90625 12.3125 0.90625 12.6875 1.3125C13.0938 1.6875 13.0938 2.34375 12.6875 2.71875L7.6875 7.71875C7.5 7.90625 7.25 8 7 8Z"></path></svg>
+	          </span>
+	          <a href="javascript:void(0);" class="area_select_item is-disabled">시/군/구</a>
+	          <span>
+	          	<svg width="12" height="8" viewBox="0 0 14 8" fill="#2277F2" xmlns="http://www.w3.org/2000/svg"><path d="M7 8C6.71875 8 6.46875 7.90625 6.28125 7.71875L1.28125 2.71875C0.875 2.34375 0.875 1.6875 1.28125 1.3125C1.65625 0.90625 2.3125 0.90625 2.6875 1.3125L7 5.59375L11.2812 1.3125C11.6562 0.90625 12.3125 0.90625 12.6875 1.3125C13.0938 1.6875 13.0938 2.34375 12.6875 2.71875L7.6875 7.71875C7.5 7.90625 7.25 8 7 8Z"></path></svg>
+	          </span>
+	          <a href="javascript:void(0);" class="area_select_item is-disabled">읍/면/동</a>
+	        </div>
+	    </div>
+	    <div class="area_list_wrap">
+	        <ul class="area_list--district popupArea_sido" style="padding-left: 1px;">
+	      </div>
+		<div class="PopFooter" style="margin-top:10px">
+			<button id="common_popup_area_ok" class="btn_popType4" type="button">확인</button>
+		</div>
+	</div>
+</div>
+<!--관심지역 설정 팝업 END -->
+
+<!-- 지도 선택에 따른 정보 팝업 START -->
+<div class="popWrap" id="common_popup_area_click" style="display: none;">
+	<div class="MapselectpopCon">
+	<button id="common_popup_area_detail_close" class="btn_popClose" type="button" style="margin-top: -15px; margin-right: -15px; margin-bottom: -10px;" title="닫기"></button> <!-- 2020.9.03 [신예리] 닫기버튼 추가 --> <!-- 2020.09.08 [신예리] 대체텍스트 추가 -->
+		<ul>
+			<li>
+  				<span id="areaTitle"></span>
+			</li>
+			<li>
+				<span id="areaDataTitle"></span>
+      			<span id="areaData"></span>
+			</li>
+		</ul>
+	</div>
+</div>
+<!-- 지도 선택에 따른 정보 팝업 END -->
+
+<!--오늘의 전체 일자리현황 팝업. START -->
+<div id="todayStatusPopup" class="popWrap" style="left: calc(50% - 158px); top: 100px; width: 315px; display: none;">
+	<div class="i_pop tjop"></div>
+	<div class="popBox" style="padding-bottom: 10px;">
+		<div class="popHeader">
+		<span class="popTitle" style="padding-left: 85px;">오늘의 구인현황</span><span class="popTitleSpan" id="todayStatusPopup_adm_nm">(전국)</span> 
+				<button id="todayStatusPopup_close" class="btn_popClose" type="button" style="padding-top: 1px;" title="닫기"></button> <!-- 2020.09.08 [신예리] 대체텍스트 추가 -->
+		</div>
+		<div class="popContentBox" style="border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;"> 
+			<!-- <div class="popTitle" style="padding: 10px 0 0 0;">
+				오늘의 구인현황 <span id="todayStatusPopup_adm_nm">(전국)</span>
+			</div> -->
+			<div class="popContent" style="width: 100%;"> 
+				<ul class="todayJobWrap" style="margin-top: 0px;">
+					<li class="tjCom">
+					<div style="margin-left: 55px; margin-right: 10px;">
+						<p class="tjTitle">구인업체 수</p>
+						
+						<!-- mng_s 20201120 이진호, W3C HTML 웹표준 체크 중 p태그 name 사용 불가 에러 때문에 수정-->
+						<!--<p name="all_corp_cnt" class="tjTotalNum comColor">-</p> -->
+						<p id="all_corp_cnt" class="tjTotalNum comColor">-</p>
+						<!-- mng_e 20201120 이진호 -->
+						
+					</div> 
+					<div style="margin-right: 10px;">
+						<p class="tjChange">
+							전일대비
+							
+							<!-- mng_s 20201120 이진호, W3C HTML 웹표준 체크 중 name 사용 불가 에러 때문에 수정-->
+							<!-- <span name="all_corp_cnt_c_rate">0%</span>-->	<!-- 2020.09.22[한광희] 오늘의 구인현황 팝업 수정 -->
+							<span id="all_corp_cnt_c_rate">0%</span>
+							<!-- mng_e 20201120 이진호 -->
+							
+						</p>
+					</div>
+					<div style="padding-left: 9px; border-left: 1px solid #eee;">
+					
+						<!-- mng_s 20201120 이진호, W3C 웹표준 검사 결과 name 사용 불가로 인해 id로 변경 -->
+						<p class="tjNum">
+							<!-- 신규 <span name="new_corp_cnt" class="dataColor">-</span> -->
+							신규 <span id="new_corp_cnt" class="dataColor">-</span>
+						</p>
+						<p class="tjNum">
+							<!-- 마감 <span name="clos_corp_cnt" class="dataColor">-</span> -->
+							마감 <span id="clos_corp_cnt" class="dataColor">-</span>
+						</p>
+						<!-- mng_e 20201120 이진호 -->
+						
+					</div> 
+					</li>
+					<li class="tjJobseeker">
+					<div style="margin-left: 55px; margin-right: 10px;">
+						<p class="tjTitle">구인자수</p>
+						
+						<!-- mng_s 20201120 이진호, W3C 웹표준 검사 결과 name 사용 불가로 인해 id로 변경 -->
+						<!-- <p name="all_rcrit_psn_cnt" class="tjTotalNum jobColor">-</p> -->
+						<p id="all_rcrit_psn_cnt" class="tjTotalNum jobColor">-</p>
+						<!-- mng_e 20201120 이진호 -->
+						
+					</div>
+					<div style="margin-right: 10px;">
+						<p class="tjChange">
+						<!-- 2020.09.22[한광희] 오늘의 구인현황 팝업 수정 START -->
+							전일대비
+							
+							<!-- mng_s 20201120 이진호, W3C 웹표준 검사 결과 name 사용 불가로 인해 id로 변경 -->
+							<!--<span name="all_rcrit_psn_cnt_c_rate">0%</span> -->
+							<span id="all_rcrit_psn_cnt_c_rate">0%</span>
+							<!-- mng_e 20201120 이진호 -->
+							
+						<!-- 2020.09.22[한광희] 오늘의 구인현황 팝업 수정 START -->
+						</p>
+					</div>
+					<div style="padding-left: 9px; border-left: 1px solid #eee;">
+					
+						<!-- mng_s 20201120 이진호, W3C 웹표준 검사 결과 name 사용 불가로 인해 id로 변경 -->
+						<p class="tjNum">
+						<!-- 신규 <span name="new_rcrit_psn_cnt" class="dataColor">-</span> -->
+						신규 <span id="new_rcrit_psn_cnt" class="dataColor">-</span>
+						</p>
+						<p class="tjNum">
+						<!-- 마감 <span name="clos_rcrit_psn_cnt" class="dataColor">-</span> -->
+						마감 <span id="clos_rcrit_psn_cnt" class="dataColor">-</span>
+						</p>
+						<!-- mng_e 20201120 이진호 -->
+					
+					</div>
+					</li>
+				</ul>
+			</div>
+			<div style="display:flex; flex-direction: row; justify-content: center; padding-top: 10px;">
+				<p class="tjTitle" style="padding-right: 5px;">자료출처 : 워크넷&인쿠르트&사람인</p>
+				<p class="tjTitle" id="todayStatusPopup_reg_dt">(0월 00일 기준)</p>
+			</div>
+			<div>
+				<p class="tjTitle" style="text-align: right; padding-top: 10px; color: #4B5158;">
+				<div class="round">
+					<input type="checkbox" id="todayStatusPopup_check" style="margin: 0;">
+					<label for="todayStatusPopup_check"></label>
+					<span>오늘 하루 다시 보지 않기</span>
+				</div>
+				
+				<!-- mng_s 20201120 이진호 / W3C 웹표준 에러 수정  -->
+				<!-- </p> -->
+				<!-- mng_e 20201120 이진호 -->
+				
+			</div>
+		</div>
+		<div class="PopFooter" style="display: none;">
+			<button id="todayStatusPopup_ok" class="btn_popSubmit" type="button">상세현황보기</button>
+		</div>
+	</div>
+</div>
+<!-- 오늘의 전체 일자리현황 팝업. END -->
+
+<!-- 생활환경 정보 START -->
+<div class="poipopDiv" id="lifeEnvironment">
+	<div class="poiHeader">
+		<h2 class="poiTitle">생활환경종합</h2>
+		<button id="lifeEnvironment_close" class="btn_popClose" type="button" title="닫기">닫기 버튼</button> <!-- 2020.9.03 [신예리] 닫기버튼 추가 --> <!-- 2020.09.11 [신예리] 대체텍스트 추가 -->
+	</div>
+	<div class="poiCon">
+		<ul>
+			<li>
+				<div class="col">
+				
+					<!-- mng_s 20201120 이진호 / W3C 웹표준 검사 결과 span 태그에 name 허용하지 않아 id로 변경 -->
+					<!-- <span class="bad" name="lifeEnvironmentInfo1"> -->
+					<span class="bad" id="lifeEnvironmentInfo1">
+						<img alt="icon_info1" src="${ctx }/resources/m2020/images/common/icon_info1.png" />
+					</span>
+					<div>
+						<p>녹지비율</p>
+						<!-- <p class="bad_txt" name="lifeEnvironmentInfo1_text">낮음</p> -->
+						<p class="bad_txt" id="lifeEnvironmentInfo1_text">낮음</p>
+					</div>
+					<!-- mng_e 20201120 이진호 -->
+					
+				</div>
+				<div class="col">
+				
+					<!-- mng_s 20201120 이진호 / W3C 웹표준 검사 결과 span 태그에 name 허용하지 않아 id로 변경 -->
+					<!-- <span class="good" name="lifeEnvironmentInfo2"> -->
+					<span class="good" id="lifeEnvironmentInfo2">
+						<img alt="icon_info2" src="${ctx }/resources/m2020/images/common/icon_info2.png" />
+					</span>
+					<div>
+						<p>공동주택비율</p>
+						<!-- <p class="good_txt" name="lifeEnvironmentInfo2_text">높음</p> -->
+						<p class="good_txt" id="lifeEnvironmentInfo2_text">높음</p>
+					</div>
+					<!-- mng_e 20201120 이진호 -->
+					
+				</div>
+			</li>
+
+			<li>
+				<div class="col">
+				
+					<!-- mng_s 20201120 이진호 / W3C 웹표준 검사 결과 span 태그에 name 허용하지 않아 id로 변경 -->
+					<!--<span class="good" name="lifeEnvironmentInfo3"> -->
+					<span class="good" id="lifeEnvironmentInfo3">
+						<img alt="icon_info3" src="${ctx }/resources/m2020/images/common/icon_info3.png" />
+					</span>
+					<div>
+						<p>청장년인구비율</p>
+						<!-- <p class="good_txt" name="lifeEnvironmentInfo3_text">높음</p> -->
+						<p class="good_txt" id="lifeEnvironmentInfo3_text">높음</p>
+					</div>
+					<!-- mng_e 20201120 이진호 -->
+					
+				</div>
+				<div class="col">
+				
+					<!-- mng_s 20201120 이진호 / W3C 웹표준 검사 결과 span 태그에 name 허용하지 않아 id로 변경 -->
+					<!-- <span class="good" name="lifeEnvironmentInfo4"> -->
+					<span class="good" id="lifeEnvironmentInfo4">
+						<img alt="icon_info4" src="${ctx }/resources/m2020/images/common/icon_info4.png" />
+					</span>
+					<div>
+						<p>교통사고 안전</p>
+						<!--<p class="good_txt" name="lifeEnvironmentInfo4_text">좋음</p> -->
+						<p class="good_txt" id="lifeEnvironmentInfo4_text">좋음</p>
+					</div>
+					<!-- mng_e 20201120 이진호 -->
+					
+				</div>
+			</li>
+
+			<li>
+				<div class="col">
+				
+					<!-- mng_s 20201120 이진호 / W3C 웹표준 검사 결과 span 태그에 name 허용하지 않아 id로 변경 -->
+					<!-- <span class="good" name="lifeEnvironmentInfo5"> -->
+					<span class="good" id="lifeEnvironmentInfo5">
+						<img alt="icon_info5" src="${ctx }/resources/m2020/images/common/icon_info5.png" />
+					</span>
+					<div>
+						<p>대중교통이용률</p>
+						<!--<p class="good_txt" name="lifeEnvironmentInfo5_text">높음</p> -->
+						<p class="good_txt" id="lifeEnvironmentInfo5_text">높음</p>
+					</div>
+					<!-- mng_e 20201120 이진호 -->
+					
+				</div>
+				<div class="col">
+				
+					<!-- mng_s 20201120 이진호 / W3C 웹표준 검사 결과 span 태그에 name 허용하지 않아 id로 변경 -->
+					<!-- <span class="good" name="lifeEnvironmentInfo6"> -->
+					<span class="good" id="lifeEnvironmentInfo6">
+						<img alt="icon_info6" src="${ctx }/resources/m2020/images/common/icon_info6.png" />
+					</span>
+					<div>
+						<p>고등교육기관수</p>
+						<!--<p class="good_txt" name="lifeEnvironmentInfo6_text">많음</p> -->
+						<p class="good_txt" id="lifeEnvironmentInfo6_text">많음</p>
+					</div>
+					<!-- mng_e 20201120 이진호 -->
+					
+				</div>
+			</li>
+
+			<li>
+				<div class="col">
+				
+					<!-- mng_s 20201120 이진호 / W3C 웹표준 검사 결과 span 태그에 name 허용하지 않아 id로 변경 -->
+					<!--<span class="good" name="lifeEnvironmentInfo7"> -->
+					<span class="good" id="lifeEnvironmentInfo7">
+						<img alt="icon_info7" src="${ctx }/resources/m2020/images/common/icon_info7.png" />
+					</span>
+					<div>
+						<p>문화시설</p>
+						<!--<p class="good_txt" name="lifeEnvironmentInfo7_text">많음</p> -->
+						<p class="good_txt" id="lifeEnvironmentInfo7_text">많음</p>
+					</div>
+					<!-- mng_e 20201120 이진호 -->
+					
+				</div>
+			</li>
+		</ul>
+	</div>
+	<div class="poiBtnrow">
+	
+		<!-- mng_s 20201120 이진호, W3C 웹표준 오류 수정 -->
+		<!--<a href="#" class="detailBtn" id="lifeEnvironmentPopup_open" sido_cd="" sgg_cd="" emdong_cd="">상세보기</a> -->
+		<a href="#" class="detailBtn" id="lifeEnvironmentPopup_open">상세보기</a>
+		<!-- mng_e 20201120 이진호 -->
+		
+	</div>
+</div>
+<!-- 생활환경 정보 END -->
+
+<!-- 생활환경 팝업 START -->
+<div id="lifeEnvironmentPopup" style="position: absolute; left: 0px; bottom: -500px; background-color: rgb(255, 255, 255); height: calc(100% - 101px); width: 100%; overflow: auto; z-index: 1700; box-sizing: border-box; border-top: 3px solid rgb(17, 43, 72); padding: 10px; display:none;">
+	<div class="Header">
+		<header id="headerArea">
+			<div class="gnb" style="justify-content: center; padding: 0;">	<!-- 2020.09.10[한광희] 이전버튼 추가로 인한 타이틀 수정 -->
+				<h2 style="display:flex; justify-content: space-between; color:#000;">
+					<span>
+						<span id="lifeEnvironmentPopup_title_1"></span>
+						생활환경
+					</span>
+					<button id="lifeEnvironmentPopup_close" class="btn_search" type="button" style="width:20px; height:20px; background:url(/resources/m2020/images/common/pop_close.png) no-repeat center center; border:none; background-size:15px;" onclick=""></button>
+				</h2>
+				<!-- <button id="lifeEnvironmentPopup_close" class="btn_popClose" type="button"></button>  --> <!-- 2020.09.09[신예리] 이전 버튼 추가로 인한 닫기 주석 -->
+			</div>
+		</header>
+	</div>
+	<div class="Content" style="background-color: #ffffff">
+		<!-- 2020.09.09[신예리] 이전 버튼 추가 START -->
+	 
+		<!-- 2020.09.09[신예리] 이전 버튼 추가 END -->
+		<div class="contentBox">
+			<div class="nav_h_type infoMenuWrap" id="lifeEnvironmentPopup_list">
+				<ul>
+					<li style="width: 15px;"></li>
+					<li class="infoMenu on" data-index="0"><a href="javascript:void(0);" class="infoMenu0">종합</a></li>
+					<li style="width: 10px;"></li>
+					<li class="infoMenu" data-index="1"><a href="javascript:void(0);" class="infoMenu1">자연</a></li>
+					<li style="width: 10px;"></li>
+					<li class="infoMenu" data-index="2"><a href="javascript:void(0);" class="infoMenu2">주택</a></li>
+					<li style="width: 10px;"></li>
+					<li class="infoMenu" data-index="3"><a href="javascript:void(0);" class="infoMenu3">지역인구</a></li>
+					<li style="width: 10px;"></li>
+					<li class="infoMenu" data-index="4"><a href="javascript:void(0);" class="infoMenu4">안전</a></li>
+					<li style="width: 10px;"></li>
+					<li class="infoMenu" data-index="5"><a href="javascript:void(0);" class="infoMenu5">생활편의&nbsp;교통</a></li>
+					<li style="width: 10px;"></li>
+					<li class="infoMenu" data-index="6"><a href="javascript:void(0);" class="infoMenu6">교육</a></li>
+					<li style="width: 10px;"></li>
+					<li class="infoMenu" data-index="7"><a href="javascript:void(0);" class="infoMenu7">복지&nbsp;문화</a></li>
+					<li style="width: 10px;"></li>
+				</ul>
+			</div>
+			<div id="lifeEnvironmentPopup_page_0" class="infoPage" style="display: flex; flex-direction: column;">
+				<div class="igDataWrap">
+					<ul>
+						<li>
+							<div class="igTitle">
+								전국평균
+							</div>
+							<div class="igData i_blue" id="lifeEnvironmentPopup_page_0_all_avg"></div>
+						</li>
+						<li>
+							<div class="igTitle">
+								<span id="lifeEnvironmentPopup_page_0_this_title" style="width: auto; margin: 0px; height: auto; border-radius: 0px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 69%;"></span><span>평균</span>
+							</div>
+							<div class="igData i_red" id="lifeEnvironmentPopup_page_0_this_avg"></div>
+						</li>
+					</ul>
+				</div>
+				<div class="infoGraph1" style="text-align: center; padding: 0px;">
+					<div id="lifeEnvironmentPopup_page_0_chart" style="width: 80%; margin:0 auto;"></div>
+				</div>
+				<div class="InfodataWrap" style="margin-bottom: 65px;"> <!-- 2020.09.09[신예리] 이전 버튼 추가로 인한 하단 영역 잘림때문에 margin 값 추가 -->
+					<div class="left"> 
+						<span class="good">
+							
+							<!-- mng_s 20201120 이진호, W3C 웹표준 오류 수정 -->
+							<!--<img id="lifeEnvironmentPopup_page_0_info_img" src="${ctx }/resources/m2020/images/common/icon_info1.png"  style="width: 50px;"/> -->
+							<img alt="lifeEnvironmentPopup_page_0_info_img" id="lifeEnvironmentPopup_page_0_info_img" src="${ctx }/resources/m2020/images/common/icon_info1.png"  style="width: 50px;"/>
+							<!-- mng_e 20201120 이진호 -->
+							
+						</span> 
+					</div>
+					<div class="right">
+						<div class="right_tit">
+							<p class="goot_txt" id="lifeEnvironmentPopup_page_0_info_title">녹지비율 낮음</p>
+						</div>
+						<div class="right_con">
+						<ul>
+							<li style="width: 34%;">	<!-- 2020.09.15[한광희] 생활환경 하단 사이즈 고정 -->
+								<div class="bDataTit">
+									전국평균
+								</div>
+								<p class="i_blue" id="lifeEnvironmentPopup_page_0_info_all">5.35</p>
+							</li>
+							<li style="width: 65%;">	<!-- 2020.09.15[한광희] 생활환경 하단 사이즈 고정 -->
+								<div class="bDataTit">
+									<span id="lifeEnvironmentPopup_page_0_this_admNm" style="width: auto; margin: 0px; height: auto; border-radius: 0px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 69%;">대전광역시 서구</span><span> 평균</span>
+								</div>
+								<p class="i_red" id="lifeEnvironmentPopup_page_0_info_this">5.18( ▲ +0.63)</p>
+							</li>
+						</ul>
+						
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<!-- mng_s 20201120 이진호, W3C 웹표준 오류 수정 -->
+			<div id="lifeEnvironmentPopup_page_1" class="infoPage infoItemWrap" style="display: none;">
+				<ul>
+					<!-- <li name="HML0001_HMM0001"> -->
+					<li id="HML0001_HMM0001">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse01"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0001_HMM0002"> -->
+					<li id="HML0001_HMM0002">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse02"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0001_HMM0003"> -->
+					<li id="HML0001_HMM0003">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse03"></div>
+						<div class="itemStatus"></div>
+					</li>
+				</ul>
+			</div>
+			<div id="lifeEnvironmentPopup_page_2" class="infoPage infoItemWrap" style="display: none;">
+				<ul>
+					<!-- <li name="HML0002_HMM0004"> -->
+					<li id="HML0002_HMM0004">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse04"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0002_HMM0005"> -->
+					<li id="HML0002_HMM0005">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse05"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0002_HMM0006"> -->
+					<li id="HML0002_HMM0006">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse06"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0002_HMM0007"> -->
+					<li id="HML0002_HMM0007">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse07"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0002_HMM0008"> -->
+					<li id="HML0002_HMM0008">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse08"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0002_HMM0035"> -->
+					<li id="HML0002_HMM0035">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse09"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0002_HMM0111"> -->
+					<li id="HML0002_HMM0111">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse10"></div>
+						<div class="itemStatus"></div>
+					</li>
+				</ul>
+			</div>
+			<div id="lifeEnvironmentPopup_page_3" class="infoPage infoItemWrap" style="display: none;">
+				<ul>
+					<!-- <li name="HML0003_HMM0009"> -->
+					<li id="HML0003_HMM0009">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse11"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0003_HMM0010"> -->
+					<li id="HML0003_HMM0010">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse12"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0003_HMM0011"> -->
+					<li id="HML0003_HMM0011">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse13"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0003_HMM0012"> -->
+					<li id="HML0003_HMM0012">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse14"></div>
+						<div class="itemStatus"></div>
+					</li>
+				</ul>
+			</div>
+			<div id="lifeEnvironmentPopup_page_4" class="infoPage infoItemWrap" style="display: none;">
+				<ul>
+					<!-- <li name="HML0004_HMM0013"> -->
+					<li id="HML0004_HMM0013">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse15"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0004_HMM0014"> -->
+					<li id="HML0004_HMM0014">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse16"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0004_HMM0028"> -->
+					<li id="HML0004_HMM0028">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse17"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0004_HMM0029"> -->
+					<li id="HML0004_HMM0029">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse18"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0004_HMM0031"> -->
+					<li id="HML0004_HMM0031">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse19"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0004_HMM0032"> -->
+					<li id="HML0004_HMM0032">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse20"></div>
+						<div class="itemStatus"></div>
+					</li>
+				</ul>
+			</div>
+			<div id="lifeEnvironmentPopup_page_5" class="infoPage infoItemWrap" style="display: none;">
+				<ul>
+					<!-- <li name="HML0005_HMM0015"> -->
+					<li id="HML0005_HMM0015">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse21"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0005_HMM0016"> -->
+					<li id="HML0005_HMM0016">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse22"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0005_HMM0017"> -->
+					<li id="HML0005_HMM0017">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse23"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0005_HMM0018"> -->
+					<li id="HML0005_HMM0018">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse24"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0005_HMM0033"> -->
+					<li id="HML0005_HMM0033">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse25"></div>
+						<div class="itemStatus"></div>
+					</li>
+				</ul>
+			</div>
+			<div id="lifeEnvironmentPopup_page_6" class="infoPage infoItemWrap" style="display: none;">
+				<ul>
+					<!-- <li name="HML0006_HMM0020"> -->
+					<li id="HML0006_HMM0020">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse26"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0006_HMM0021"> -->
+					<li id="HML0006_HMM0021">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse27"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0006_HMM0022"> -->
+					<li id="HML0006_HMM0022">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse28"></div>
+						<div class="itemStatus"></div>
+					</li>
+				</ul>
+			</div>
+			<div id="lifeEnvironmentPopup_page_7" class="infoPage infoItemWrap" style="display: none;">
+				<ul>
+					<!-- <li name="HML0007_HMM0023"> -->
+					<li id="HML0007_HMM0023">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse29"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0007_HMM0024"> -->
+					<li id="HML0007_HMM0024">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse30"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0007_HMM0025"> -->
+					<li id="HML0007_HMM0025">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse31"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0007_HMM0026"> -->
+					<li id="HML0007_HMM0026">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse32"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0007_HMM0027"> -->
+					<li id="HML0007_HMM0027">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse33"></div>
+						<div class="itemStatus"></div>
+					</li>
+					<!-- <li name="HML0007_HMM0034"> -->
+					<li id="HML0007_HMM0034">
+						<div class="itemTitle"></div>
+						<div class="itemIcon iconHouse34"></div>
+						<div class="itemStatus"></div>
+					</li>
+				</ul>
+			</div>
+			<!-- mng_e 20201120 이진호 -->
+			
+		</div>
+	</div>
+</div>
+<!-- 생활환경 팝업 END -->

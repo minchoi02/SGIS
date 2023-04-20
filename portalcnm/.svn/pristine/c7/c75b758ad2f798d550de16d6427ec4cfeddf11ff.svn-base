@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="OpenDataManage"> 
+	<select id="getopenDataMapList" resultType="Map">
+		select * from (
+			select *,ROWNUM R from(
+				select * 
+				from SRV_DT_INNER_OPEN_HIST 
+				where 1=1
+					<if test="SEARCH_WORD != null">
+					    and info_link_srv_nm like  #{SEARCH_WORD} 
+					</if>
+					<if test="DISP_YN != null and DISP_YN != 'ALL'">
+					    and open_yn = #{DISP_YN}
+					</if>
+					
+				)C 
+			where ROWNUM <![CDATA[<=]]> #{END_INDEX} )
+			where R <![CDATA[>=]]> #{START_INDEX}
+	</select>
+	<select id="getopenMapListCount" resultType="int">
+		select count(*) from SRV_DT_INNER_OPEN_HIST where 1=1
+		<if test="SEARCH_WORD != null">
+			and info_link_srv_nm like #{SEARCH_WORD}
+		</if>
+		<if test="DISP_YN != null and DISP_YN != 'ALL'">
+		    and open_yn = #{DISP_YN}
+		</if>
+	</select>
+	<update id="updateOpenData" parameterType="Map" >
+		UPDATE SRV_DT_INNER_OPEN_HIST 
+		SET open_yn = #{OPEN_YN}        
+		WHERE seq = #{SEQ}
+	</update>
+	<delete id="deletePubData" >
+		delete from SRV_DT_INNER_OPEN_HIST where SEQ in
+		<foreach collection="array" index="index" item="item" open="(" separator="," close=")">   
+        		#{item}   
+   		</foreach> 
+	</delete>
+</mapper>

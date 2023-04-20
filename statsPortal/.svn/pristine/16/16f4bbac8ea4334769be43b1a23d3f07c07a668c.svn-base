@@ -1,0 +1,112 @@
+@charset "utf-8";
+
+
+/* main {width: 500px; height: 340px; border: 1px solid #eaeff9; border-radius: 15px; text-align: center; padding: 24px 26px 0; background: #fff; overflow: hidden; position: relative;} */
+/* main {width: 500px; height: 533px; border: 1px solid #eaeff9; border-radius: 15px; text-align: center; padding: 24px 26px 0; background: #fff; overflow: hidden; position: relative;} */
+main {width: 500px; height: 606px; border: 1px solid #eaeff9; border-radius: 15px; text-align: center; padding: 24px 26px 0; background: #fff; overflow: hidden; position: relative;}
+
+/*header*/
+.head {margin-bottom: 20px;}
+.head h1 {font-size: 1.8rem; color:#262626; font-weight: 600; }
+.head h2 {font-size: 1.4red; color: #6d6d70; font-weight: 600;}
+
+/*cont1*/
+.cont1 {margin-bottom: 14px; display: flex; }
+.cont1 > div {padding: 22px 0 18px; }
+.cont1 .left {display: flex; flex: 1; background: #eaeff9; border-radius: 9px 0 0 9px; position: relative;}
+.cont1 .left::after {content:""; position:absolute; width:10px; height:10px; transform:rotate(-45deg); right: -5px; top: 32px; background: #eaeff9; }
+.cont1 .right { display: flex; flex: 1.6; background: #d8deec; border-radius: 0 9px 9px 0;}
+.cont1 .numBox {display: flex; }
+.cont1 .numBox .lb {margin-right: 6px;}
+.cont1 .numBox .rb {text-align: left; font-weight: 600;}
+.cont1 .numBox .rb .tit {font-size: 1.2rem; color: #666666;}
+.cont1 .numBox .rb .num {font-size: 2rem; color: #262626;}
+.cont1 .left .rb .num {color: #fd4b6d; }
+
+.ml26 {margin-left: 26px;}
+/* .ml26 {margin-left: 70px;} */
+.ml60 {margin-left: 45px;}
+/* .ml60 {margin-left: 100px;} */
+.ml38 {margin-left: 38px;}
+/* .ml38 {margin-left: 130px;} */
+
+/*cont2*/
+.cont2 ul {display: flex; justify-content: space-between; color: #fff; font-weight: 600;}
+.cont2 ul li {width: 106px; height: 120px; padding: 10px;}
+/* .cont2 ul li {width: 165px; height: 120px; padding: 10px;} */
+.cont2 ul li.covid {background: url(/images/corona/bg_21.png);}
+.cont2 ul li.rcvy {background: url(/images/corona/bg_22.png);}
+.cont2 ul li.cure {background: url(/images/corona/bg_23.png);}
+.cont2 ul li.death {background: url(/images/corona/bg_24.png);}
+.cont2 ul li .tit2 {font-size: 1.2rem; margin-top: 3px;  }
+.cont2 ul li .num2 {font-size: 1.8rem; margin-top: 22px;}
+.cont2 ul li .plus {font-size: 1.2rem; margin-top: 2px; position: relative;}
+.cont2 ul li .plus img {margin-left: 2px;}
+/*.cont2 ul li .plus::after {content: ""; position: absolute; background: url(/images/corona/arw.png); width: 8px; height: 6px; top: 3px; right: 25px;}*/
+
+/*footer*/
+.foot {display: flex; justify-content: space-between; align-items: center; width: 500px; height: 28px; background: #eaeff9; padding: 0 26px; margin: 0 -26px; margin-top: 19px; }
+/* .foot {display: flex; justify-content: space-between; align-items: center; width: 746px; height: 28px; background: #eaeff9; padding: 0 26px; margin-top: 19px; } */
+.foot label {margin-left: 3px;}
+.foot img {margin-left: 3px; vertical-align: middle;}
+
+/*cls*/
+.cls {position: absolute; top: 16px; right: 16px; background: #fff;}
+
+.covid_current{margin:20px 0;text-align:center;}
+.covid_current h1{font-size:18px;}
+.covid_current p{color: #6d6d70;font-weight: 600;}
+.popup{position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);}
+.popup_wrap{overflow: auto;position: absolute;left: 0px;top: 0px;background: rgba(0, 0, 0, 0.5);width: 100%;  height: 100%;}
+/* 삭제 끝*/
+
+.popup{width:500px;height:583px;background:#fff;padding: 24px 26px 0;border-radius:15px;overflow:hidden;}
+.popup_tab{height:auto;overflow:hidden;display:flex;align-items:center;justify-content:space-between;}
+/* .popup_tab li{cursor:pointer;width:calc(50% - 10px);color:#888;height:50px;text-align:center;line-height:50px;border-radius:9px;background:#eee;display:flex;align-items:center;justify-content:center;} */
+.popup_tab li{cursor:pointer;color:#888;height:41px;text-align:center;line-height:50px;border-radius:9px;background:#eee;display:flex;align-items:center;justify-content:center;margin-top:15px;}
+.popup_tab li:hover, .popup_tab li.on{background:#1778cc;color:#fff;}
+.popup_tab li.con1 .ico{background:url('/images/corona/covid_pop_ico01.png');width:25px;height:25px;margin-right:6px;}
+.popup_tab li.con2 .ico{background:url('/images/corona/covid_pop_ico02.png');width:25px;height:25px;margin-right:6px;}
+.popup_tab li.con1:hover .ico, .popup_tab li.con1 .ico{background:url('/images/corona/covid_pop_ico01on.png');width:25px;height:25px;margin-right:6px;}
+.popup_tab li.con2:hover .ico, .popup_tab li.con2.on .ico{background:url('/images/corona/covid_pop_ico02on.png');width:25px;height:25px;margin-right:6px;}
+.popup_cont{width:100%;height:auto;overflow:hidden;min-height:200px;display:none;text-align:center;}
+.popup_cont.on{display:block;}
+.vaccination_status{}
+.vaccination_status .tit{border-radius:9px 9px 0 0;position:relative;flex:1;font-size:15px;color:#fff;font-weight:600;line-height:20px;}
+.vaccination_status.style01 .tit{background:linear-gradient(180deg, #d0baff, #b793fa);}
+.vaccination_status.style01 .tit::after{background:#b793fa;}
+.vaccination_status.style02 .tit{background:linear-gradient(180deg, #fecf8f, #feb34d);}
+.vaccination_status.style02 .tit::after{background:#feb34d;}
+.vaccination_status .tit::after {content: "";z-index:2;position:absolute;width:10px;height:10px;transform:rotate(-45deg);top:calc(100% - 5px);left:calc(50% - 5px);background:#eaeff9;}
+.vaccination_status .result{position:relative;z-index:1;flex:3;border-radius:0 0 9px 9px;display:flex;height:90px;align-items:center;justify-content:space-between;overflow:hidden;}
+.vaccination_status .result .sign_ico{display:flex;align-items:center;justify-content:center;top:calc(50% - 12px);width:24px;height:24px;border-radius:100%;position:absolute;}
+.vaccination_status .result .sign_ico.plus{left:calc(66.666% - 12px);}
+.vaccination_status .result .sign_ico.equals{left:calc(33.333% - 12px);}
+.vaccination_status.style01 .result .sign_ico{background:#b593ff;}
+.vaccination_status.style02 .result .sign_ico{background:#feb34d;}
+.vaccination_status .result .item{flex:1;height:100%;display:flex;flex-direction:column;justify-content:center;}
+.vaccination_status .result .item.style01>*{background:linear-gradient(180deg, #f3f6fb, #eaeff9)}
+.vaccination_status .result .item.style02>*{border-right:1px solid #c3cce1;background:linear-gradient(180deg, #e8e8e8, #d8deec);}
+.vaccination_status .result .item.style03>*{background:linear-gradient(180deg, #e8e8e8, #d8deec);}
+.vaccination_status .result .item h5{height:70px;display:flex;align-items:center;justify-content:center;text-align:left;font-size:14px;color:#555;}
+.vaccination_status .result .item h5 img{margin-right:4px;}
+.vaccination_status .result .item .num{font-size:16px;color:#313131;font-weight:600;height:70px;display:flex;align-items:center;justify-content:center;}
+.vaccination_status:first-child{margin-bottom:20px;}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

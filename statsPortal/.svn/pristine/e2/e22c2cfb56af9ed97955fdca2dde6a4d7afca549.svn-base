@@ -1,0 +1,61 @@
+package kostat.sop.ServiceAPI.sbr.service.Impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import egovframework.rte.fdl.cmmn.EgovAbstractServiceImpl;
+import kostat.sop.ServiceAPI.sbr.mapper.SbrStatsMapper;
+import kostat.sop.ServiceAPI.sbr.service.SbrStatsService;
+import kostat.sop.ServiceAPI.sbr.vo.SbrVo;
+
+@Service("sbrStatsService")
+public class SbrStatsServiceImpl  extends EgovAbstractServiceImpl implements SbrStatsService {
+	
+	@Resource( name = "SbrStatsMapper" )
+	private SbrStatsMapper sbrStatsMapper;
+
+	@Override
+	public List<Map<String, Object>> selectAllCensusThemeInfo() throws Exception {
+		List<Map<String, Object>> bigList = selectCensusBigThemeInfo();
+		
+		for(int i = 0 ; i < bigList.size() ; i++) {
+			//System.out.println(bigList.get(i));
+			Map<String, Object> param = bigList.get(i);
+			List<Map<String, Object>> smallList = selectCensusSmallThemeInfo((String)param.get("b_theme_cd"));
+			bigList.get(i).put("s_theme_list", smallList);
+		}
+		
+		return bigList;
+	}
+	
+	
+	public List<Map<String, Object>> selectCensusBigThemeInfo() {
+		return sbrStatsMapper.selectCensusBigThemeInfo();
+	}
+	
+	public List<Map<String, Object>> selectCensusSmallThemeInfo(String b_theme_cd) {
+		return sbrStatsMapper.selectCensusSmallThemeInfo(b_theme_cd);
+	}
+
+
+	@Override
+	public String getDdata() throws Exception {
+		return sbrStatsMapper.selectTestData();
+	}
+
+	@Override
+	public List<Map<String, Object>> getCodeList(SbrVo sbrVo) throws Exception {
+		return sbrStatsMapper.selectCodeList(sbrVo);
+	}
+	
+	@Override
+	public List<Map<String, String>> getCompanyCountByAll() throws Exception {
+		return sbrStatsMapper.selectCompanyCountByAll();
+	}
+		
+}

@@ -1,0 +1,1543 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="sysmgt">
+	
+	<!-- 그룹 멤버 정보 가져오기 -->
+	<sql id="orderSql">
+		<choose>
+			<when test="sort == '' || sort == null">
+				ORDER BY post_no DESC
+			</when>
+			<otherwise>
+				ORDER BY ${sort} ${order}
+			</otherwise>
+		</choose>
+	</sql>
+	
+	
+	<select id="getNoticeLst" parameterType="hashMap" resultType="hashMap">
+        SELECT 
+              post_no AS id
+            , ROW_NUMBER() OVER (<include refid="orderSql"/>) AS row
+            , title 
+            , user_id
+            , (SELECT user_nm FROM member WHERE user_id = A.user_id) AS user_nm
+            , TO_CHAR(reg_ts,'YYYY-MM-DD') AS reg_ts
+            , view_cnt
+            , (SELECT COUNT(*) FROM attachments WHERE post_no = A.post_no) AS file_cnt
+            , COUNT(*) OVER() AS total
+          FROM notice A
+				<if test="searchType.equals('title')">
+					where A.title LIKE '%'||#{searchText}||'%'
+				</if>
+				<if test="searchType.equals('content')">
+                	where A.content LIKE '%'||#{searchText}||'%'
+				</if>
+				<if test="searchType.equals('all')">
+                 	where ((A.title LIKE '%'|| #{searchText}||'%') OR (A.content LIKE '%'||#{searchText}||'%'))
+				</if>
+        <include refid="orderSql"/>
+        OFFSET #{start} LIMIT #{display}
+	</select>
+	
+	 <!-- 공지사항 게시물 조회 -->
+    <select id="getNoticeDetail" parameterType="hashMap" resultType="hashMap">
+		SELECT A.post_no
+			 , ROW_NUMBER() OVER (ORDER BY B.attach) AS row
+			 , A.title 
+			 , (SELECT user_nm FROM member WHERE user_id = A.user_id) AS user_nm
+			 , TO_CHAR(A.reg_ts,'YYYY-MM-DD') AS reg_ts
+			 , A.content
+			 , A.view_cnt
+			 , B.attach
+			 , B.file_nm
+			 , B.path
+			 , B.download_cnt
+			 , B.ext
+			 , case when B.file_size > cast(1099511627776 as bigint) then round(B.file_size / 1024 / 1024 / 1024 / 1024::numeric, 1) || ' TB'
+				   when B.file_size > cast(1073741824 as bigint) then round(B.file_size / 1024 / 1024 / 1024::numeric, 1) || ' GB'
+				   when B.file_size > cast(1048576 as bigint) then round(B.file_size / 1024 / 1024::numeric, 1) || ' MB'
+				   when B.file_size > cast(1024 as bigint) then round(B.file_size / 1024::numeric, 1) || ' KB'
+				   else B.file_size || ' B'
+		      end file_size
+		  FROM notice A LEFT OUTER JOIN attachments B
+		    on A.post_no = B.post_no
+		 WHERE A.post_no = #{post_no}
+    </select>
+
+	
+	 <!-- FAQ 게시물 조회 -->
+    <select id="getFaqDetail" parameterType="hashMap" resultType="hashMap">
+		SELECT post_no
+			 , title 
+			 , (SELECT user_nm FROM member WHERE user_id = A.user_id) AS user_nm
+			 , TO_CHAR(reg_ts,'YYYY-MM-DD') AS reg_ts
+			 , content
+		  FROM faq A
+		 WHERE post_no = #{post_no}
+    </select>
+        
+	<!-- 공지사항 게시물 등록 -->
+    <insert id="insertNotice" parameterType="hashMap">
+    	<selectKey keyProperty="post_no" resultType="Integer" order="BEFORE">
+    		SELECT NEXTVAL('post_seq')
+    	</selectKey>
+    	INSERT INTO notice
+    	(
+    		post_no
+		  , user_id
+		  , title
+		  , content
+		  , view_cnt
+		  , reg_ts
+    	) VALUES (
+    		#{post_no}
+    	  , #{user_id}	
+    	  , #{title}
+    	  , #{content}
+    	  , 0
+    	  , NOW()
+    	)
+    </insert>
+    
+	<!-- 공지사항 삭제하기 -->
+	<delete id="deletePost" parameterType="hashMap">
+		DELETE FROM ${table}
+		WHERE post_no in (${ids}) 
+	</delete>
+	
+	<!-- 조회수 증가 -->
+	<update id="updateViewCnt" parameterType="hashMap">
+		UPDATE ${table}
+		SET
+				view_cnt = view_cnt + 1
+		WHERE	post_no = #{post_no}
+	</update>
+	
+	
+	<!-- qna 가져오기-->
+	<select id="getQnaLst" parameterType="hashMap" resultType="hashMap">
+		SELECT Q.*
+           , ROW_NUMBER() OVER (<include refid="orderSql"/>) AS row
+           , COUNT(Q.*) OVER() AS total
+         FROM (
+            SELECT post_no 
+                , title 
+                , user_id
+                , (SELECT user_nm FROM member WHERE user_id = A.user_id) AS user_nm
+                , TO_CHAR(reg_ts,'YYYY-MM-DD') AS reg_ts
+                , view_cnt
+                , (CASE WHEN ans_id IS NULL THEN '미완료' ELSE '완료' END) AS ans_yn
+                , (SELECT COUNT(*) FROM attachments WHERE post_no = A.post_no) AS file_cnt
+                , content
+              FROM qna A
+               ) Q
+              <if test="searchType.equals('title')">
+					where Q.title LIKE '%'||#{searchText}||'%'
+				</if>
+				<if test="searchType.equals('content')">
+                	where Q.content LIKE '%'||#{searchText}||'%'
+				</if>
+				<if test="searchType.equals('all')">
+                 	where ((Q.title LIKE '%'|| #{searchText}||'%') OR (Q.content LIKE '%'||#{searchText}||'%'))
+				</if>
+              	<if test="searchType.equals('userNm')">
+                  	where Q.user_nm LIKE '%'|| #{searchText}||'%'
+                </if>
+         <include refid="orderSql"/>
+         OFFSET #{start} LIMIT #{display}
+	</select>
+	
+	<!-- QNA 게시물 조회 -->
+    <select id="getQnaDetail" parameterType="hashMap" resultType="hashMap">
+		SELECT A.post_no 
+	 		 , ROW_NUMBER() OVER (ORDER BY B.attach) AS row
+			 , A.title 
+			 , A.user_id
+			 , (SELECT user_nm FROM member WHERE user_id = A.user_id) AS user_nm
+			 , (SELECT email FROM member WHERE user_id = A.user_id) AS email
+			 , TO_CHAR(A.reg_ts,'YYYY-MM-DD') AS reg_ts
+			 , A.content
+			 , A.view_cnt
+			 , (SELECT user_nm FROM member WHERE user_id = A.ans_id) AS ans_nm
+			 , (CASE WHEN ans_id IS NULL THEN '미완료' ELSE '완료' END) AS ans_yn
+			 , TO_CHAR(A.ans_ts,'YYYY-MM-DD') AS ans_ts
+			 , A.comment
+			 , ans_id
+			 , B.attach
+			 , B.file_nm
+			 , B.path
+			 , B.download_cnt
+			 , B.ext
+			 , case when B.file_size > cast(1099511627776 as bigint) then round(B.file_size / 1024 / 1024 / 1024 / 1024::numeric, 1) || ' TB'
+				   when B.file_size > cast(1073741824 as bigint) then round(B.file_size / 1024 / 1024 / 1024::numeric, 1) || ' GB'
+				   when B.file_size > cast(1048576 as bigint) then round(B.file_size / 1024 / 1024::numeric, 1) || ' MB'
+				   when B.file_size > cast(1024 as bigint) then round(B.file_size / 1024::numeric, 1) || ' KB'
+				   else B.file_size || ' B'
+		      end file_size
+		  FROM qna A LEFT OUTER JOIN attachments B
+		    on A.post_no = B.post_no
+		 WHERE A.post_no = #{post_no}
+    </select>
+    
+	<!-- FAQ 게시물 목록 -->
+    <select id="getFaqLst" parameterType="hashMap" resultType="hashMap">
+      SELECT post_no 
+          , order_no AS row
+          , title
+          , content
+          , user_id
+          , (SELECT user_nm FROM member WHERE user_id = A.user_id) AS user_nm
+          , TO_CHAR(reg_ts,'YYYY-MM-DD') AS reg_ts
+          , order_no
+          , COUNT(*) OVER() AS total
+        FROM faq A
+       ORDER BY order_no ASC
+    </select>
+    
+ <!-- FAQ 게시물 정렬번호 변경 -->
+    <update id="updateOrderFaq" parameterType="hashMap">
+        UPDATE faq
+          SET order_no = #{order_no_prev}
+              , mod_ts = NOW()    
+        WHERE order_no = #{order_no};
+        
+        UPDATE faq
+          SET order_no = #{order_no}
+              , mod_ts = NOW()    
+        WHERE post_no = #{post_no};
+    </update>
+    
+  	    <!-- HELP 게시물 목록 -->
+    <select id="getUseInfoLst" parameterType="hashMap" resultType="hashMap">
+       SELECT Q.*
+           , ROW_NUMBER() OVER (<include refid="orderSql"/>) AS row
+           , COUNT(Q.*) OVER() AS total
+         FROM (
+            SELECT A.post_no 
+                , A.title
+                , (SELECT user_nm FROM member WHERE user_id = A.user_id) AS user_nm
+                , TO_CHAR(A.reg_ts,'YYYY-MM-DD') AS reg_ts
+                , A.view_cnt
+                , A.content
+                , ARRAY_TO_STRING(ARRAY_AGG(B.attach),',') AS attach
+              FROM help A LEFT OUTER JOIN attachments B
+                on A.post_no = B.post_no
+             GROUP BY A.post_no, A.title, A.user_id, A.reg_ts, A.view_cnt, A.content
+               ) Q
+            	<if test="searchType.equals('title')">
+					where Q.title LIKE '%'||#{searchText}||'%'
+				</if>
+				<if test="searchType.equals('content')">
+                	where Q.content LIKE '%'||#{searchText}||'%'
+				</if>
+				<if test="searchType.equals('all')">
+                 	where ((Q.title LIKE '%'|| #{searchText}||'%') OR (Q.content LIKE '%'||#{searchText}||'%'))
+				</if>
+              	<if test="searchType.equals('userNm')">
+                  	where Q.user_nm LIKE '%'|| #{searchText}||'%'
+                </if>
+         <include refid="orderSql"/>
+         OFFSET #{start} LIMIT #{display}
+    </select>
+    
+    <!-- HELP 게시물 조회 -->
+    <select id="getUseInfoDetail" parameterType="hashMap" resultType="hashMap">
+		SELECT A.post_no 
+	 		 , ROW_NUMBER() OVER (ORDER BY B.attach) AS row
+			 , A.title 
+			 , (SELECT user_nm FROM member WHERE user_id = A.user_id) AS user_nm
+			 , (SELECT email FROM member WHERE user_id = A.user_id) AS email
+			 , TO_CHAR(A.reg_ts,'YYYY-MM-DD') AS reg_ts
+			 , A.content
+			 , A.view_cnt
+			 , B.attach
+			 , B.file_nm
+			 , B.path
+			 , B.download_cnt
+			 , B.ext
+			 , case when B.file_size > cast(1099511627776 as bigint) then round(B.file_size / 1024 / 1024 / 1024 / 1024::numeric, 1) || ' TB'
+				   when B.file_size > cast(1073741824 as bigint) then round(B.file_size / 1024 / 1024 / 1024::numeric, 1) || ' GB'
+				   when B.file_size > cast(1048576 as bigint) then round(B.file_size / 1024 / 1024::numeric, 1) || ' MB'
+				   when B.file_size > cast(1024 as bigint) then round(B.file_size / 1024::numeric, 1) || ' KB'
+				   else B.file_size || ' B'
+		      end file_size
+		  FROM help A LEFT OUTER JOIN attachments B
+		    on A.post_no = B.post_no
+		 WHERE A.post_no = #{post_no}
+    </select>
+    
+    <!-- 팝업공지 게시물 목록 -->
+    <select id="getPopAlimLst" parameterType="hashMap" resultType="hashMap">
+  	SELECT Q.*
+  		 , ROW_NUMBER() OVER (<include refid="orderSql"/>) AS row
+  		 , COUNT(Q.*) OVER() AS total
+  	  FROM ( SELECT
+				  POST_NO
+				, TITLE
+				, (CASE WHEN USE_YN = 'N' THEN '미게시'
+				        WHEN USE_YN = 'Y' THEN '게시' END) AS USE_YN
+				, REG_USER_ID
+				, (SELECT USER_NM FROM MEMBER WHERE USER_ID = A.REG_USER_ID) AS USER_NM
+				, TO_CHAR(MOD_DT,'YYYY-MM-DD') AS MOD_DT
+				, MOD_USER_ID
+				, (SELECT USER_NM FROM MEMBER WHERE USER_ID = A.MOD_USER_ID) AS MOD_USER_NM
+				, TO_CHAR(DT_TS,'YYYY-MM-DD') AS DT_TS
+				, TO_CHAR(NOTICE_START_DT,'YYYY-MM-DD') AS NOTICE_START_DT
+				, TO_CHAR(NOTICE_END_DT,'YYYY-MM-DD') AS NOTICE_END_DT
+				, POPUP_HIGHT
+				, POPUP_WIDTH
+				, POPUP_X_POS
+				, POPUP_Y_POS
+				, IMAGE_FILE_PATH_NM
+                , (SELECT COUNT(*) FROM ATTACHMENTS WHERE POST_NO = A.POST_NO) AS FILE_CNT				
+				FROM POPUP_NOTICE A
+			) Q
+        	<if test="searchType.equals('title')">
+					where Q.title LIKE '%'||#{searchText}||'%'
+			</if>           
+	<include refid="orderSql"/>
+	OFFSET #{start} LIMIT #{display}
+    </select>
+    
+    <!-- 팝업공지 게시물 조회 -->
+    <select id="getPopAlimDetail" parameterType="hashMap" resultType="hashMap">
+	SELECT
+	      A.POST_NO
+	    , ROW_NUMBER() OVER (ORDER BY B.attach) AS row      
+	    , A.TITLE
+	    , (CASE WHEN A.USE_YN = 'N' THEN '미게시'
+				        WHEN A.USE_YN = 'Y' THEN '게시' END) AS USE_YN
+	    , A.REG_USER_ID
+	    , (SELECT USER_NM FROM MEMBER WHERE USER_ID = A.REG_USER_ID) AS USER_NM    
+	    , MOD_USER_ID
+	    , (SELECT USER_NM FROM MEMBER WHERE USER_ID = A.MOD_USER_ID) AS MOD_USER_NM
+	    , TO_CHAR(A.MOD_DT,'YYYY-MM-DD') AS MOD_DT
+	    , TO_CHAR(A.DT_TS,'YYYY-MM-DD') AS DT_TS
+	    , TO_CHAR(NOTICE_START_DT,'YYYY-MM-DD') AS NOTICE_START_DT
+	    , TO_CHAR(NOTICE_END_DT,'YYYY-MM-DD') AS NOTICE_END_DT
+	    , A.POPUP_HIGHT
+	    , A.POPUP_WIDTH
+	    , A.POPUP_X_POS
+	    , A.POPUP_Y_POS
+	    , A.IMAGE_FILE_PATH_NM
+	    , B.ATTACH
+	    , B.FILE_NM
+	    , B.PATH
+	    , B.DOWNLOAD_CNT
+	    , B.EXT
+	    , case when B.file_size > cast(1099511627776 as bigint) then round(B.file_size / 1024 / 1024 / 1024 / 1024::numeric, 1) || ' TB'
+				   when B.file_size > cast(1073741824 as bigint) then round(B.file_size / 1024 / 1024 / 1024::numeric, 1) || ' GB'
+				   when B.file_size > cast(1048576 as bigint) then round(B.file_size / 1024 / 1024::numeric, 1) || ' MB'
+				   when B.file_size > cast(1024 as bigint) then round(B.file_size / 1024::numeric, 1) || ' KB'
+				   else B.file_size || ' B'
+		      end file_size
+	FROM  POPUP_NOTICE A LEFT OUTER JOIN ATTACHMENTS B
+	ON    A.POST_NO = B.POST_NO
+	WHERE A.POST_NO = #{post_no}
+    </select>
+    
+	<!-- 활용사례 게시물 목록 -->
+	<select id="getUseGuideLst" parameterType="hashMap" resultType="hashMap">
+    	SELECT Q.*
+    		 , ROW_NUMBER() OVER (<include refid="orderSql"/>) AS row
+    		 , COUNT(Q.*) OVER() AS total
+    	  FROM (
+				SELECT A.post_no 
+					 , A.title
+					 , (SELECT user_nm FROM member WHERE user_id = A.user_id) AS user_nm
+					 , TO_CHAR(A.reg_ts,'YYYY-MM-DD') AS reg_ts
+					 , A.view_cnt
+					 , A.content
+					 , ARRAY_TO_STRING(ARRAY_AGG(B.attach),',') AS attach
+				  FROM case_list A LEFT OUTER JOIN attachments B
+				    on A.post_no = B.post_no
+				 GROUP BY A.post_no, A.title, A.user_id, A.reg_ts, A.view_cnt, A.content
+    	  		) Q
+			  <if test="searchType.equals('title')">
+					where Q.title LIKE '%'||#{searchText}||'%'
+				</if>
+				<if test="searchType.equals('content')">
+                	where Q.content LIKE '%'||#{searchText}||'%'
+				</if>
+				<if test="searchType.equals('all')">
+                 	where ((Q.title LIKE '%'|| #{searchText}||'%') OR (Q.content LIKE '%'||#{searchText}||'%'))
+				</if>
+              	<if test="searchType.equals('userNm')">
+                  	where Q.user_nm LIKE '%'|| #{searchText}||'%'
+                </if>
+			<include refid="orderSql"/>
+			OFFSET #{start} LIMIT #{display}
+    </select>
+    
+     <!-- 활용사례 게시물 조회 -->
+    <select id="getUseGuideDetail" parameterType="hashMap" resultType="hashMap">
+		SELECT A.post_no 
+	 		 , ROW_NUMBER() OVER (ORDER BY B.attach) AS row
+			 , A.title 
+			 , (SELECT user_nm FROM member WHERE user_id = A.user_id) AS user_nm
+			 , (SELECT email FROM member WHERE user_id = A.user_id) AS email
+			 , TO_CHAR(A.reg_ts,'YYYY-MM-DD') AS reg_ts
+			 , A.content
+			 , A.view_cnt
+			 , B.attach
+			 , B.file_nm
+			 , B.path
+			 , B.download_cnt
+			 , B.ext
+			 , case when B.file_size > cast(1099511627776 as bigint) then round(B.file_size / 1024 / 1024 / 1024 / 1024::numeric, 1) || ' TB'
+				   when B.file_size > cast(1073741824 as bigint) then round(B.file_size / 1024 / 1024 / 1024::numeric, 1) || ' GB'
+				   when B.file_size > cast(1048576 as bigint) then round(B.file_size / 1024 / 1024::numeric, 1) || ' MB'
+				   when B.file_size > cast(1024 as bigint) then round(B.file_size / 1024::numeric, 1) || ' KB'
+				   else B.file_size || ' B'
+		      end file_size
+		  FROM case_list A LEFT OUTER JOIN attachments B
+		    on A.post_no = B.post_no
+		 WHERE A.post_no = #{post_no}
+    </select>
+    <!-- 따라하기 게시물 목록 -->
+    <select id="getUseCopyLst" parameterType="hashMap" resultType="hashMap">
+    	SELECT Q.*
+    		 , ROW_NUMBER() OVER (<include refid="orderSql"/>) AS row
+    		 , COUNT(Q.*) OVER() AS total
+    	  FROM (
+				SELECT A.post_no 
+					 , A.title
+					 , (SELECT user_nm FROM member WHERE user_id = A.user_id) AS user_nm
+					 , TO_CHAR(A.reg_ts,'YYYY-MM-DD') AS reg_ts
+					 , A.view_cnt
+					 , A.content
+					 , ARRAY_TO_STRING(ARRAY_AGG(B.attach),',') AS attach
+				  FROM movie A LEFT OUTER JOIN attachments B
+				    on A.post_no = B.post_no
+				 GROUP BY A.post_no, A.title, A.user_id, A.reg_ts, A.view_cnt, A.content
+    	  		) Q
+			  <if test="searchType.equals('title')">
+					where Q.title LIKE '%'||#{searchText}||'%'
+				</if>
+				<if test="searchType.equals('content')">
+                	where Q.content LIKE '%'||#{searchText}||'%'
+				</if>
+				<if test="searchType.equals('all')">
+                 	where ((Q.title LIKE '%'|| #{searchText}||'%') OR (Q.content LIKE '%'||#{searchText}||'%'))
+				</if>
+              	<if test="searchType.equals('userNm')">
+                  	where Q.user_nm LIKE '%'|| #{searchText}||'%'
+                </if>
+			<include refid="orderSql"/>
+			OFFSET #{start} LIMIT #{display}
+    </select>
+    
+      <!-- 따라하기 게시물 조회 -->
+    <select id="getUseCopyDetail" parameterType="hashMap" resultType="hashMap">
+		SELECT A.post_no 
+	 		 , ROW_NUMBER() OVER (ORDER BY B.attach) AS row
+			 , A.title 
+			 , (SELECT user_nm FROM member WHERE user_id = A.user_id) AS user_nm
+			 , (SELECT email FROM member WHERE user_id = A.user_id) AS email
+			 , TO_CHAR(A.reg_ts,'YYYY-MM-DD') AS reg_ts
+			 , A.content
+			 , A.view_cnt
+			 , B.attach
+			 , B.file_nm
+			 , B.path
+			 , B.download_cnt
+			 , B.ext
+			 , case when B.file_size > cast(1099511627776 as bigint) then round(B.file_size / 1024 / 1024 / 1024 / 1024::numeric, 1) || ' TB'
+				   when B.file_size > cast(1073741824 as bigint) then round(B.file_size / 1024 / 1024 / 1024::numeric, 1) || ' GB'
+				   when B.file_size > cast(1048576 as bigint) then round(B.file_size / 1024 / 1024::numeric, 1) || ' MB'
+				   when B.file_size > cast(1024 as bigint) then round(B.file_size / 1024::numeric, 1) || ' KB'
+				   else B.file_size || ' B'
+		      end file_size
+		  FROM movie A LEFT OUTER JOIN attachments B
+		    on A.post_no = B.post_no
+		 WHERE A.post_no = #{post_no}
+    </select>
+     <!-- sample_data 게시물 목록 -->
+    <select id="getSampleLst" parameterType="hashMap" resultType="hashMap">
+    	SELECT Q.*
+    		 , ROW_NUMBER() OVER (<include refid="orderSql"/>) AS row
+    		 , COUNT(Q.*) OVER() AS total
+    	  FROM (
+				SELECT A.post_no 
+					 , A.title
+					 , (SELECT user_nm FROM member WHERE user_id = A.user_id) AS user_nm
+					 , TO_CHAR(A.reg_ts,'YYYY-MM-DD') AS reg_ts
+					 , A.view_cnt
+					 , A.content
+					 , ARRAY_TO_STRING(ARRAY_AGG(B.attach),',') AS attach
+				  FROM sample_data A LEFT OUTER JOIN attachments B
+				    on A.post_no = B.post_no
+				 GROUP BY A.post_no, A.title, A.user_id, A.reg_ts, A.view_cnt, A.content
+    	  		) Q
+			  <if test="searchType.equals('title')">
+					where Q.title LIKE '%'||#{searchText}||'%'
+				</if>
+				<if test="searchType.equals('content')">
+                	where Q.content LIKE '%'||#{searchText}||'%'
+				</if>
+				<if test="searchType.equals('all')">
+                 	where ((Q.title LIKE '%'|| #{searchText}||'%') OR (Q.content LIKE '%'||#{searchText}||'%'))
+				</if>
+              	<if test="searchType.equals('userNm')">
+                  	where Q.user_nm LIKE '%'|| #{searchText}||'%'
+                </if>
+			<include refid="orderSql"/>
+			OFFSET #{start} LIMIT #{display}
+    </select>
+     <!-- sample_data 게시물 조회 -->
+    <select id="getSampleDetail" parameterType="hashMap" resultType="hashMap">
+		SELECT A.post_no 
+	 		 , ROW_NUMBER() OVER (ORDER BY B.attach) AS row
+			 , A.title 
+			 , (SELECT user_nm FROM member WHERE user_id = A.user_id) AS user_nm
+			 , (SELECT email FROM member WHERE user_id = A.user_id) AS email
+			 , TO_CHAR(A.reg_ts,'YYYY-MM-DD') AS reg_ts
+			 , A.content
+			 , A.view_cnt
+			 , B.attach
+			 , B.file_nm
+			 , B.path
+			 , B.download_cnt
+			 , B.ext
+			 , case when B.file_size > cast(1099511627776 as bigint) then round(B.file_size / 1024 / 1024 / 1024 / 1024::numeric, 1) || ' TB'
+				   when B.file_size > cast(1073741824 as bigint) then round(B.file_size / 1024 / 1024 / 1024::numeric, 1) || ' GB'
+				   when B.file_size > cast(1048576 as bigint) then round(B.file_size / 1024 / 1024::numeric, 1) || ' MB'
+				   when B.file_size > cast(1024 as bigint) then round(B.file_size / 1024::numeric, 1) || ' KB'
+				   else B.file_size || ' B'
+		      end file_size
+		  FROM sample_data A LEFT OUTER JOIN attachments B
+		    on A.post_no = B.post_no
+		 WHERE A.post_no = #{post_no}
+    </select>
+    
+    <!-- share_data 게시물 목록 -->
+    <select id="getShareLst" parameterType="hashMap" resultType="hashMap">
+    	SELECT 
+    		ROW_NUMBER() OVER ()  AS row,
+    		COUNT(*) OVER() AS total,
+    		share_board_no AS post_no,
+    		title,
+    		(SELECT user_nm FROM member WHERE user_id = A.user_id) AS user_nm,
+    		TO_CHAR(A.reg_ts, 'YYYY-MM-DD') AS reg_ts,
+    		A.content,
+    		hits
+    	FROM share_board A
+			  <if test="searchType.equals('title')">
+					where title LIKE '%'||#{searchText}||'%'
+				</if>
+				<if test="searchType.equals('content')">
+                	where content LIKE '%'||#{searchText}||'%'
+				</if>
+				<if test="searchType.equals('all')">
+                 	where ((title LIKE '%'|| #{searchText}||'%') OR (content LIKE '%'||#{searchText}||'%'))
+				</if>
+              	<if test="searchType.equals('userNm')">
+                  	where user_nm LIKE '%'|| #{searchText}||'%'
+                </if>
+			OFFSET #{start} LIMIT #{display}
+    </select>
+    
+     <!-- share_data 게시물 조회 -->
+    <select id="getShareDetail" parameterType="hashMap" resultType="hashMap">
+		SELECT 
+			 A.share_board_no AS post_no
+			, (select description from resource where resource_id = A.resource_id ) AS title
+			, (SELECT user_nm FROM member WHERE user_id = A.user_id) AS  user_nm 
+			, TO_CHAR(A.reg_ts,'YYYY-MM-DD') AS reg_ts
+			, A.content
+			, C.user_id  as re_user_id
+			, C.Content as re_content
+			,A.hits as view_cnt
+		from share_board A
+		left join  resource B  
+		on A.resource_id = B.resource_id 
+		left join share_board_reply C
+		on A.share_board_no = C.share_board_no
+		 WHERE A.share_board_no = #{post_no}
+    </select>
+    <!-- share_data 게시물 등록 -->
+    <insert id="insertShareBoard" parameterType="hashMap" keyProperty="post_no">
+    	INSERT INTO share_board
+    	(
+    		post_no
+		  , user_id
+		  , title
+		  , content
+		  , hits
+		  , reg_ts
+    	) VALUES (
+    		(NEXTVAL('post_seq'))
+    	  , #{user_id}	
+    	  , #{title}
+    	  , #{content}
+    	  , 0
+    	  , NOW()
+    	)
+    </insert>
+    
+    <!-- share_data 게시물 수정 -->
+    <update id="updateShareBoard" parameterType="hashMap">
+    	UPDATE share_board
+    	   SET title = #{title}
+    	     , content = #{content}
+    	     , mod_ts = NOW()
+    	 WHERE post_no = #{post_no}
+    </update>
+    
+    <!-- shareboard 삭제하기 -->
+	<delete id="deleteShareBoard" parameterType="hashMap">
+		DELETE FROM share_board
+		WHERE share_board_no in (${ids}) 
+	</delete>
+	
+	<!-- 조회수 증가 -->
+	<update id="updateShareBoardHits" parameterType="hashMap">
+		UPDATE share_board
+		SET
+				hits = hits + 1
+		WHERE	share_board_no = #{post_no}
+	</update>
+	
+	<!-- SNS 수집 리스트 -->
+	<select id="getCollectSnsDb" parameterType="hashMap" resultType="hashMap">
+        SELECT 
+              rnk,
+              noun, 
+              df,
+              weight,
+              noun_rel_set,
+              comm_cd,
+              percentage,
+              COUNT(*) OVER() AS total
+          FROM sns_word_nouns_rel_set A
+		  WHERE 1=1  AND comm_cd = '1'
+				<if test="searchText != null and searchText != ''">
+                 	AND ((A.noun LIKE '%'|| #{searchText}||'%') OR (A.noun_rel_set LIKE '%'||#{searchText}||'%'))
+				</if>
+        ORDER BY rnk ASC
+        OFFSET #{start} LIMIT #{display}
+	</select>
+	
+	
+	<!-- 법정동 조례 리스트 -->
+	<select id="getLegalLst" parameterType="hashMap" resultType="hashMap">
+        SELECT 
+              post_no AS id
+            , ROW_NUMBER() OVER (<include refid="orderSql"/>) AS row
+            , title 
+            , user_id
+            , (SELECT user_nm FROM member WHERE user_id = A.user_id) AS user_nm
+            , TO_CHAR(reg_ts,'YYYY-MM-DD') AS reg_ts
+            , view_cnt
+            , (SELECT COUNT(*) FROM attachments WHERE post_no = A.post_no) AS file_cnt
+            , COUNT(*) OVER() AS total
+          FROM collect_leg A
+		  WHERE 1=1 
+				<if test="searchText != null and searchText != ''">
+                 	AND ((A.title LIKE '%'|| #{searchText}||'%') OR (A.content LIKE '%'||#{searchText}||'%'))
+				</if>
+        <include refid="orderSql"/>
+        OFFSET #{start} LIMIT #{display}
+	</select>
+	
+	<!-- 법정동 조례 게시물 조회 -->
+    <select id="getLegalDetail" parameterType="hashMap" resultType="hashMap">
+		SELECT A.post_no
+			 , ROW_NUMBER() OVER (ORDER BY B.attach) AS row
+			 , A.title 
+			 , (SELECT user_nm FROM member WHERE user_id = A.user_id) AS user_nm
+			 , TO_CHAR(A.reg_ts,'YYYY-MM-DD') AS reg_ts
+			 , A.content
+			 , A.view_cnt
+			 , B.attach
+			 , B.file_nm
+			 , B.path
+			 , B.download_cnt
+			 , B.ext
+			 , case when B.file_size > cast(1099511627776 as bigint) then round(B.file_size / 1024 / 1024 / 1024 / 1024::numeric, 1) || ' TB'
+				   when B.file_size > cast(1073741824 as bigint) then round(B.file_size / 1024 / 1024 / 1024::numeric, 1) || ' GB'
+				   when B.file_size > cast(1048576 as bigint) then round(B.file_size / 1024 / 1024::numeric, 1) || ' MB'
+				   when B.file_size > cast(1024 as bigint) then round(B.file_size / 1024::numeric, 1) || ' KB'
+				   else B.file_size || ' B'
+		      end file_size
+		  FROM collect_leg A LEFT OUTER JOIN attachments B
+		    on A.post_no = B.post_no
+		 WHERE A.post_no = #{post_no}
+    </select>
+    
+    <select id="getPostNo" resultType="Integer">
+		SELECT NEXTVAL('post_seq')
+    </select>
+    
+    
+	<!-- 게시물 등록 -->
+    <insert id="insertPost" parameterType="hashMap">
+    	INSERT INTO ${table}
+    	(
+    		post_no
+		  , user_id
+		  , title
+		  , content
+		  , view_cnt
+		  , reg_ts
+    	) 
+    	VALUES
+    	(
+    		#{post_no}
+    	  , #{user_id}	
+    	  , #{title}
+    	  , #{content}
+    	  , 0
+    	  , NOW()
+    	)
+    </insert>
+
+    
+	<!-- 게시물 수정 -->
+    <update id="updatePost" parameterType="hashMap">
+    	UPDATE ${table}
+		SET
+    	title = #{title},
+		content = #{content}
+		<if test="comment != null and comment != ''">
+         	, comment = #{comment}
+		</if>
+		WHERE
+		<if test="table != null and table == 'share_board'">
+			share_board_no = #{post_no}
+		</if>
+		<if test="table != null and table != 'share_board'">
+			post_no = #{post_no}
+		</if>
+    </update>	
+	    
+	<!-- 게시물 답변 -->
+    <update id="updateAnswer" parameterType="hashMap">
+    	UPDATE ${table}
+		SET
+         	comment = #{comment},
+         	ans_ts = now(),
+         	ans_id = #{user_id}
+		WHERE
+    		post_no = #{post_no}
+    </update>	
+	
+	<!-- 소속기관 리스트 -->
+	<select id="getInstitutionLst" parameterType="hashMap" resultType="hashMap">
+        SELECT 
+        	inst_seq, inst_nm, inst_desc, schema_nm,
+			ROW_NUMBER() OVER (ORDER BY inst_seq DESC) AS row,
+            COUNT(*) OVER() AS total
+          FROM institution
+		  WHERE 1=1 
+				<if test="searchText != null and searchText != ''">
+                 	AND ((inst_nm LIKE '%'|| #{searchText}||'%') OR (inst_desc LIKE '%'||#{searchText}||'%'))
+				</if>
+        ORDER BY inst_seq DESC
+        OFFSET #{start} LIMIT #{display}
+	</select>
+
+	<!-- 소속기관 게시물 조회 -->
+    <select id="getInstitutionDetail" parameterType="hashMap" resultType="hashMap">
+		SELECT *
+		FROM institution
+		WHERE inst_seq = #{inst_seq}
+    </select>
+    
+	<!-- 소속기관 게시물 등록 -->
+    <insert id="insertInstitution" parameterType="hashMap">
+    	INSERT INTO institution
+    	(
+    		inst_seq
+		  , inst_nm
+		  , inst_desc
+		  , reg_dt
+		  , reg_user_id
+		  , mod_dt
+		  , mod_user_id
+    	) VALUES (
+    		nextval('institution_seq')
+    	  , #{inst_nm}
+    	  , #{inst_desc}	
+    	  , NOW()
+    	  , #{user_id}
+    	  , NOW()
+    	  , #{user_id}
+    	)
+    </insert>
+    
+	<!-- 소속기관 수정 -->
+    <update id="updateInstitution" parameterType="hashMap">
+    	UPDATE institution
+		SET
+	    	inst_nm = #{inst_nm},
+			inst_desc = #{inst_desc},
+			mod_user_id = #{user_id},
+			mod_dt = now()
+		WHERE
+    		inst_seq = #{inst_seq}
+    </update>	
+       
+	<!-- 소속기관 삭제 -->
+    <delete id="deleteInstitution" parameterType="hashMap">
+    	DELETE FROM institution
+		WHERE
+    		inst_seq = #{inst_seq}
+    </delete>	
+    
+	<!-- 표준단어 리스트 -->
+	<select id="getStdWordLst" parameterType="hashMap" resultType="hashMap">
+        SELECT 
+        	wrd_seq, korean_wrd_nm, eng_wrd_nm, eng_abrv_nm, wrd_desc, wrd_type, rm,
+			ROW_NUMBER() OVER (ORDER BY wrd_seq DESC) AS row,
+            COUNT(*) OVER() AS total
+          FROM std_wrd
+		  WHERE 1=1 
+				<if test="searchText != null and searchText != ''">
+                 	AND (
+                 	 (korean_wrd_nm LIKE '%'|| #{searchText}||'%') 
+                 	 OR (eng_wrd_nm LIKE '%'||#{searchText}||'%')
+                 	 OR (eng_abrv_nm LIKE '%'||#{searchText}||'%')
+                 	 OR (wrd_desc LIKE '%'||#{searchText}||'%')
+                 	 OR (rm LIKE '%'||#{searchText}||'%')
+                 	)
+				</if>
+        ORDER BY wrd_seq DESC
+        OFFSET #{start} LIMIT #{display}
+	</select>
+
+	<!-- 표준단어 게시물 조회 -->
+    <select id="getStdWordDetail" parameterType="hashMap" resultType="hashMap">
+		SELECT *
+		FROM std_wrd
+		WHERE wrd_seq = #{wrd_seq}
+    </select>
+    
+	<!-- 표준단어 게시물 등록 -->
+    <insert id="insertStdWord" parameterType="hashMap">
+    	INSERT INTO std_wrd
+    	(
+    		wrd_seq, korean_wrd_nm, eng_wrd_nm, eng_abrv_nm, wrd_desc, wrd_type, rm
+		  , reg_dt
+		  , reg_user_id
+		  , mod_dt
+		  , mod_user_id
+    	) VALUES (
+    		nextval('std_wrd_seq')
+    	  , #{korean_wrd_nm}, #{eng_wrd_nm}, #{eng_abrv_nm}, #{wrd_desc}, #{wrd_type}, #{rm}
+    	  , NOW()
+    	  , #{user_id}
+    	  , NOW()
+    	  , #{user_id}
+    	)
+    </insert>
+    
+	<!-- 표준단어 수정 -->
+    <update id="updateStdWord" parameterType="hashMap">
+    	UPDATE std_wrd
+		SET
+			korean_wrd_nm = #{korean_wrd_nm},
+			eng_wrd_nm = #{eng_wrd_nm},
+			eng_abrv_nm = #{eng_abrv_nm},
+			wrd_desc = #{wrd_desc},
+			wrd_type = #{wrd_type},
+			rm = #{rm},
+			mod_user_id = #{user_id},
+			mod_dt = now()
+		WHERE
+    		wrd_seq = #{wrd_seq}
+    </update>	
+       
+	<!-- 표준단어 삭제 -->
+    <delete id="deleteStdWord" parameterType="hashMap">
+    	DELETE FROM std_wrd
+		WHERE
+    		wrd_seq = #{wrd_seq}
+    </delete>	
+    
+	<!-- 전송승인 리스트 -->
+	<select id="getAprovMoveLst" parameterType="hashMap" resultType="hashMap">
+		SELECT req_seq, user_id,  
+			TO_CHAR(req_dt,'YYYY-MM-DD HH24:MI:SS') req_dt, procs_state_cd, trans_table_name, 
+			grant_yn, COALESCE( grant_user, '-' ) grant_user,
+			ROW_NUMBER() OVER (ORDER BY req_seq DESC) AS row,
+            COUNT(*) OVER() AS total
+		FROM data_trans_req
+		WHERE 1=1 
+			<if test="grant_yn != null and grant_yn != ''">
+             	AND grant_yn = #{grant_yn}
+			</if>
+			<if test="grant_yn != null and grant_yn == ''">
+             	AND (grant_yn = '' OR grant_yn IS NULL)
+			</if>
+        ORDER BY req_seq DESC
+        OFFSET #{start} LIMIT #{display}
+	</select>
+
+	<!-- 전송승인 게시물 조회 -->
+    <select id="getAprovMoveDetail" parameterType="hashMap" resultType="hashMap">
+		SELECT *, 
+		(SELECT user_nm FROM public.member WHERE user_id = A.user_id) As user_nm
+		FROM data_trans_req a
+		WHERE req_seq = #{req_seq}
+    </select>
+    
+	<!-- 전송승인 게시물 등록 -->
+    <insert id="insertAprovMove" parameterType="hashMap">
+		INSERT INTO public.data_trans_req(
+			req_seq, user_id, req_dt, procs_state_cd, trans_table_name, 
+			req_content, open_data_nm, info_link_srv_nm, info_link_srv_realm
+		) VALUES (
+			nextval('data_trans_req_seq'), #{user_id}, now(), #{procs_state_cd}, #{trans_table_name}, 
+			#{req_content}, #{open_data_nm}, #{info_link_srv_nm}, #{info_link_srv_realm}
+		)
+    </insert>
+    
+	<!-- 전송승인 수정 -->
+    <update id="updateAprovMove" parameterType="hashMap">
+    	UPDATE data_trans_req
+		SET
+			grant_user = #{user_id},
+			grant_yn = #{grant_yn},
+			grant_dt = now(),
+			procs_content = #{procs_content}
+		WHERE
+    		req_seq = #{req_seq}
+    </update>	
+       
+	<!-- 전송승인 삭제 -->
+    <delete id="deleteAprovMove" parameterType="hashMap">
+    	DELETE FROM data_trans_req
+		WHERE
+    		req_seq = #{req_seq}
+    </delete>	
+    
+	<!-- 회원관리 리스트 -->
+	<select id="getUserMngLst" parameterType="hashMap" resultType="hashMap">
+		SELECT 
+			user_no, user_id, user_nm, 
+			(SELECT inst_nm FROM institution WHERE inst_seq = member.inst_seq) institute,
+			login_fail_cnt, grant_yn,
+			CASE 
+				WHEN user_div = 'e' THEN '타기관사용자'
+				WHEN user_div = 'i' THEN '통계청사용자'
+				WHEN user_div = 'd' THEN '데이터관리자'
+				WHEN user_div = 'o' THEN '플랫폼운영자'
+				WHEN user_div = 's' THEN '통계데이터센터'
+				WHEN user_div = 'a' THEN '서비스관리자'
+			END user_div, 
+			TO_CHAR(login_ts,'YYYY-MM-DD HH24:MI:SS') login_ts, 
+			ROW_NUMBER() OVER (ORDER BY user_no DESC) AS row,
+            COUNT(*) OVER() AS total
+		FROM member
+		WHERE 1=1 AND delete_yn != 'Y'
+	  		<if test="grant_yn != null and grant_yn != ''">
+             	AND grant_yn = #{grant_yn}
+			</if>
+			<if test="use_div != null and use_div == 's'.toString() ">
+             	AND user_div = 's'
+			</if>
+			<if test="grant_yn != null and grant_yn == ''">
+             	AND (grant_yn = '' OR grant_yn IS NULL)
+			</if>
+			<if test="searchText != null and searchText != ''">
+             	AND 
+             	(
+	             	user_nm LIKE '%'||#{searchText}||'%'
+	             	OR
+	             	institute LIKE '%'||#{searchText}||'%'
+	             	OR
+	             	user_id LIKE '%'||#{searchText}||'%'
+             	)
+			</if>
+        ORDER BY user_no DESC
+        OFFSET #{start} LIMIT #{display}
+	</select>
+
+	<!-- 회원관리 조회 -->
+    <select id="getUserMngDetail" parameterType="hashMap" resultType="hashMap">
+		SELECT 
+			user_no,
+			user_id,
+			user_nm,
+			user_pw,
+			ac,
+			institute,
+			dept,
+			job_pos,
+			email,
+			tel_no,
+			tel_no2,
+			use_sz,
+			user_div,
+			login_ip,
+			TO_CHAR(login_ts,'YYYY-MM-DD HH24:MI:SS') login_ts,
+			login_fail_cnt,
+			grant_yn,
+			use_yn,
+			return_msg,
+			grant_ts,
+			TO_CHAR(stop_ts,'YYYY-MM-DD HH24:MI:SS') stop_ts,
+			TO_CHAR(reg_ts,'YYYY-MM-DD HH24:MI:SS') reg_ts,
+			TO_CHAR(mod_ts,'YYYY-MM-DD HH24:MI:SS') mod_ts,
+			uid,
+			restrict_ip,
+			inst_seq,
+			inst_manager_yn,
+			use_start_date,
+			use_end_date,
+			multi_connect_lmtt_yn,
+			delete_yn,
+			ubis_yn,
+			last_pw_ts,
+			user_key
+		FROM member
+		WHERE user_no = #{user_no}
+    </select>
+  
+	<!-- 로그인 이력 조회 -->
+    <select id="getLoginLst" parameterType="hashMap" resultType="hashMap">
+		SELECT TO_CHAR(login_ts,'YYYY-MM-DD HH24:MI:SS') login_ts, ip, 
+			CASE WHEN login_sts = 'Y' THEN '성공' ELSE '실패' END login_sts
+		FROM login_history
+		WHERE user_id = #{user_id} ORDER BY login_ts DESC  LIMIT 30
+    </select>
+    
+	<!-- 회원관리 승인/반려 -->
+    <update id="approveUserMng" parameterType="hashMap">
+    	UPDATE member
+		SET
+			grant_yn = #{grant_yn},
+			grant_ts = now(),
+			return_msg = #{return_msg}
+		WHERE
+    		user_no = #{user_no}
+    </update>	
+    
+	<!-- 회원관리 정지/해제 -->
+    <update id="stopUserMng" parameterType="hashMap">
+    	UPDATE member
+		SET
+			use_yn = #{use_yn},
+             	stop_ts = now(),
+			mod_ts = now()
+		WHERE
+    		user_no = #{user_no}
+    </update>	
+    
+    <!-- 회원 패스워드 초기화 -->
+    <update id="initPassword" parameterType="hashMap">
+        UPDATE member SET
+        	user_pw	= #{user_pw}
+        	, use_yn = 'Y'
+        	, use_end_date = '20301230'
+        	, login_fail_cnt = 0
+        WHERE user_id = #{user_id}
+    </update>
+            
+	<!-- 회원관리 변경 -->
+    <update id="updateUserMng" parameterType="hashMap">
+    	UPDATE member
+		SET
+			email = #{email},
+			tel_no = #{tel_no},
+			tel_no2 = #{tel_no2},
+			<if test="user_pw != null and user_pw != ''">
+				user_pw = #{user_pw},
+			</if>
+			<if test="inst_seq != null and inst_seq != ''">
+				inst_seq = #{inst_seq},
+				institute = (select inst_nm from institution where inst_seq = #{inst_seq}),
+			</if>
+			<if test="inst_manager_yn != null and inst_manager_yn != ''">
+             	inst_manager_yn = #{inst_manager_yn},
+			</if>
+			<if test="dept != null and dept != ''">
+             	dept = #{dept},
+			</if>	
+			<if test="job_pos != null and job_pos != ''">
+             	job_pos = #{job_pos},
+			</if>	
+			<if test="user_div != null and user_div != ''">
+             	user_div = #{user_div},
+			</if>
+			<if test="restrict_ip != null and restrict_ip != ''">
+             	restrict_ip = #{restrict_ip},
+			</if>			
+			<if test="multi_connect_lmtt_yn != null and multi_connect_lmtt_yn != ''">
+             	multi_connect_lmtt_yn = #{multi_connect_lmtt_yn},
+			</if>	
+			<if test="use_start_date != null and use_start_date != ''">
+             	use_start_date =  replace( #{use_start_date},'-','' ),
+			</if>
+			<if test="use_end_date != null and use_end_date != ''">
+             	use_end_date =  replace( #{use_end_date},'-','' ),
+			</if>
+			mod_ts = now()
+		WHERE
+    		user_no = #{user_no}
+    </update>	
+       
+	<!-- 회원관리 삭제 -->
+    <delete id="deleteUserMng" parameterType="hashMap">
+    	UPDATE member
+    	SET
+	    	delete_yn = 'Y',
+	    	mod_ts = now()
+		WHERE
+    		user_no = #{user_no}
+    </delete>
+    
+    
+	<!-- 
+		접속현황 조회
+	 -->
+	<sql id="sqlCount">
+	WITH T AS (
+			SELECT
+				TO_CHAR( dts.days, 'YYYY-MM-dd') as days, 
+				COALESCE( sum(h.login_cnt), 0 ) as count
+			FROM (
+				SELECT days
+				FROM generate_series( 
+					to_timestamp( #{ startDate }, 'YYYY-MM-dd' ) , 
+					to_timestamp( #{ endDate }, 'YYYY-MM-dd' ),
+						<choose>
+							<when test="term == 'days' " >
+							'1 days'
+							</when>
+							<when test="term == 'months' " >
+							'1 months'
+							</when>
+							<when test="term == 'weeks' " >
+							'1 weeks'
+							</when>
+							<otherwise>
+							'1 days'
+							</otherwise>
+						</choose> 
+				)  AS days
+			) AS dts 
+			LEFT JOIN 
+			(
+			SELECT h.login_ts, 1 AS login_cnt
+			FROM login_history h JOIN member m ON ( h.user_id = m.user_id )
+			<where>
+			<if test="userDiv != null and userDiv != '' ">
+			<choose>
+				<when test="userDiv == 'u'.toString() " >
+				AND ( m.user_div = 'i' OR m.user_div = 'e' )
+				</when>
+				<otherwise>
+				AND m.user_div = #{ userDiv }
+				</otherwise>
+			</choose>
+			</if>
+			<if test="instSeq != null and instSeq != 0" >
+			AND m.inst_seq = #{ instSeq } 
+			</if>
+			<![CDATA[
+				AND TO_CHAR( h.login_ts, 'YYYY-mm-dd') >= #{startDate} 
+				AND TO_CHAR( h.login_ts, 'YYYY-mm-dd') <= #{endDate}
+			]]> 
+			</where>
+			) h ON 
+			(
+				<choose>
+					<when test="term == 'months' " >
+					<![CDATA[
+					to_char( h.login_ts, 'YYYY-mm') >= to_char( dts.days , 'YYYY-mm' ) 
+					AND
+					to_char( h.login_ts, 'YYYY-mm-dd') < to_char( dts.days + interval '1 month' , 'YYYY-mm-01')
+					]]> 
+					</when>
+					<when test="term == 'weeks' " >
+					<![CDATA[
+					extract( WEEK FROM login_ts ) = extract( WEEK FROM dts.days )
+					]]> 
+					</when>
+					<otherwise>
+					<![CDATA[	
+					to_char( h.login_ts, 'YYYY-mm-dd') = to_char( dts.days, 'YYYY-mm-dd')
+					]]>
+					</otherwise>
+				</choose>
+			)
+			GROUP BY dts.days
+			ORDER BY dts.days ASC
+		)
+		 
+	</sql>
+	
+	<!-- 
+		권한, 기관 별 이용자 접속 현황  
+	 -->
+	<select id="selectCountByUserAuth" parameterType="hashMap" resultType="hashMap">
+		<include refid="sqlCount"/>
+		SELECT  days, count FROM T
+		<!-- UNION ALL
+		SELECT 'total_sum' as days, sum( count ) as count from t -->
+	</select> 
+	
+	<!-- 
+		권한, 기관 별 이용자 접속 현황  누적, 평균
+	 -->
+	<select id="selectStatByUserAuth" parameterType="hashMap" resultType="hashMap">
+		<include refid="sqlCount"/>
+		SELECT  SUM( count ) AS datasum, AVG( count ) AS avg FROM T
+	</select>
+	
+	
+	<!-- 
+		접속현황 조회 ( 기관 GROUPING )
+	 -->
+	<sql id="sqlInstCount">
+	WITH T AS (
+			SELECT
+				TO_CHAR( dts.days, 'YYYY-MM-dd') as days,
+				COALESCE( sum(h.login_cnt), 0 ) as count
+			FROM (
+				SELECT days
+				FROM generate_series( 
+					to_timestamp( #{ startDate }, 'YYYY-MM-dd' ) , 
+					to_timestamp( #{ endDate }, 'YYYY-MM-dd' ),
+						<choose>
+							<when test="term == 'days' " >
+							'1 days'
+							</when>
+							<when test="term == 'months' " >
+							'1 months'
+							</when>
+							<when test="term == 'weeks' " >
+							'1 weeks'
+							</when>
+							<otherwise>
+							'1 days'
+							</otherwise>
+						</choose> 
+				)  AS days
+			) AS dts 
+			LEFT JOIN 
+			(
+			SELECT h.login_ts, count(1) as login_cnt
+			FROM login_history h JOIN member m ON ( h.user_id = m.user_id )
+			<where>
+			<if test="userDiv != null and userDiv != '' ">
+			<choose>
+				<when test="userDiv == 'u'.toString() " >
+				AND ( m.user_div = 'i' OR m.user_div = 'e' )
+				</when>
+				<otherwise>
+				AND m.user_div = #{ userDiv }
+				</otherwise>
+			</choose>
+			</if>
+			<if test="instSeq != null and instSeq != 0" >
+			AND m.inst_seq = #{ instSeq } 
+			</if>
+			<![CDATA[
+				AND to_char( h.login_ts, 'YYYY-mm-dd') >= #{startDate} 
+				AND to_char( h.login_ts, 'YYYY-mm-dd') <= #{endDate}
+			]]> 
+			</where>
+			GROUP BY h.login_ts
+			) h ON 
+			(
+				<choose>
+					<when test="term == 'months' " >
+					<![CDATA[
+					to_char( h.login_ts, 'YYYY-mm') >= to_char( dts.days , 'YYYY-mm' ) 
+					AND
+					to_char( h.login_ts, 'YYYY-mm-dd') < to_char( dts.days + interval '1 month' , 'YYYY-mm-01')
+					]]> 
+					</when>
+					<when test="term == 'weeks' " >
+					<![CDATA[
+					extract( WEEK FROM login_ts ) = extract( WEEK FROM dts.days )
+					]]> 
+					</when>
+					<otherwise>
+					<![CDATA[	
+					to_char( h.login_ts, 'YYYY-mm-dd') = to_char( dts.days, 'YYYY-mm-dd')
+					]]>
+					</otherwise>
+				</choose>
+			)
+			GROUP BY dts.days
+			ORDER BY dts.days ASC
+		)
+		 
+	</sql>
+	
+	<!-- 
+		권한, 기관 별 이용자 접속 현황 (기관그룹핑 )  
+	 -->
+	<select id="selectCountByUserInstGrp" parameterType="hashMap" resultType="hashMap">
+		<include refid="sqlInstCount"/>
+		SELECT  days,  count FROM T
+		ORDER BY days ASC  
+	</select>
+	
+    <!-- 
+		데이터분석현황 통계 
+	 -->
+    <select id="selectDataUsedCategory" resultType="hashMap">
+        SELECT
+            summary
+        FROM census_mapping
+        GROUP BY summary
+        ORDER BY summary
+    </select>
+
+    <select id="selectDataUsedTotalCount" parameterType="hashMap" resultType="hashMap">
+		SELECT 
+			count(log_seq) as count,
+			summary as summary
+			from (
+			SELECT 
+			case 
+			when depth2 = 'POPULATION' then '인구'
+			when depth2 = 'INDUSTRY' or depth2 = 'THEME' then '사업체'
+			when depth2 = 'HOUSE1'  then '가구'
+			when depth2 = 'HOUSE2'  then '주택'
+			when depth2 = 'UOGA_HAESU' then '해수면'
+			when depth2 = 'UOGA_NAESU' then '내수면'
+			when depth2 = 'NONGGA' then '농가'
+			when depth2 = 'IMGA' then '임가'
+			else '이용자'
+			end summary, 
+			(SELECT inst_seq FROM institution WHERE inst_seq = B.inst_seq) inst_seq,	
+			log_seq
+			FROM public.sgis_use_log A
+			LEFT JOIN member B ON reg_user_id = user_id
+			where 1=1
+	        AND TO_CHAR(a.reg_ts, 'YYYY-mm-dd') <![CDATA[>=]]> #{startDate}
+	        AND TO_CHAR(a.reg_ts, 'YYYY-mm-dd') <![CDATA[<=]]> #{endDate}
+			) b 
+			WHERE 1=1
+			<if test="instSeq != null and instSeq != 0" >
+				AND inst_seq = #{ instSeq } 
+			</if>	
+			GROUP BY  summary
+		ORDER BY  summary
+    </select>
+    
+    <select id="selectDataUsedTypeCount" parameterType="hashMap" resultType="hashMap">
+		SELECT 
+			count(log_seq) as totCnt,
+			b.req_year,
+			b.depth1,
+			summary as summary
+		from (
+			SELECT 
+			req_year,
+			depth1,
+			case 
+			when depth2 = 'POPULATION' then '인구'
+			when depth2 = 'INDUSTRY' or depth2 = 'THEME' then '사업체'
+			when depth2 = 'HOUSE1'  then '가구'
+			when depth2 = 'HOUSE2'  then '주택'
+			when depth2 = 'UOGA_HAESU' then '해수면'
+			when depth2 = 'UOGA_NAESU' then '내수면'
+			when depth2 = 'NONGGA' then '농가'
+			when depth2 = 'IMGA' then '임가'
+			else ''
+			end summary, 
+			(SELECT inst_seq FROM institution WHERE inst_seq = B.inst_seq) inst_seq,	
+			log_seq
+			FROM public.sgis_use_log A
+			LEFT JOIN member B ON reg_user_id = user_id
+			where depth2 is not null and length(depth2) <![CDATA[>]]> 2 and req_year is not null and req_year <![CDATA[<>]]> 'null' 
+			) b 
+			WHERE 1=1
+			AND summary = #{selectType}
+			GROUP BY  summary, req_year, depth1
+		ORDER BY  req_year
+    </select>
+    
+    <select id="selectDataUsedCount" parameterType="hashMap" resultType="hashMap">
+		SELECT 
+			count(log_seq) as cnt,
+			inst_nm,
+			summary as summary
+			from (
+			SELECT 
+			case 
+			when depth2 = 'POPULATION' then '인구'
+			when depth2 = 'INDUSTRY' or depth2 = 'THEME' then '사업체'
+			when depth2 = 'HOUSE1'  then '가구'
+			when depth2 = 'HOUSE2'  then '주택'
+			when depth2 = 'UOGA_HAESU' then '해수면'
+			when depth2 = 'UOGA_NAESU' then '내수면'
+			when depth2 = 'NONGGA' then '농가'
+			when depth2 = 'IMGA' then '임가'
+			else ''
+			end summary, 
+			(SELECT inst_nm FROM institution WHERE inst_seq = B.inst_seq) inst_nm,	
+			log_seq
+			FROM public.sgis_use_log A
+			LEFT JOIN member B ON reg_user_id = user_id
+			where depth2 is not null and length(depth2) <![CDATA[>]]> 2 and req_year is not null and req_year <![CDATA[<>]]> 'null' 
+		AND TO_CHAR(a.reg_ts, 'YYYY-mm-dd') <![CDATA[>=]]> #{startDate}
+		AND TO_CHAR(a.reg_ts, 'YYYY-mm-dd') <![CDATA[<=]]> #{endDate}
+			) b 
+			GROUP BY inst_nm, summary
+		ORDER BY inst_nm, summary
+    </select>
+    
+    <select id="selectDataUsedTCount" parameterType="hashMap" resultType="hashMap">
+		SELECT 
+			count(log_seq) as cnt,
+			req_year,
+			depth1,
+			inst_nm,
+			summary as summary
+		from (
+			SELECT 
+			req_year,
+			depth1,
+			case 
+			when depth2 = 'POPULATION' then '인구'
+			when depth2 = 'INDUSTRY' or depth2 = 'THEME' then '사업체'
+			when depth2 = 'HOUSE1'  then '가구'
+			when depth2 = 'HOUSE2'  then '주택'
+			when depth2 = 'UOGA_HAESU' then '해수면'
+			when depth2 = 'UOGA_NAESU' then '내수면'
+			when depth2 = 'NONGGA' then '농가'
+			when depth2 = 'IMGA' then '임가'
+			else ''
+			end summary, 
+			(SELECT inst_nm FROM institution WHERE inst_seq = B.inst_seq) inst_nm,	
+			log_seq
+			FROM public.sgis_use_log A
+			LEFT JOIN member B ON reg_user_id = user_id
+			where depth2 is not null and length(depth2) <![CDATA[>]]> 2 and req_year is not null and req_year <![CDATA[<>]]> 'null' 
+			) b 
+			WHERE 1=1
+			AND summary = #{selectType}
+			GROUP BY  summary, inst_nm, req_year, depth1
+		ORDER BY  req_year
+    </select>
+    
+     <select id="selectDataUsedTh" parameterType="hashMap" resultType="hashMap">
+		SELECT 
+			count(log_seq) as cnt,
+			req_year,
+			depth1,
+			inst_nm,
+			summary as summary
+		from (
+			SELECT 
+			req_year,
+			depth1,
+			case 
+			when depth2 = 'POPULATION' then '인구'
+			when depth2 = 'INDUSTRY' or depth2 = 'THEME' then '사업체'
+			when depth2 = 'HOUSE1'  then '가구'
+			when depth2 = 'HOUSE2'  then '주택'
+			when depth2 = 'UOGA_HAESU' then '해수면'
+			when depth2 = 'UOGA_NAESU' then '내수면'
+			when depth2 = 'NONGGA' then '농가'
+			when depth2 = 'IMGA' then '임가'
+			else ''
+			end summary, 
+			(SELECT inst_nm FROM institution WHERE inst_seq = B.inst_seq) inst_nm,	
+			log_seq
+			FROM public.sgis_use_log A
+			LEFT JOIN member B ON reg_user_id = user_id
+			where depth2 is not null and length(depth2) <![CDATA[>]]> 2 and req_year is not null and req_year <![CDATA[<>]]> 'null' 
+			) b 
+			WHERE 1=1
+			AND summary = #{selectType}
+			GROUP BY  summary, inst_nm, req_year, depth1
+		ORDER BY inst_nm desc
+    </select>
+    
+    <select id="selectDataInstNm" parameterType="hashMap" resultType="hashMap" >
+    	select  a.inst_nm  from (
+			SELECT
+				count(log_seq) as cnt, 
+				a.req_year,
+				a.depth1,
+				c.inst_nm,
+				d.summary as summary
+			FROM sgis_use_log a
+			INNER JOIN member b
+				ON a.reg_user_id = b.user_id
+			INNER JOIN institution c
+				ON b.inst_seq = c.inst_seq
+			INNER JOIN census_mapping d
+				ON a.depth1 = d.depth1
+			AND a.depth2 = d.depth2
+			AND a.req_year = d.year
+			WHERE 1 = 1 
+			AND summary = #{selectType}
+			GROUP BY d.summary, c.inst_nm, a.req_year ,a.depth1
+			ORDER by c.inst_nm desc
+		)a  group by a.inst_nm 
+    </select>
+    
+    <select id="selectDataUsedTotalNm" parameterType="hashMap" resultType="hashMap">
+		select a.inst_nm from (
+		
+		        SELECT
+		            count(log_seq) as cnt,
+		            c.inst_nm,
+		            d.summary
+		        FROM sgis_use_log a
+		        INNER JOIN member b
+		        ON a.reg_user_id = b.user_id
+		        INNER JOIN institution c
+		        ON b.inst_seq = c.inst_seq
+		        INNER JOIN census_mapping d
+		        ON a.depth1 = d.depth1
+		        AND a.depth2 = d.depth2
+		        AND a.req_year = d.year
+		        WHERE 1 = 1
+		        AND TO_CHAR(a.reg_ts, 'YYYY-mm-dd') <![CDATA[>=]]> #{startDate}
+		        AND TO_CHAR(a.reg_ts, 'YYYY-mm-dd') <![CDATA[<=]]> #{endDate}
+		        GROUP BY c.inst_nm, d.summary
+		        order by c.inst_nm 
+		        
+		) a group by a.inst_nm
+    </select>  
+    
+    <select id="getSystemMonitor" parameterType="hashMap" resultType="hashMap">
+		WITH T AS (
+		    SELECT *, RANK() OVER(PARTITION BY system_id ORDER BY reg_ts) AS rnk
+		    FROM system_monitor 
+		    WHERE  DATE_PART('minute', now() - reg_ts ) <![CDATA[<]]> 30000
+		) 
+		SELECT system_id, cpu_ratio, ram_ratio, disk_ratio, disk_size
+		FROM T
+		WHERE rnk = 1
+		ORDER BY system_no
+    </select> 
+    
+    <select id="getAgentMonitor" parameterType="hashMap" resultType="hashMap">
+		WITH T AS (
+		    SELECT *, RANK() OVER(PARTITION BY system_id ORDER BY reg_ts) AS rnk
+		    FROM agent_monitor 
+		    WHERE  DATE_PART('minute', now() - reg_ts ) <![CDATA[<]]> 30000
+		) 
+		SELECT system_id, system_sts
+		FROM T
+		WHERE rnk = 1
+		ORDER BY system_no
+    </select>
+    
+    
+	<!-- 다운로드 로그 -->
+    <insert id="insertDownLog" parameterType="hashMap">
+		INSERT INTO download_log(collect_seq, user_id, code, file_name, down_dt)
+		VALUES (#{collect_seq}, #{user_id}, #{code}, #{fileName}, now())
+    </insert> 
+    
+    
+	<!-- SDC 사용자 리소스 삭제 -->
+	<update id="initUserResource" parameterType="hashmap">
+		update execute SET user_id = 'sdc_sdc__sdc' where user_id = #{user_id};
+		update resource SET user_id = 'sdc_sdc__sdc' where user_id = #{user_id}
+	</update>
+</mapper>

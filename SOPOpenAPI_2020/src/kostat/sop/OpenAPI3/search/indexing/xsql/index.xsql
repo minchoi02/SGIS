@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SGIS">
+<!--
+  	<select id="geocoding.index" resultType="hashmap" parameterType="hashmap" fetchSize="1000">
+		SELECT	ID,
+				SUFID,
+				ADDR_TYPE,
+				SIDO_NM,
+				SIDO_SYN,
+				SIDO_CD,
+				SGG_NM,
+				SGG_SYN,
+				SGG_CD,
+				ADM_NM,
+				ADM_CD,
+				LEG_NM,
+				LEG_CD,
+				ROAD_NM,
+				ROAD_CD,
+				EMDONG_SYN,
+				RI_NM,
+				RI_SYN,
+				RI_CD,
+				BD_MAIN_NM,
+				BD_MAIN_NM_SYN,
+				BD_SUB_NM,
+				ROAD_NM_MAIN_NO,
+				ROAD_NM_SUB_NO,
+				PCL,
+				X,
+				Y
+	   	   FROM MNG_DT_ADDRREFINE
+	</select>
+	-->
+	
+  	<select id="geocode" resultType="hashmap" parameterType="hashmap" fetchSize="1000">
+		SELECT	ID,
+				SUFID,
+				ADDR_TYPE,
+				SIDO_NM,
+				SIDO_SYN,
+				SIDO_CD,
+				SGG_NM,
+				SGG_SYN,
+				SGG_CD,
+				ADM_NM,
+				ADM_CD,
+				LEG_NM,
+				LEG_CD,
+				ROAD_NM,
+				ROAD_CD,
+				EMDONG_SYN,
+				RI_NM,
+				RI_SYN,
+				RI_CD,
+				BD_MAIN_NM,
+				BD_MAIN_NM_SYN,
+				BD_SUB_NM,
+				ROAD_NM_MAIN_NO,
+				ROAD_NM_SUB_NO,
+				PCL,
+				X,
+				Y
+	   	   FROM MNG_DT_ADDRREFINE
+	</select>
+	
+  	<select id="searchpoi" resultType="hashmap" parameterType="hashmap" fetchSize="1000">
+		SELECT PID
+			 , ADDR_SYN
+			 , SYN
+			 , NM
+		     , THEME_CD
+		     , THEME_NM
+		     , CATEGORY
+		     , CATEGORY_NM
+		     , DATA_TYPE
+		     , ADM_CD
+		     , ROAD_CD
+		     , ADM_ADDR
+		     , NADDR
+		     , BASE_YEAR
+		     , ED_NO
+		     , CORP_NO
+		     , SUFID
+		     , ROUTE_CD
+		     , ROUTE_NM
+		     , X
+		     , Y
+		  FROM SRV_PT_RELSEARCH_POI
+		 WHERE 1=1
+	</select>
+	
+</mapper>

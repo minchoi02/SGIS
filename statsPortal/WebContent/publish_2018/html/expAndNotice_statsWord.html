@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <script src="/publish_2018/include/plugin/jquery-1.11.3.min.js" type="text/javascript"></script>
+    <script src="/publish_2018/include/plugin/slick/slick.js" type="text/javascript"></script>
+    <script src="/publish_2018/include/js/ui.js" type="text/javascript"></script>
+    <link rel="stylesheet" type="text/css" href="/publish_2018/include/css/common.css">
+    <link rel="stylesheet" type="text/css" href="/publish_2018/include/plugin/slick/slick.css">
+    <link rel="stylesheet" type="text/css" href="/publish_2018/include/plugin/slick/slick-theme.css">
+    <!--알림마당 컨텐츠 추가-->
+    <link rel="stylesheet" type="text/css" href="/publish_2018/include/css/contents.css">
+    <script src="/publish_2018/include/plugin/slick/common.js" type="text/javascript"></script>
+    <script src="/publish_2018/include/js/jquery-ui.min.js" type="text/javascript"></script>
+	<!--게시판 css 추가-->
+	<link rel="stylesheet" type="text/css" href="/publish_2018/include/css/board.css">
+    <script type='text/javascript' src='/js/plugins/jquery.form.js'></script>
+	<script type='text/javascript' src='/js/plugins/jquery-easyui-1.4/jquery.easyui.min.js'></script>
+
+	<script type="text/javascript"src="/js/board/jquery.paging.js"></script>
+	<script type="text/javascript" src="/js/board/holder.js"></script>
+	<script type="text/javascript" src='/js/plugins/ckeditor/ckeditor.js'></script>
+	<script type="text/javascript" src='/js/plugins/google_recaptcha.js'></script>
+<title>통계지리정보서비스</title>
+</head>
+<body>
+	<!-- 스킵네비게이션 -->
+	<!--//스킵네비게이션 -->
+	<!--wrap-->
+	<div id="wrap">
+		<!--header-->
+		<!--//header-->
+		<hr class="hidden" />
+		<!--contents-->
+		<div id="container" class="sub">
+			<!--lnb 시작-->
+			<aside class="aside">
+				<h2 class="title">
+					<span>알림마당</span>
+				</h2>
+				<ul>
+					<li><a href="#" class="on">SGIS 소개</a>
+						<ul>
+							<li><a href="#">SGIS소개 및 연혁</a></li>
+							<li><a href="#">SGIS 주요 서비스 안내</a></li>
+						</ul></li>
+					<li><a href="#">설명과 공지</a>
+						<ul>
+							<li><a href="#">공지사항</a></li>
+							<li><a href="#">주요 용어 설명</a></li>
+							<li><a href="#">SGIS 서비스 자료제공시점 현황</a></li>
+						</ul></li>
+					</li>
+					<li><a href="#">질문과 개선요청</a>
+						<ul>
+							<li><a href="#">FAQ</a></li>
+							<li><a href="#">Q&A</a></li>
+							<li><a href="#">통계주제도 신규요청</a></li>
+						</ul></li>
+					<li><a href="#">자료제공서비스</a>
+						<ul>
+							<li><a href="#">자료제공서비스란?</a></li>
+							<li><a href="#">자료제공목록</a></li>
+							<li><a href="#">자료신청</a></li>
+							<li><a href="#">과거집계구 자료신청</a></li>
+							<li><a href="#">신청내역</a></li>
+							<li><a href="#">자료다운로드</a></li>
+						</ul></li>
+					<!--<li class="nochild"><a href="#">none</a> -->
+				</ul>
+			</aside>
+			<!--//lnb 끝-->
+			<div id="content">
+				<div id="title-area">
+					<ul class="location">
+						<li>알림마당</li>
+						<li>설명과 공지</li>
+						<li><em>주요 용어 설명</em></li>
+					</ul>
+					<h1 class="sub-title">주요 용어 설명</h1>
+				</div>
+				<div id="contents" class="view">
+					<!--board 시작-->
+					<div id="board-type">
+					<!-- 게시물 검색-->
+			        <div class="search-box">
+			           	<form action="#" method="POST">
+			        		<fieldset>
+			        			<legend class="blind">
+			        				게시물 검색
+			        			</legend>
+			        			<div class="f-el f-el-select">
+			        				<span class="el-h blind"> <label for="atc-sel1">검색항목</label> </span>
+			        				<span class="el-b select-box">
+			        					<select id="notice_search_select" class="easyui-combobox" data-options="editable:false" name="searchsel" style="width: 128px; height: 36px; cursor: pointer;">
+			        						<option value="post_title">제목</option>
+			        						<option value="post_content">내용</option>
+			        						<option value="post_all" selected="selected">제목 + 내용</option>
+			        					</select> </span>
+			        				</div>
+			        				<div class="f-el">
+			        					<span class="el-h"> <label for="notice_search_title_text">검색어입력</label> </span>
+			        					<span class="el-b">
+			        						<input id="notice_search_title_text" class="easyui-textbox" type="text" name="search" style="width: 292px;" data-options="required:true" />
+			        					</span>
+			        				</div>
+			        			</fieldset>
+			        			<div class="btn-search">
+			        				<input style="cursor: pointer;" type="button" onclick="javascript:expAndNotice.searchNoticeLists();" value="검색" />
+			        			</div>
+			        		</form>
+			        	</div>
+						<!-- //검색 끝 -->
+						<!-- board 리스트 -->
+						<div id="board-thema" class="list">
+							<div id="archive-list" class="stars-word">
+								<ul>
+									<li class="list-item">
+										<div class="item-text">
+											<h1 class="item-title">001. 지리정보시스템 [GIS, Geographic Information System]</h1>
+											<ul class="item-excerpt">
+												<li>지리공간데이터(geographic or geospatial data)를 기반으로 유용한 정보를 생성하는 정보시스템</li>
+											</ul>
+										</div>
+									</li>
+									<li>
+										<div class="item-text">
+											<h1 class="item-title">002. 통계지리정보시스템/서비스 [SGIS, Statistical Geographic Information System]</h1>
+											<ul class="item-excerpt">
+												<li>인구주택 및 사업체 센서스 데이터에 지리학적 공간(geographic space/geospace) 속성, 즉 위치값(경위도나 주소 등), 경계, 지도 등을 부가한 센서스
+													공간데이터(census spatial data)를 기반으로 합리적 의사결정을 지원하는 유용한 정보를 생성하기 위한 정보시스템, 혹은 그 서비스</li>
+											</ul>
+										</div>
+									</li>
+									<li>
+										<div class="item-text">
+											<h1 class="item-title">003. 집계구 [Output Area]</h1>
+											<ul class="item-excerpt">
+												<li>기초단위구를 기반으로 인구규모(최적 500명), 사회경제적 동질성(주택유형, 지가), 집계구 형상을 고려하여 구축한 최소 통계 집계구역</li>
+												<ul>
+													<li>- 개인정보보호 및 통계적 유의성 확보를 위하여 최소인구 300명, 최적인구 500명, 최대인구 1, 000명을 설정</li>
+													<li>- 건물을 단독, 아파트, 비거주용으로 분류, 기초단위구별 주택유형 분석하여 이를 기반으로 집계구가 유사한 주택유형을 가지도록 함</li>
+													<li>- 필지별 지가를 기반으로 기초단위구의 평균지가 산정, 이를 기반으로 집계구가 유사한 평균지가를 가지도록 함</li>
+													<li>- 집계구 형상은 가시적 측면에서 단순한 형태를 유지하는 것이 좋으며, 정방형이 가장 이상적임</li>
+												</ul>
+											</ul>
+											<p>※ 통계청의 전수조사 자료를 읍면동보다 더 작은 소지역단위(집계구)로 집계하여 서비스</p>
+										</div>
+									</li>
+									<li>
+										<div class="item-text">
+											<h1 class="item-title">004. 기초단위구 [Basic unit district]</h1>
+											<ul class="item-excerpt">
+												<li>도로, 하천, 철도, 산능선 등과 같은 준항구적인 명확한 지형지물을 이용하여 지도상에 구획한 최소단위구역. 가구수에 상관없이 블록단위로 구획하고 아파트지역은 건물 동 단위로 구획, 명확한 지형지물이
+													없을 경우 통리 경계를 이용하여 구획</li>
+											</ul>
+										</div>
+									</li>
+									<li>
+										<div class="item-text">
+											<h1 class="item-title">005. 지오코딩 [Geocoding]</h1>
+											<ul class="item-excerpt">
+												<li>주소를 지리적 위치로 변환(주소에서 지리정보를 추출하는 과정, 지리좌표를 GIS에서 사용가능하도록 X, Y의 수치형태로 만드는 과정)</li>
+											</ul>
+											<p>※ 리버스지오코딩: 반대로 지리적 위치를 주소로 변환</p>
+										</div>
+									</li>
+									<li>
+										<div class="item-text">
+											<h1 class="item-title">006. 사업체 개별 공간DB</h1>
+											<ul class="item-excerpt">
+												<li>사업체의 속성을 건축물의 좌표를 이용하여 건물과 연계할 수 있도록 구축한 전자 지도DB 및 속성 데이터로, 사업체가 존재하는 건물의 UFID(공간객체등록번호, Unique Feature
+													IDentifier)와 사업체정보를 연계하여 개별 공간DB를 구축한다.</li>
+											</ul>
+										</div>
+									</li>
+									<li>
+										<div class="item-text">
+											<h1 class="item-title">007. 사업체 공간DB</h1>
+											<ul class="item-excerpt">
+												<li>사업체 지도DB, 개별 공간DB, 경계DB를 모두 포함한 사업체의 공간정보가 포함된 DB를 말함</li>
+											</ul>
+										</div>
+									</li>
+									<li>
+										<div class="item-text">
+											<h1 class="item-title">008. 그리드 통계 [GRID]</h1>
+											<ul class="item-excerpt">
+												<li>지도상에서 일정한 크기로 구획된 사각형 그리드 셀별로 집계한 데이터로, 행정구역 단위로 통계를 집계한 방식의 보완책</li>
+												<ul>
+													<li>- 국가지점번호 체계에 따라 100m, 1km, 10km, 100km 4단계 그리드경계 구축</li>
+												</ul>
+												<p>※ 국가지점번호: 대한민국 국토를 격자형으로 일정하게 구획하여 각 지점마다 부여한 번호로, 127.5°, 38° 로부터 300km, 700km 이동한 지점을 원점</p>
+											</ul>
+										</div>
+									</li>
+									<li>
+										<div class="item-text">
+											<h1 class="item-title">009. 관심지점 [POI, Point of Interest]</h1>
+											<ul class="item-excerpt">
+												<li>주요 시설물, 역, 공항, 터미널, 호텔 등을 좌표로 전자 수치 지도에 표시하는 데이터로, 특정인이 관심을 가지는 지도나 도면상의 특정위치를 말함</li>
+											</ul>
+										</div>
+									</li>
+									<li>
+										<div class="item-text">
+											<h1 class="item-title">010. N/A [Not Available]</h1>
+											<ul class="item-excerpt">
+												<li>자료제공이 불가능하다는 의미로, 소지역 통계의 경우 개인정보보호를 위하여 5미만의 통계값은 정확한 통계수치를 제공하지 않고 N/A로 표기</li>
+											</ul>
+										</div>
+									</li>
+								</ul>
+							</div>
+						</div>
+						<!-- //board 리스트 끝 -->
+						<!-- 페이지 네비 시작 -->
+						<div class="paging pagenation">
+							<a href="#none" class="first" title="목록 처음으로 이동">목록 처음으로 이동</a> 
+							<a href="#none" class="prev" title="이전 페이지로 이동">이전 페이지로 이동</a> 
+								<span class="list"> 
+									<strong title="현재페이지">1</strong>
+									<a href="#none">2</a> 
+									<a href="#none">3</a> 
+									<a href="#none">4</a> 
+									<a href="#none">5</a> 
+									<a href="#none">6</a> 
+									<a href="#none">7</a> 
+									<a href="#none">8</a>
+								</span>
+							<a href="#none" class="next" title="다음 페이지로 이동">다음 페이지로 이동</a>
+							<a href="#none" class="last" title="목록 마지막으로 이동">목록 마지막으로 이동</a>
+						</div>
+						<!--//페이지 네비 끝 -->
+						<!--//view-->
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--//contents-->
+		<hr class="hidden" />
+		<!--footer-->
+		<div id="footer"></div>
+		<!--//footer-->
+	</div>
+	<!--//wrap-->
+</body>
+</html>

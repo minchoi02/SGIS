@@ -1,0 +1,100 @@
+<%@include file="/WEB-INF/jsp/includes/taglib.jsp" %>
+<%@page contentType="text/html; charset=UTF-8" %>
+<script src="${ctx }/resources/m2021/js/menu.js"></script>
+<script>
+$(document).ready(function(){
+	
+	// 메뉴 선택에 따른 class 수정
+	if($('meta[name="title"]').attr("content") == "My통계로(路)"){	// 2020.09.16[한광희] My통계로 명칭 변경
+		$("#header").attr("class", "header00");
+	} else if($('meta[name="title"]').attr("content") == "일자리 맵"){
+		$("#header").attr("class", "header01");
+	} else if($('meta[name="title"]').attr("content") == "내 주변 통계"){
+		$("#header").attr("class", "header02");
+	} else if($('meta[name="title"]').attr("content") == "통계주제도"){
+		$("#header").attr("class", "header03");
+	} else if($('meta[name="title"]').attr("content") == "살고싶은 우리동네"){
+		$("#header").attr("class", "header04");
+	} else if($('meta[name="title"]').attr("content") == "지역현안 소통지도"){
+		$("#header").attr("class", "header05");
+	} else if($('meta[name="title"]').attr("content") == "알림마당"){
+		$("#header").attr("class", "header06");
+	} else {
+		$("#header").attr("class", "header");
+	};
+});
+</script>
+<!-- 2021.11.24 새로운 메뉴 적용 -->
+<!--메인메뉴 네비게이션 팝업. START -->
+<!-- <div id="menu-popup"> -->
+<!-- 	<aside id="lnbWrap" style="z-index: 99999; position: fixed; bottom:0; overflow: auto;"> 지역현안 소통지도 z-index값으로 네비게이션 팝업이 뒤에 위치하는 문제로 aside에 z-index 추가 20200708 박은식 -->
+<!-- 		<h3>전체메뉴</h3> -->
+<!-- 		<div class="aside_menu_wrap"> -->
+<!-- 			<div class="aside_menu"> -->
+<!-- 		        <nav> -->
+<!-- 		          <ul> -->
+<%--             			<li class="menu01"><a href="${ctx }/m2020/map/statsMe/statsMeMap.sgis"  onclick="srvLogWrite('O0', '01', '01', '03', '', '');">My통계로(路)</a></li> --%>
+<%-- 			            <li class="menu02"><a href="${ctx }/m2020/map/workroad/myNeighberhoodJobMap.sgis?todaystatus_pop_yn=Y" onclick="srvLogWrite('O0', '01', '01', '04', '', '');">일자리맵</a></li> --%>
+<%-- 			            <li class="menu03"><a href="${ctx }/m2020/map/current/currentMap.sgis"  onclick="srvLogWrite('O0', '01', '01', '05', '', '');">내주변통계</a></li> --%>
+<%-- 			            <li class="menu04"><a href="${ctx }/m2020/map/thematic/thematicMap.sgis"  onclick="srvLogWrite('O0', '01', '01', '06', '', '');">통계주제도</a></li> --%>
+<%-- 			            <li class="menu05"><a href="${ctx }/m2020/map/house/recomendHouseMap.sgis" onclick="srvLogWrite('O0', '01', '01', '07', '', '');">살고싶은 우리동네</a></li> --%>
+<%-- 			            <li class="menu06"><a href="${ctx }/m2020/map/community/communityMap.sgis" onclick="srvLogWrite('O0', '01', '01', '08', '', '');">지역현안 소통지도</a></li> --%>
+<%-- 			            <li class="menu07"><a href="${ctx }/m2020/map/board/introduction.sgis" onclick="srvLogWrite('O0', '01', '01', '09', '', '');">알림마당</a></li> --%>
+<!-- 		          </ul> -->
+<!-- 		        </nav> -->
+<!-- 		    </div> -->
+<!-- 		</div> -->
+<!-- 		<div class="footer"> -->
+<!-- 	    	<div class="mt30"></div> -->
+<!-- 	      	<button type="button" class="pcBtn" name="button" onclick="javascript:movePcMode();srvLogWrite('O0', '02', '13', '01', 'PC버전 가기', '');">PC버전 가기</button> -->
+<!-- 	      	<div class="mt30"></div> -->
+<!-- 	      		<p class="copyright">ⓒStatistics Korea. All rights reserved.</p> -->
+<!-- 	    	</div> -->
+<%--     	<button id="menu-close-button" class="btn_menuClose" type="button"><img src="${ctx }/resources/m2020/images/common/btn_close.png" alt="전체메뉴 닫기"></button> <!-- 2020.09.11 [신예리] 웹접근성 문제로 수정 --> --%>
+<!-- 	</aside> -->
+<!-- </div>  -->
+<div id="header">
+	<jsp:include page="/WEB-INF/jsp/m2021/includes/includeMenu.jsp"/>
+</div>
+<!--메인메뉴 네비게이션 팝업. END -->
+<div class="sub_Wrap">
+	<div class="sub_header">
+		<header class="header" id="header">
+			<button id="home-open-button" class="homeBtn" type="button" onclick="javascript:srvLogWrite('O0', '51', '01', '11', '', '');location.href='${ctx }/index.jsp'">
+				<%-- <img src="${ctx }/resources/m2020/images/common/home.png" alt="메인 화면으로 이동 버튼"> --%>
+				<svg width="30" height="25" viewBox="0 0 30 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path d="M14.9987 2.12098L27.3281 11.7213H24.412C24.0176 11.7213 23.6979 12.0165 23.6979 12.3809V23.681H19.0616V16.5923C19.0616 16.2282 18.7419 15.9329 18.3475 15.9329H11.6496C11.255 15.9329 10.9353 16.2282 10.9353 16.5923V23.681H6.29928V12.3809C6.29928 12.0165 5.97954 11.7213 5.58517 11.7213H2.6693L14.9987 2.12098ZM0.714269 13.0403H4.8708V24.3404C4.8708 24.7048 5.19053 25 5.58517 25H11.6496C12.044 25 12.3637 24.7048 12.3637 24.3404V17.2519H17.6331V24.3404C17.6331 24.7048 17.9529 25 18.3475 25H24.412C24.8066 25 25.1261 24.7048 25.1261 24.3404V13.0403H29.2829H29.2856C29.6803 13.0403 30 12.7451 30 12.3809C30 12.1612 29.8838 11.967 29.7053 11.8472L15.4592 0.754154C15.1929 0.547159 14.8043 0.547159 14.538 0.754154L0.253817 11.8767C0.0246886 12.0552 -0.0595858 12.3471 0.0434117 12.6073C0.146409 12.8674 0.414364 13.0403 0.714269 13.0403Z" fill="white"/>
+				</svg>
+			</button> <!-- 2020.09.08 [신예리] 대체텍스트 추가 -->
+			<h2>${metaTitle }</h2>
+			<button id="menu-open-button" class="s_menuBtn" type="button">
+				<%-- <img src="${ctx }/resources/m2020/images/common/s_menubtn.png" alt="전체 메뉴 열기 버튼"> --%>
+				<svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path d="M26.25 7H3.75" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+					<path d="M26.25 15H3.75" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+					<path d="M26 23H4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+				</svg>
+			</button> <!-- 2020.09.08 [신예리] 대체텍스트 추가 -->
+		</header>
+	</div>
+</div>
+<script>
+$("#menu-open-button").click(function(){
+// 	srvLogWrite('O0', '01', '01', '01', '', '');
+	$('#nav').animate({'right':'0'});
+	$('#lnbWrap').addClass("open");
+	return false;
+});
+$("#menu-close-button").click(function(){
+	srvLogWrite('O0', '51', '01', '02', '', '');
+	$('#lnbWrap').removeClass("open");
+});
+$("#menu-background").click(function(){
+	$('#lnbWrap').removeClass("open");
+});
+
+// PC 버전 가기
+function movePcMode(){
+	location.href = "${sgisCtx }/view/index?param=0";
+}
+</script>

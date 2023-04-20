@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns:p="http://www.springframework.org/schema/p"
+xsi:schemaLocation="http://www.springframework.org/schema/beans    
+http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+
+	<beans profile="neighborTest">
+	<!-- 개발 DB -->
+		<bean id="dataSource-kairos" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+			<property name="driverClassName" value="kr.co.realtimetech.kairos.jdbc.kairosDriver" />
+	        <!-- <property name="url" value="jdbc:kairos://sgissmart.iptime.org:5000/SGIS_TB" /> -->
+	        <property name="url" value="jdbc:kairos://220.123.99.82:5000/SGIS_TB" />
+	        <property name="username" value="root"/>
+	        <property name="password" value="root"/>
+	        <property name="validationQuery" value="SELECT 1 FROM DUAL"/>
+	        <property name="initialSize" value="1" />
+			<property name="maxActive" value="2" />
+			<property name="maxIdle" value="1" />
+			<property name="minIdle" value="1" />
+			<property name="minEvictableIdleTimeMillis" value="300000" />	
+			<property name="timeBetweenEvictionRunsMillis" value="300000" />
+			<property name="numTestsPerEvictionRun" value="1" />
+			<property name="testOnBorrow" value="true" />
+			<property name="testWhileIdle" value="true" />
+			<property name="testOnReturn" value="false" />
+	     </bean>
+		
+		<bean id="db.dataSource" class="org.mybatis.spring.SqlSessionFactoryBean">
+			<property name="dataSource" ref="dataSource-kairos"/>
+			<property name="configLocation" value="/conf/dbms-config.xml"/>
+			<property name="mapperLocations" value="classpath*:kostat/**/*.xsql"/>
+		</bean>
+		
+		<bean id="sqlSession" class="org.mybatis.spring.SqlSessionFactoryBean">
+			<property name="dataSource" ref="dataSource-kairos"/>
+			<property name="configLocation" value="/conf/dbms-config.xml"/>
+			<property name="mapperLocations" value="classpath*:kostat/**/*.xsql"/>
+		</bean>
+		
+		<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+	  		<constructor-arg index="0" ref="db.dataSource" />
+		</bean>
+	</beans>
+	
+	<beans profile="productTest">
+		<bean id="dataSource-kairos" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+			<property name="driverClassName" value="kr.co.realtimetech.kairos.jdbc.kairosDriver" />
+	        
+	        <!-- =============================== start of 개발 ===================================== -->
+	        
+	        <!-- <property name="url" value="jdbc:kairos://sgissmart.iptime.org:5000/SGIS_DB" /> -->
+	        <property name="url" value="jdbc:kairos://220.123.99.82:5000/SGIS_TB" />
+	        
+	        <!-- =============================== end of 개발 ===================================== -->
+	        
+	        <!-- =============================== start of 운영 ===================================== -->
+	        <!-- 
+	        <property name="url" value="jdbc:kairos://10.184.95.10:50002/SGIS_DB" />
+	         -->
+	        <!-- =============================== end of 운영 ===================================== -->
+	        
+	        <property name="username" value="root"/>
+	        <property name="password" value="root"/>
+	        <property name="validationQuery" value="SELECT 1 FROM DUAL"/>
+	        <property name="initialSize" value="2" />
+			<property name="maxActive" value="10" />
+			<property name="maxIdle" value="2" />
+			<property name="minIdle" value="2" />
+			<property name="minEvictableIdleTimeMillis" value="300000" />	
+			<property name="timeBetweenEvictionRunsMillis" value="300000" />
+			<property name="numTestsPerEvictionRun" value="1" />
+			<property name="testOnBorrow" value="true" />
+			<property name="testWhileIdle" value="true" />
+			<property name="testOnReturn" value="false" />
+	     </bean>
+	     
+		 <bean id="db.dataSource" class="org.mybatis.spring.SqlSessionFactoryBean">
+			<property name="dataSource" ref="dataSource-kairos"/>
+			<property name="configLocation" value="/conf/dbms-config.xml"/>
+			<property name="mapperLocations" value="classpath*:kostat/**/*.xsql"/>
+		</bean>
+		
+		<bean id="sqlSession" class="org.mybatis.spring.SqlSessionFactoryBean">
+			<property name="dataSource" ref="dataSource-kairos"/>
+			<property name="configLocation" value="/conf/dbms-config.xml"/>
+			<property name="mapperLocations" value="classpath*:kostat/**/*.xsql"/>
+		</bean>
+		
+		<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+	  		<constructor-arg index="0" ref="db.dataSource" />
+		</bean>
+	     <!--
+			<bean id="dataSource-kairos" class="org.springframework.jndi.JndiObjectFactoryBean">
+			<property name="jndiName" value="jdbc/sgis" />
+			<property name="lookupOnStartup" value="false" />
+			<property name="cache" value="true" />
+			<property name="proxyInterface" value="javax.sql.DataSource" />
+			</bean> 
+		-->
+	</beans>
+	
+	<beans profile="productSibum">
+		<!-- SGIS+ 제우스 Pool 설정 -->
+		<!-- 제우스 Pool Name = jdbc/sgis2015 -->
+		<bean id="dataSource-kairos" class="org.springframework.jndi.JndiObjectFactoryBean">
+	     	<property name="jndiName" value="jdbc/sgis" />
+	     	<property name="lookupOnStartup" value="false" />
+	     	<property name="cache" value="true" />
+	     	<property name="proxyInterface" value="javax.sql.DataSource" />
+		</bean>
+	     
+		<bean id="db.dataSource" class="org.mybatis.spring.SqlSessionFactoryBean">
+			<property name="dataSource" ref="dataSource-kairos"/>
+			<property name="configLocation" value="/conf/dbms-config.xml"/>
+			<property name="mapperLocations" value="classpath*:kostat/**/*.xsql"/>
+		</bean>
+		
+		<bean id="sqlSession" class="org.mybatis.spring.SqlSessionFactoryBean">
+			<property name="dataSource" ref="dataSource-kairos"/>
+			<property name="configLocation" value="/conf/dbms-config.xml"/>
+			<property name="mapperLocations" value="classpath*:kostat/**/*.xsql"/>
+		</bean>
+		
+		<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+	  		<constructor-arg index="0" ref="db.dataSource" />
+		</bean>
+	</beans>
+</beans>

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="WorkRoadStatsItemManage">
+	<!-- 일자리 통계항목 목록 조회 -->
+	<select id="getSearchWorkRoadStatsItemManage" parameterType="Map" resultType="Map">
+		SELECT * 
+		  FROM (SELECT *
+		  			 , ROWNUM R
+		  		  FROM (SELECT LINK_ID
+							 , STAT_NM
+							 , STAT_DEFINITION
+							 , STAT_EXP
+							 , COLCT_SOURCE
+							 , UPDT_CYCLE
+							 , STAT_PATH
+							 , REFRN_URL
+						  FROM SRV_DT_JOB_STAT_DATA_INFO
+						 ORDER BY LINK_ID
+		  		  	   )
+				 WHERE 1=1
+				<if test='END_INDEX != null and END_INDEX != ""'>
+				   AND ROWNUM <![CDATA[<=]]> #{END_INDEX}
+				</if>
+				<if test="SEARCH_TYPE == 'STAT_NM'">
+				   <if test="SEARCH_WORD != null">
+				   AND STAT_NM LIKE '%' || #{SEARCH_WORD} || '%'
+				   </if>
+				</if>
+				<if test="SEARCH_TYPE == 'STAT_DEFINITION'">
+				   <if test="SEARCH_WORD != null">
+				   AND STAT_DEFINITION LIKE '%' || #{SEARCH_WORD} || '%'
+				   </if>
+				</if>
+		  	   )
+		 <if test='START_INDEX != null and START_INDEX != ""'>
+		 WHERE R <![CDATA[>=]]> #{START_INDEX}
+		 </if>
+	</select>
+	
+	<!-- 일자리 통계항목 건수 조회 -->
+	<select id="getSearchWorkRoadStatsItemManageCount" parameterType="hashmap" resultType="int">
+		SELECT COUNT(*) AS CNT
+		  FROM SRV_DT_JOB_STAT_DATA_INFO
+		 WHERE 1=1
+		<if test="SEARCH_TYPE == 'STAT_NM'">
+			<if test="SEARCH_WORD != null">
+				AND STAT_NM LIKE '%' || #{SEARCH_WORD} || '%'
+			</if>
+		</if>
+		<if test="SEARCH_TYPE == 'STAT_DEFINITION'">
+			<if test="SEARCH_WORD != null">
+				AND STAT_DEFINITION LIKE '%' || #{SEARCH_WORD} || '%'
+			</if>
+		</if>
+	</select>
+	
+	<!-- 일자리 통계항목 상세 조회 -->
+	<select id="getWorkRoadStatsItemManage" parameterType="Map" resultType="Map">
+		SELECT LINK_ID
+			 , STAT_NM
+			 , STAT_DEFINITION
+			 , STAT_EXP
+			 , COLCT_SOURCE
+			 , UPDT_CYCLE
+			 , STAT_PATH
+			 , REFRN_URL
+		  FROM SRV_DT_JOB_STAT_DATA_INFO
+		 WHERE LINK_ID = #{POST_NO}
+	</select>
+	
+	<!-- 일자리 통계항목 삭제 -->
+	<delete id="deleteWorkRoadStatsItemManage">
+		DELETE 
+		  FROM SRV_DT_JOB_STAT_DATA_INFO
+		 WHERE LINK_ID IN
+		<foreach collection="array" index="index" item="item" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<!-- 일자리 통계항목 연계 ID 중복 체크 -->
+	<select id="checkLINKID" parameterType="Map" resultType="int">
+		SELECT NVL(COUNT(LINK_ID), 0) AS CNT
+		  FROM SRV_DT_JOB_STAT_DATA_INFO
+		 WHERE LINK_ID = #{CHECK_WORD}
+	</select>
+	
+	<!-- 일자리 통계항목 신규추가 -->
+	<insert id="addWorkRoadStatsItemManage" parameterType="Map">
+		INSERT 
+		  INTO SRV_DT_JOB_STAT_DATA_INFO
+			  (LINK_ID
+			 , STAT_NM
+			 , STAT_DEFINITION
+			 , STAT_EXP
+			 , COLCT_SOURCE
+			 , UPDT_CYCLE
+			 , STAT_PATH
+			 , REFRN_URL
+			 , RECENT_UPDT_DE
+			 , CREATE_DT
+			  )
+		VALUES 
+		(
+			   #{LINK_ID}
+			 , #{STAT_NM}
+			 , #{STAT_DEFINITION}
+			 , #{STAT_EXP}
+			 , #{COLCT_SOURCE}
+			 , #{UPDT_CYCLE}
+			 , #{STAT_PATH}
+			 , #{REFRN_URL}
+			 , TO_CHAR(SYSDATE, 'YYYY-MM-DD')
+			 , TO_CHAR(SYSDATE, 'YYYYMMDD')
+		)
+	</insert>
+	
+	<!-- 일자리 통계항목 수정 -->
+	<update id="updateWorkRoadStatsItemManage" parameterType="Map">
+		UPDATE SRV_DT_JOB_STAT_DATA_INFO
+		   SET STAT_NM = #{STAT_NM}
+		     , STAT_DEFINITION = #{STAT_DEFINITION}
+			 , STAT_EXP = #{STAT_EXP}
+			 , COLCT_SOURCE = #{COLCT_SOURCE}
+			 , UPDT_CYCLE = #{UPDT_CYCLE}
+			 , STAT_PATH = #{STAT_PATH}
+			 , REFRN_URL = #{REFRN_URL}
+			 , RECENT_UPDT_DE = TO_CHAR(SYSDATE, 'YYYY-MM-DD')
+		 WHERE LINK_ID = #{LINK_ID}
+	</update>
+</mapper>

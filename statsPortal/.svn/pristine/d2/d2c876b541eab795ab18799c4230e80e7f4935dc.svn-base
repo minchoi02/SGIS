@@ -1,0 +1,1914 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SbrStatsXsql">
+
+	<!-- 산업분류에 포함되는 모든 대분류 테마코드 정보를 조회한다, 전국사업체조사의 테마업종 및 interactiveMapBtn의 createPOIBtn 메서드에서 사용된다. -->
+	<select id = "selectCensusBigThemeInfo" resultType="hashmap">
+		SELECT 
+			B_THEME_CD
+			, MIN(B_THEME_CD_NM) AS B_THEME_CD_NM
+		FROM 
+			CMM_CD_THEME
+		WHERE 
+			/*B_THEME_CD != ''*/
+			LENGTH(B_THEME_CD) = '1'
+			AND B_THEME_CD != '99'
+		GROUP 
+			BY B_THEME_CD
+		ORDER BY 
+			B_THEME_CD
+	</select>
+	
+	<!-- 특정 산업분류의 대분류에 속하는 소분류 테마코드 정보를 조회한다, 전국사업체조사의 테마업종 및 interactiveMapBtn의 createPOIBtn 메서드에서 사용된다. -->
+	<select id="selectCensusSmallThemeInfo" resultType="hashmap">
+		SELECT 
+			THEME_CD
+			, S_THEME_CD_NM
+			, ORDER_NO
+		FROM 
+			CMM_CD_THEME
+		WHERE 
+			/*B_THEME_CD != '' 
+			AND B_THEME_CD != '99'*/
+			LENGTH(B_THEME_CD) = '1'
+			AND THEME_CD != #{b_theme_cd}||'000'
+			AND B_THEME_CD = #{b_theme_cd}
+		ORDER BY
+			ORDER_NO
+	</select>
+	
+	
+	<!-- 코드리스트  -->
+	<select id="selectCodeList" resultType="hashmap">
+		SELECT 
+			THEME_CD
+			,ORDER_NO
+		FROM 
+			CMM_CD_THEME
+		WHERE 
+			LENGTH(B_THEME_CD) = '1'
+			AND THEME_CD like  #{b_theme_cd}||'%'
+		ORDER BY
+			ORDER_NO
+	</select>
+	
+	<!-- 업종코드 -->
+	<!--<select id="selectBizeCodeList" resultType="hashmap">
+		select ksic_2_cd , ksic_3_cd , ksic_2_nm , ksic_3_nm 
+		  from cmm_cd_corpclass
+		  where ksic_2_cd  != '00'
+		  group by ksic_2_cd, ksic_3_cd , ksic_2_nm , ksic_3_nm
+		  order by ksic_2_cd asc 
+	</select>-->
+	
+	<select id="selectBizeCodeList" resultType="hashmap">
+		select ksic_1_cd , ksic_2_cd , ksic_1_nm , ksic_2_nm 
+		  from cmm_cd_corpclass
+		  where ksic_2_cd  != '00'
+		  group by ksic_1_cd, ksic_2_cd , ksic_1_nm , ksic_2_nm
+		  order by ksic_1_cd asc 
+	</select>
+	
+	
+	<!-- 테스트 -->
+	<select id="selectTestData" resultType="String">
+		select count(*) as data1
+		from CMM_CD_THEME 
+	</select>
+	
+	<!-- 종합분석 시계열 데이터  -->
+	<select id="selectCompanyCount" resultType="map">
+		SELECT company_cnt
+		FROM sbr_test
+		ORDER BY base_year ASC
+	</select>
+
+	<!-- 종합분석 전체기업수 및 기업규모 형태 개업폐업 대표자 차트  -->
+	<select id="selectSbrCompanyInfoList" resultType="map">
+	  select *
+	  from(
+	  	<foreach collection="year_list" item="item" separator="UNION" index="index">
+			select a.base_year,a.ENT_CO ,a.OPBIZ_CO ,a.CLSBIZ_CO 
+			       ,b.ltrs_co , b.mident_co ,b.smlpz_co , b.smltrdids_co 
+			from srv_dt_sbr_bord_biz_detcnd_sm a
+			join srv_dt_sbr_bord_biz_sm b 
+			     on a.base_year = b.base_year and a.bord_type = b.bord_typ  and a.bord_cd = b.bord_cd
+			     and a.kisc_cd_1 = b.kisc_cd_1 and a.kisc_cd_2 = b.kisc_cd_2
+			where a.base_year = #{item}
+			and a.bord_type = #{bord_type}
+			and a.bord_cd  = #{adm_cd}
+	        and a.kisc_cd_1 = #{kisc_cd_1}
+	        and a.kisc_cd_2 = #{kisc_cd_2}
+			and a.cnd_cd in (#{cnd_cd})
+		</foreach>
+	  )a
+	  order by base_year asc
+	</select>	
+	
+	
+
+	<!-- 종합분석 활동현황 데이터 -->
+	<select id="activeCompanyCount" resultType="map">
+		select a.ACT_CO, a.NACT_CO, a.ENT_CO, a.OPBIZ_CO, a.CLSBIZ_CO , b.ENT_CO as TOL_ENT_CO, b.OPBIZ_CO as TOL_OPBIZ_CO , b.CLSBIZ_CO as TOL_CLSBIZ_CO
+		  from srv_dt_sbr_bord_biz_detcnd_sm a
+		  join srv_dt_sbr_bord_biz_detcnd_sm b 
+			   on a.base_year = b.base_year and a.bord_type = b.bord_type and a.bord_cd = b.bord_cd
+	           and b.kisc_cd_1 = '@' and b.kisc_cd_2 = '00' and b.cnd_cd ='999'
+		  where a.base_year = #{year}
+			and a.bord_type = #{bord_type}
+			and a.bord_cd   = #{adm_cd}
+			and a.kisc_cd_1 = #{kisc_cd_1}
+			and a.kisc_cd_2 = #{kisc_cd_2}
+			and a.cnd_cd    = #{cnd_cd}
+	</select>	
+	
+	<!-- 종합분석 업종분석 개폐업현황 데이터 -->
+	<select id="opneCloseCompanyCount" resultType="map">
+		select biz_cd, opbiz_co, clsbiz_co 
+			from srv_dt_sbr_bord_biz_detcnd_sm_test 
+			where (biz_cd = '999' OR biz_cd = '11') and cnd_cd = '999'
+			and base_year = '2020' and bord_type = '12' and bord_cd = '11210'
+			order by biz_cd desc;
+	</select>
+	
+	<!-- 성장기업분포도 -->
+	<select id="selectSbrGrowthList" resultType="map">
+		select base_year, cnd_cd, act_co, ent_co
+		from srv_dt_sbr_bord_biz_detcnd_sm
+		where base_year = #{year}
+		and bord_type = #{bord_type}
+		and bord_cd  = #{adm_cd}
+		and kisc_cd_1 = #{kisc_cd_1}
+		and kisc_cd_2  = #{kisc_cd_2}
+		and cnd_cd in ('GR_10PLT','GR_10P_20PLT','GR_20P_','GR_HIGH','GR_ETC')
+	</select>
+	
+	<!-- 평균매출액 , 평균영업기간 -->
+	<select id="selectSbrAvgData" resultType="map">
+		select  a.base_year
+			   ,round(avg(b.sls_amt),0) as avg_sls_amt
+			   ,max(b.sls_amt) as max_sls_amt
+			   ,min(b.sls_amt) as min_sls_amt
+		       ,round(avg(b.avg_bsn_prid),0) as avg_bsn_prid
+		       ,max(b.avg_bsn_prid) as max_avg_bsn_prid
+			   ,min(b.avg_bsn_prid) as min_avg_bsn_prid
+		from srv_dt_sbr_bord_biz_detcnd_sm a
+		join srv_dt_sbr_bord_biz_sm b  
+		     on a.base_year  = b.base_year  and a.bord_type  = b.bord_typ  and a.bord_cd = b.bord_cd 
+		     and a.kisc_cd_1 = b.kisc_cd_1 and  a.kisc_cd_2 = b.kisc_cd_2 
+		where a.base_year = #{year}
+		and a.bord_type = #{bord_type}
+		and a.bord_cd  = #{adm_cd}
+		and a.cnd_cd = #{cnd_cd}
+		and a.kisc_cd_1 != '@'
+		and a.kisc_cd_2  != '00'
+		group by a.base_year
+	</select>
+	
+	<!-- 기업분석 -->
+	<select id="selectCompanyAnalysis" resultType="map">
+	
+		select a.base_year , a.ent_co ,b.sls_amt 
+		       ,b.ltrs_co , b.mident_co, b.smlpz_co, b.smltrdids_co
+		       ,(b.ltrs_enfsn_co + b.mident_enfsn_co + b.smlpz_enfsn_co  + b.smltrdids_enfsn_co ) as enfsn_co
+		       ,b.ltrs_enfsn_co, b.mident_enfsn_co, b.smlpz_enfsn_co,  b.smltrdids_enfsn_co
+		       ,b.ltrs_sls_amt , b.mident_sls_amt, b.smlpz_sls_amt, b.smltrdids_sls_amt
+		       ,ISNULL(c.base_year,0) as b_base_year , ISNULL(c.ent_co,0) as b_ent_co, ISNULL(d.sls_amt,0) as b_sls_amt
+		       ,(ISNULL(d.ltrs_enfsn_co,0) + ISNULL(d.mident_enfsn_co,0) + ISNULL(d.smlpz_enfsn_co,0)  + ISNULL(d.smltrdids_enfsn_co,0) ) as b_enfsn_co
+		from srv_dt_sbr_bord_biz_detcnd_sm a
+		join srv_dt_sbr_bord_biz_sm b  
+		     on a.base_year  = b.base_year  and a.bord_type  = b.bord_typ  and a.bord_cd = b.bord_cd 
+		     and a.kisc_cd_1 = b.kisc_cd_1 and  a.kisc_cd_2 = b.kisc_cd_2
+		join (select *
+		        from  srv_dt_sbr_bord_biz_detcnd_sm
+		        where   base_year = (#{year}-1)
+					and bord_type = #{bord_type}
+					and bord_cd  = #{adm_cd}
+					and cnd_cd = #{cnd_cd}
+					and kisc_cd_1 = #{kisc_cd_1}
+					and kisc_cd_2 = #{kisc_cd_2}
+		      )c 
+		     on c.bord_type  = a.bord_type  and c.bord_cd = a.bord_cd 
+		     and c.cnd_cd = a.cnd_cd and c.kisc_cd_1 = a.kisc_cd_1 and  c.kisc_cd_2 = a.kisc_cd_2
+		join srv_dt_sbr_bord_biz_sm d  
+		     on c.base_year  = d.base_year  and c.bord_type  = d.bord_typ  and c.bord_cd = d.bord_cd 
+		     and c.kisc_cd_1 = d.kisc_cd_1 and  c.kisc_cd_2 = d.kisc_cd_2
+		where a.base_year = #{year}
+		and a.bord_type = #{bord_type}
+		and a.bord_cd  = #{adm_cd}
+		and a.cnd_cd = #{cnd_cd}
+		and a.kisc_cd_1 = #{kisc_cd_1}
+		and a.kisc_cd_2 = #{kisc_cd_2}
+		
+	</select>
+	
+	<!-- 주요기업  -->
+	<select id="selectCompanyMainList" resultType="map">
+		
+		select * 
+		from (
+			select biz_nm ,biz_cnt, ent_sz ,ST_ASTEXT(geom) as center_point
+			from srv_dt_sbr_poi
+			where base_year = #{year}
+			and cp_cd = #{sido_cd}
+			and ent_sz = '0'
+			limit 10
+		)
+		
+		union 
+		
+		select * 
+		from (
+			select biz_nm ,biz_cnt, ent_sz ,ST_ASTEXT(geom) as center_point
+			from srv_dt_sbr_poi
+			where base_year = #{year}
+			and cp_cd = #{sido_cd}
+			and ent_sz in ('1','2')
+			limit 10
+		)
+		
+		union 
+		
+		select * 
+		from (
+			select biz_nm ,biz_cnt, ent_sz ,ST_ASTEXT(geom) as center_point
+			from srv_dt_sbr_poi
+			where base_year = #{year}
+			and cp_cd = #{sido_cd}
+			and ent_sz = '3'
+			limit 10
+		)
+		
+		union 
+		
+		select * 
+		from (
+			select biz_nm ,biz_cnt, ent_sz ,ST_ASTEXT(geom) as center_point
+			from srv_dt_sbr_poi
+			where base_year = #{year}
+			and cp_cd = #{sido_cd}
+			and ent_sz in ('4','5')
+			limit 10
+		)
+		
+		union 
+		
+		select * 
+		from (
+			select biz_nm ,biz_cnt, ent_sz ,ST_ASTEXT(geom) as center_point
+			from srv_dt_sbr_poi
+			where base_year = #{year}
+			and cp_cd = #{sido_cd}
+			and ent_sz = '6'
+			limit 10
+		)
+		order by ent_sz asc, BIZ_NM
+		
+	</select>	
+	
+	<!-- 지도선택시 정보표시 -->
+	<select id="selectAreaInfo" resultType="map">
+	
+	select *
+		     ,round(((a.ent_tot - a.b_ent_tot)/a.b_ent_tot)*100,2) as growth
+		     ,round((a.ent_tot/a.totalEnt)*100,2) as distribution
+		from (
+			select d.rankNum, d.totalEnt
+			       ,A.base_year ,A.bord_cd , A.bord_type, A.biz_cd , A.cnd_cd
+			       ,A.ent_co as ent_tot ,A.opbiz_co as ent_opbiz_co
+				   ,b.ent_co as b_ent_tot , b.opbiz_co as B_opbiz_co
+				   <if test = "adm_cd != null and adm_cd.length() == 2">
+				   ,C.sido_nm as addr
+				   ,C.x_coor
+			   	   ,C.y_coor
+				   </if>
+				   
+				   <if test = "adm_cd != null and (adm_cd.length() == 5 or adm_cd.length() == 7)">
+				   ,C.addr as addr
+				   ,C.x_coor
+			   	   ,C.y_coor
+				   </if>
+				   
+			from srv_dt_sbr_bord_biz_detcnd_sm_test a
+			join (
+					select * from srv_dt_sbr_bord_biz_detcnd_sm_test 
+						where base_year = (#{year}-1)
+						and bord_type = #{bord_type}
+						and biz_cd = #{biz_cd}
+						and cnd_cd = #{cnd_cd}
+						and length(bord_cd) = LENGTH(#{adm_cd})
+						<if test = "adm_cd != null and adm_cd.length() != 2">
+						and bord_cd like #{sido_cd}||'%'
+						</if>
+				 )b
+				 on a.bord_type = b.bord_type and a.bord_cd  = b.bord_cd
+				 and a.biz_cd = b.biz_cd  and a.cnd_cd = b.cnd_cd 
+		    join(
+		    		select  row_number() over (order by ent_co desc, opbiz_co desc ) as rankNum
+					        ,sum(ent_co) over(partition by base_year) as totalEnt
+					        ,base_year ,bord_cd , bord_type, biz_cd , cnd_cd
+					        ,ent_co,opbiz_co
+					from srv_dt_sbr_bord_biz_detcnd_sm_test 
+					where base_year = #{year}
+					and bord_type = #{bord_type}
+					and biz_cd = #{biz_cd}
+					and cnd_cd = #{cnd_cd}
+					and length(bord_cd) = LENGTH(#{adm_cd})
+					<if test = "adm_cd != null and adm_cd.length() != 2">
+					and bord_cd like #{sido_cd}||'%'
+					</if>
+					order by ent_co desc, opbiz_co desc
+		    )d
+		    on a.base_year = d.base_year and a.bord_type = d.bord_type and a.bord_cd  = d.bord_cd
+			and a.biz_cd = d.biz_cd  and a.cnd_cd = d.cnd_cd 
+			
+			<if test = "adm_cd != null and adm_cd.length() == 2">
+				join srv_pg_sidobord C on A.bord_cd = C.sido_cd and C.base_year = #{year}
+			</if>
+			
+			<if test = "adm_cd != null and adm_cd.length() == 5">
+				join srv_pg_sggbord C on SUBSTRING(A.bord_cd,1,2) = C.sido_cd 
+                                     and SUBSTRING(A.bord_cd,3,3) = C.sgg_cd and C.base_year = #{year}
+                                     and C.base_year = #{year}
+			</if>
+			
+			<if test = "adm_cd != null and adm_cd.length() == 7">
+				join SRV_PG_ADMBORD C on SUBSTRING(A.bord_cd,1,2) = C.sido_cd 
+                                     and SUBSTRING(A.bord_cd,3,3) = C.sgg_cd 
+                                     and SUBSTRING(A.bord_cd,6,2) = C.emdong_cd
+                                     and C.base_year = #{year}
+			</if>
+			
+			
+			where a.base_year = #{year}
+			and a.bord_type = #{bord_type}
+			and a.biz_cd = #{biz_cd}
+			and a.cnd_cd = #{cnd_cd}
+			and length(a.bord_cd) = LENGTH(#{adm_cd})
+			<if test = "adm_cd != null and adm_cd.length() != 2">
+			and A.bord_cd like #{sido_cd}||'%'
+			</if>
+			order by A.ent_co desc, A.opbiz_co desc 
+		)a
+		where a.bord_cd = #{adm_cd}
+	
+
+
+	</select>
+	
+	<!-- 공간분석 -->
+	<select id="selectAreaDataList" resultType="map">
+		select  a.base_year 
+		       ,a.bord_cd 
+		       , a.ent_tot 
+		       ,a.lnd_area 
+		       ,a.ppltn_tot 
+		       ,a.grid_1k_ppltn_co 
+		       ,a.ymage_co 
+		       ,a.lnd_avg_olnlp 
+		       ,a.lnd_avg_rl_dlpc 
+		       ,a.lnd_deal_co
+		       ,a.psn_1_family_co
+		       ,a.bd_30yy_mt_rt
+		       ,b.sls_amt 
+		       ,(b.ltrs_enfsn_co + b.mident_enfsn_co+ b.smlpz_enfsn_co+ b.smltrdids_enfsn_co) as enfsn_co
+		from srv_dt_sbr_bord_sm a
+		join srv_dt_sbr_bord_biz_sm b 
+		     on a.base_year = b.base_year  and a.bord_typ = b.bord_typ 
+		     and a.bord_cd = b.bord_cd  and  b.kisc_cd_1 = #{kisc_cd_1} and b.kisc_cd_2 = #{kisc_cd_2} 
+		where (a.base_year <![CDATA[<=]]> #{year} and a.base_year <![CDATA[>=]]> (#{year}-5))
+		
+		<if test = "bord_type != null and bord_type == 1">
+			and a.bord_typ like '1%'
+		</if>
+		<if test = "bord_type != null and bord_type != 1">
+			and a.bord_typ = #{bord_type}
+		</if>
+		
+		and a.bord_cd in (#{adm_cd},#{adm_cd2})
+		order by a.bord_cd asc, a.base_year asc
+	</select>
+	
+	<!--  행정구역 랭크 리스트  -->
+	<select id="selectRankListInfo" resultType="map">
+	select  *
+	from
+	( 
+		select  
+				<if test = "searchOrderBy != null and searchOrderBy == 1">
+					row_number() over (order by a.distribution desc) as rankNum
+				</if>
+				
+				<if test = "searchOrderBy != null and searchOrderBy == 2">
+					row_number() over (order by a.distribution desc) as rankNum
+				</if>
+				
+				<if test = "searchOrderBy != null and searchOrderBy == 3">
+					row_number() over (order by a.growth desc) as rankNum
+				</if>
+		
+		 
+				,a.*
+		from(
+			select *
+			     ,round(((A.ent_co - a.b_ent_co) / (CASE  when  a.b_ent_co = 0 then 1 else a.b_ent_co end ) )*100,2) as growth
+			     
+			     ,round((A.ent_co/ (CASE  when  a.totalCo = 0 then 1 else a.totalCo end ) )*100,2) as distribution
+			     
+			     <if test = "category == null or category != 2">
+				    <if test = "adm_cd != null and adm_cd.length() == 2">
+				   	 ,C.sido_nm as addr
+				   	 ,C.x_coor
+			   	   	 ,C.y_coor
+				   	</if>
+				   
+				   	<if test = "adm_cd != null and (adm_cd.length() == 5 or adm_cd.length() == 7)">
+				   	 ,C.addr as addr
+				   	 ,C.x_coor
+			   	   	 ,C.y_coor
+				   	</if>
+				 </if>
+				 
+				 <if test = "category != null and category == 2">
+				   	 ,C.addr as addr
+				   	 ,C.x_coor
+			   	   	 ,C.y_coor
+				 </if>
+			   	
+			from (
+				select d.totalCo
+				       , A.base_year ,A.bord_cd , A.bord_type,  A.kisc_cd_1, A.kisc_cd_2 , A.cnd_cd
+				       
+					   <choose>
+			    				   
+	    					<when test="detail_search_theme != null and detail_search_theme == 1">		      
+			    		        , A.ent_co 
+					   			, b.ent_co as b_ent_co
+					        </when>
+					        
+					        <when test="detail_search_theme != null and detail_search_theme == 2">		      
+			    		        , A.opbiz_co as ent_co
+					   			, b.opbiz_co as b_ent_co
+					        </when>
+					        
+					        <when test="detail_search_theme != null and detail_search_theme == 3">		      
+						        , A.clsbiz_co as ent_co
+					   			, b.clsbiz_co as b_ent_co
+					        </when>
+					        
+					        <when test="detail_search_theme != null and detail_search_theme == 4">		      
+						        , A.act_co as ent_co
+					   			, b.act_co as b_ent_co
+					        </when>
+					        
+					        <when test="detail_search_theme != null and detail_search_theme == 5">		      
+						        , A.nact_co as ent_co
+					   			, b.nact_co as b_ent_co
+					        </when>
+					        
+					        <when test="detail_search_theme != null and detail_search_theme == 6">		      
+						        , A.ent_srvl_co as ent_co
+					   			, b.ent_srvl_co as b_ent_co
+					        </when>
+					        
+					        <when test="detail_search_theme != null and detail_search_theme == 7">		      
+						        , A.ent_sls_prid_per as ent_co
+					   			, b.ent_sls_prid_per as b_ent_co
+					        </when>
+					        
+					        <when test="detail_search_theme != null and detail_search_theme == 8">		      
+						        , A.growth_co as ent_co
+					   			, b.growth_co as b_ent_co
+					        </when>
+					        <otherwise>
+						        , A.ent_co 
+					   			, b.ent_co as b_ent_co
+					        </otherwise>
+					        
+				        </choose>
+					   
+					   ,SUBSTRING(A.bord_cd, 1, 2) as sido_cd
+					   ,SUBSTRING(A.bord_cd, 3, 3) as sgg_cd
+					   ,SUBSTRING(A.bord_cd, 6, 2) as emdong_cd
+					   
+				from srv_dt_sbr_bord_biz_detcnd_sm a
+				join (
+						select * from srv_dt_sbr_bord_biz_detcnd_sm
+							where base_year = (#{year}-1)
+							and bord_type = #{bord_type}
+							and kisc_cd_1 = #{kisc_cd_1}
+							and kisc_cd_2 = #{kisc_cd_2}
+							and cnd_cd in (${cnd_cd})
+							
+							<if test = "category == null or category != 2">
+								<!-- and length(bord_cd) = LENGTH(#{adm_cd}) -->
+								<if test = "adm_cd != null and adm_cd.length() != 2">
+								and bord_cd like #{sido_cd}||'%'
+								</if>
+							</if>
+							<if test = "category != null and category == 2">
+								and length(bord_cd) = 5
+							</if>
+					 )b
+					 on a.bord_type = b.bord_type and a.bord_cd  = b.bord_cd
+					 and a.kisc_cd_1 = b.kisc_cd_1 and a.kisc_cd_2 = b.kisc_cd_2  and a.cnd_cd = b.cnd_cd 
+			    join(
+			    		select  
+			    				<choose>
+			    				   
+			    					<when test="detail_search_theme != null and detail_search_theme == 1">		      
+					    		        sum(ent_co) over(partition by base_year) as totalCo
+							        </when>
+							        
+							        <when test="detail_search_theme != null and detail_search_theme == 2">		      
+					    		        sum(opbiz_co) over(partition by base_year) as totalCo
+							        </when>
+							        
+							        <when test="detail_search_theme != null and detail_search_theme == 3">		      
+					    		        sum(clsbiz_co) over(partition by base_year) as totalCo
+							        </when>
+							        
+							        <when test="detail_search_theme != null and detail_search_theme == 4">		      
+					    		        sum(act_co) over(partition by base_year) as totalCo
+							        </when>
+							        
+							        <when test="detail_search_theme != null and detail_search_theme == 5">		      
+					    		        sum(nact_co) over(partition by base_year) as totalCo
+							        </when>
+							        
+							        <when test="detail_search_theme != null and detail_search_theme == 6">		      
+					    		        sum(ent_srvl_co) over(partition by base_year) as totalCo
+							        </when>
+							        
+							        <when test="detail_search_theme != null and detail_search_theme == 7">		      
+					    		        sum(ent_sls_prid_per) over(partition by base_year) as totalCo
+							        </when>
+							        
+							        <when test="detail_search_theme != null and detail_search_theme == 8">		      
+					    		        sum(growth_co) over(partition by base_year) as totalCo
+							        </when>
+							        <otherwise>
+							        	sum(ent_co) over(partition by base_year) as totalCo
+							        </otherwise>
+							        
+						        </choose>
+						        
+						        
+						        ,base_year ,bord_cd , bord_type,  kisc_cd_1, kisc_cd_2 , cnd_cd
+						from srv_dt_sbr_bord_biz_detcnd_sm 
+						where base_year = #{year}
+						and bord_type = #{bord_type}
+						and kisc_cd_1 = #{kisc_cd_1}
+						and kisc_cd_2 = #{kisc_cd_2}
+						and cnd_cd in (${cnd_cd})
+						
+						<if test = "category == null or category != 2">
+							<if test = "adm_cd != null and adm_cd.length() != 2">
+							and bord_cd like #{sido_cd}||'%'
+							</if>
+						</if>
+						<if test = "category != null and category == 2">
+							and length(bord_cd) = 5
+						</if>
+						
+						
+			    )d
+			    on a.base_year = d.base_year and a.bord_type = d.bord_type and a.bord_cd  = d.bord_cd
+				and a.kisc_cd_1 = b.kisc_cd_1 and a.kisc_cd_2 = b.kisc_cd_2  and a.cnd_cd = d.cnd_cd
+				 
+				where a.base_year = #{year}
+				and a.bord_type = #{bord_type}
+				and a.kisc_cd_1 = #{kisc_cd_1}
+				and a.kisc_cd_2 = #{kisc_cd_2}
+				and a.cnd_cd in (${cnd_cd})
+				
+				<if test = "category == null or category != 2">
+					<if test = "adm_cd != null and adm_cd.length() != 2">
+					and A.bord_cd like #{sido_cd}||'%'
+					</if>
+				</if>
+				<if test = "category != null and category == 2">
+					and length(a.bord_cd) = 5
+				</if>
+			)a
+			
+			<if test = "category == null or category != 2">
+				<if test = "adm_cd != null and adm_cd.length() == 2">
+					join srv_pg_sidobord C on A.bord_cd = C.sido_cd
+					                     <!-- 데이터들어오면 변경 --> 
+							             and C.base_year = #{year}
+							            
+				</if>
+				
+				<if test = "adm_cd != null and adm_cd.length() == 5">
+					left outer join srv_pg_sggbord C on 
+					                         a.sido_cd = C.sido_cd 
+		                                 and a.sgg_cd = C.sgg_cd 
+		                                 <!-- 데이터들어오면 변경 --> 
+							             and C.base_year = #{year}
+							             
+				</if>
+				
+				<if test = "adm_cd != null and adm_cd.length() == 7">
+					left outer join SRV_PG_ADMBORD C on 
+					                         a.sido_cd = C.sido_cd 
+		                                 and a.sgg_cd = C.sgg_cd 
+		                                 and a.emdong_cd = C.emdong_cd
+		                                 <!-- 데이터들어오면 변경 --> 
+							             and C.base_year = #{year}
+				</if>
+			</if>
+			<if test = "category != null and category == 2">
+				left outer join srv_pg_sggbord C on 
+					                         a.sido_cd = C.sido_cd 
+		                                 and a.sgg_cd = C.sgg_cd 
+		                                 <!-- 데이터들어오면 변경 --> 
+							             and C.base_year = #{year}
+			</if>
+		)a
+	) 				<if test = "searchOrderByType != null and searchOrderByType == 1">
+						order by rankNum asc
+					</if>
+					<if test = "searchOrderByType != null and searchOrderByType == 2">
+						order by rankNum desc
+					</if>
+			
+	 
+	</select>
+	
+	
+	<!--  산업단지, 상권, 전통시장, 도시화 랭크 리스트  -->
+	<select id="selectRankListInfo2" resultType="map">
+	
+		select   a.*
+		       , round(((a.ent_co - a.b_ent_co)/ (CASE  when  a.b_ent_co = 0 then 1 else a.b_ent_co end ))* 100, 2) as growth
+		       , round((a.ent_co / (CASE  when  a.totalCo = 0 then 1 else a.totalCo end ))* 100, 2) as distribution
+		       
+		       <if test = "bord_type != null and bord_type == 20">
+		       , b.dan_name as addr 
+		       </if>
+		       
+		       <if test = "bord_type != null and bord_type == 30">
+		       , b.spr_nm as addr 
+		       </if>
+		       
+		       <if test = "bord_type != null and bord_type == 40">
+		       , b.spr_nm as addr 
+		       </if>
+		       
+		       <if test = "bord_type != null and bord_type == 50">
+		       , b.dan_name as addr 
+		       </if>
+		       
+		       , ST_ASTEXT(ST_CENTROID(b.geom)) as center_point
+		from (
+				select a.rankNum
+				       ,a.bord_cd
+				       ,a.bord_type
+				       ,a.base_year
+				       ,a.ent_co
+				       ,b.base_year as b_base_year
+				       ,b.ent_co as b_ent_co
+				       ,c.totalCo
+				from (
+				
+					select row_number() over (order by ent_co desc) as rankNum  
+						    ,*
+						from(
+						select
+						     base_year
+							,bord_cd 
+							,bord_type
+							
+							<choose>
+			    				   
+		    					<when test="detail_search_theme != null and detail_search_theme == 1">		      
+				    		        ,sum(ent_co) ent_co
+						        </when>
+						        
+						        <when test="detail_search_theme != null and detail_search_theme == 2">		      
+				    		        ,sum(opbiz_co) ent_co
+						        </when>
+						        
+						        <when test="detail_search_theme != null and detail_search_theme == 3">		      
+							        ,sum(clsbiz_co) ent_co
+						        </when>
+						        
+						        <when test="detail_search_theme != null and detail_search_theme == 4">		      
+							        ,sum(act_co) ent_co
+						        </when>
+						        
+						        <when test="detail_search_theme != null and detail_search_theme == 5">		      
+							        ,sum(nact_co) ent_co
+						        </when>
+						        
+						        <when test="detail_search_theme != null and detail_search_theme == 6">		      
+							        ,sum(ent_srvl_co) ent_co
+						        </when>
+						        
+						        <otherwise>
+							        ,sum(ent_co) ent_co
+						        </otherwise>
+						        
+					        </choose>
+							
+							
+							
+						from
+							srv_dt_sbr_bord_biz_detcnd_sm
+						where
+							base_year = #{year}
+							and bord_type = #{bord_type}
+							and cnd_cd in (${cnd_cd})
+							and kisc_cd_1 = #{kisc_cd_1}
+							and kisc_cd_2 = #{kisc_cd_2}
+							and bord_cd in <foreach collection="admCdList" item="edu" open = "(" separator = "," close = ")">
+											#{edu}
+										   </foreach>
+						group by base_year, bord_type,bord_cd
+					) 
+				)a
+				join (
+					select   base_year 
+					        ,bord_type 
+					        ,bord_cd
+					         
+							<choose>
+			    				   
+		    					<when test="detail_search_theme != null and detail_search_theme == 1">		      
+				    		        ,sum(ent_co) ent_co
+						        </when>
+						        
+						        <when test="detail_search_theme != null and detail_search_theme == 2">		      
+				    		        ,sum(opbiz_co) ent_co
+						        </when>
+						        
+						        <when test="detail_search_theme != null and detail_search_theme == 3">		      
+							        ,sum(clsbiz_co) ent_co
+						        </when>
+						        
+						        <when test="detail_search_theme != null and detail_search_theme == 4">		      
+							        ,sum(act_co) ent_co
+						        </when>
+						        
+						        <when test="detail_search_theme != null and detail_search_theme == 5">		      
+							        ,sum(nact_co) ent_co
+						        </when>
+						        
+						        <when test="detail_search_theme != null and detail_search_theme == 6">		      
+							        ,sum(ent_srvl_co) ent_co
+						        </when>
+						        
+						        <otherwise>
+							        ,sum(ent_co) ent_co
+						        </otherwise>
+						        
+					        </choose>
+							
+							
+							from srv_dt_sbr_bord_biz_detcnd_sm
+							where base_year = (#{year}-1)
+						  and bord_type = #{bord_type}
+					      and cnd_cd in (${cnd_cd})
+					      and kisc_cd_1 = #{kisc_cd_1}
+						  and kisc_cd_2 = #{kisc_cd_2}
+					      and bord_cd in  <foreach collection="admCdList" item="edu" open = "(" separator = "," close = ")">
+											#{edu}
+										   </foreach>
+					   	group by base_year, bord_type,bord_cd
+				)b on a.bord_type= b.bord_type and a.bord_cd =b.bord_cd
+			    join (
+			    	    select DISTINCT  *
+						from(
+								select   base_year
+									<choose>
+					    				<when test="detail_search_theme != null and detail_search_theme == 1">		      
+						    		        , sum(ent_co) over(partition by base_year) as totalCo
+								        </when>
+								        
+								        <when test="detail_search_theme != null and detail_search_theme == 2">		      
+						    		        , sum(opbiz_co) over(partition by base_year) as totalCo
+								        </when>
+								        
+								        <when test="detail_search_theme != null and detail_search_theme == 3">		      
+									        , sum(clsbiz_co) over(partition by base_year) as totalCo
+								        </when>
+								        
+								        <when test="detail_search_theme != null and detail_search_theme == 4">		      
+									        , sum(act_co) over(partition by base_year) as totalCo
+								        </when>
+								        
+								        <when test="detail_search_theme != null and detail_search_theme == 5">		      
+									        , sum(nact_co) over(partition by base_year) as totalCo
+								        </when>
+								        
+								        <when test="detail_search_theme != null and detail_search_theme == 6">		      
+									        , sum(ent_srvl_co) over(partition by base_year) as totalCo
+								        </when>
+								        
+								        <otherwise>
+									        , sum(ent_co) over(partition by base_year) as totalCo
+								        </otherwise>
+								        
+							        </choose>
+								
+								
+								from srv_dt_sbr_bord_biz_detcnd_sm
+								where base_year = #{year}
+								  and bord_type = #{bord_type}
+								  and cnd_cd in (${cnd_cd})
+								  and kisc_cd_1 = #{kisc_cd_1}
+						  		  and kisc_cd_2 = #{kisc_cd_2}
+								  and bord_cd in   <foreach collection="admCdList" item="edu" open = "(" separator = "," close = ")">
+													#{edu}
+												   </foreach>
+						)
+			    )c
+			    on a.base_year= c.base_year
+		  		order by a.rankNum asc
+		)a
+		<if test = "bord_type != null and bord_type == 20">
+		join sbr_indust_complex_pg b <!-- 상권 변경 -->
+		     on a.bord_cd = b.dan_id
+		</if>
+		
+		<if test = "bord_type != null and bord_type == 30">
+		join sbr_biz_pg b <!-- 상권 변경 -->
+		     on a.bord_cd = b.spr_no
+		</if>
+		
+		<if test = "bord_type != null and bord_type == 40">
+		join sbr_market_pg b <!-- 상권 변경 -->
+		     on a.bord_cd = b.spr_no
+		</if>
+		
+		<if test = "bord_type != null and bord_type == 50">
+		join sbr_indust_complex_pg b <!-- 상권 변경 -->
+		     on a.bord_cd = b.dan_id
+		</if> 
+		order by a.rankNum asc
+		
+	 
+	</select>
+	
+	
+	<!-- 지도경계변경시 랭키변경 -->
+	<select id="selectSbrMapList" resultType="map">
+		select * 
+		from srv_dt_sbr_bord_biz_detcnd_sm_test
+		where base_year  = #{year}
+		<if test = "adm_cd != null and adm_cd.length() == 2">
+			and   (bord_cd like #{sido_cd}||'%'  or   LENGTH(bord_cd) = 2)
+		</if>
+		
+		<if test = "adm_cd != null and adm_cd.length() == 5">
+			and   (bord_cd like #{sido_cd}||'%'  or   LENGTH(bord_cd) = 2)
+		</if>
+		
+		<if test = "adm_cd != null and adm_cd.length() == 7">
+			and   (bord_cd like #{sigungu_cd}||'%'  or   LENGTH(bord_cd) = 2)
+		</if>
+		and  cnd_cd = #{cnd_cd}
+		and  biz_cd = #{biz_cd}
+	</select>
+	
+	<!-- 지도경계변경시 랭키변경 -->
+	<select id="selectLeftDataList" resultType="map">
+		select * 
+		from srv_dt_sbr_bord_sm_test
+		where base_year  = #{year}
+		
+		<if test = "adm_cd != null and adm_cd.length() == 2">
+			and   (bord_cd like #{sido_cd}||'%'  or   LENGTH(bord_cd) = 2)
+		</if>
+		
+		<if test = "adm_cd != null and adm_cd.length() == 5">
+			and   (bord_cd like #{sido_cd}||'%'  or   LENGTH(bord_cd) = 5)
+		</if>
+		
+		<if test = "adm_cd != null and adm_cd.length() == 7">
+			and   (bord_cd like #{sigungu_cd}||'%'  or   LENGTH(bord_cd) = 2)
+		</if>
+		and bord_cd = #{adm_cd}
+	</select>
+	
+		<!-- 지도경계변경시 랭키변경 -->
+	<select id="selectTogetherInfo" resultType="map">
+		select * 
+		from srv_dt_sbr_bord_biz_detcnd_sm_test
+		where base_year  = #{year}
+		<if test = "adm_cd != null and adm_cd.length() == 2">
+			and   (bord_cd like #{sido_cd}||'%'  or   LENGTH(bord_cd) = 2)
+		</if>
+		
+		<if test = "adm_cd != null and adm_cd.length() == 5">
+			and   (bord_cd like #{sido_cd}||'%'  or   LENGTH(bord_cd) = 2)
+		</if>
+		
+		<if test = "adm_cd != null and adm_cd.length() == 7">
+			and   (bord_cd like #{sigungu_cd}||'%'  or   LENGTH(bord_cd) = 2)
+		</if>
+		and  cnd_cd = #{cnd_cd}
+		and  biz_cd = #{biz_cd}
+	</select>
+	
+	
+	
+	<!-- 내부용 세부인구 정보 조회 -->
+	<select id="innersearchpopulationForBorough" resultType="hashmap">		
+		
+		<foreach collection="year_list" item="item" separator="UNION" index="index">
+			select 
+			       case when nvl(sum(ppl.ppltn_cnt),0) <![CDATA[<=]]> 4 then 'N/A' 
+			       	    when nvl(sum(ppl.ppltn_cnt),0) <![CDATA[>]]> 4 then nvl(sum(ppl.ppltn_cnt),0) end  population
+		    	 , nvl(round(avg(ppl.age),1),0) avg_age
+		    	 , t_year
+		    <if test='adm_cd.length() == "5"'>
+		    	 , ppl.sido_cd||ppl.sgg_cd adm_cd
+				 , bord.sgg_nm adm_nm 
+		    </if>
+		    <if test='adm_cd.length() == "0" or adm_cd.length() == "2"'>
+		    	 , bord.sido_cd adm_cd
+				 , bord.sido_nm adm_nm
+		    </if>
+		   	from (
+				select *
+				       , ${item} as t_year 
+				from srv_dt_popsgg_${item} with (nolock) 
+				where 
+				bord_base_year = #{bnd_year} 
+				) ppl
+		   	<if test='adm_cd.length() == "5"'>
+		   	    , srv_pg_sggbord with (nolock) bord
+		   	</if>
+		   	<if test='adm_cd.length() == "2"'>
+		   	    , srv_pg_sidobord with (nolock) bord
+		   	</if>
+			<where>
+			 	bord.base_year = ppl.bord_base_year
+			<if test='(adm_cd.length() == "2" or adm_cd.length() == "5" ) and adm_cd != "00"'>
+				and ppl.sido_cd = #{sido_cd}
+				and bord.base_year = #{bnd_year}
+			</if>
+			
+			<if test='adm_cd == "00"'>
+				and bord.base_year = #{bnd_year}
+			</if>
+			
+			<if test='adm_cd.length() == "5" and low_search == "0"' >
+				and ppl.sgg_cd = #{sgg_cd}
+			</if>
+			<if test='gender != "0" '>
+				and ppl.gender=#{gender}
+			</if>
+			<if test='age_from != null and  age_from != ""'>
+				and ppl.age <![CDATA[>=]]> #{age_from}
+				and ppl.age <![CDATA[<=]]> #{age_to}
+			</if>				
+		    <if test='mrg_state != null '>
+				and ppl.rd_mrg_state in
+				<foreach  collection="mrg_state" item="mrg" open="(" separator="," close=")">
+				  	#{mrg}
+				</foreach>
+			</if>
+				and ppl.sido_cd=bord.sido_cd 
+			<if test='adm_cd.length() == "5"' >
+				and ppl.sgg_cd=bord.sgg_cd
+			</if>
+		    </where>
+		    <if test='adm_cd.length() == "5"'>
+		    	group by ppl.sido_cd||ppl.sgg_cd, bord.sgg_nm
+		    	         ,t_year
+		    </if>
+		    <if test='adm_cd.length() == "0" or adm_cd.length() == "2"'>
+		    	group by bord.sido_cd, bord.sido_nm  
+		    	         ,t_year
+		    </if>
+	   </foreach>
+	</select>
+	
+	<!-- 지역 시그널 데이터-->
+	<select id="selectRegionSignalDataList" resultType="map">
+		select * 
+		from srv_dt_sbr_bord_sm_test
+		where base_year = #{year}
+		
+		<if test = "adm_cd != null and adm_cd.length() == 2">
+			and   (bord_cd like #{sido_cd}||'%'  or   LENGTH(bord_cd) = 2)
+		</if>
+		
+		<if test = "adm_cd != null and adm_cd.length() == 5">
+			and   (bord_cd like #{sido_cd}||'%'  or   LENGTH(bord_cd) = 5)
+		</if>
+		
+		<if test = "adm_cd != null and adm_cd.length() == 7">
+			and   (bord_cd like #{sigungu_cd}||'%'  or   LENGTH(bord_cd) = 2)
+		</if>
+	</select>
+	
+	<select id="selectRegionSignalDataChartData" resultType="map">
+		
+			select col,
+			 <foreach collection="year_list" item="item" separator="," index="index">
+			  sum(year${index}) as "${item}"
+			 </foreach>
+			from (  
+			  select
+				  col,
+				  <foreach collection="year_list" item="item" separator="," index="index">
+				   case  
+					   when rank=(${index}+1) and col='ent_co' then ent_co  
+					   when rank=(${index}+1) and col='act_co' then act_co 
+					   when rank=(${index}+1) and col='nact_co' then nact_co 
+					   when rank=(${index}+1) and col='opbiz_co' then opbiz_co 
+					   when rank=(${index}+1) and col='clsbiz_co' then clsbiz_co 
+					   when rank=(${index}+1) and col='ent_srvl_per_avg' then ent_srvl_per_avg
+					   
+					   else 0
+					  end as year${index}
+				</foreach>
+						  
+			 from (
+				select 
+				  a.*, b.*
+				from (
+				
+					select row_number() over(order by a.base_year) as rank
+					       ,a.* 
+					from(
+						<foreach collection="year_list"  item="item" separator="UNION" index="index">
+						 select
+							  base_year
+							, sum(ent_co) as ent_co   
+							, sum(act_co) as act_co   
+							, sum(nact_co) as nact_co   
+							, sum(opbiz_co) as opbiz_co 
+							, sum(clsbiz_co) as clsbiz_co
+							, avg(ent_srvl_per_avg) as ent_srvl_per_avg
+							from SRV_DT_SBR_BORD_BIZ_DETCND_SM
+							where base_year = #{item}
+							and bord_type = #{bord_type}
+							and bord_cd =  #{adm_cd}
+							and kisc_cd_1 = #{kisc_cd_1}
+							and kisc_cd_2 = #{kisc_cd_2}
+							and cnd_cd   in (${cnd_cd})
+							group by base_year
+						</foreach>
+					)a
+				) a inner join (	 
+				   select 'ent_co' as col from dual 
+				    union 
+				   select 'act_co' as col from dual
+				    union
+				   select 'nact_co' as col from dual
+				    union 
+				   select 'opbiz_co' as col from dual
+				    union 
+				   select 'clsbiz_co' as col from dual
+				   	union 
+				   select 'ent_srvl_per_avg' as col from dual
+				) b  on 1=1
+			 )  a 
+			) a group by col 
+	</select>
+	
+	<!-- 지역 시그널 데이터 백업 -->
+	<!-- <select id="selectRegionSignalDataList" resultType="map">
+		select * 
+		from srv_dt_sbr_bord_sm_test
+		where base_year = #{year}
+		
+		<if test = "adm_cd != null and adm_cd.length() == 2">
+			and   (bord_cd like #{sido_cd}||'%'  or   LENGTH(bord_cd) = 2)
+		</if>
+		
+		<if test = "adm_cd != null and adm_cd.length() == 5">
+			and   (bord_cd like #{sido_cd}||'%'  or   LENGTH(bord_cd) = 5)
+		</if>
+		
+		<if test = "adm_cd != null and adm_cd.length() == 7">
+			and   (bord_cd like #{sigungu_cd}||'%'  or   LENGTH(bord_cd) = 2)
+		</if>
+	</select>
+	
+	<select id="selectRegionSignalDataChartData" resultType="map">
+		
+			select col,
+			 <foreach collection="year_list" item="item" separator="," index="index">
+			  sum(year${index}) as "${item}"
+			 </foreach>
+			from (  
+			  select
+				  col,
+				  <foreach collection="year_list" item="item" separator="," index="index">
+				   case  
+					   when rank=(${index}+1) and col='ent_co' then ent_co  
+					   when rank=(${index}+1) and col='act_co' then act_co 
+					   when rank=(${index}+1) and col='nact_co' then nact_co 
+					   when rank=(${index}+1) and col='opbiz_co' then opbiz_co 
+					   when rank=(${index}+1) and col='clsbiz_co' then clsbiz_co 
+					   when rank=(${index}+1) and col='ent_srvl_per_avg' then ent_srvl_per_avg
+					   
+					   else 0
+					  end as year${index}
+				</foreach>
+						  
+			 from (
+				select 
+				  a.*, b.*
+				from (
+				 select
+					 row_number() over(order by base_year) as rank
+					, base_year
+					, sum(ent_co) as ent_co   
+					, sum(act_co) as act_co   
+					, sum(nact_co) as nact_co   
+					, sum(opbiz_co) as opbiz_co 
+					, sum(clsbiz_co) as clsbiz_co
+					, avg(ent_srvl_per_avg) as ent_srvl_per_avg
+					from SRV_DT_SBR_BORD_BIZ_DETCND_SM
+					where base_year in  <foreach collection="year_list" item="item" open = "(" separator = "," close = ")">
+											#{item}
+										</foreach>
+					and bord_type = #{bord_type}
+					and bord_cd =  #{adm_cd}
+					and kisc_cd_1 = #{kisc_cd_1}
+					and kisc_cd_2 = #{kisc_cd_2}
+					and cnd_cd   in (${cnd_cd})
+					group by base_year
+					
+				) a inner join (	 
+				   select 'ent_co' as col from dual 
+				    union 
+				   select 'act_co' as col from dual
+				    union
+				   select 'nact_co' as col from dual
+				    union 
+				   select 'opbiz_co' as col from dual
+				    union 
+				   select 'clsbiz_co' as col from dual
+				   	union 
+				   select 'ent_srvl_per_avg' as col from dual
+				) b  on 1=1
+			 )  a 
+			) a group by col 
+	</select> -->
+	
+	
+	
+	
+	
+	<select id="selectRegionSignalDataChartDataCompany" resultType="map">
+		
+			select col,
+			 <foreach collection="year_list" item="item" separator="," index="index">
+			  sum(year${index}) as "${item}"
+			 </foreach>
+			from (  
+			  select
+				  col,
+				  <foreach collection="year_list" item="item" separator="," index="index">
+				   case  
+					    when rank=(${index}+1) and col='ltrs_co' then    ltrs_co                
+						when rank=(${index}+1) and col='mident_co' then    mident_co              
+						when rank=(${index}+1) and col='smlpz_co' then    smlpz_co               
+						when rank=(${index}+1) and col='smltrdids_co' then    smltrdids_co           
+						when rank=(${index}+1) and col='ltrs_sls_amt' then    ltrs_sls_amt           
+						when rank=(${index}+1) and col='mident_sls_amt' then    mident_sls_amt         
+						when rank=(${index}+1) and col='smlpz_sls_amt' then    smlpz_sls_amt          
+						when rank=(${index}+1) and col='smltrdids_sls_amt' then    smltrdids_sls_amt      
+						when rank=(${index}+1) and col='ltrs_enfsn_co' then    ltrs_enfsn_co          
+						when rank=(${index}+1) and col='mident_enfsn_co' then    mident_enfsn_co        
+						when rank=(${index}+1) and col='smlpz_enfsn_co' then    smlpz_enfsn_co         
+						when rank=(${index}+1) and col='smltrdids_enfsn_co' then    smltrdids_enfsn_co     
+					   else 0
+					  end as year${index}
+				</foreach>
+						  
+			 from (
+				select 
+				  a.*, b.*
+				from (
+				 select
+						 row_number() over(order by base_year) as rank
+			            ,base_year 
+				       	,ltrs_co
+				       	,mident_co
+				       	,smlpz_co
+				       	,smltrdids_co
+				       	,ltrs_sls_amt
+				       	,mident_sls_amt
+				       	,smlpz_sls_amt
+				       	,smltrdids_sls_amt
+				       	,ltrs_enfsn_co
+				       	,mident_enfsn_co
+				       	,smlpz_enfsn_co
+				       	,smltrdids_enfsn_co
+		   		  from SRV_DT_SBR_BORD_BIZ_SM
+					where base_year in  <foreach collection="year_list" item="item" open = "(" separator = "," close = ")">
+											#{item}
+										</foreach>
+					and bord_typ = #{bord_type}
+					and bord_cd =  #{adm_cd}
+					and kisc_cd_1 = #{kisc_cd_1}
+					and kisc_cd_2 = #{kisc_cd_2}
+				) a inner join (	 
+				   select 'ltrs_co' as col from dual 
+				    union 
+				   select 'mident_co' as col from dual
+				    union
+				   select 'smlpz_co' as col from dual
+				    union 
+				   select 'smltrdids_co' as col from dual
+				    union 
+				   select 'ltrs_sls_amt' as col from dual
+				    union 
+				   select 'mident_sls_amt' as col from dual
+				    union 
+				   select 'smlpz_sls_amt' as col from dual
+				    union 
+				   select 'smltrdids_sls_amt' as col from dual
+				    union 
+				   select 'ltrs_enfsn_co' as col from dual
+				    union 
+				   select 'mident_enfsn_co' as col from dual
+				    union 
+				   select 'smlpz_enfsn_co' as col from dual
+				    union 
+				   select 'smltrdids_enfsn_co' as col from dual
+				) b  on 1=1
+			 )  a 
+			) a group by col 
+	</select>
+	
+	<select id="selectRegionSignalDataChartDataCompanyPeople" resultType="map">
+				select   base_year 
+				        ,MAIN_AGP30_LT_M_CO
+						,MAIN_AGP30_M_CO
+						,MAIN_AGP40_M_CO
+						,MAIN_AGP50_M_CO
+						,MAIN_AGP60_MT1_M_CO
+						,MAIN_AGP30_LT_FM_CO
+						,MAIN_AGP30_FM_CO
+						,MAIN_AGP40_FM_CO
+						,MAIN_AGP50_FM_CO
+						,MAIN_AGP60_MT1_FM_CO
+						,MAIN_AGP30_LT_UKNWN_CO
+						,MAIN_AGP30_UKNWN_CO
+						,MAIN_AGP40_UKNWN_CO
+						,MAIN_AGP50_UKNWN_CO
+					    ,MAIN_AGP60_MT1_UKNWN_CO
+					    ,MAIN_M_CO
+						,MAIN_FM_CO
+						,MAIN_UKNWN_CO
+					    ,RGLBR_M_CO
+						,DELBR_M_CO
+						,RGLBR_FM_CO
+						,DELBR_FM_CO
+				from SRV_DT_SBR_BORD_BIZ_SM 
+				where base_year = #{year}
+				and bord_typ = #{bord_type}
+				and bord_cd =  #{adm_cd}
+				and kisc_cd_1 = #{kisc_cd_1}
+				and kisc_cd_2 = #{kisc_cd_2}
+	</select>
+	
+	
+	<select id="selectRegionSignalDataChartDataArea" resultType="map">
+		
+			select col,
+			 <foreach collection="year_list" item="item" separator="," index="index">
+			  sum(year${index}) as "${item}"
+			 </foreach>
+			from (  
+			  select
+				  col,
+				  <foreach collection="year_list" item="item" separator="," index="index">
+				   case  
+					    when rank=(${index}+1) and col='lnd_area' then    lnd_area                
+						when rank=(${index}+1) and col='bd_30yy_mt_rt' then    bd_30yy_mt_rt              
+						when rank=(${index}+1) and col='lnd_avg_olnlp' then    lnd_avg_olnlp               
+						when rank=(${index}+1) and col='lnd_avg_rl_dlpc' then    lnd_avg_rl_dlpc           
+						when rank=(${index}+1) and col='lnd_deal_co' then    lnd_deal_co           
+						when rank=(${index}+1) and col='ppltn_tot' then    ppltn_tot         
+						when rank=(${index}+1) and col='ymage_co' then    ymage_co          
+						when rank=(${index}+1) and col='psn_1_family_co' then    psn_1_family_co      
+					   else 0
+					  end as year${index}
+				</foreach>
+						  
+			 from (
+				select 
+				  a.*, b.*
+				from (
+					 select  row_number() over(order by base_year) as rank
+					        ,base_year 
+					        ,lnd_area
+					        ,bd_30yy_mt_rt
+					        ,lnd_avg_olnlp
+					        ,lnd_avg_rl_dlpc
+					        ,lnd_deal_co
+					        ,ppltn_tot
+					        ,ymage_co
+					        ,psn_1_family_co
+					from SRV_DT_SBR_BORD_SM
+					where base_year in  <foreach collection="year_list" item="item" open = "(" separator = "," close = ")">
+											#{item}
+										</foreach>
+					and bord_typ = #{bord_type}
+					and bord_cd =  #{adm_cd}
+				) a inner join (	 
+				   select 'lnd_area' as col from dual 
+				    union 
+				   select 'bd_30yy_mt_rt' as col from dual
+				    union
+				   select 'lnd_avg_olnlp' as col from dual
+				    union 
+				   select 'lnd_avg_rl_dlpc' as col from dual
+				    union 
+				   select 'lnd_deal_co' as col from dual
+				    union 
+				   select 'ppltn_tot' as col from dual
+				    union 
+				   select 'ymage_co' as col from dual
+				    union 
+				   select 'psn_1_family_co' as col from dual
+				) b  on 1=1
+			 )  a 
+			) a group by col 
+	</select>
+
+
+	<select id="selectComPanyInfoList" resultType="map">
+			select   base_year 
+			        ,biz_nm 
+			        ,ent_sz
+			        ,cp_nm || ' ' ||sgg_nm || ' ' || emd_nm as addr
+			        ,st_astext(geom) as apint
+			from SRV_DT_SBR_POI
+			where base_year = #{year}
+			and biz_nm like '%'||#{comNm}||'%'
+			order by BIZ_NM asc
+			limit 20
+	</select>
+	
+	<select id="selecthousehold" resultType="map">
+	
+		<foreach collection="year_list" item="item" separator="UNION" index="index">
+				select  
+							case when sum(family.family_cnt) <![CDATA[<=]]> 4 then 'N/A' 
+								 when sum(family.family_cnt) <![CDATA[>]]> 4 then sum(family.family_cnt) end  household_cnt
+						  , case when round(sum(family.rd_fmember_cnt)/sum(family.family_cnt),1) <![CDATA[<=]]> 0 then 0
+						         when round(sum(family.rd_fmember_cnt)/sum(family.family_cnt),1) <![CDATA[>]]> 0 then round(sum(family.rd_fmember_cnt)/sum(family.family_cnt),1) end avg_family_member_cnt
+						  , sum(family.rd_fmember_cnt) family_member_cnt 
+						  , '${item}' as t_year 
+					<if test='adm_cd.length() == "5"'>
+						 , family.sido_cd||family.sgg_cd adm_cd
+						 , bord.sgg_nm adm_nm 
+					</if>
+					<if test='adm_cd.length() == "0" or adm_cd.length() == "2"'>
+						 , bord.sido_cd adm_cd
+						 , bord.sido_nm adm_nm 
+					</if>
+					from srv_dt_familysgg_${item} with (nolock) family
+					<if test='adm_cd.length() == "5"'>
+						, srv_pg_sggbord with (nolock) bord
+					</if>
+					<if test='adm_cd.length() == "0" or adm_cd.length() == "2"'>
+						, srv_pg_sidobord with (nolock) bord
+					</if>
+					<where>
+						family.bord_base_year = #{bnd_year}
+					<if test='adm_cd.length() == "2" or (adm_cd.length() == "5" )'>
+						and family.sido_cd = #{sido_cd}
+					</if>
+					<if test='adm_cd.length() == "5" and low_search == "0"' >
+						and family.sgg_cd = #{sgg_cd}
+					</if>
+					
+					<!-- <if test='household_type != null '>
+							and family.rd_household_type in
+						<foreach collection="household_type" item="household" open="(" separator="," close=")">
+							#{household}
+						</foreach>
+					</if>
+					<if test='ocptn_type != null '>
+						   and family.rd_ocptn_type in
+						<foreach collection="ocptn_type" item="ocptn" open="(" separator="," close=")">
+							#{ocptn}
+						</foreach>
+					</if> -->
+					
+						and bord.base_year = #{bnd_year}
+						and family.sido_cd=bord.sido_cd 
+					<if test='adm_cd.length() == "5"' >
+						and family.sgg_cd=bord.sgg_cd
+					</if>
+					</where>
+					<if test='adm_cd.length() == "5"'>
+						group by family.sido_cd||family.sgg_cd, bord.sgg_nm
+					</if>
+					<if test='adm_cd.length() == "0" or adm_cd.length() == "2"'>
+						group by bord.sido_cd, bord.sido_nm  
+					</if>
+		</foreach>
+	</select>
+	
+	
+	<select id="seleHouse" resultType="map">
+	
+		<foreach collection="year_list" item="item" separator="UNION" index="index">
+				select case when sum(house.resid_cnt) <![CDATA[<=]]> 4 then 'N/A' 
+							when sum(house.resid_cnt) <![CDATA[>]]> 4 then sum(house.resid_cnt) end  house_cnt
+					, '${item}' as t_year	
+				<if test='adm_cd.length() == "5"'>
+					 , house.sido_cd||house.sgg_cd adm_cd
+					 , bord.sgg_nm adm_nm 
+				</if>
+				<if test='adm_cd.length() == "0" or adm_cd.length() == "2"'>
+					 , bord.sido_cd adm_cd
+					 , bord.sido_nm adm_nm 
+				</if>
+				from srv_dt_housesgg_${item} with (nolock) house
+				<if test='adm_cd.length() == "5"'>
+					, srv_pg_sggbord with (nolock) bord
+				</if>
+				<if test='adm_cd.length() == "0" or adm_cd.length() == "2"'>
+					, srv_pg_sidobord with (nolock) bord
+				</if>
+				<where>
+					house.bord_base_year = #{bnd_year}
+				<if test='adm_cd.length() == "2" or (adm_cd.length() == "5" )'>
+					and house.sido_cd = #{sido_cd}
+				</if>
+				<if test='adm_cd.length() == "5" and low_search == "0"' >
+					and house.sgg_cd = #{sgg_cd}
+				</if>
+				
+				<!--<if test='house_type != null '>
+					and house.rd_resid_1_type in
+					<foreach  collection="house_type" item="type" open="(" separator="," close=")">
+						#{type}
+					</foreach>
+				</if>
+				<if test='const_year != null '>
+					and house.rd_const_year = #{const_year}
+				</if>
+			    <if test='house_area_param != null '>
+			       and ${house_area_param}
+			    </if> 
+				
+				    <if test='bdspace_from != null '>
+					   and house.rd_bdspace_mm <![CDATA[>=]]> #{bdspace_from}
+					   and house.rd_bdspace_mm <![CDATA[<=]]> #{bdspace_to}
+				    </if> 
+ 				-->
+					and bord.base_year = #{bnd_year}
+					and house.sido_cd=bord.sido_cd 
+				<if test='adm_cd.length() == "5"' >
+					and house.sgg_cd=bord.sgg_cd
+				</if>
+				</where>
+				<if test='adm_cd.length() == "5"'>
+					group by house.sido_cd||house.sgg_cd, bord.sgg_nm
+				</if>
+				<if test='adm_cd.length() == "0" or adm_cd.length() == "2"'>
+					group by bord.sido_cd, bord.sido_nm  
+				</if>
+		</foreach>	
+		
+	</select>
+	
+	
+	<select id="selectFarmhousehold" resultType="map">
+	
+		<foreach collection="year_list" item="item" separator="UNION" index="index">
+				
+			select
+			       case when nvl(sum(nongga.fmember_cnt_num),0) <![CDATA[<=]]> 4 then 'N/A' 
+				        when nvl(sum(nongga.fmember_cnt_num),0) <![CDATA[>]]> 4 then nvl(sum(nongga.fmember_cnt_num),0) end  farm_cnt
+			     , nvl(round(sum(nongga.fmember_cnt)/sum(nongga.fmember_cnt_num)),0) avg_population 
+			     , case when nvl(sum(nongga.fmember_cnt),0) <![CDATA[<=]]> 4 then 'N/A' 
+				        when nvl(sum(nongga.fmember_cnt),0) <![CDATA[>]]> 4 then nvl(sum(nongga.fmember_cnt),0) end  population
+				 , '${item}' as t_year
+			 <if test='adm_cd.length() != "13" '>
+			     , bord.adm_cd 
+			     , bord.adm_nm 
+			 </if>
+			 <if test='adm_cd.length() == "13" '>
+			     , bord.tot_reg_cd adm_cd 
+			 </if>
+			 from (
+			 
+			 
+			 	   select tot_reg_cd
+		                , sum(fmember_cnt) fmember_cnt 
+		                , count(fmember_cnt) fmember_cnt_num 
+			       from srv_dt_nonggacensus_${item} with (nolock) nonggacensus
+                   INNER JOIN SRV_PT_BD with (nolock) BD
+                   ON nonggacensus.sufid = bd.sufid
+			       <where>
+			        and tot_reg_cd in 
+		              (
+		              	select tot_reg_cd
+				        from SRV_PG_TOTREGBORD with (nolock) 
+				        <where> 
+				        	and base_year = #{bnd_year}
+				        	<if test='(adm_cd.length() == "2" and low_search == "0")or(adm_cd.length() == "5" and low_search == "1")or(adm_cd.length() == "7" and low_search == "2")'>
+								and sido_cd = #{sido_cd}
+							</if>
+							<if test='(adm_cd.length() == "5" and low_search == "0")or(adm_cd.length() == "7" and low_search == "1")or(adm_cd.length() == "13" and low_search == "2")'>
+								and sido_cd = #{sido_cd}
+								and sgg_cd = #{sgg_cd}
+							</if>
+							<if test='(adm_cd.length() == "7" and low_search == "0") or (adm_cd.length() == "13" and low_search == "0") or (adm_cd.length()== "13" and low_search == "1")'>
+								and sido_cd = #{sido_cd}
+								and sgg_cd = #{sgg_cd}
+								and emdong_cd = #{emdong_cd}
+							</if>
+				        </where> 
+		              )
+			       </where>
+		         group by tot_reg_cd) nongga
+			     
+			     , (select totbord.tot_reg_cd
+			     		 <if test='adm_cd.length() == "0" or adm_cd.length() == "2"'>
+							, admbord.sido_cd adm_cd
+							, admbord.sido_nm adm_nm
+						</if>
+						<if test='adm_cd.length() == "5"'>
+							, admbord.sido_cd||admbord.sgg_cd adm_cd
+							, admbord.sgg_nm adm_nm
+						</if>
+						<if test='adm_cd.length() == "7"'>
+							, admbord.sido_cd||admbord.sgg_cd||admbord.emdong_cd adm_cd
+							, admbord.emdong_nm adm_nm
+						</if>
+                    from SRV_PG_ADMBORD with (nolock) admbord
+                    INNER JOIN SRV_PG_TOTREGBORD with (nolock) totbord
+                    ON admbord.base_year = totbord.base_year and admbord.sido_cd = totbord.sido_cd and admbord.sgg_cd = totbord.sgg_cd and admbord.emdong_cd = totbord.emdong_cd
+			        <where> 
+			        	and admbord.base_year = #{bnd_year}
+			        	<if test='(adm_cd.length()== "2" and low_search == "0")or(adm_cd.length() == "5" and low_search == "1")or(adm_cd.length() == "7" and low_search == "2")'>
+							and admbord.sido_cd = #{sido_cd}
+						</if>
+						<if test='(adm_cd.length() == "5" and low_search == "0")or(adm_cd.length() == "7" and low_search == "1")or(adm_cd.length() == "13" and low_search == "2")'>
+							and admbord.sido_cd = #{sido_cd}
+							and admbord.sgg_cd = #{sgg_cd}
+						</if>
+						<if test='(adm_cd.length() == "7" and low_search == "0") or (adm_cd.length() == "13" and low_search == "0") or (adm_cd.length() == "13" and low_search == "1")'>
+							and admbord.sido_cd = #{sido_cd}
+							and admbord.sgg_cd = #{sgg_cd}
+							and admbord.emdong_cd = #{emdong_cd}
+						</if>
+			        </where> 
+			        
+			       )bord
+			<where>
+			 	nongga.tot_reg_cd = bord.tot_reg_cd 
+		    </where>
+		    <if test='adm_cd.length() != "13" '>
+			 	group by bord.adm_cd ,bord.adm_nm
+			</if>
+			<if test='adm_cd.length() == "13" '>
+				group by bord.tot_reg_cd
+			</if>
+				
+				
+		</foreach>	
+		
+	</select>
+
+	<select id="selectjobList" resultType="map">
+	select *
+		from (
+			select
+			     c.total
+			    ,rownum  as job_row_number
+			    ,a.jo_no 
+				,a.corp_nm
+				,a.bsnm_no
+				,a.indust_class
+				,a.entrprs_type
+				,a.corp_sz
+				,a.labrr_cnt
+				,a.corp_addr
+				,a.cap
+				,a.main_nm
+				,a.year_sales
+				,a.main_biz_content
+				,a.corp_hpage
+				,a.recru_nm
+				,a.career
+				,a.acdmcr
+				,a.wage_type
+				,a.salary
+				,a.work_type
+				,a.emplym_type
+				,a.rcrit_jssfc
+				,a.rcrit_psn
+				,a.reg_dt
+				,a.clos_dt
+				,a.jo_data_div
+				,a.jo_data_key
+				,a.work_region
+				,a.work_addr
+				,a.sido_cd
+				,a.sgg_cd
+				,a.emdong_cd
+				,a.tot_oa_cd
+				,a.x
+				,a.y
+				,a.create_dt
+				,a.jo_auth_no
+				,a.pblanc_no
+				, (select S_CLASS_CD_NM from cmm_cd_comcd  where a.CAREER       = s_class_cd and b_class_cd = 'CAREER') AS career_nm         /* 경력 */
+				, (select S_CLASS_CD_NM from cmm_cd_comcd  where a.ACDMCR       = s_class_cd and b_class_cd = 'ACDMCR') AS acdmcr_nm         /* 학력 */
+				, (select S_CLASS_CD_NM from cmm_cd_comcd  where a.WAGE_TYPE    = s_class_cd and b_class_cd = 'WAGETY') AS wage_type_nm      /* 임금형태 (WAGE_TYPE) */
+				, (select S_CLASS_CD_NM from cmm_cd_comcd  where a.EMPLYM_TYPE  = s_class_cd and b_class_cd = 'EMPTYP') AS emplym_type_nm    /* 고용형태 (EMPLYM_TYPE) */
+				, (select S_CLASS_CD_NM from cmm_cd_comcd  where a.WORK_TYPE    = s_class_cd and b_class_cd = 'WORKTY') AS work_type_nm      /* 근무형태 (WORK_TYPE) */
+				, (select S_CLASS_CD_NM from cmm_cd_comcd  where a.INDUST_CLASS = s_class_cd and b_class_cd = 'INDCLA') AS indust_class_nm   /* 산업분류(업종) */
+				, (select S_CLASS_CD_NM from cmm_cd_comcd  where a.ENTRPRS_TYPE = s_class_cd and b_class_cd = 'ENTTYP') AS entrprs_type_nm   /* 기업형태 */
+				from SRV_DT_JOB_SM a
+				join (
+						select count(*) over() as total
+						       ,jo_no
+						from SRV_DT_JOB_SM
+						where 
+							  <if test='adm_cd.length() == "0" or adm_cd.length() == "2"'>
+						      	sido_cd = ${sido_cd}
+						      </if> 
+						      <if test='adm_cd.length() == 5'>
+						      	    sido_cd = ${sido_cd}
+						      	and sgg_cd  = #{sigungu_cd}
+						      </if> 
+						and   clos_dt >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+						
+				)c on a.jo_no = c.jo_no 
+				where 
+				      <if test='adm_cd.length() == "0" or adm_cd.length() == "2"'>
+				      	a.sido_cd = ${sido_cd}
+				      </if> 
+				      
+				      <if test='adm_cd.length() == 5'>
+				      	    a.sido_cd = ${sido_cd}
+				      	and a.sgg_cd  = #{sigungu_cd}
+				      </if> 
+				and   a.clos_dt >= TO_CHAR(SYSDATE, 'YYYYMMDD')
+				order by  rownum asc, a.jo_no desc, a.reg_dt  desc 
+			
+		)a
+		where a.job_row_number > ${startNumber} and a.job_row_number <![CDATA[<=]]> ${endNumber}
+
+	
+	</select>
+	
+	<!-- 기업 생태분석 지도 경계데이터 - 산업단지,전통시장,상권,도시화-->
+	<select id="selectSbrAreaData" resultType="hashmap">
+	<if test='areaInfo  == "2" '>
+		select  b.dan_id as search_id
+				,a.sido_cd
+				,a.SGG_CD
+				,EMD_CD
+		        ,st_asbinary(b.geom)  as geometry
+		        ,b.dan_name as full_addr
+		        ,b.dan_name as adm_nm
+		from (
+				select  CP_CD as sido_cd
+						,SGG_CD
+						,EMD_CD
+						,irstt_cd as area_cd
+				from SRV_DT_SBR_POI
+				where  base_year = ${year}
+				
+				<if test = "adm_cd != null and adm_cd.length() == 2">
+				and cp_cd = ${adm_cd} 
+				</if>
+				
+				<if test = "adm_cd != null and adm_cd.length() == 5">
+				and sgg_cd = ${adm_cd} 
+				</if>
+				
+				<if test = "adm_cd != null and (adm_cd.length() == 7 or adm_cd.length() == 8 )">
+				and emd_cd = ${adm_cd} 
+				</if>
+				
+				and irstt_cd is not null
+				group by base_year,CP_CD,SGG_CD ,EMD_CD, irstt_cd
+			)a
+		join sbr_indust_complex_pg b
+			 on a.area_cd = b.dan_id
+	
+	</if>
+	<if test='areaInfo == 3'>
+		select  b.spr_no as search_id 
+				,a.sido_cd
+				,a.SGG_CD
+				,EMD_CD
+		        ,st_asbinary(b.geom)  as geometry
+		        ,b.spr_nm as full_addr
+		        ,b.spr_nm as adm_nm
+		from (
+				select  CP_CD as sido_cd
+						,SGG_CD
+						,EMD_CD
+						,TRDAR_CD as area_cd
+				from SRV_DT_SBR_POI
+				where  base_year = ${year}
+				
+				<if test = "adm_cd != null and adm_cd.length() == 2">
+				and cp_cd = ${adm_cd} 
+				</if>
+				
+				<if test = "adm_cd != null and adm_cd.length() == 5">
+				and sgg_cd = ${adm_cd} 
+				</if>
+				
+				<if test = "adm_cd != null and (adm_cd.length() == 7 or adm_cd.length() == 8 )">
+				and emd_cd = ${adm_cd} 
+				</if>
+				
+				and TRDMRKT_CD is not null
+				group by base_year,CP_CD,SGG_CD ,EMD_CD, TRDAR_CD
+			)a
+		join sbr_biz_pg b
+			 on a.area_cd = to_char(b.spr_no)
+	 </if>
+	 
+	 <if test='areaInfo == 4'>
+		select  b.spr_no  as search_id
+				,a.sido_cd
+				,a.SGG_CD
+				,EMD_CD
+		        ,st_asbinary(b.geom)  as geometry
+		        ,b.spr_nm as full_addr
+		        ,b.spr_nm as adm_nm
+		from (
+				select  CP_CD as sido_cd
+						,SGG_CD
+						,EMD_CD
+						,TRDMRKT_CD as area_cd
+				from SRV_DT_SBR_POI
+				where  base_year = ${year}
+				
+				<if test = "adm_cd != null and adm_cd.length() == 2">
+				and cp_cd = ${adm_cd} 
+				</if>
+				
+				<if test = "adm_cd != null and adm_cd.length() == 5">
+				and sgg_cd = ${adm_cd} 
+				</if>
+				
+				<if test = "adm_cd != null and (adm_cd.length() == 7 or adm_cd.length() == 8 )">
+				and emd_cd = ${adm_cd} 
+				</if>
+				
+				and TRDMRKT_CD is not null
+				group by base_year,CP_CD,SGG_CD ,EMD_CD, TRDMRKT_CD
+			)a
+		join sbr_market_pg b
+			 on a.area_cd = to_char(b.spr_no)
+	 </if>
+	 <if test='areaInfo == 5'>
+		select  b.dan_id  as search_id
+				,a.sido_cd
+				,a.SGG_CD
+				,EMD_CD
+		        ,st_asbinary(b.geom)  as geometry
+		        ,b.dan_name as full_addr
+		        ,b.dan_name as adm_nm
+		from (
+				select  CP_CD as sido_cd
+						,SGG_CD
+						,EMD_CD
+						,irstt_cd as area_cd
+				from SRV_DT_SBR_POI
+				where  base_year = ${year}
+				
+				<if test = "adm_cd != null and adm_cd.length() == 2">
+				and cp_cd = ${adm_cd} 
+				</if>
+				
+				<if test = "adm_cd != null and adm_cd.length() == 5">
+				and sgg_cd = ${adm_cd} 
+				</if>
+				
+				<if test = "adm_cd != null and (adm_cd.length() == 7 or adm_cd.length() == 8 )">
+				and emd_cd = ${adm_cd} 
+				</if>
+				
+				and irstt_cd is not null
+				group by base_year,CP_CD,SGG_CD ,EMD_CD, irstt_cd
+			)a
+		join sbr_indust_complex_pg b
+			 on a.area_cd = b.dan_id
+	 </if>
+
+	 
+	</select>
+	
+	<!-- 기업 생태분석 지도 경계데이터 - 산업단지,전통시장,상권,도시화-->
+	<select id="selectSbrCategoryArea" resultType="hashmap">
+	<if test='areaInfo  == "1" '>
+		SELECT  
+				SIDO_CD||SGG_CD AS adm_cd
+				, SIDO_NM||' '||SGG_NM as adm_nm
+				, st_asbinary(lighten_bord) geometry
+		FROM 
+				SRV_PG_SGGBORD with (nolock) 
+		WHERE
+				BASE_YEAR = #{year} 
+	
+	</if>
+	<if test='areaInfo  == "2" '>
+		select  b.dan_id as search_id
+				,a.sido_cd
+				,a.SGG_CD
+				,EMD_CD
+		        ,st_asbinary(b.geom)  as geometry
+		        ,b.dan_name as full_addr
+		        ,b.dan_name as adm_nm
+		from (
+				select  CP_CD as sido_cd
+						,SGG_CD
+						,EMD_CD
+						,irstt_cd as area_cd
+				from SRV_DT_SBR_POI
+				where  base_year = ${year}
+				and irstt_cd is not null
+				group by base_year,CP_CD,SGG_CD ,EMD_CD, irstt_cd
+			)a
+		join sbr_indust_complex_pg b
+			 on a.area_cd = b.dan_id
+	
+	</if>
+	<if test='areaInfo == 3'>
+		select  b.spr_no as search_id 
+				,a.sido_cd
+				,a.SGG_CD
+				,EMD_CD
+		        ,st_asbinary(b.geom)  as geometry
+		        ,b.spr_nm as full_addr
+		        ,b.spr_nm as adm_nm
+		from (
+				select  CP_CD as sido_cd
+						,SGG_CD
+						,EMD_CD
+						,TRDAR_CD as area_cd
+				from SRV_DT_SBR_POI
+				where  base_year = ${year}
+				and TRDMRKT_CD is not null
+				group by base_year,CP_CD,SGG_CD ,EMD_CD, TRDAR_CD
+			)a
+		join sbr_biz_pg b
+			 on a.area_cd = to_char(b.spr_no)
+	 </if>
+	 
+	 <if test='areaInfo == 4'>
+		select  b.spr_no  as search_id
+				,a.sido_cd
+				,a.SGG_CD
+				,EMD_CD
+		        ,st_asbinary(b.geom)  as geometry
+		        ,b.spr_nm as full_addr
+		        ,b.spr_nm as adm_nm
+		from (
+				select  CP_CD as sido_cd
+						,SGG_CD
+						,EMD_CD
+						,TRDMRKT_CD as area_cd
+				from SRV_DT_SBR_POI
+				where  base_year = ${year}
+				and TRDMRKT_CD is not null
+				group by base_year,CP_CD,SGG_CD ,EMD_CD, TRDMRKT_CD
+			)a
+		join sbr_market_pg b
+			 on a.area_cd = to_char(b.spr_no)
+	 </if>
+	 <if test='areaInfo == 5'>
+		select  b.dan_id  as search_id
+				,a.sido_cd
+				,a.SGG_CD
+				,EMD_CD
+		        ,st_asbinary(b.geom)  as geometry
+		        ,b.dan_name as full_addr
+		        ,b.dan_name as adm_nm
+		from (
+				select  CP_CD as sido_cd
+						,SGG_CD
+						,EMD_CD
+						,irstt_cd as area_cd
+				from SRV_DT_SBR_POI
+				where  base_year = ${year}
+				and irstt_cd is not null
+				group by base_year,CP_CD,SGG_CD ,EMD_CD, irstt_cd
+			)a
+		join sbr_indust_complex_pg b
+			 on a.area_cd = b.dan_id
+	 </if>
+	
+	
+	</select>
+	
+	
+</mapper>

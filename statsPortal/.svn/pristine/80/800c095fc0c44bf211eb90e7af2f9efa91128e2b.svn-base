@@ -1,0 +1,4045 @@
+<!-- 
+* 총조사 시각화 보고서 출력
+* 
+* history : 2020.10.27
+* author  : 주형식
+* version : 1.0
+* see : 
+*
+//-->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>출력</title>
+	
+	<link rel="stylesheet" type="text/css" href="/css/jquery-ui-1.10.4.custom.css" />
+	<link rel="stylesheet" type="text/css" href="/js/plugins/jquery-easyui-1.4/sop.css" />
+	<link rel="stylesheet" type="text/css" href="/css/reportForm.css" />
+	<link rel="stylesheet" type="text/css" href="/css/common.css" />
+	<link rel="stylesheet" type="text/css" href="/css/wheelcolorpicker.css" />
+	
+	
+	<!-- <link rel="stylesheet" href="/css/totSurv/style.css" /> -->
+	<link rel="stylesheet" href="/css/totSurv/inMoreDetail/style.css" />
+	<link rel="stylesheet" href="/css/totSurv/common.css" />
+	<link rel="stylesheet" href="/css/totSurv/map.css" /> <!--  2020-12-11 [곽제욱] 맵 css 적용 --> <!-- 20210225 박은식 경로 수정 -->
+	<link rel="stylesheet" href="/css/totSurv/reset.css" />
+	
+	<!-- <script type="text/javascript" src="/js/plugins/jquery-1.11.1.min.js"></script> -->
+	<script src="/js/plugins/jquery.min.js"></script>
+	<script src="/js/plugins/jquery-ui-1.10.3.custom.js"></script>
+	<script type="text/javascript" src="/js/common/report/jspdf.min.js"></script>
+	<script type="text/javascript" src="/js/totSurv/inMoreDetail/inMoreDetailMap.js"></script>
+	
+	<script type="text/javascript" src="/js/totSurv/report/inMoreDetail/totSurvDashPrint.js"></script>
+	
+	<!-- 보고서 js -->
+	<script src="/js/plugins/imageCapture/rgbcolor.js"></script>
+	<script src="/js/plugins/imageCapture/canvg.js"></script>
+	<script src="/js/plugins/imageCapture/html2canvas.js"></script>
+	<script src="/js/plugins/imageCapture/html2canvas.svg.js"></script>
+	<script type="text/javascript" src="/js/plugins/html2pdf/dist/html2pdf.bundle.js"></script>
+	
+	<style type="text/css" media="print">@page{size:auto;margin:10mm;}body{margin:0;}</style> 
+	<style type="text/css">
+	
+		html, body {min-width: 100%; overflow: auto;}
+		div.printArea {margin: 0px 16.5px; width: auto;}
+		div.screenShotArea {
+			margin: 15px auto;
+			text-align: center;
+		}
+		
+		div.screenShotArea > img {
+			width: 97%;
+		}
+		
+		.highcharts-root {
+		    width: auto;
+		}
+		
+		table thead tr td {
+			color: white;
+		}
+	</style>
+	<script>
+		let gv_type = "", gv_url = "";
+		$(document).ready(function() {
+			$("#chrItmList").html(opener.$("#chrItmList").html());
+			
+			/* $("#sbx_sido").html(opener.$("#sbx_sido").html());
+			$("#sbx_sgg").html(opener.$("#sbx_sgg").html());
+			$("#sbx_gg").html(opener.$("#sbx_gg").html());
+			$("#sbx_emd").html(opener.$("#sbx_emd").html());
+			
+			$inMoreDetail.ui.ajax.params = opener.$inMoreDetail.ui.ajax.params;
+			$inMoreDetail.ui.selectedOrgId = opener.$inMoreDetail.ui.selectedOrgId;
+			$inMoreDetail.ui.selectedTblId = opener.$inMoreDetail.ui.selectedTblId;
+			
+			$inMoreDetail.event.setDispOptions(); */
+			 
+			setTimeout(function() {
+/* 				var mapHtml ="<div id='mapRgn_detail' style='height: 790px;'></div>"; // 2020.11.19[신예리] 영역 높이 수정
+				mapHtml += '<div class="ControllBtnWrap">';
+				mapHtml += '</div>';
+
+				$("#mapArea").html(mapHtml);
+				$inMoreDetailMap.ui.createMap("mapRgn_detail", 0); */
+				
+				$("#mapArea").html(opener.$("#mapArea").html());
+			}, 1000);
+			
+			$("#chart_panel1 .item").html($(opener.document).find("#chart_panel1 .item").html());
+			$("#chart_panel2 .item").html($(opener.document).find("#chart_panel2 .item").html());
+			$("#chart_panel3 .item").html($(opener.document).find("#chart_panel3 .item").html());
+			$("#chart_panel4 .item").html($(opener.document).find("#chart_panel4 .item").html());
+			
+			$(".chartBtnMore").remove();
+			
+			let itlist = opener.$inMoreDetail.ui.selectedItemId;
+			$inMoreDetail.itlist = itlist;
+			drawChart1(opener.$inMoreDetail.data.chart1);
+			if(itlist == "J1_3"){
+				drawChart2(opener.$inMoreDetail.data.chart2);
+				drawChart3(opener.$inMoreDetail.data.chart3);
+				drawGrid1_1();
+			} else {
+				//경제 총조사를 제외한 나머지 총조사
+				opener.$inMoreDetail.ui.ajax.params.adm_cd = "";
+				opener.$inMoreDetail.ui.ajax.params.ftn_val_at  = "";
+				opener.$inMoreDetail.ui.ajax.params.ftn_val_lv  = "";
+//				if("drawCharts1_1_success"==drawCharts1_1()){
+				drawChart2_1(opener.$inMoreDetail.data.chart2);
+				drawChart3_1(opener.$inMoreDetail.data.chart3);
+				drawGrid1_1();
+//				}
+			}
+			
+			/* if(opener.$totSurvMain.ui.selectedArea == "00") {
+    			$inMoreDetailMap.ui.drawMapData("sido", "color"); // 맵 그리기
+    		} else if(opener.$totSurvMain.ui.selectedArea.length == 2 && opener.$totSurvMain.ui.selectedArea != "00") {
+    			//$inMoreDetailMap.ui.drawMapData("sgg", "color"); // 맵 그리기
+    		} else if(opener.$totSurvMain.ui.selectedArea.length == 5 && opener.$totSurvMain.ui.selectedArea.substring(4,5) == "0") {
+    			$inMoreDetailMap.ui.drawMapData("sgg", "color"); // 맵 그리기
+    		} else if(opener.$totSurvMain.ui.selectedArea.length == 5 && opener.$totSurvMain.ui.selectedArea.substring(4,5) != "0") {
+    			$inMoreDetailMap.ui.drawMapData("atdrc", "color"); // 맵 그리기
+    		} else if(opener.$totSurvMain.ui.selectedArea.length > 5 && opener.$inMoreDetail.ui.dispOptions[chartOrd][0].regionEnd == "읍면동") {
+    			$inMoreDetailMap.ui.drawMapData("emd", "color"); // 맵 그리기
+    		} */
+		});
+		
+		let drawChart1 = function(data) {
+			var chartData = [], categories = [], stacked = {}, itmLv, totSurvWonObj = {}
+			, chartOrd = opener.$inMoreDetail.ui.selectedChartOrd;
+			let chartOpt = opener.$inMoreDetail.ui.dispOptions[chartOrd];
+			
+			let itemId = "OV_L"+chartOpt[0].varOrd+"_ID"
+			, itemSn = "OV_L"+chartOpt[0].varOrd+"_SN"
+			, itemKor = "OV_L"+chartOpt[0].varOrd+"_KOR"
+			
+			let chartHeight = opener.$inMoreDetail.ui.dispOptions[chartOrd][0].dispCo * 40;
+			let maxVal = 0, sumVal = [];	
+			let resArrCnt = [];
+			
+			let unitNm = opener.$inMoreDetail.ui.dispOptions[chartOrd][0].dispUnitNm;
+			var chart1_1 = [];
+			var total1_1 = [];
+			
+			var optChartOrd = opener.$inMoreDetail.ui.dispOptions[chartOrd];
+			
+			for(var i=0; i<data.length; i++) {
+				let isSumYn = false;
+				for(var j=0;j<optChartOrd.length; j++) {
+					if(opener.$inMoreDetail.ui.dispOptions[chartOrd][0].dispVarOrd == 0) {
+						if(optChartOrd[j].subsumYn == "Y" && data[i]["CHAR_ITM_ID"] == optChartOrd[j].itmId) {
+							isSumYn = true;
+						}
+					} else {
+						if(optChartOrd[j].subsumYn == "Y" && data[i]["OV_L" + opener.$inMoreDetail.ui.dispOptions[chartOrd][0].dispVarOrd + "_ID"] == optChartOrd[j].itmId) {
+							isSumYn = true;
+						}
+					}
+				}
+				
+				for(var j=0;j<optChartOrd.length; j++) {
+					if(chartOpt[j].dispVarOrd == 0) {
+						if(data[i].CHAR_ITM_ID == chartOpt[j].itmId) {
+							if(isSumYn){
+								if(data[i].DTVAL_CO != undefined){
+									total1_1.push({name: optChartOrd[j].altrtvDispWrd, y: Number(data[i].DTVAL_CO)});
+								}
+								if(chartOpt[0].allDispAt == "Y") {
+									if(chartOpt[j].subsumYn == "Y") {
+										if(chartOpt[j].dispVarOrd == 0) {
+											chart1_1.push({name: optChartOrd[j].altrtvDispWrd, y: Number(data[i].DTVAL_CO), sn: data[i].CHAR_ITM_SN, itm_id: data[i].CHAR_ITM_ID });
+										} else {
+											chart1_1.push({name: optChartOrd[j].altrtvDispWrd, y: Number(data[i].DTVAL_CO), sn: data[i]["OV_L" + chartOpt[0].dispVarOrd + "_SN"], itm_id: data[i]["OV_L" + chartOpt[0].dispVarOrd + "_ID"] });
+										}
+									}
+									//chart1_1.push({name: data[i].CHAR_ITM_NM, y: Number(data[i].DTVAL_CO), sn: data[i].CHAR_ITM_SN, itm_id: data[i].CHAR_ITM_ID });
+								}
+							}else if(!isSumYn) {
+								if(data[i].DTVAL_CO != undefined){
+									if(chartOpt[j].dispVarOrd == 0) {
+										chart1_1.push({name: optChartOrd[j].altrtvDispWrd, y: Number(data[i].DTVAL_CO), sn: data[i].CHAR_ITM_SN
+										, itm_id: data[i].CHAR_ITM_ID });
+									} else {
+										chart1_1.push({name: optChartOrd[j].altrtvDispWrd, y: Number(data[i].DTVAL_CO), sn: data[i]["OV_L" + chartOpt[0].dispVarOrd + "_SN"]
+										, itm_id: data[i]["OV_L" + chartOpt[0].dispVarOrd + "_ID"] });
+									}
+								}
+							}
+						}
+					} else {
+						if(data[i]["OV_L" + chartOpt[0].dispVarOrd + "_ID"] == chartOpt[j].itmId) {
+							if(isSumYn){
+								if(data[i].DTVAL_CO != undefined) {
+									total1_1.push({name: optChartOrd[j].altrtvDispWrd, y: Number(data[i].DTVAL_CO)});
+								}
+								if(chartOpt[0].allDispAt == "Y") {
+									if(chartOpt[j].subsumYn == "Y") {
+										if(chartOpt[j].dispVarOrd == 0) {
+											chart1_1.push({name: optChartOrd[j].altrtvDispWrd, y: Number(data[i].DTVAL_CO), sn: data[i].CHAR_ITM_SN
+											, itm_id: data[i].CHAR_ITM_ID });
+										} else {
+											chart1_1.push({name: optChartOrd[j].altrtvDispWrd, y: Number(data[i].DTVAL_CO), sn: data[i]["OV_L" + chartOpt[0].dispVarOrd + "_SN"]
+											, itm_id: data[i]["OV_L" + chartOpt[0].dispVarOrd + "_ID"] });
+										}
+									}
+								}
+							}else if(!isSumYn) {
+								if(data[i].DTVAL_CO != undefined){
+									if(chartOpt[j].dispVarOrd == 0) {
+										chart1_1.push({name: optChartOrd[j].altrtvDispWrd, y: Number(data[i].DTVAL_CO), sn: data[i].CHAR_ITM_SN
+										, itm_id: data[i].CHAR_ITM_ID });
+									} else {
+										chart1_1.push({name: optChartOrd[j].altrtvDispWrd, y: Number(data[i].DTVAL_CO), sn: data[i]["OV_L" + chartOpt[0].dispVarOrd + "_SN"]
+										, itm_id: data[i]["OV_L" + chartOpt[0].dispVarOrd + "_ID"] });
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			var centerTitle = total1_1[0].name + "<br/>: " + numberFormat(total1_1[0].y) + unitNm;
+			
+			var chartSn = "sn";
+			
+			chart1_1.sort(function(a, b) { return a[chartSn] - b[chartSn] });
+			
+			var chartType = opener.$inMoreDetail.ui.dispOptions[chartOrd][0].chartType;
+			
+			Highcharts.setOptions({
+			    lang: {
+			        thousandsSep: ','
+			    }
+			});
+			
+			let vPointWidth;
+			let vChartHeight;
+			
+			let vPointColors = [], vSelectedColor = "";
+			
+			if(opener.$inMoreDetail.itlist == "J1_3"){
+				vPointColors = ["#f08246"];
+				vSelectedColor = "#576574";
+				vChartHeight = data.length * 40;
+				vPointWidth = 20;
+			} else {
+				vPointColors = Highcharts.defaultOptions.colors;
+				vSelectedColor = "#f08246";
+				vChartHeight = undefined;
+				vPointWidth = undefined;
+			}
+			
+			if("CH1S01"==chartType){	//CH1S01 막대 그래프(가로)
+				opener.$inMoreDetail.chart1 = Highcharts.chart('inMoreDetailCorpCountOfIndustryChart', {
+					
+				    chart: {
+				        plotBackgroundColor: null,
+				        plotBorderWidth: null,
+				        plotShadow: false,
+				        type: 'bar',
+				        height: vChartHeight,
+				        events: {
+							load: function(e) {
+								let chartName = $("#chrItmList option:selected").text();
+								for(let i=0; i<e.target.series.length; i++) {
+									let sb = e.target.series[i];
+									for(let j=0; j<sb.data.length; j++) {
+										let itm = sb.data[j];
+										if(itm.options.itm_id == opener.$inMoreDetail.ui.chartClickItmCd) {
+											itm.select();
+											opener.$inMoreDetail.ui.selectedObj = [itm];
+											$(".ttitle.charItmMapTitle.blue").text(chartName + "   〉" + itm.options.name);
+										}
+									}
+								}
+							}
+				        }
+				    },
+				    
+				    credits: {
+				        enabled: false
+				    },
+				    
+				    navigation: {
+				        buttonOptions: {
+				            enabled: false
+				        }
+				    },
+				    
+				    legend: {
+				        enabled: false
+				    },
+				    
+				    title: {
+				    	text: null
+				    },
+				    
+				    xAxis: {
+				    	type: 'category'
+					},
+					
+				    yAxis: {
+				    	allowDecimals: false,
+				        min: 0,
+				        title: {
+				            text: null
+				        }
+				    },
+				    
+				    lang: {
+						thousandsSep: ','
+					},
+					
+				    tooltip: {
+				    	formatter: function () {
+				    		var rate = (Number(this.y)/Number(total1_1[0].y)*100).toFixed(2);
+				    		
+		    				return "<p style='color: #3d4956;white-space:nowrap;margin:8px 14px 5px 8px;'>" + $("#tmsYears option:selected").text() + "년 " +
+		        			$("#chrItmList option:selected").text() + "</p>" +
+							"<div style='text-align:center;'><p style='padding-bottom: 5px; border-bottom: 1px solid #ddd; color: #3d4956; white-space:nowrap;margin:8px 14px 5px 8px;'>" +
+							this.key + "</p></div>" +
+							"<div style='text-align:center;'><p style='color:#0982d8; display: inline-block; margin:8px 14px 5px 8px; white-space:nowrap;'>" + 
+							numberFormat(this.y) + " " + unitNm + "</p></div>" + 
+							"<div style='text-align:center;'><p style='color:#EE3520; display: inline-block; margin:8px 14px 5px 8px; white-space:nowrap;'>" + 
+							rate + " %" + "</p>";
+						},
+						useHTML: true,
+						shared: false,
+					    shadow: false,
+					    enabled: true
+				    },
+				    
+				    accessibility: {
+				        point: {
+				            valueSuffix: unitNm
+				        }
+				    },
+				    
+				    plotOptions: {
+				    	series: {
+				            cursor: 'pointer'
+				        }
+				    },
+				    
+				    colors: vPointColors,
+				    
+				    series: 
+				    [{
+				        name: '',
+				        colorByPoint: true,
+				        showInLegend: true,
+				        data: chart1_1,
+				        states: {
+							select: {
+								color: vSelectedColor,
+								borderColor: vSelectedColor,
+							}
+						},
+				        dataLabels: {
+				            enabled: true,
+				            style: {
+				                fontWeight: 'bold',
+				            },
+				            formatter: function() {
+				            	var s  = numberFormat(this.y);
+								return s;
+				            }
+				        },
+				        pointWidth: vPointWidth,
+				        point: {
+				        	events: {
+				        		click: function() {
+				        			opener.$inMoreDetail.ui.chartClickItmCd = this.series.chart.hoverPoints[0].options.itm_id;
+				        			opener.$inMoreDetail.ui.chartClickItmNm = this.series.chart.hoverPoints[0].options.name;
+				        			opener.$inMoreDetail.ui.chartItmClick($(this), vSelectedColor, this.name);
+				        		}
+				        	}
+				        }
+				    }]
+				});
+			}else if("CH1S02"==chartType){	//CH1S02 막대 그래프(세로)
+				opener.$inMoreDetail.chart1 = Highcharts.chart('inMoreDetailCorpCountOfIndustryChart', {
+				    chart: {
+				        plotBackgroundColor: null,
+				        plotBorderWidth: null,
+				        plotShadow: false,
+				        type: 'column',
+				        events: {
+							load: function(e) {
+								let chartName = $("#chrItmList option:selected").text();
+								for(let i=0; i<e.target.series.length; i++) {
+									let sb = e.target.series[i];
+									for(let j=0; j<sb.data.length; j++) {
+										let itm = sb.data[j];
+										if(itm.options.itm_id == opener.$inMoreDetail.ui.chartClickItmCd) {
+											itm.select();
+											opener.$inMoreDetail.ui.selectedObj = [itm];
+											$(".ttitle.charItmMapTitle.blue").text(chartName + "   〉" + itm.options.name);
+										}
+									}
+								}
+							}
+				        }
+				    },
+				    
+				    credits: {
+				        enabled: false
+				    },
+				    
+				    navigation: {
+				        buttonOptions: {
+				            enabled: false
+				        }
+				    },
+				    
+				    legend: {
+				        enabled: false
+				    },
+				    
+				    title: {
+				    	text: null
+				    },
+				    
+				    xAxis: {
+				    	type: 'category'
+					},
+					
+				    yAxis: {
+				    	allowDecimals: false,
+				        min: 0,
+				        title: {
+				            text: null
+				        }
+				    },
+				    
+				    lang: {
+						thousandsSep: ','
+					},
+					
+				    tooltip: {
+				    	formatter: function () {
+				    		var rate = (Number(this.y)/Number(total1_1[0].y)*100).toFixed(2);
+				    		
+		    				return "<p style='color: #3d4956;white-space:nowrap;margin:8px 14px 5px 8px;'>" + $("#tmsYears option:selected").text() + "년 " +
+		        			$("#chrItmList option:selected").text() + "</p>" +
+							"<div style='text-align:center;'><p style='padding-bottom: 5px; border-bottom: 1px solid #ddd; color: #3d4956; white-space:nowrap;margin:8px 14px 5px 8px;'>" +
+							this.key + "</p></div>" +
+							"<div style='text-align:center;'><p style='color:#0982d8; display: inline-block; margin:8px 14px 5px 8px; white-space:nowrap;'>" + 
+							numberFormat(this.y) + " " + unitNm + "</p></div>" + 
+							"<div style='text-align:center;'><p style='color:#EE3520; display: inline-block; margin:8px 14px 5px 8px; white-space:nowrap;'>" + 
+							rate + " %" + "</p>";
+						},
+						useHTML: true,
+						shared: false,
+					    shadow: false,
+					    enabled: true
+				    },
+				    
+				    accessibility: {
+				        point: {
+				            valueSuffix: unitNm
+				        }
+				    },
+				    
+				    plotOptions: {
+				    	series: {
+				            cursor: 'pointer'
+				        }
+				    },
+				    
+				    series: 
+				    [{
+				        name: '',
+				        colorByPoint: true,
+				        showInLegend: true,
+				        data: chart1_1,
+				        states: {
+							select: {
+								color: vSelectedColor,
+								borderColor: vSelectedColor,
+							}
+						},
+				        dataLabels: {
+				            enabled: true,
+				            style: {
+				                fontWeight: 'bold',
+				                color: (
+				                    Highcharts.defaultOptions.title.style &&
+				                    Highcharts.defaultOptions.title.style.color
+				                ) || 'gray'
+				            },
+				            formatter: function() {
+				            	var s  = numberFormat(this.y);
+								return s;
+				            }
+				        },
+				        point: {
+				        	events: {
+				        		click: function() {
+				        			opener.$inMoreDetail.ui.chartClickItmCd = this.series.chart.hoverPoints[0].options.itm_id;
+				        			opener.$inMoreDetail.ui.chartClickItmNm = this.series.chart.hoverPoints[0].options.name;
+						    		opener.$inMoreDetail.ui.chartItmClick($(this), "#f08246", this.name);
+				        		}
+				        	},
+				        }
+				    }]
+				});
+			}else if("CH1S03"==chartType){	//CH1S03 꺽은선 그래프
+				opener.$inMoreDetail.chart1 = Highcharts.chart('inMoreDetailCorpCountOfIndustryChart', {
+				    chart: {
+				    	events: {
+							load: function(e) {
+								let chartName = $("#chrItmList option:selected").text();
+								for(let i=0; i<e.target.series.length; i++) {
+									let sb = e.target.series[i];
+									for(let j=0; j<sb.data.length; j++) {
+										let itm = sb.data[j];
+										if(itm.options.itm_id == opener.$inMoreDetail.ui.chartClickItmCd) {
+											itm.select();
+											opener.$inMoreDetail.ui.selectedObj = [itm];
+											$(".ttitle.charItmMapTitle.blue").text(chartName + "   〉" + itm.options.name);
+										}
+									}
+								}
+							}
+				        }
+				    },
+				    
+				    credits: {
+				        enabled: false
+				    },
+				    
+				    navigation: {
+				        buttonOptions: {
+				            enabled: false
+				        }
+				    },
+				    
+				    legend: {
+				        enabled: false
+				    },
+				    
+				    title: {
+				    	text: null
+				    },
+				    
+				    xAxis: {
+				    	type: 'category'
+					},
+					
+				    yAxis: {
+				    	allowDecimals: false,
+				        min: 0,
+				        title: {
+				            text: null
+				        }
+				    },
+				    
+				    lang: {
+						thousandsSep: ','
+					},
+					
+				    tooltip: {
+				    	formatter: function () {
+				    		var rate = (Number(this.y)/Number(total1_1[0].y)*100).toFixed(2);
+				    		
+		    				return "<p style='color: #3d4956;white-space:nowrap;margin:8px 14px 5px 8px;'>" + $("#tmsYears option:selected").text() + "년 " +
+		        			$("#chrItmList option:selected").text() + "</p>" +
+							"<div style='text-align:center;'><p style='padding-bottom: 5px; border-bottom: 1px solid #ddd; color: #3d4956; white-space:nowrap;margin:8px 14px 5px 8px;'>" +
+							this.key + "</p></div>" +
+							"<div style='text-align:center;'><p style='color:#0982d8; display: inline-block; margin:8px 14px 5px 8px; white-space:nowrap;'>" + 
+							numberFormat(this.y) + " " + unitNm + "</p></div>" + 
+							"<div style='text-align:center;'><p style='color:#EE3520; display: inline-block; margin:8px 14px 5px 8px; white-space:nowrap;'>" + 
+							rate + " %" + "</p>";
+						},
+						useHTML: true,
+						shared: false,
+					    shadow: false,
+					    enabled: true
+				    },
+				    
+				    accessibility: {
+				        point: {
+				            valueSuffix: unitNm
+				        }
+				    },
+				    
+				    plotOptions: {
+				    	series: {
+				            cursor: 'pointer'
+				        }
+				    },
+				    
+				    series: 
+				    [{
+				        name: '',
+				        type: 'spline',
+				        colorByPoint: true,
+				        showInLegend: true,
+				        data: chart1_1,
+				        states: {
+							select: {
+								color: vSelectedColor,
+								borderColor: vSelectedColor,
+							}
+						},
+				        dataLabels: {
+				            enabled: true,
+				            style: {
+				                fontWeight: 'bold',
+				                color: (
+				                    Highcharts.defaultOptions.title.style &&
+				                    Highcharts.defaultOptions.title.style.color
+				                ) || 'gray'
+				            },
+				            formatter: function() {
+				            	var s  = numberFormat(this.y);
+								return s;
+				            }
+				        },
+				        point: {
+				        	events: {
+				        		click: function() {
+				        			opener.$inMoreDetail.ui.chartClickItmCd = this.series.chart.hoverPoints[0].options.itm_id;
+				        			opener.$inMoreDetail.ui.chartClickItmNm = this.series.chart.hoverPoints[0].options.name;
+				        			opener.$inMoreDetail.ui.chartItmClick($(this), "#f08246", this.name);
+				        		}
+				        	}
+				        }
+				    }]
+				});
+			}else if("CH1S06"==chartType){	//CH1S06 파이차트
+				opener.$inMoreDetail.chart1 = Highcharts.chart('inMoreDetailCorpCountOfIndustryChart', {
+					
+				    chart: {
+				        plotBackgroundColor: null,
+				        plotBorderWidth: null,
+				        plotShadow: false,
+				        type: 'pie',
+				        events: {
+							load: function(e) {
+								let chartName = $("#chrItmList option:selected").text();
+								for(let i=0; i<e.target.series.length; i++) {
+									let sb = e.target.series[i];
+									for(let j=0; j<sb.data.length; j++) {
+										let itm = sb.data[j];
+										if(itm.options.itm_id == opener.$inMoreDetail.ui.chartClickItmCd) {
+											itm.select();
+											opener.$inMoreDetail.ui.selectedObj = [itm];
+											$(".ttitle.charItmMapTitle.blue").text(chartName + "   〉" + itm.options.name);
+										}
+									}
+								}
+							}
+				        }
+				    },
+				    
+				    credits: {
+				        enabled: false
+				    },
+				    
+				    navigation: {
+				        buttonOptions: {
+				            enabled: false
+				        }
+				    },
+				    
+				    legend: {
+				        enabled: false
+				    },
+				    
+				    title: {
+				        text: centerTitle,
+				        align: 'center',
+				        verticalAlign: 'middle',
+				        y: 0,
+				        style: {fontSize: '15px'}
+				    },
+				    
+				    tooltip: {
+				    	formatter: function () {
+				    		var rate = (Number(this.y)/Number(total1_1[0].y)*100).toFixed(2);
+				    		
+		    				return "<p style='color: #3d4956;white-space:nowrap;margin:8px 14px 5px 8px;'>" + $("#tmsYears option:selected").text() + "년 " +
+		        			$("#chrItmList option:selected").text() + "</p>" +
+							"<div style='text-align:center;'><p style='padding-bottom: 5px; border-bottom: 1px solid #ddd; color: #3d4956; white-space:nowrap;margin:8px 14px 5px 8px;'>" +
+							this.key + "</p></div>" +
+							"<div style='text-align:center;'><p style='color:#0982d8; display: inline-block; margin:8px 14px 5px 8px; white-space:nowrap;'>" + 
+							numberFormat(this.y) + " " + unitNm + "</p></div>" + 
+							"<div style='text-align:center;'><p style='color:#EE3520; display: inline-block; margin:8px 14px 5px 8px; white-space:nowrap;'>" + 
+							rate + " %" + "</p>";
+						},
+						useHTML: true,
+						shared: false,
+					    shadow: false,
+					    enabled: true
+				    },
+				    
+				    accessibility: {
+				        point: {
+				            valueSuffix: unitNm
+				        }
+				    },
+				    
+				    plotOptions: {
+				        pie: {
+				            allowPointSelect: false,
+				            cursor: 'pointer',
+				            dataLabels: {
+				                enabled: true,
+							    formatter: function() {
+						        	var nm = this.point.name;
+						        	var y  = numberFormat(this.point.y);
+						        	
+									return '<b>'+nm+'</b> : '+y+''+unitNm;
+						        }
+				            }
+				        }
+				    },
+				    
+				    series: 
+				    [{
+				        name: '',
+				        colorByPoint: true,
+				        innerSize: '50%',
+				        showInLegend: true,
+				        data: chart1_1,
+				        states: {
+							select: {
+								color: vSelectedColor,
+								borderColor: vSelectedColor,
+							}
+						},
+				        point: {
+				        	events: {
+				        		click: function() {
+				        			opener.$inMoreDetail.ui.chartClickItmCd = this.series.chart.hoverPoints[0].options.itm_id;
+				        			opener.$inMoreDetail.ui.chartClickItmNm = this.series.chart.hoverPoints[0].options.name;
+				        			opener.$inMoreDetail.ui.chartItmClick($(this), "#f08246", this.name);
+				        		}
+				        	}
+				        }
+				    }]
+				});
+			}
+		};
+		
+		let drawChart2 = function(data1, data2) {
+			if(data2 == undefined) {
+				//$("#timeSeriesCorpCountIndustryChart").parent().show();
+				$("#timeSeriesCorpCountIndustryChart").html($("body>.DataNone").clone().show()[0]);
+				return;
+			}
+			let chartHeight = 0;
+			var chartOrd =opener.$inMoreDetail.ui.selectedChartOrd;
+			let maxVal = 0, sumVal = [];	
+			
+			if(data1[0].TBL_ID == "DT_1KI1509" || data1[0].TBL_ID == "DT_1KI1510" || data1[0].TBL_ID == "DT_1KI1511" 
+			||data1[0].TBL_ID == "DT_1KI1509_10" || data1[0].TBL_ID == "DT_1KI1510_10" || data1[0].TBL_ID == "DT_1KI1511_10" 
+			||data1[0].TBL_ID == "DT_1KI2001" || data1[0].TBL_ID == "DT_1KI2002" || data1[0].TBL_ID == "DT_1KI2003" 
+			){
+				if(Object.keys(data1).length > 0 && Object.keys(data2).length > 0) {
+					chartHeight = data1.length * 40;
+					pwidth = 0;
+				} else if(Object.keys(data1).length > 0 && Object.keys(data2).length == 0) {
+					chartHeight = data1.length * 20;
+					pwidth = 15;
+				}
+			}else{
+				if(Object.keys(data1).length > 0 && Object.keys(data2).length > 0) {
+					chartHeight =opener.$inMoreDetail.ui.dispOptions[chartOrd][0].dispCo * 50;
+					pwidth = 15;
+				} else if(Object.keys(data1).length > 0 && Object.keys(data2).length == 0) {
+					chartHeight =opener.$inMoreDetail.ui.dispOptions[chartOrd][0].dispCo * 80;
+					pwidth = 15;
+				}
+			}
+			
+			var chartOrd =opener.$inMoreDetail.ui.selectedChartOrd;
+			let chartOpt =opener.$inMoreDetail.ui.dispOptions[chartOrd];
+			var chartData = [], categories = [], stacked = {}, itmLv, totSurvWonObj = {}
+				, itemId = "OV_L"+chartOpt[0].dispVarOrd+"_ID"
+				, itemSn = "OV_L"+chartOpt[0].dispVarOrd+"_SN"
+				, itemKor = "OV_L"+chartOpt[0].dispVarOrd+"_KOR";
+			
+			//통계펴 ID가 달라서 일단 임의 처리
+			var chartData2 = [], categories2 = [], stacked2 = {}, itmLv2, totSurvWonObj2 = {};
+			
+			for(var i=0; i<data1.length; i++) {
+				if(stacked[data1[i].PRD_DE] != undefined) {
+					stacked[data1[i].PRD_DE].push(data1[i]);
+				} else {
+					stacked[data1[i].PRD_DE] = [];
+					stacked[data1[i].PRD_DE].push(data1[i]);
+				}
+			}
+			
+			for(var i=0; i<data2.length; i++) {
+				if(stacked[data2[i].PRD_DE] != undefined) {
+					stacked[data2[i].PRD_DE].push(data2[i]);
+				} else {
+					stacked[data2[i].PRD_DE] = [];
+					stacked[data2[i].PRD_DE].push(data2[i]);
+				}
+			}
+			
+			// chartData를 삽입
+			if(data1[0].TBL_ID == "DT_1KI1512" || data1[0].TBL_ID == "DT_1KI2004" || data1[0].TBL_ID == "DT_1KI1512_10" ){
+				let resArrCnt = [];
+				let resArrCnt2 = [];
+				let c1 = 0, c2 = 0, c3 = 0, c4 = 0;
+				
+				for(var i=0; i<data1.length; i++) {
+					if(data1[i].DTVAL_CO != undefined){
+						if(data1[i].OV_L3_ID == 'C1'){
+							c1 += data1[i].DTVAL_CO*1;
+						}else if(data1[i].OV_L3_ID == 'C2'){
+							c2 += data1[i].DTVAL_CO*1;
+						}else if(data1[i].OV_L3_ID == 'C3'){
+							c3 += data1[i].DTVAL_CO*1;
+						}else if(data1[i].OV_L3_ID == 'C4'){
+							c4 += data1[i].DTVAL_CO*1;
+						}
+					}
+				}
+				resArrCnt.push(c1);
+				resArrCnt.push(c2);
+				resArrCnt.push(c3);
+				resArrCnt.push(c4);
+				
+				chartData.push({
+					name: Object.keys(stacked)[1] + "년", 
+					data: resArrCnt, 
+					pointWidth: 15 
+				});
+				
+				c1 = 0, c2 = 0, c3 = 0, c4 = 0;
+				for(var i=0; i<data2.length; i++) {
+					if(data2[i].DTVAL_CO != undefined){
+						if(data2[i].OV_L3_ID == 'C1'){
+							c1 += data2[i].DTVAL_CO*1;
+						}else if(data2[i].OV_L3_ID == 'C2'){
+							c2 += data2[i].DTVAL_CO*1;
+						}else if(data2[i].OV_L3_ID == 'C3'){
+							c3 += data2[i].DTVAL_CO*1;
+						}else if(data2[i].OV_L3_ID == 'C4'){
+							c4 += data2[i].DTVAL_CO*1;
+						}
+					}
+				}
+				resArrCnt2.push(c1);
+				resArrCnt2.push(c2);
+				resArrCnt2.push(c3);
+				resArrCnt2.push(c4);
+				
+				chartData.push({
+					name: Object.keys(stacked)[0] + "년", 
+					data: resArrCnt2, 
+					pointWidth: 15 
+				});
+				
+				// 내림차순으로 정렬
+				resArrCnt.sort(function(a, b)  {
+					  return b - a;
+				});
+				resArrCnt2.sort(function(a, b)  {
+					return b - a;
+				});
+				
+				if(resArrCnt[0] > resArrCnt2[0]){
+					maxVal = Math.round(resArrCnt[0])*1.2;
+				}else{
+					maxVal = Math.round(resArrCnt2[0])*1.2;
+				}
+				
+			}else if(data1[0].TBL_ID == "DT_1KI1513" || data1[0].TBL_ID == "DT_1KI2005" || data1[0].TBL_ID == "DT_1KI1513_10" ){
+				let d1 = 0, d2 = 0, d3 = 0, d4 = 0, d5 = 0, d6 = 0;
+				
+				let resArrCnt = [];
+				let resArrCnt2 = [];
+				
+				for(var i=0; i<data1.length; i++) {
+					if(data1[i].DTVAL_CO != undefined){
+						if(data1[i].OV_L3_ID == 'D1'){
+							d1 += data1[i].DTVAL_CO*1;
+						}else if(data1[i].OV_L3_ID == 'D2'){
+							d1 += data1[i].DTVAL_CO*1;
+						}else if(data1[i].OV_L3_ID == 'D3'){
+							d2 += data1[i].DTVAL_CO*1;
+						}else if(data1[i].OV_L3_ID == 'D4'){
+							d3 += data1[i].DTVAL_CO*1;
+						}else if(data1[i].OV_L3_ID == 'D5'){
+							d3 += data1[i].DTVAL_CO*1;
+						}else if(data1[i].OV_L3_ID == 'D6'){
+							d4 += data1[i].DTVAL_CO*1;
+						}else if(data1[i].OV_L3_ID == 'D7'){
+							d5 += data1[i].DTVAL_CO*1;
+						}else if(data1[i].OV_L3_ID == 'D8'){
+							d5 += data1[i].DTVAL_CO*1;
+						}else if(data1[i].OV_L3_ID == 'D9'){
+							d6 += data1[i].DTVAL_CO*1;
+						}
+					}
+				}
+				
+				resArrCnt.push(d1);
+				resArrCnt.push(d2);
+				resArrCnt.push(d3);
+				resArrCnt.push(d4);
+				resArrCnt.push(d5);
+				resArrCnt.push(d6);
+				
+				chartData.push({
+					name: Object.keys(stacked)[1] + "년", 
+					data: resArrCnt, 
+					pointWidth: 15 
+				});
+				
+				d1 = 0, d2 = 0, d3 = 0, d4 = 0, d5 = 0, d6 = 0;
+				for(var i=0; i<data2.length; i++) {
+					if(data2[i].DTVAL_CO != undefined){
+						if(data2[i].OV_L3_ID == 'D1'){
+							d1 += data2[i].DTVAL_CO*1;
+						}else if(data2[i].OV_L3_ID == 'D2'){
+							d1 += data2[i].DTVAL_CO*1;
+						}else if(data2[i].OV_L3_ID == 'D3'){
+							d2 += data2[i].DTVAL_CO*1;
+						}else if(data2[i].OV_L3_ID == 'D4'){
+							d3 += data2[i].DTVAL_CO*1;
+						}else if(data2[i].OV_L3_ID == 'D5'){
+							d3 += data2[i].DTVAL_CO*1;
+						}else if(data2[i].OV_L3_ID == 'D6'){
+							d4 += data2[i].DTVAL_CO*1;
+						}else if(data2[i].OV_L3_ID == 'D7'){
+							d5 += data2[i].DTVAL_CO*1;
+						}else if(data2[i].OV_L3_ID == 'D8'){
+							d5 += data2[i].DTVAL_CO*1;
+						}else if(data2[i].OV_L3_ID == 'D9'){
+							d6 += data2[i].DTVAL_CO*1;
+						}
+					}
+				}
+				
+				resArrCnt2.push(d1);
+				resArrCnt2.push(d2);
+				resArrCnt2.push(d3);
+				resArrCnt2.push(d4);
+				resArrCnt2.push(d5);
+				resArrCnt2.push(d6);
+				
+				chartData.push({
+					name: Object.keys(stacked)[0] + "년", 
+					data: resArrCnt2, 
+					pointWidth: 15 
+				});
+				
+				// 내림차순으로 정렬
+				resArrCnt.sort(function(a, b)  {
+					  return b - a;
+				});
+				resArrCnt2.sort(function(a, b)  {
+					return b - a;
+				});
+				
+				if(resArrCnt[0] > resArrCnt2[0]){
+					maxVal = Math.round(resArrCnt[0])*1.2;
+				}else{
+					maxVal = Math.round(resArrCnt2[0])*1.2;
+				}
+				
+			}else if(data1[0].TBL_ID == "DT_1KI1514" || data1[0].TBL_ID == "DT_1KI2006" || data1[0].TBL_ID == "DT_1KI1514_10" ){
+				let t201 = 0, t202 = 0, t203 = 0, t204 = 0, t205 = 0;
+				let resArrCnt = [], resArrCnt2=[];
+				
+				for(var i=0; i<data1.length; i++) {
+					if(data1[i].DTVAL_CO != undefined){
+						if(data1[i].CHAR_ITM_ID == "T201" || data1[i].CHAR_ITM_ID == "T2011" || data1[i].CHAR_ITM_ID == "T2012"){
+							t201 += data1[i].DTVAL_CO*1;
+						}else if(data1[i].CHAR_ITM_ID == "T202" || data1[i].CHAR_ITM_ID == "T2021" || data1[i].CHAR_ITM_ID == "T2022"){
+							t202 += data1[i].DTVAL_CO*1;
+						}else if(data1[i].CHAR_ITM_ID == "T203" || data1[i].CHAR_ITM_ID == "T2031" || data1[i].CHAR_ITM_ID == "T2032"){
+							t203 += data1[i].DTVAL_CO*1;
+						}else if(data1[i].CHAR_ITM_ID == "T204" || data1[i].CHAR_ITM_ID == "T2041" || data1[i].CHAR_ITM_ID == "T2042"){
+							t204 += data1[i].DTVAL_CO*1;
+						}else if(data1[i].CHAR_ITM_ID == "T205" || data1[i].CHAR_ITM_ID == "T2051" || data1[i].CHAR_ITM_ID == "T2052"){
+							t205 += data1[i].DTVAL_CO*1;
+						}
+					}
+				}
+				
+				resArrCnt.push(t201);
+				resArrCnt.push(t202);
+				resArrCnt.push(t203);
+				resArrCnt.push(t204);
+				resArrCnt.push(t205);
+				
+				chartData.push({
+					name: Object.keys(stacked)[1] + "년", 
+					data: resArrCnt, 
+					pointWidth: 15 
+				});
+				
+				t201 = 0, t202 = 0, t203 = 0, t204 = 0, t205 = 0;
+				for(var i=0; i<data2.length; i++) {
+					if(data2[i].DTVAL_CO != undefined){
+						if(data2[i].CHAR_ITM_ID == "T30" || data2[i].CHAR_ITM_ID == "T31" || data2[i].CHAR_ITM_ID == "T32"){
+							t201 += data2[i].DTVAL_CO*1;
+						}else if(data2[i].CHAR_ITM_ID == "T40" || data2[i].CHAR_ITM_ID == "T41" || data2[i].CHAR_ITM_ID == "T42"){
+							t202 += data2[i].DTVAL_CO*1;
+						}else if(data2[i].CHAR_ITM_ID == "T50" || data2[i].CHAR_ITM_ID == "T51" || data2[i].CHAR_ITM_ID == "T52"){
+							t203 += data2[i].DTVAL_CO*1;
+						}else if(data2[i].CHAR_ITM_ID == "T60" || data2[i].CHAR_ITM_ID == "T61" || data2[i].CHAR_ITM_ID == "T62"){
+							t204 += data2[i].DTVAL_CO*1;
+						}else if(data2[i].CHAR_ITM_ID == "T70" || data2[i].CHAR_ITM_ID == "T71" || data2[i].CHAR_ITM_ID == "T72"){
+							t205 += data2[i].DTVAL_CO*1;
+						}
+					}
+				}
+				
+				resArrCnt2.push(t201);
+				resArrCnt2.push(t202);
+				resArrCnt2.push(t203);
+				resArrCnt2.push(t204);
+				resArrCnt2.push(t205);
+				
+				chartData.push({
+					name: Object.keys(stacked)[0] + "년", 
+					data: resArrCnt2, 
+					pointWidth: 15 
+				});
+				
+				// 내림차순으로 정렬
+				resArrCnt.sort(function(a, b)  {
+					  return b - a;
+				});
+				resArrCnt2.sort(function(a, b)  {
+					return b - a;
+				});
+				
+				if(resArrCnt[0] > resArrCnt2[0]){
+					maxVal = Math.round(resArrCnt[0])*1.2;
+				}else{
+					maxVal = Math.round(resArrCnt2[0])*1.2;
+				}
+				
+			}else if(data1[0].TBL_ID == "DT_1KI1515" || data1[0].TBL_ID == "DT_1KI2007" || data1[0].TBL_ID == "DT_1KI1515_10" ){
+				let d1 = 0, d2 = 0, d3 = 0, d4 = 0, d5 = 0, d6 = 0;
+				
+				let resArrCnt = [];
+				let resArrCnt2 = [];
+				
+				for(var i=0; i<data1.length; i++) {
+					if(data1[i].DTVAL_CO != undefined){
+						if(data1[0].TBL_ID == "DT_1KI1515_10"){
+							if(data1[i].OV_L3_ID == 'E1'){
+								d1 += data1[i].DTVAL_CO*1;
+							}else if(data1[i].OV_L3_ID == 'E2'){
+								d1 += data1[i].DTVAL_CO*1;
+							}else if(data1[i].OV_L3_ID == 'E3'){
+								d2 += data1[i].DTVAL_CO*1;
+							}else if(data1[i].OV_L3_ID == 'E4'){
+								d2 += data1[i].DTVAL_CO*1;
+							}else if(data1[i].OV_L3_ID == 'E5'){
+								d3 += data1[i].DTVAL_CO*1;
+							}else if(data1[i].OV_L3_ID == 'E6'){
+								d3 += data1[i].DTVAL_CO*1;
+							}else if(data1[i].OV_L3_ID == 'E7'){
+								d4 += data1[i].DTVAL_CO*1;
+							}else if(data1[i].OV_L3_ID == 'E8'){
+								d5 += data1[i].DTVAL_CO*1;
+							}else if(data1[i].OV_L3_ID == 'E9'){
+								d6 += data1[i].DTVAL_CO*1;
+							}
+						}else{
+							if(data1[i].OV_L3_ID == 'D1'){
+								d1 += data1[i].DTVAL_CO*1;
+							}else if(data1[i].OV_L3_ID == 'D2'){
+								d1 += data1[i].DTVAL_CO*1;
+							}else if(data1[i].OV_L3_ID == 'D3'){
+								d2 += data1[i].DTVAL_CO*1;
+							}else if(data1[i].OV_L3_ID == 'D4'){
+								d2 += data1[i].DTVAL_CO*1;
+							}else if(data1[i].OV_L3_ID == 'D5'){
+								d3 += data1[i].DTVAL_CO*1;
+							}else if(data1[i].OV_L3_ID == 'D6'){
+								d3 += data1[i].DTVAL_CO*1;
+							}else if(data1[i].OV_L3_ID == 'D7'){
+								d4 += data1[i].DTVAL_CO*1;
+							}else if(data1[i].OV_L3_ID == 'D8'){
+								d5 += data1[i].DTVAL_CO*1;
+							}else if(data1[i].OV_L3_ID == 'D9'){
+								d6 += data1[i].DTVAL_CO*1;
+							}
+						}
+					}
+				}
+				
+				resArrCnt.push(d1);
+				resArrCnt.push(d2);
+				resArrCnt.push(d3);
+				resArrCnt.push(d4);
+				resArrCnt.push(d5);
+				resArrCnt.push(d6);
+				
+				chartData.push({
+					name: Object.keys(stacked)[1] + "년", 
+					data: resArrCnt, 
+					pointWidth: 15 
+				});
+				
+				d1 = 0, d2 = 0, d3 = 0, d4 = 0, d5 = 0, d6 = 0;
+				for(var i=0; i<data2.length; i++) {
+					if(data2[i].DTVAL_CO != undefined){
+						if(data1[0].TBL_ID == "DT_1KI1515_10"){
+							if(data2[i].OV_L3_ID == 'E1'){
+								d1 += data2[i].DTVAL_CO*1;
+							}else if(data2[i].OV_L3_ID == 'E2'){
+								d1 += data2[i].DTVAL_CO*1;
+							}else if(data2[i].OV_L3_ID == 'E3'){
+								d2 += data2[i].DTVAL_CO*1;
+							}else if(data2[i].OV_L3_ID == 'E4'){
+								d2 += data2[i].DTVAL_CO*1;
+							}else if(data2[i].OV_L3_ID == 'E5'){
+								d3 += data2[i].DTVAL_CO*1;
+							}else if(data2[i].OV_L3_ID == 'E6'){
+								d3 += data2[i].DTVAL_CO*1;
+							}else if(data2[i].OV_L3_ID == 'E7'){
+								d4 += data2[i].DTVAL_CO*1;
+							}else if(data2[i].OV_L3_ID == 'E8'){
+								d5 += data2[i].DTVAL_CO*1;
+							}else if(data2[i].OV_L3_ID == 'E9'){
+								d6 += data2[i].DTVAL_CO*1;
+							}
+						}else{
+							if(data2[i].OV_L3_ID == 'D1'){
+								d1 += data2[i].DTVAL_CO*1;
+							}else if(data2[i].OV_L3_ID == 'D2'){
+								d1 += data2[i].DTVAL_CO*1;
+							}else if(data2[i].OV_L3_ID == 'D3'){
+								d2 += data2[i].DTVAL_CO*1;
+							}else if(data2[i].OV_L3_ID == 'D4'){
+								d2 += data2[i].DTVAL_CO*1;
+							}else if(data2[i].OV_L3_ID == 'D5'){
+								d3 += data2[i].DTVAL_CO*1;
+							}else if(data2[i].OV_L3_ID == 'D6'){
+								d3 += data2[i].DTVAL_CO*1;
+							}else if(data2[i].OV_L3_ID == 'D7'){
+								d4 += data2[i].DTVAL_CO*1;
+							}else if(data2[i].OV_L3_ID == 'D8'){
+								d5 += data2[i].DTVAL_CO*1;
+							}else if(data2[i].OV_L3_ID == 'D9'){
+								d6 += data2[i].DTVAL_CO*1;
+							}
+						}
+						
+					}
+				}
+				
+				resArrCnt2.push(d1);
+				resArrCnt2.push(d2);
+				resArrCnt2.push(d3);
+				resArrCnt2.push(d4);
+				resArrCnt2.push(d5);
+				resArrCnt2.push(d6);
+				
+				chartData.push({
+					name: Object.keys(stacked)[0] + "년", 
+					data: resArrCnt2, 
+					pointWidth: 15 
+				});
+				
+				// 내림차순으로 정렬
+				resArrCnt.sort(function(a, b)  {
+					  return b - a;
+				});
+				resArrCnt2.sort(function(a, b)  {
+					return b - a;
+				});
+				
+				if(resArrCnt[0] > resArrCnt2[0]){
+					maxVal = Math.round(resArrCnt[0])*1.2;
+				}else{
+					maxVal = Math.round(resArrCnt2[0])*1.2;
+				}
+			}else if(data1[0].TBL_ID == "DT_1KI1516" || data1[0].TBL_ID == "DT_1KI2008" || data1[0].TBL_ID == "DT_1KI1516_10" ){
+				let resArrCnt = [];
+				let resArrCnt2 = [];
+				let f1 = 0, f2 = 0, f3 = 0;
+				
+				for(var i=0; i<data1.length; i++) {
+					if(data1[i].DTVAL_CO != undefined){
+						if(data1[i].OV_L4_ID == 'F1'){
+							f1 += data1[i].DTVAL_CO*1;
+						}else if(data1[i].OV_L4_ID == 'F2'){
+							f2 += data1[i].DTVAL_CO*1;
+						}else if(data1[i].OV_L4_ID == 'F3'){
+							f3 += data1[i].DTVAL_CO*1;
+						}
+					}
+				}
+				resArrCnt.push(f1);
+				resArrCnt.push(f2);
+				resArrCnt.push(f3);
+				
+				chartData.push({
+					name: Object.keys(stacked)[0] + "년", 
+					data: resArrCnt, 
+					pointWidth: 15 
+				});
+				
+				f1 = 0, f2 = 0, f3 = 0;
+				for(var i=0; i<data2.length; i++) {
+					if(data2[i].DTVAL_CO != undefined){
+						if(data2[i].OV_L4_ID == 'f1'){
+							f1 += data2[i].DTVAL_CO*1;
+						}else if(data2[i].OV_L4_ID == 'f2'){
+							f2 += data2[i].DTVAL_CO*1;
+						}else if(data2[i].OV_L4_ID == 'f3'){
+							f3 += data2[i].DTVAL_CO*1;
+						}
+					}
+				}
+				resArrCnt2.push(f1);
+				resArrCnt2.push(f2);
+				resArrCnt2.push(f3);
+				
+				chartData.push({
+					name: Object.keys(stacked)[1] + "년", 
+					data: resArrCnt2, 
+					pointWidth: 15 
+				});
+				
+				// 내림차순으로 정렬
+				resArrCnt.sort(function(a, b)  {
+					  return b - a;
+				});
+				resArrCnt2.sort(function(a, b)  {
+					return b - a;
+				});
+				
+				if(resArrCnt[0] > resArrCnt2[0]){
+					maxVal = Math.round(resArrCnt[0])*1.2;
+				}else{
+					maxVal = Math.round(resArrCnt2[0])*1.2;
+				}
+			}else{
+				if(data1[0].TBL_ID == "DT_1KI1509" || data1[0].TBL_ID == "DT_1KI1509_10" || data1[0].TBL_ID == "DT_1KI2001" 
+					|| data1[0].TBL_ID == "DT_1KI1510_10"|| data1[0].TBL_ID == "DT_1KI1511_10" )	{
+					for(let i = 0 ;i<Object.keys(stacked).length;i++){
+						stacked[Object.keys(stacked)[i]].sort(function(a,b){
+							return a.OV_L1_ID < b.OV_L1_ID ? -1 : a.OV_L1_ID > b.OV_L1_ID ? 1 : 0;
+						});
+					}
+				}else{
+					for(let i = 0 ;i<Object.keys(stacked).length;i++){
+						stacked[Object.keys(stacked)[i]].sort(function(a,b){
+							return a.OV_L2_ID < b.OV_L2_ID ? -1 : a.OV_L2_ID > b.OV_L2_ID ? 1 : 0;
+						});
+					}
+				}
+				for(var i=Object.keys(stacked).length-1; i>=0; i--) {
+					let stack = stacked[Object.keys(stacked)[i]];		
+					let stackData = [];
+					for(var j=0; j<stack.length; j++) {
+						if(stack[j].CHAR_ITM_ID != "13999001" && stack[j][itemId] != "0") {
+							let dtval = (stack[j].DTVAL_CO != undefined ? stack[j].DTVAL_CO : 0);
+							stackData.push(parseInt(Math.round(dtval/(chartOpt[0].dispUnit/chartOpt[0].kosisUnit),1)));
+						}
+					}
+					if(pwidth == 0) {
+						chartData.push({name: Object.keys(stacked)[i] + "년", data: stackData});
+					} else {
+						chartData.push({name: Object.keys(stacked)[i] + "년", data: stackData, pointWidth: pwidth });
+					}
+				}
+				
+				// 최댓값 정의
+				for(var i=0; i<Object.keys(stacked).length; i++) {
+					let stack = stacked[Object.keys(stacked)[i]];
+					totSurvWonObj[Object.keys(stacked)[i]] = 0;	
+					for(var j=0; j<stack.length; j++) {
+						let dtval = (stack[j].DTVAL_CO != undefined ? stack[j].DTVAL_CO : 0);
+						if(stack[j][itemId] != "0") {
+							if(sumVal[j] != undefined) {
+								sumVal[j] = sumVal[j] + parseInt(dtval);
+							} else {
+								sumVal.push(parseInt(dtval));
+							}	
+						}			
+						totSurvWonObj[Object.keys(stacked)[i]] += parseInt(dtval);
+						//stack.sort(function(a, b) { return a[itemSn] - b[itemSn] });
+					} 
+					
+					stacked[Object.keys(stacked)[i]].sort(function(a, b) { return a.CHAR_ITM_SN - b.CHAR_ITM_SN });
+				}
+				
+				for(var i=0; i<sumVal.length; i++) {
+					if(maxVal < sumVal[i]) {
+						maxVal = sumVal[i];
+					}
+				}	
+				
+				let sumVal2 = [];
+				for(var i=0; i<sumVal2.length; i++) {
+					if(maxVal < sumVal2[i]) {
+						maxVal = sumVal2[i];
+					}
+				}	
+			}
+			
+			// 카테고리
+			if(data1[0].TBL_ID == "DT_1KI1512" || data1[0].TBL_ID == "DT_1KI2004" || data1[0].TBL_ID == "DT_1KI1512_10" ){
+				categories.push("개인사업체");
+				categories.push("회사법인");
+				categories.push("회사이외법인");
+				categories.push("비법인단체");
+			}else if(data1[0].TBL_ID == "DT_1KI1513" || data1[0].TBL_ID == "DT_1KI2005" || data1[0].TBL_ID == "DT_1KI1513_10" ){
+				categories.push("1~4인");
+				categories.push("5~9인");
+				categories.push("10~49인");
+				categories.push("50~99인");
+				categories.push("100~299인");
+				categories.push("300명 이상");
+			}else if(data1[0].TBL_ID == "DT_1KI1514" || data1[0].TBL_ID == "DT_1KI2006" || data1[0].TBL_ID == "DT_1KI1514_10" ){
+				categories.push("상용근로자");
+				categories.push("임시 및 일용근로자");
+				categories.push("자영업자");
+				categories.push("무급가족종사자");
+				categories.push("기타종사자");
+			}else if(data1[0].TBL_ID == "DT_1KI1515" || data1[0].TBL_ID == "DT_1KI2007" || data1[0].TBL_ID == "DT_1KI1515_10" ){
+				categories.push("1억원 미만");
+				categories.push("1억~10억원 미만");
+				categories.push("10억~100억원 미만");
+				categories.push("100억~200억원 미만");
+				categories.push("200억~300억원 미만");
+				categories.push("300억원 이상");
+			}else if(data1[0].TBL_ID == "DT_1KI1516" || data1[0].TBL_ID == "DT_1KI2008" || data1[0].TBL_ID == "DT_1KI1516_10" ){
+				categories.push("단독사업체");
+				categories.push("본사,본점 등");
+				categories.push("300억원 이상");
+			}else{
+				maxVal = Math.round(parseInt(maxVal/(chartOpt[0].dispUnit/chartOpt[0].kosisUnit))) * 1.1;
+				for(var i=0; i<stacked[Object.keys(stacked)[0]].length; i++) {
+					let stack = stacked[Object.keys(stacked)[0]][i];
+					var isAlready = false;
+					for(var j=0; j<chartOpt.length; j++) {
+						if(chartOpt[j].itmId == stack[itemId] && stack[itemId] != "0") {
+							categories.push(stack[itemKor]);
+							isAlready = true;	
+						}
+					}
+					
+					if(!isAlready) {
+						if(stack[itemId] != "0") {
+							categories.push(stack[itemKor]);
+						}			
+					}
+				}
+			}
+			
+			var tool = $("#timeSeriesCorpCountIndustryChart").parent().find(".chartToolTip"); // 2020-10-13 [곽제욱] 툴팁영역 생성에서 초기화로 변경
+			
+			$('#timeSeriesCorpCountIndustryChart').highcharts({
+				chart: {
+			        type: 'bar',
+			        height: chartHeight*1.1,
+			        width: 500,
+			        height: chartData.length * 40,
+			        events: {
+			        	load: function() {
+			        		if(this.series[0].chart.renderTo.id = "timeSeriesCorpCountIndustryChart") {
+			        			if(opener.$inMoreDetail.selectedCategory != "") {
+				        			$("#timeSeriesCorpCountIndustryChart").highcharts().series[0].data.forEach(function(selector) {
+										if(selector.category ==opener.$inMoreDetail.selectedCategory) {
+											selector.select(true);
+											opener.$inMoreDetailMap.ui.selectedObj = $(selector); 
+										}
+									});
+								}
+			        		}
+			        	}
+			        }
+			    },
+				credits: {
+		            enabled: false
+		        },
+				navigation: {
+			        buttonOptions: {
+			            enabled: false
+			        }
+			    },
+				legend: {
+					enabled: true,
+				    itemMarginTop: 10,
+				    verticalAlign: 'top',
+				    itemMarginBottom: 10,
+				    labelFormatter: function() {
+		             	return '<b>' + this.name + '</b>&nbsp;<b>';
+		            },
+			    },
+			    colors: ["#f08246", "#009589"],
+				title: {
+					text: "",
+					style: { "display": "none" }
+				},
+				plotOptions: {
+					 bar: {
+			            dataLabels: {
+			                enabled: true,
+			                style: {
+			                    fontWeight: '100',
+			                    color: "#000000",
+								textOutline: false
+			                },
+			                overflow: "allow",
+			                allowOverlap: true,
+			                formatter: function() {
+								return numberFormat(this.y);
+							}
+			            },
+			            pointInterval: 1,
+						borderWidth: 0,
+						pointWidth: 16,
+						groupPadding: 0.1
+			        },
+					series: {
+						cursor: 'pointer',
+						minPointLength: 5
+					}
+				},
+				tooltip: {
+					useHTML: true,
+					shared: false,
+				    shadow: false,
+				    enabled: false,
+				},
+				xAxis: {
+			        categories: categories,
+					lineColor: "transparent",
+					tickLength: 0,
+					labels: {				
+						formatter: function() {
+							return this.value;
+						}
+					}
+			    },
+				yAxis: {
+					max: maxVal,
+					min: 0,
+			        title: {
+						text: null
+					},
+					labels: {
+						formatter: function() {
+							return numberFormat(this.value);
+						}
+					},
+					lineWidth: 1,
+					stackLabels: {
+		                enabled: true,
+		                style: {
+		                    fontWeight: '100',
+		                    color: "#000000",
+							textOutline: false
+		                },
+						formatter: function() {
+							return numberFormat(this.total);
+						}
+		            }
+			    },
+				series: chartData
+			});
+			
+			// 생략 무시
+			var ellipsisLegend = $("#timeSeriesCorpCountIndustryChart g.highcharts-axis-labels title");
+			for(var i=0; i<ellipsisLegend.length; i++) {
+				if(ellipsisLegend[i]) {
+					var str = $(ellipsisLegend[i]).text()
+						+ "<tspan class='highcharts-br' dy='15' x='21'>&ZeroWidthSpace;</tspan>";
+					$(ellipsisLegend[i]).parent().empty().append(str);
+				}
+			}
+			if(data1[0].TBL_ID == "DT_1KI1509" || data1[0].TBL_ID == "DT_1KI1510" || data1[0].TBL_ID == "DT_1KI1511" ){
+				$("#timeSeriesCorpCountIndustryChart g.highcharts-axis-labels.highcharts-xaxis-labels text").attr("x", "210");
+			}
+			$("#timeSeriesCorpCountIndustryChart g.highcharts-axis-labels.highcharts-xaxis-labels text").css("font-size", "11px");
+			
+			$("#timeSeriesCorpCountIndustryChart").parent().show();
+		}
+		
+		let drawChart2_1 = function(data) {
+			if(data.length>0) $('#title2').parent().css('display','block');
+			else $('#title2').parent().css('display','none');
+			
+			
+			var chartData = [], categories = [], stacked = {}, itmLv, totSurvWonObj = {}
+			, chartOrd =opener.$inMoreDetail.ui.selectedChartOrd;
+			let chartOpt =opener.$inMoreDetail.ui.dispOptions[chartOrd];
+			
+			let itemId = "OV_L"+chartOpt[0].varOrd+"_ID"
+			, itemSn = "OV_L"+chartOpt[0].varOrd+"_SN"
+			, itemKor = "OV_L"+chartOpt[0].varOrd+"_KOR"
+			
+			let chartHeight =opener.$inMoreDetail.ui.dispOptions[chartOrd][0].dispCo * 40;
+			let maxVal = 0, sumVal = [];	
+			let resArrCnt = [];
+			
+			let unitNm =opener.$inMoreDetail.ui.dispOptions[chartOrd][0].dispUnitNm;
+			var categoriesArr = [];
+			var total2_1 = [];
+			var rateArr = [];
+			var standard = 0; 	//기준(작년)
+			var comparison = 0; //비교대상(금년)
+			var rate = 0;
+			var maxRateVal = 0;
+			var minRateVal = 0;
+
+			var optChartOrd =opener.$inMoreDetail.ui.dispOptions[chartOrd];
+			
+			data.sort(function(a, b) { return a.ITM_RCGN_SN - b.ITM_RCGN_SN });
+			data.sort(function(a, b) { return a.OV_L1_SN - b.OV_L1_SN });
+			data.sort(function(a, b) { return a.PRD_DE - b.PRD_DE });
+			
+			for(var i=0; i<data.length; i++) {
+				if(data[i].DTVAL_CO != undefined){
+					categoriesArr.push(data[i].PRD_DE+"년");
+					chartData.push([data[i].PRD_DE+"년", Number(data[i].DTVAL_CO)]);
+				
+					comparison = Number(data[i].DTVAL_CO);
+
+					if(i==0) {
+						rateArr.push(0);
+					}else{
+						rate = (((comparison - standard)/standard)*100).toFixed(2);
+						rateArr.push(Number(rate));
+					}
+					standard = Number(data[i].DTVAL_CO);
+				}
+			}
+			
+			maxRateVal = Math.max.apply(null, rateArr);
+			minRateVal = Math.min.apply(null, rateArr);
+			
+			Highcharts.setOptions({
+			    lang: {
+			        thousandsSep: ','
+			    }
+			});
+			
+			Highcharts.chart('timeSeriesCorpCountIndustryChart', {
+			
+				chart: {
+				    zoomType: 'xy',
+				    height: 400
+				},
+				
+				credits: {
+				    enabled: false
+				},
+				
+				navigation: {
+				    buttonOptions: {
+				        enabled: false
+				    }
+				},
+				
+				legend: {
+			        enabled: false
+			    },
+				
+				title: {
+				    text: null
+				},
+			
+				xAxis: {
+				    categories: categoriesArr,
+				    crosshair: true
+				},
+				
+			    yAxis: [{
+						allowDecimals: false,
+						min: 0,
+				        title: {
+				            text: null
+				        },
+						lineWidth: 1,
+					    stackLabels: {
+					        enabled: true,
+					        style: {
+					        	fontWeight: 'bold',
+					            color: (
+					                Highcharts.defaultOptions.title.style &&
+					                Highcharts.defaultOptions.title.style.color
+					            ) || 'gray'
+					        },
+							formatter: function() {
+								var s  = numberFormat(this.total);
+								return s;
+							}
+					    }
+				    },{
+				    	tickInterval: 1,
+						min: minRateVal-1,
+						max: maxRateVal+1,
+						allowDecimals: true,
+						gridLineWidth: 0,
+						minorGridLineWidth: 0,
+				        title: {
+				            text: null
+				        },
+						lineWidth: 1, opposite: true,
+						stackLabels: {
+					        enabled: true,
+					        style: {
+					            color: (
+					                Highcharts.defaultOptions.title.style &&
+					                Highcharts.defaultOptions.title.style.color
+					            ) || 'black'
+					        },
+							formatter: function() {
+								var s  = this.total+"%";
+								return s;
+							}
+					    }
+			    }],
+			    
+			    plotOptions: {
+			        column: {
+			            pointPadding: 0.2,
+			            borderWidth: 0,
+			        },
+					series: {
+		            	borderWidth: 0,
+//						cursor: 'pointer',
+			            pointWidth: 40,
+						stacking: 'normal',
+						dataLabels: {
+			                enabled: true,
+		        			inside: false,
+			                style: {
+			                    fontWeight: '100',
+			                    color: "#000000",
+								fontFamily: 'NanumSquare',
+								textOutline: false
+			                }
+			            }
+//						point: {
+//							events: {
+//								click: function() {
+//								var tmsYears_val = this.category.substring(-5,4);
+//								$('#tmsYears').val(tmsYears_val).prop("selected",true);
+//								
+//					    		opener.$inMoreDetail.ui.chartItmClick($(this), "#f08246", this.series.userOptions.name + " " 
+//									+ this.category + " " + $("#chrItmList option:selected").text());
+//								}
+//							}
+//						}
+			        }
+			    },
+			    
+			    lang: {
+					thousandsSep: ','
+				},
+				
+				colors: ['#9165E2','#000000'],
+				
+			    tooltip: {
+			    	formatter: function () {
+						return "<p style='text-align:center; padding-bottom: 5px; border-bottom: 1px solid #ddd; color: #3d4956;white-space:nowrap;margin:8px 14px 5px 8px;'>" + this.x + " " +
+		    			$("#chrItmList option:selected").text() + "</p>" +
+						"<div style='text-align:center;'><p style='color:#0982d8; display: inline-block; margin:8px 14px 5px 8px; white-space:nowrap;'>" + 
+						numberFormat(this.points[0].y) + " " + unitNm + "</p></div>" + 
+						"<div style='text-align:center;'><p style='color:#EE3520; display: inline-block; margin:8px 14px 5px 8px; white-space:nowrap;'>" + 
+						"전년 대비 증감률 : " + this.points[1].y + " %" + "</p>";
+					},
+					useHTML: true,
+					shared: true,
+				    shadow: false,
+				    enabled: true
+			    },
+				
+			    series: [{
+						type: 'column',
+				        data: chartData
+				    } ,{
+			        	yAxis: 1,
+						type: 'line',
+				        data: rateArr
+				    }]
+				});
+		}
+		
+		let drawChart3 = function(data) {
+			$("#industryOfAreaChart2").hide();
+			let chartHeight = 0;
+			/*
+			if(data.length > 0) {
+				if(data.length < 10) {
+					chartHeight = data.length * 40;
+				} else {
+					chartHeight = data.length * 30;
+				}
+			}
+			*/
+			
+			var chartData = [], chartData2 = [], categories = [], categories2 = [], stacked = {}, itmLv, totSurvWonObj = {}
+				, chartOrd = opener.$inMoreDetail.ui.selectedChartOrd;
+			let chartOpt = opener.$inMoreDetail.ui.dispOptions[chartOrd];
+			let legendChk = true;
+			
+			if(	  data[0].TBL_ID == "DT_1KI1514" || data[0].TBL_ID == "DT_1KI1514_10" || data[0].TBL_ID == "DT_1KI2006" ){
+				chartHeight = opener.$inMoreDetail.ui.dispOptions[chartOrd][0].dispCo * 50;
+			}
+			//chartHeight = opener.$inMoreDetail.ui.dispOptions[chartOrd][0].dispCo * 50;
+			//chartHeight = data.length * 50;
+			
+			let admId = "OV_L"+chartOpt[0].regionVarOrd+"_ID"
+			, admSn = "OV_L"+chartOpt[0].regionVarOrd+"_SN"
+			, admKor = "OV_L"+chartOpt[0].regionVarOrd+"_KOR"
+			
+			for(var i=0; i<data.length; i++) {
+				if(stacked[data[i].CHAR_ITM_ID] != undefined) {
+					stacked[data[i].CHAR_ITM_ID].push(data[i]);
+				} else {
+					stacked[data[i].CHAR_ITM_ID] = [];
+					stacked[data[i].CHAR_ITM_ID].push(data[i]);
+				}
+			}
+			
+			let maxVal = 0, maxVal2 = 0, sumVal = [];	
+			for(var i=0; i<Object.keys(stacked).length; i++) {
+				let stack = stacked[Object.keys(stacked)[i]];
+				totSurvWonObj[Object.keys(stacked)[i]] = 0;	
+				for(var j=0; j<stack.length; j++) {
+					let dtval = (stack[j].DTVAL_CO != undefined ? stack[j].DTVAL_CO : 0);
+					if(stack[j][admId] != "00") {
+						if(sumVal[j] != undefined) {
+							sumVal[j] = sumVal[j] + parseInt(dtval);
+						} else {
+							sumVal.push(parseInt(dtval));
+						}	
+					}			
+					totSurvWonObj[Object.keys(stacked)[i]] += parseInt(dtval);
+					stack.sort(function(a, b) { return a[admSn] - b[admSn] });
+				} 
+				
+				stacked[Object.keys(stacked)[i]].sort(function(a, b) { return a.CHAR_ITM_SN - b.CHAR_ITM_SN });
+			}
+			
+			for(var i=0; i<sumVal.length; i++) {
+				if(maxVal < sumVal[i]) {
+					maxVal = sumVal[i];
+				}
+			}	
+			maxVal = Math.round(parseInt(maxVal/(chartOpt[0].dispUnit/chartOpt[0].kosisUnit))) * 1.1;
+			
+			if(data[0].TBL_ID == "DT_1KI1512" || data[0].TBL_ID == "DT_1KI2004" || data[0].TBL_ID == "DT_1KI1512_10" ){
+				// 순서 지정
+				var arr =[];
+				var resArr = [];
+				
+				// 항목 선택 
+				if(opener.$inMoreDetail.ui.selectedChartOrd == 1){
+					charItmId = "T10";
+				}else if (opener.$inMoreDetail.ui.selectedChartOrd == 2){
+					charItmId = "T20";
+				}else if (opener.$inMoreDetail.ui.selectedChartOrd == 3){
+					charItmId = "T30";
+				}else if (opener.$inMoreDetail.ui.selectedChartOrd == 4){
+					charItmId = "T50";
+				}
+				
+				for(let i=0;i<data.length;i++){
+					if(data[i].OV_L3_ID=="C0"){
+						arr.push(data[i]);
+					}
+				}
+				chartHeight = arr.length * 30;
+				// 상위 5개 업종 리스트 추출
+				let rank = ""
+				for(let i=1;i<6;i++){
+					if(data[0].TBL_ID == "DT_1KI1512_10"){
+						if(i==5){
+							rank += arr[i].OV_L1_ID;
+						}else{
+							rank += arr[i].OV_L1_ID+",";
+						}
+					}else{
+						if(i==5){
+							rank += arr[i].OV_L2_ID;
+						}else{
+							rank += arr[i].OV_L2_ID+",";
+						}
+					}
+				}
+				
+				if(data[0].TBL_ID == "DT_1KI1512_10"){
+					opener.$inMoreDetail.ui.ajax.params["ov_l1_list"] = rank;
+				}else{
+					opener.$inMoreDetail.ui.ajax.params["ov_l2_list"] = rank;
+				}
+				opener.$inMoreDetail.ui.ajax.params["rank"] = rank;
+				opener.$inMoreDetail.ui.ajax.params["char_itm_id_list"] = charItmId;
+				
+				$.ajax({
+					type:"GET",
+					async: false,
+					//url: "/view/kosisApi/TotsurvStatData.do",
+					url: sgis4thApiPath,
+			 		data: opener.$inMoreDetail.ui.ajax.params,
+					success:function( res ){
+						if( res ){
+							// 업종코드 리스트
+							var l2List = [];
+							if(data[0].TBL_ID == "DT_1KI1512_10"){
+								l2List = opener.$inMoreDetail.ui.ajax.params.ov_l1_list.split(",");
+							}else{
+								l2List = opener.$inMoreDetail.ui.ajax.params.ov_l2_list.split(",");
+							}
+							
+							var arr1=[],arr2=[],arr3=[],arr4=[];
+							var a1=0,a2=0,a3=0,a4=0;
+							
+							var flag = 0;
+							for(let j=0;j<l2List.length;j++){
+								a1=0,a2=0,a3=0,a4=0;
+								for(let i =0; i<res.length; i++){
+									// 같은 업종인지 체크
+									if(data[0].TBL_ID == "DT_1KI1512_10"){
+										if(l2List[j] == res[i].OV_L1_ID){
+											// 카테고리 
+											if(flag == 0){
+												categories.push(res[i].OV_L1_KOR);
+												flag = 1;
+											}
+											
+											if(res[i].OV_L3_ID == "C1"){
+												a1 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L3_ID == "C2"){
+												a2 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L3_ID == "C3"){
+												a3 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L3_ID == "C4"){
+												a4 += res[i].DTVAL_CO*1;
+											}
+										}
+									}else{
+										if(l2List[j] == res[i].OV_L2_ID){
+											// 카테고리 
+											if(flag == 0){
+												categories.push(res[i].OV_L2_KOR);
+												flag = 1;
+											}
+											
+											if(res[i].OV_L3_ID == "C1"){
+												a1 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L3_ID == "C2"){
+												a2 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L3_ID == "C3"){
+												a3 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L3_ID == "C4"){
+												a4 += res[i].DTVAL_CO*1;
+											}
+										}
+									}
+								}
+								flag = 0;
+								
+								arr1.push(a1);
+								arr2.push(a2);
+								arr3.push(a3);
+								arr4.push(a4);
+								
+							}
+							// 차트데이터
+							chartData.push(
+									{	
+										name: '개인사업체', 
+										data: arr1 , 
+										pointWidth: 15 
+									}
+							);
+							chartData.push(
+									{	
+										name: '회사법인', 
+										data: arr2, 
+										pointWidth: 15 
+									}
+							);
+							chartData.push(
+									{	
+										name: '회사이외법인', 
+										data: arr3, 
+										pointWidth: 15 
+									}
+							);
+							chartData.push(
+									{	
+										name: '비법인단체', 
+										data: arr4, 
+										pointWidth: 15 
+									}
+							);
+						
+							maxVal = Math.round(arr1[0])*1.2;
+						}
+					},
+					error:function(data) {
+						$(".DataNone").show();
+						alert('오류발생~!');
+					}
+				});
+			}else if(data[0].TBL_ID == "DT_1KI1513" || data[0].TBL_ID == "DT_1KI2005" || data[0].TBL_ID == "DT_1KI1513_10" ){
+				// 순서 지정
+				var arr =[];
+				var resArr = [];
+				
+				// 항목 선택 
+				if(opener.$inMoreDetail.ui.selectedChartOrd == 1){
+					charItmId = "T10";
+				}else if (opener.$inMoreDetail.ui.selectedChartOrd == 2){
+					charItmId = "T20";
+				}else if (opener.$inMoreDetail.ui.selectedChartOrd == 3){
+					charItmId = "T30";
+				}else if (opener.$inMoreDetail.ui.selectedChartOrd == 4){
+					charItmId = "T50";
+				}
+				
+				
+				for(let i=0;i<data.length;i++){
+					// D0(계)이고 전국인 항목만 추출
+					if(data[i].OV_L3_ID=="D0"){
+						arr.push(data[i]);
+					}
+				}
+				chartHeight = arr.length * 40;
+				let rank = ""
+				for(let i=1;i<6;i++){
+					if(data[0].TBL_ID == "DT_1KI1513_10"){
+						if(i==5){
+							rank += arr[i].OV_L1_ID;
+						}else{
+							rank += arr[i].OV_L1_ID+",";
+						}
+
+					}else{
+						if(i==5){
+							rank += arr[i].OV_L2_ID;
+						}else{
+							rank += arr[i].OV_L2_ID+",";
+						}
+					}
+				}
+				
+				if(data[0].TBL_ID == "DT_1KI1513_10"){
+					opener.$inMoreDetail.ui.ajax.params["ov_l1_list"] = rank;
+				}else{
+					opener.$inMoreDetail.ui.ajax.params["ov_l2_list"] = rank;
+				}
+				opener.$inMoreDetail.ui.ajax.params["char_itm_id_list"] = charItmId;
+				opener.$inMoreDetail.ui.ajax.params["rank"] = rank;
+				$.ajax({
+					type:"GET",
+					async: false,
+					//url: "/view/kosisApi/TotsurvStatData.do",
+					url: sgis4thApiPath,
+			 		data: opener.$inMoreDetail.ui.ajax.params,
+					success:function( res ){
+						if( res ){
+							// 업종코드 리스트
+							var l2List = [];
+							if(data[0].TBL_ID == "DT_1KI1513_10"){
+								l2List = opener.$inMoreDetail.ui.ajax.params.ov_l1_list.split(",");
+							}else{
+								l2List = opener.$inMoreDetail.ui.ajax.params.ov_l2_list.split(",");
+							}
+							
+							var arr1=[],arr2=[],arr3=[],arr4=[],arr5=[],arr6=[];
+							var d1 = 0, d2 = 0, d3 = 0, d4 = 0, d5 = 0, d6 = 0;
+							
+							var flag = 0;
+							for(let j=0;j<l2List.length;j++){
+								d1 = 0, d2 = 0, d3 = 0, d4 = 0, d5 = 0, d6 = 0;
+								for(let i =0; i<res.length; i++){
+									if(data[0].TBL_ID == "DT_1KI1513_10"){
+										if(l2List[j] == res[i].OV_L1_ID){
+											// 카테고리 
+											if(flag == 0){
+												categories.push(res[i].OV_L1_KOR);
+												flag = 1;
+											}
+											
+											if(res[i].OV_L3_ID == 'D1'){
+												d1 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L3_ID == 'D2'){
+												d1 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L3_ID == 'D3'){
+												d2 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L3_ID == 'D4'){
+												d3 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L3_ID == 'D5'){
+												d3 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L3_ID == 'D6'){
+												d4 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L3_ID == 'D7'){
+												d5 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L3_ID == 'D8'){
+												d5 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L3_ID == 'D9'){
+												d6 += res[i].DTVAL_CO*1;
+											}
+										}
+									}else{
+										if(l2List[j] == res[i].OV_L2_ID){
+											// 카테고리 
+											if(flag == 0){
+												categories.push(res[i].OV_L2_KOR);
+												flag = 1;
+											}
+											
+											if(res[i].OV_L3_ID == 'D1'){
+												d1 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L3_ID == 'D2'){
+												d1 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L3_ID == 'D3'){
+												d2 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L3_ID == 'D4'){
+												d3 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L3_ID == 'D5'){
+												d3 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L3_ID == 'D6'){
+												d4 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L3_ID == 'D7'){
+												d5 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L3_ID == 'D8'){
+												d5 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L3_ID == 'D9'){
+												d6 += res[i].DTVAL_CO*1;
+											}
+										}
+									}
+								}
+								flag = 0;
+								
+								arr1.push(d1);
+								arr2.push(d2);
+								arr3.push(d3);
+								arr4.push(d4);
+								arr5.push(d5);
+								arr6.push(d6);
+								
+							}
+							// 차트데이터
+							chartData.push(
+									{	
+										name: '1~4인', 
+										data: arr1 , 
+										pointWidth: 15 
+									}
+							);
+							chartData.push(
+									{	
+										name: '5~9인', 
+										data: arr2, 
+										pointWidth: 15 
+									}
+							);
+							chartData.push(
+									{	
+										name: '10~49인', 
+										data: arr3, 
+										pointWidth: 15 
+									}
+							);
+							chartData.push(
+									{	
+										name: '50~99인', 
+										data: arr4, 
+										pointWidth: 15 
+									}
+							);
+							chartData.push(
+									{	
+										name: '100~299인', 
+										data: arr5, 
+										pointWidth: 15 
+									}
+							);
+							chartData.push(
+									{	
+										name: '300명 이상', 
+										data: arr6, 
+										pointWidth: 15 
+									}
+							);
+							maxVal = Math.round(arr1[0])*1.2;
+						}
+					},
+					error:function(data) {
+						$(".DataNone").show();
+						alert('오류발생~!');
+					}
+				});
+				
+			}else if(data[0].TBL_ID == "DT_1KI1514" || data[0].TBL_ID == "DT_1KI2006" || data[0].TBL_ID == "DT_1KI1514_10" ){
+				// T201 && 전국 제외하고 나온 데이터 합산해서 sort industryOfAreaChart
+				var arr = [], resArr =[];
+				var charItmId = "";
+				
+				// 항목 선택 
+				if(data[0].TBL_ID == "DT_1KI2006"){
+					if(opener.$inMoreDetail.ui.selectedChartOrd == 1){
+						charItmId = "T30";
+					}else if (opener.$inMoreDetail.ui.selectedChartOrd == 2){
+						charItmId = "T31";
+					}else if (opener.$inMoreDetail.ui.selectedChartOrd == 3){
+						charItmId = "T32";
+					}
+				}else{
+					if(opener.$inMoreDetail.ui.selectedChartOrd == 1){
+						charItmId = "T201";
+					}else if (opener.$inMoreDetail.ui.selectedChartOrd == 2){
+						charItmId = "T2011";
+					}else if (opener.$inMoreDetail.ui.selectedChartOrd == 3){
+						charItmId = "T2012";
+					}
+				}
+				opener.$inMoreDetail.ui.ajax.params["char_itm_id_list"] = charItmId;
+				//$inMoreDetail.ui.ajax.params["ov_l2_list"] = "";
+				
+				if(opener.$inMoreDetail.ui.dispOptions[chartOrd][0].regionVarOrd==1){
+					opener.$inMoreDetail.ui.ajax.params.ov_l1_list = "31,11,21,38,37,22,23,34,36,35,32,33,24,25,26,39,29";
+					//$inMoreDetail.ui.ajax.params.ov_l2_list = "0";
+				}else{
+					//$inMoreDetail.ui.ajax.params.ov_l1_list = "0";
+					opener.$inMoreDetail.ui.ajax.params.ov_l2_list = "31,11,21,38,37,22,23,34,36,35,32,33,24,25,26,39,29";
+				}
+
+				$.ajax({
+					type:"GET",
+					async: false,
+					//url: "/view/kosisApi/TotsurvStatData.do",
+					url: sgis4thApiPath,
+			 		data: opener.$inMoreDetail.ui.ajax.params,
+					success:function( res ){
+						if( res ){
+							// 업종코드 리스트
+							let arrRes = [];
+							// 6인 이유 전국이 무조건 1번째로와서
+							for(let i =0 ; i<5; i++){
+								// 1514차트는 지역 정보가 OV_L2_ID에 입력 
+								if(res[i].OV_L2_ID != "00"){
+									arrRes.push(res[i].DTVAL_CO*1);
+									categories.push(res[i].OV_L2_KOR);
+								}
+							}
+							
+							// 차트데이터
+							chartData.push(
+									{	
+										name: stacked[Object.keys(stacked)[0]][0].CHAR_ITM_NM, 
+										data: arrRes , 
+										pointWidth: 15 
+									}
+							);
+							maxVal = Math.round(res[1].DTVAL_CO)*1.2;
+						}
+					},
+					error:function(data) {
+						$(".DataNone").show();
+						alert('오류발생~!');
+					}
+				});
+				
+				// T203 && 전국 제외하고 나온 데이터 합산해서 sort industryOfAreaChart2
+				// 초기화 
+				arr = [], resArr =[];
+				charItmId = "";
+				
+				if(data[0].TBL_ID == "DT_1KI2006"){
+					if(opener.$inMoreDetail.ui.selectedChartOrd == 1){
+						charItmId = "T50";
+					}else if (opener.$inMoreDetail.ui.selectedChartOrd == 2){
+						charItmId = "T51";
+					}else if (opener.$inMoreDetail.ui.selectedChartOrd == 3){
+						charItmId = "T52";
+					}
+				}else{
+					if(opener.$inMoreDetail.ui.selectedChartOrd == 1){
+						charItmId = "T203";
+					}else if (opener.$inMoreDetail.ui.selectedChartOrd == 2){
+						charItmId = "T2031";
+					}else if (opener.$inMoreDetail.ui.selectedChartOrd == 3){
+						charItmId = "T2032";
+					}
+				}
+				
+				opener.$inMoreDetail.ui.ajax.params["char_itm_id_list"] = charItmId;
+				
+				$.ajax({
+					type:"GET",
+					async: false,
+					//url: "/view/kosisApi/TotsurvStatData.do",
+					url: sgis4thApiPath,
+			 		data: opener.$inMoreDetail.ui.ajax.params,
+					success:function( res ){
+						if( res ){
+							// 업종코드 리스트
+							let arrRes = [];
+							// 6인 이유 전국이 무조건 1번째로와서
+							for(let i =0 ; i<5; i++){
+								if(res[i].OV_L2_ID != "00"){
+									arrRes.push(res[i].DTVAL_CO*1);
+									categories2.push(res[i].OV_L2_KOR);
+								}
+							}
+							
+							// 차트데이터
+							chartData2.push(
+									{	
+										name: stacked[Object.keys(stacked)[0]][0].CHAR_ITM_NM, 
+										data: arrRes , 
+										pointWidth: 15 
+									}
+							);
+							maxVal2 = Math.round(res[1].DTVAL_CO)*1.2;
+						}
+					},
+					error:function(data) {
+						$(".DataNone").show();
+						alert('오류발생~!');
+					}
+				});
+				
+			}else if(data[0].TBL_ID == "DT_1KI1515" || data[0].TBL_ID == "DT_1KI2007" || data[0].TBL_ID == "DT_1KI1515_10" ){
+				var arr =[];
+				var resArr = [];
+				
+				if(opener.$inMoreDetail.ui.selectedChartOrd == 1){
+					charItmId = "T10";
+				}else if (opener.$inMoreDetail.ui.selectedChartOrd == 2){
+					charItmId = "T20";
+				}else if (opener.$inMoreDetail.ui.selectedChartOrd == 3){
+					charItmId = "T30";
+				}else if (opener.$inMoreDetail.ui.selectedChartOrd == 3){
+					charItmId = "T50";
+				}
+			
+				
+				for(let i=0;i<data.length;i++){
+					// D0(계)이고 전국인 항목만 추출
+					if(data[i].OV_L3_ID=="D0" || data[i].OV_L3_ID=="E0"){
+						arr.push(data[i]);
+					}
+				}
+				chartHeight = arr.length * 40;
+				let rank = ""
+				for(let i=1;i<6;i++){
+					if(data[0].TBL_ID == "DT_1KI1515_10"){
+						if(i==5){
+							rank += arr[i].OV_L1_ID;
+						}else{
+							rank += arr[i].OV_L1_ID+",";
+						}
+
+					}else{
+						if(i==5){
+							rank += arr[i].OV_L2_ID;
+						}else{
+							rank += arr[i].OV_L2_ID+",";
+						}
+					}
+				}
+				if(data[0].TBL_ID == "DT_1KI1515_10"){
+					opener.$inMoreDetail.ui.ajax.params["ov_l1_list"] = rank;
+				}else{
+					opener.$inMoreDetail.ui.ajax.params["ov_l2_list"] = rank;
+				}
+				opener.$inMoreDetail.ui.ajax.params["rank"] = rank;
+				opener.$inMoreDetail.ui.ajax.params["char_itm_id_list"] = charItmId;
+				
+				$.ajax({
+					type:"GET",
+					async: false,
+					//url: "/view/kosisApi/TotsurvStatData.do",
+					url: sgis4thApiPath,
+			 		data: opener.$inMoreDetail.ui.ajax.params,
+					success:function( res ){
+						if( res ){
+							var l2List = [];
+							if(data[0].TBL_ID == "DT_1KI1515_10"){
+								l2List = opener.$inMoreDetail.ui.ajax.params.ov_l1_list.split(",");
+							}else{
+								l2List = opener.$inMoreDetail.ui.ajax.params.ov_l2_list.split(",");
+							}
+							
+							var arr1=[],arr2=[],arr3=[],arr4=[],arr5=[],arr6=[];
+							var d1 = 0, d2 = 0, d3 = 0, d4 = 0, d5 = 0, d6 = 0;
+							
+							var flag = 0;
+							for(let j=0;j<l2List.length;j++){
+								d1 = 0, d2 = 0, d3 = 0, d4 = 0, d5 = 0, d6 = 0
+								for(let i =0; i<res.length; i++){
+									if(data[0].TBL_ID == "DT_1KI1515_10"){
+										if(l2List[j] == res[i].OV_L1_ID){
+											
+											// 카테고리 
+											if(flag == 0){
+												categories.push(res[i].OV_L1_KOR);
+												flag = 1;
+											}
+											
+											if(data[0].TBL_ID == "DT_1KI1515_10"){
+												if(res[i].OV_L3_ID == "E1"){
+													d1 += res[i].DTVAL_CO*1;
+												}else if(res[i].OV_L3_ID == "E2"){
+													d1 += res[i].DTVAL_CO*1;
+												}else if(res[i].OV_L3_ID == "E3"){
+													d2 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "E4"){
+													d2 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "E5"){
+													d3 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "E6"){
+													d3 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "E7"){
+													d4 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "E8"){
+													d5 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "E9"){
+													d6 += res[i].DTVAL_CO*1;
+												}
+											}else{
+												if(res[i].OV_L3_ID == "D1"){
+													d1 += res[i].DTVAL_CO*1;
+												}else if(res[i].OV_L3_ID == "D2"){
+													d1 += res[i].DTVAL_CO*1;
+												}else if(res[i].OV_L3_ID == "D3"){
+													d2 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "D4"){
+													d2 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "D5"){
+													d3 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "D6"){
+													d3 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "D7"){
+													d4 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "D8"){
+													d5 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "D9"){
+													d6 += res[i].DTVAL_CO*1;
+												}
+											}
+										}
+									}else{
+										if(l2List[j] == res[i].OV_L2_ID){
+											// 카테고리 
+											if(flag == 0){
+												categories.push(res[i].OV_L2_KOR);
+												flag = 1;
+											}
+											
+											if(data[0].TBL_ID == "DT_1KI1515_10"){
+												if(res[i].OV_L3_ID == "E1"){
+													d1 += res[i].DTVAL_CO*1;
+												}else if(res[i].OV_L3_ID == "E2"){
+													d1 += res[i].DTVAL_CO*1;
+												}else if(res[i].OV_L3_ID == "E3"){
+													d2 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "E4"){
+													d2 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "E5"){
+													d3 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "E6"){
+													d3 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "E7"){
+													d4 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "E8"){
+													d5 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "E9"){
+													d6 += res[i].DTVAL_CO*1;
+												}
+											}else{
+												if(res[i].OV_L3_ID == "D1"){
+													d1 += res[i].DTVAL_CO*1;
+												}else if(res[i].OV_L3_ID == "D2"){
+													d1 += res[i].DTVAL_CO*1;
+												}else if(res[i].OV_L3_ID == "D3"){
+													d2 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "D4"){
+													d2 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "D5"){
+													d3 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "D6"){
+													d3 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "D7"){
+													d4 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "D8"){
+													d5 += res[i].DTVAL_CO*1; 
+												}else if(res[i].OV_L3_ID == "D9"){
+													d6 += res[i].DTVAL_CO*1;
+												}
+											}
+										}
+									}
+								}
+								flag = 0;
+								
+								arr1.push(d1);
+								arr2.push(d2);
+								arr3.push(d3);
+								arr4.push(d4);
+								arr5.push(d5);
+								arr6.push(d6);
+								
+							}
+							// 차트데이터
+							chartData.push(
+									{	
+										name: '1억 원 미만', 
+										data: arr1 , 
+										pointWidth: 15 
+									}
+							);
+							chartData.push(
+									{	
+										name: '1억~10억 원 미만', 
+										data: arr2, 
+										pointWidth: 15 
+									}
+							);
+							chartData.push(
+									{	
+										name: '10억~100억 원 미만', 
+										data: arr3, 
+										pointWidth: 15 
+									}
+							);
+							chartData.push(
+									{	
+										name: '100억~200억 원 미만', 
+										data: arr4, 
+										pointWidth: 15 
+									}
+							);
+							chartData.push(
+									{	
+										name: '200억~300억 원 미만', 
+										data: arr5, 
+										pointWidth: 15 
+									}
+							);
+							chartData.push(
+									{	
+										name: '300억 원 이상', 
+										data: arr6, 
+										pointWidth: 15 
+									}
+							);
+							maxVal = Math.round(arr1[0])*1.2;
+						}
+					},
+					error:function(data) {
+						$(".DataNone").show();
+						alert('오류발생~!');
+					}
+				});
+				
+			}else if(data[0].TBL_ID == "DT_1KI1516" || data[0].TBL_ID == "DT_1KI2008" || data[0].TBL_ID == "DT_1KI1516_10" ){
+				// 순서 지정
+				var arr =[];
+				var resArr = [];
+				
+				// 항목 선택 
+				if(opener.$inMoreDetail.ui.selectedChartOrd == 1){
+					charItmId = "T10";
+				}else if (opener.$inMoreDetail.ui.selectedChartOrd == 2){
+					charItmId = "T20";
+				}else if (opener.$inMoreDetail.ui.selectedChartOrd == 3){
+					charItmId = "T30";
+				}else if (opener.$inMoreDetail.ui.selectedChartOrd == 4){
+					charItmId = "T50";
+				}
+				
+				for(let i=0;i<data.length;i++){
+					if(data[i].OV_L4_ID=="F0"){
+						arr.push(data[i]);
+					}
+				}
+				chartHeight = arr.length * 25;
+				// 상위 5개 업종 리스트 추출
+				let rank = ""
+				for(let i=1;i<6;i++){
+					if(data[0].TBL_ID == "DT_1KI1516_10"){
+						if(i==5){
+							rank += arr[i].OV_L1_ID;
+						}else{
+							rank += arr[i].OV_L1_ID+",";
+						}
+
+					}else{
+						if(i==5){
+							rank += arr[i].OV_L2_ID;
+						}else{
+							rank += arr[i].OV_L2_ID+",";
+						}
+					}
+				}
+				if(data[0].TBL_ID == "DT_1KI1516_10"){
+					opener.$inMoreDetail.ui.ajax.params["ov_l1_list"] = rank;
+				}else{
+					opener.$inMoreDetail.ui.ajax.params["ov_l2_list"] = rank;
+				}
+				opener.$inMoreDetail.ui.ajax.params["rank"] = rank;
+				opener.$inMoreDetail.ui.ajax.params["char_itm_id_list"] = charItmId;
+				
+				opener.$inMoreDetail.ui.ajax.params.ov_l4_list = "F1,F2,F3";
+				
+				$.ajax({
+					type:"GET",
+					async: false,
+					//url: "/view/kosisApi/TotsurvStatData.do",
+					url: sgis4thApiPath,
+			 		data: opener.$inMoreDetail.ui.ajax.params,
+					success:function( res ){
+						if( res ){
+							var l2List = [];
+							if(data[0].TBL_ID == "DT_1KI1516_10"){
+								l2List = opener.$inMoreDetail.ui.ajax.params.ov_l1_list.split(",");
+							}else{
+								l2List = opener.$inMoreDetail.ui.ajax.params.ov_l2_list.split(",");
+							}
+							
+							var arr1=[],arr2=[],arr3=[];
+							var a1=0,a2=0,a3=0;
+							
+							var flag = 0;
+							for(let j=0;j<l2List.length;j++){
+								a1=0,a2=0,a3=0,a4=0;
+								for(let i =0; i<res.length; i++){
+									if(data[0].TBL_ID == "DT_1KI1516_10"){
+									// 같은 업종인지 체크, 전국데이터인지 체크
+										if(l2List[j] == res[i].OV_L1_ID){
+											
+											// 카테고리 
+											if(flag == 0){
+												categories.push(res[i].OV_L1_KOR);
+												flag = 1;
+											}
+											
+											if(res[i].OV_L4_ID == "F1"){
+												a1 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L4_ID == "F2"){
+												a2 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L4_ID == "F3"){
+												a3 += res[i].DTVAL_CO*1;
+											}
+										}
+									}else{
+										if(l2List[j] == res[i].OV_L2_ID){
+										// 카테고리 
+											if(flag == 0){
+												categories.push(res[i].OV_L2_KOR);
+												flag = 1;
+											}
+											
+											if(res[i].OV_L4_ID == "F1"){
+												a1 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L4_ID == "F2"){
+												a2 += res[i].DTVAL_CO*1;
+											}else if(res[i].OV_L4_ID == "F3"){
+												a3 += res[i].DTVAL_CO*1;
+											}
+										}
+									}
+								}
+								flag = 0;
+								
+								arr1.push(a1);
+								arr2.push(a2);
+								arr3.push(a3);
+								
+							}
+							// 차트데이터
+							chartData.push(
+									{	
+										name: '단독사업체', 
+										data: arr1 , 
+										pointWidth: 15 
+									}
+							);
+							chartData.push(
+									{	
+										name: '본사,본점등', 
+										data: arr2, 
+										pointWidth: 15 
+									}
+							);
+							chartData.push(
+									{	
+										name: '공장,지사(점),영업소등', 
+										data: arr3, 
+										pointWidth: 15 
+									}
+							);
+						
+							maxVal = Math.round(arr1[0])*1.2;
+						}
+					},
+					error:function(data) {
+						$(".DataNone").show();
+						alert('오류발생~!');
+					}
+				});
+			}else if (data[0].TBL_ID == "DT_1KI2009"){
+				// 순서 지정
+				var arr =[];
+				var resArr = [];
+				
+				// 항목 선택 
+				if(opener.$inMoreDetail.ui.selectedChartOrd == 1){
+					charItmId = "T10";
+				}else if (opener.$inMoreDetail.ui.selectedChartOrd == 2){
+					charItmId = "T20";
+				}else if (opener.$inMoreDetail.ui.selectedChartOrd == 3){
+					charItmId = "T30";
+				}else if (opener.$inMoreDetail.ui.selectedChartOrd == 4){
+					charItmId = "T50";
+				}
+				
+				for(let i=0;i<data.length;i++){
+					if(data[i].OV_L3_ID=="F0"){
+						arr.push(data[i]);
+					}
+				}
+				chartHeight = arr.length * 150;
+				// 상위 5개 업종 리스트 추출
+				let rank = ""
+				for(let i=1;i<arr.length;i++){
+					if(i==5) break;
+					if(i==arr.length-1){
+						rank += arr[i].OV_L2_ID;
+					}else{
+						rank += arr[i].OV_L2_ID+",";
+					}
+				}
+				
+				opener.$inMoreDetail.ui.ajax.params["ov_l2_list"] = rank;
+				opener.$inMoreDetail.ui.ajax.params["rank"] = rank;
+				opener.$inMoreDetail.ui.ajax.params["char_itm_id_list"] = charItmId;
+				
+				$.ajax({
+					type:"get",
+					async: false,
+					//url: "/view/kosisApi/TotsurvStatData.do",
+					url: sgis4thApiPath,
+			 		data: opener.$inMoreDetail.ui.ajax.params,
+					success:function( res ){
+						if( res ){
+							var l2List = [];
+							l2List = opener.$inMoreDetail.ui.ajax.params.ov_l2_list.split(",");
+							
+							var arr1=[],arr2=[],arr3=[],arr4=[],arr5=[],arr6=[],arr7=[],arr8=[];
+							let f1 = 0, f2 = 0, f3 = 0,f4 = 0, f5 = 0, f6 = 0,f7 = 0, f8 = 0;
+							
+							var flag = 0;
+							for(let j=0;j<l2List.length;j++){
+								f1 = 0, f2 = 0, f3 = 0,f4 = 0, f5 = 0, f6 = 0,f7 = 0, f8 = 0;
+								for(let i =0; i<res.length; i++){
+									// 같은 업종인지 체크, 전국데이터인지 체크
+									if(l2List[j] == res[i].OV_L2_ID){
+										
+										// 카테고리 
+										if(flag == 0){
+											categories.push(res[i].OV_L2_KOR);
+											flag = 1;
+										}
+										
+										if(res[i].OV_L3_ID == 'F1'){
+											f1 += res[i].DTVAL_CO*1;
+										}else if(res[i].OV_L3_ID == 'F2'){
+											f2 += res[i].DTVAL_CO*1;
+										}else if(res[i].OV_L3_ID == 'F3'){
+											f3 += res[i].DTVAL_CO*1;
+										}else if(res[i].OV_L3_ID == 'F4'){
+											f4 += res[i].DTVAL_CO*1;
+										}else if(res[i].OV_L3_ID == 'F5'){
+											f5 += res[i].DTVAL_CO*1;
+										}else if(res[i].OV_L3_ID == 'F6'){
+											f6 += res[i].DTVAL_CO*1;
+										}else if(res[i].OV_L3_ID == 'F7'){
+											f7 += res[i].DTVAL_CO*1;
+										}else if(res[i].OV_L3_ID == 'F8'){
+											f8 += res[i].DTVAL_CO*1;
+										}
+									}
+								}
+								flag = 0;
+								
+								arr1.push(f1);
+								arr2.push(f2);
+								arr3.push(f3);
+								arr4.push(f4);
+								arr5.push(f5);
+								arr6.push(f6);
+								arr7.push(f7);
+								arr8.push(f8);
+								
+							}
+							// 차트데이터
+							chartData.push(
+									{	
+										name: '10㎡ 미만', 
+										data: arr1 , 
+										pointWidth: 15 
+									}
+							);
+							chartData.push(
+									{	
+										name: '10~30', 
+										data: arr2, 
+										pointWidth: 15 
+									}
+							);
+							chartData.push(
+									{	
+										name: '30~50', 
+										data: arr3, 
+										pointWidth: 15 
+									}
+							);
+							chartData.push(
+									{	
+										name: '50~100', 
+										data: arr4, 
+										pointWidth: 15 
+									}
+							);
+							chartData.push(
+									{	
+										name: '100~300', 
+										data: arr5, 
+										pointWidth: 15 
+									}
+							);
+							chartData.push(
+									{	
+										name: '300~1000', 
+										data: arr6, 
+										pointWidth: 15 
+									}
+							);
+							chartData.push(
+									{	
+										name: '1000~3000', 
+										data: arr7, 
+										pointWidth: 15 
+									}
+							);
+							chartData.push(
+									{	
+										name: '3000㎡ 이상', 
+										data: arr8, 
+										pointWidth: 15 
+									}
+							);
+						
+							maxVal = Math.round(res[1].DTVAL_CO)*1.2;
+						}
+					},
+					error:function(data) {
+						$(".DataNone").show();
+						alert('오류발생~!');
+					}
+				});
+			}else{
+				legendChk = false;
+				
+				for(var i=Object.keys(stacked).length-1; i>=0; i--) {
+					let stack = stacked[Object.keys(stacked)[i]];		
+					let stackData = [];
+					for(var j=0; j<stack.length; j++) {
+						if(opener.$inMoreDetail.ui.dispOptions[chartOrd][0].regionVarOrd == 1){
+							if(stack[j].CHAR_ITM_ID != "13999001" && stack[j]["OV_L1_ID"] != "00") {
+								let dtval = (stack[j].DTVAL_CO != undefined ? stack[j].DTVAL_CO : 0);
+								if(chartOpt[0].dispVarOrd == 0) {
+									stackData.push({
+										y: parseInt(dtval/(chartOpt[0].dispUnit/chartOpt[0].kosisUnit)),
+										id: stack[j]["CHAR_ITM_ID"],
+										name: stack[j]["CHAR_ITM_NM"]
+									});
+								} else {
+									stackData.push({
+										y: parseInt(dtval/(chartOpt[0].dispUnit/chartOpt[0].kosisUnit)),
+										id: stack[j]["OV_" + chartOpt[0].dispVarOrd + "_ID"],
+										name: stack[j]["OV_" + chartOpt[0].dispVarOrd + "_KOR"]
+									});
+								}
+							}
+						}else{
+							if(stack[j].CHAR_ITM_ID != "13999001" && stack[j]["OV_L2_ID"] != "00") {
+								let dtval = (stack[j].DTVAL_CO != undefined ? stack[j].DTVAL_CO : 0);
+								stackData.push(parseInt(dtval/(chartOpt[0].dispUnit/chartOpt[0].kosisUnit)));
+							}
+						}
+					}
+					chartData.push(
+							{
+								name: stacked[Object.keys(stacked)[i]][0].CHAR_ITM_NM
+								,data: stackData
+								,pointWidth: 15 
+					});
+				}
+				
+				for(var i=0; i<stacked[Object.keys(stacked)[0]].length; i++) {
+					let stack = stacked[Object.keys(stacked)[0]][i];
+					if(opener.$inMoreDetail.ui.dispOptions[chartOrd][0].regionVarOrd == 1){
+						if(stack["OV_L1_ID"] != "00") {
+							categories.push(stack[admKor]);
+						}	
+					}else{
+						if(stack["OV_L2_ID"] != "00") {
+							categories.push(stack[admKor]);
+						}
+					}
+				}
+				
+			}
+			
+			var tool = $("#industryOfAreaChart").parent().parent().find(".chartToolTip"); // 2020-10-13 [곽제욱] 툴팁영역 생성에서 초기화로 변경
+			
+			var chartKind ='';
+			if(data[0].TBL_ID == "DT_1KI1514" || data[0].TBL_ID == "DT_1KI2006" || data[0].TBL_ID == "DT_1KI1514_10" ){
+				chartKind = 'column';
+				colorKind = ["#f08246"]
+			}else{
+				chartKind = 'bar';
+				colorKind = ["#5B9BD5","#ED7D31","#92D050","#FFC000","#9966FF"];
+			}
+			
+			if(	  data[0].TBL_ID == "DT_1KI1509" 		|| data[0].TBL_ID == "DT_1KI1510" 		|| data[0].TBL_ID == "DT_1KI1511" 
+				||data[0].TBL_ID == "DT_1KI1509_10" 	|| data[0].TBL_ID == "DT_1KI1510_10" 	|| data[0].TBL_ID == "DT_1KI1511_10" 
+				||data[0].TBL_ID == "DT_1KI2001" 		|| data[0].TBL_ID == "DT_1KI2002" 		|| data[0].TBL_ID == "DT_1KI2003" 
+			){
+				chartHeight = data.length * 30;
+			}
+			
+			opener.$inMoreDetail.chart3 = $('#industryOfAreaChart').highcharts({
+				chart: {
+			        type: chartKind,
+			        height: chartHeight,
+			        width: 600,
+			        events: {
+			        	load: function() {
+			        		if(this.series[0].chart.renderTo.id = "industryOfAreaChart") {
+			        			if(opener.$inMoreDetail.selectedCategory != "") {
+				        			$("#industryOfAreaChart").highcharts().series[0].data.forEach(function(selector) {
+										if(selector.category == opener.$inMoreDetail.selectedCategory) {
+											selector.select(true);
+											opener.$inMoreDetailMap.ui.selectedObj = $(selector); 
+										}
+									});
+								}
+			        		}
+			        	}
+			        }
+			    },
+				credits: {
+			        enabled: false
+			    },
+				navigation: {
+			        buttonOptions: {
+			            enabled: false
+			        }
+			    },
+				//colors: $ecnmyDash.chartsOption.color,
+				legend: {
+					enabled: legendChk,
+				    itemMarginTop: 10,
+				    verticalAlign: 'top',
+				    itemMarginBottom: 10,
+				    labelFormatter: function() {
+		             	return '<b>' + this.name + '</b>&nbsp;<b>';
+		            },
+			    },			
+			    colors: colorKind,
+				title: {
+					text: "",
+					style: { "display": "none" }
+				},
+				plotOptions: {
+					bar: {
+						dataLabels: {
+							enabled: true,
+							style: {
+								fontWeight: '100',
+								color: "#000000",
+								textOutline: false,
+							},
+							overflow: "allow",
+							allowOverlap: true,
+							formatter: function() {
+								return numberFormat(this.y);
+							}
+						},
+						pointInterval: 1,
+						borderWidth: 0,
+						pointWidth: 16,
+						groupPadding: 0.1
+					},
+					column: {
+						dataLabels: {
+							enabled: true,
+							style: {
+								fontWeight: '100',
+								color: "#000000",
+								textOutline: false
+							},
+							overflow: "allow",
+							allowOverlap: true,
+							formatter: function() {
+								return numberFormat(this.y);
+							}
+						},
+						colorByPoint: true,
+						pointInterval: 1,
+						borderWidth: 0,
+						pointWidth: 16,
+						groupPadding: 0.1
+					},
+					series: {
+						cursor: 'pointer',
+						borderWidth: 0,
+						minPointLength: 5,
+						grouping: true,
+						point: {
+							events: {
+								click: function() {
+									$totSurvMain.ui.chartTarget = "industryOfAreaChart";
+									opener.$inMoreDetail.selectedCategory = this.category;
+									
+							    	let chartOrd = opener.$inMoreDetail.ui.selectedChartOrd;
+							    	let charItmId = opener.$inMoreDetail.ui.selectedCharItmId;
+							    	let thisData = stacked[charItmId][this.x+1]; // 최상위에 전산업이 있기 때문에 +1 해줌
+							    	
+							    	let itmColumn = "";
+							    	
+							    	// 3번쨰테이블 한항목에 여러개 들어가는 항목들 때문에 해야 하는 과정
+							    	let itmId = "";
+							    	for(let i =0 ; i<$inMoreDetail.ui.dispOptions[chartOrd].length; i++){
+							    		if(opener.$inMoreDetail.ui.dispOptions[chartOrd][i].scrKor == this.series.name){
+							    			itmId = opener.$inMoreDetail.ui.dispOptions[chartOrd][i].itmId;
+							    		}
+							    	}
+							    	
+							    	let tmsYear = $("#tmsYears option:selected").val();
+							    	let sbxKsic = $("#sbx_ksic option:selected").text();
+							    	let charItmTxt = $("#chrItmList option:selected").text();
+							    	
+							    	let tblist = opener.$inMoreDetail.ui.ajax.params.tbl_id_list;
+							    	$inMoreDetail.ui.ajax.params["char_itm_id_list"] = charItmId;	
+							    	if(tblist == "DT_1KI1509" || tblist == "DT_1KI1510" || tblist == "DT_1KI1511"
+							    		|| tblist == "DT_1KI1509_10" || tblist == "DT_1KI1510_10" || tblist == "DT_1KI1511_10"
+							    			|| tblist == "DT_1KI2001" || tblist == "DT_1KI2002" || tblist == "DT_1KI2003"){
+							    		itmColumn = "OV_L" + opener.$inMoreDetail.ui.dispOptions[chartOrd][this.x+1].varOrd + "_ID";
+							    		opener.$inMoreDetail.ui.ajax.params["ov_l" + opener.$inMoreDetail.ui.dispOptions[chartOrd][this.x+1].varOrd + "_list"] = thisData[itmColumn];	// 분류코드							
+							    	}else{
+							    		if (tblist == "DT_1KI1514" || tblist == "DT_1KI2006" || tblist == "DT_1KI1514_10"){
+								    		thisData = stacked[charItmId][0];
+								    		itmColumn = "OV_L" + opener.$inMoreDetail.ui.dispOptions[chartOrd][0].varOrd + "_ID";
+								    		opener.$inMoreDetail.ui.ajax.params["ov_l" + opener.$inMoreDetail.ui.dispOptions[chartOrd][0].varOrd + "_list"] = thisData[itmColumn];	// 분류코드							
+								    	}else if(tblist == "DT_1KI1513" || tblist == "DT_1KI2005" || tblist == "DT_1KI1513_10"
+								    		|| tblist == "DT_1KI1515" || tblist == "DT_1KI2007" || tblist == "DT_1KI1515_10"){
+								    		itmColumn = "OV_L" + opener.$inMoreDetail.ui.dispOptions[chartOrd][this.x+1].varOrd + "_ID";
+								    		opener.$inMoreDetail.ui.ajax.params["ov_l" + opener.$inMoreDetail.ui.dispOptions[chartOrd][this.x+1].varOrd + "_list"] = thisData[itmColumn];	// 분류코드							
+								    	}else{
+								    		itmColumn = "OV_L" + opener.$inMoreDetail.ui.dispOptions[chartOrd][this.x+1].varOrd + "_ID";
+								    		opener.$inMoreDetail.ui.ajax.params["ov_l" + opener.$inMoreDetail.ui.dispOptions[chartOrd][this.x+1].varOrd + "_list"] = itmId;	// 분류코드							
+								    	}
+							    	}
+							    	$totSurvMain.ui.chartTitle = tmsYear+"년 " + sbxKsic + " " + charItmTxt;
+							    	$inMoreDetail.ui.chartItmClick($(this), "#f08246", tmsYear+"년 " 
+										+ this.category + " " + $("#chrItmList option:selected").text() + " " + this.series.name);
+								},
+								mouseOver: function() {
+							        //tool.css("display", "inline-block");
+									tool.css("display", "none");
+							        //var irdsrate = parseFloat(d.data.irdsrate);
+			
+							        //2020-10-13 [곽제욱] ratio 가 infinity 인 예외사항 처리 START
+							        var ratio = 0;
+									var key = "";
+									
+									for(var i=0; i<data.length; i++) {
+										if(this.series.name == data[i].CHAR_ITM_NM) {
+											key = data[i].CHAR_ITM_ID;
+										}
+									}
+							        if(totSurvWonObj != 0 && totSurvWonObj !=""){
+							        	ratio = (parseInt(this.series.data[this.x].y) / totSurvWonObj[key] * 100).toFixed(2)
+							        } else {
+							        	ratio = 100;
+							        }
+							        
+							        var unit = chartOpt[0].kosisUnitNm;
+							        
+							        $(document).on("mousemove", function(evt) {
+							        	let target = document.getElementById("industryOfAreaChart");
+								        let clientRect = target.getBoundingClientRect();
+								        let rTop = clientRect.top;
+								        let rLeft = clientRect.left;
+								        let sTopLength = window.pageYOffset;
+								        let sLeftLength = window.pageXOffset;
+										tool.css("left", evt.clientX - (rLeft + sLeftLength) - (parseInt(tool.css("width"))/2));
+										let ttTop = evt.clientY + $(target).parent().parent().parent().parent().scrollTop()-100;
+										
+								        tool.css("top", ttTop);								        
+									});
+							        
+							        if(data[0].TBL_ID == "DT_1KI1512" || data[0].TBL_ID == "DT_1KI2004" || data[0].TBL_ID == "DT_1KI1512_10" 
+							        	|| data[0].TBL_ID == "DT_1KI1513" || data[0].TBL_ID == "DT_1KI2005" || data[0].TBL_ID == "DT_1KI1513_10" 
+							        	|| data[0].TBL_ID == "DT_1KI1514" || data[0].TBL_ID == "DT_1KI2006" || data[0].TBL_ID == "DT_1KI1514_10" 
+								        || data[0].TBL_ID == "DT_1KI1515" || data[0].TBL_ID == "DT_1KI2007" || data[0].TBL_ID == "DT_1KI1515_10" 
+									    || data[0].TBL_ID == "DT_1KI1516" || data[0].TBL_ID == "DT_1KI2008" || data[0].TBL_ID == "DT_1KI1516_10" || data[0].TBL_ID == "DT_1KI2009" 
+							        	){
+							        	ratio = 0, vTot = 0;
+										
+										for(var i=0; i<this.series.data.length; i++) {
+											vTot += this.series.data[i].y;
+										}
+										
+										ratio = (parseInt(this.series.data[this.x].y) / vTot * 100).toFixed(2);
+								        
+										unit = chartOpt[0].kosisUnitNm;
+										
+								        $(document).on("mousemove", function(evt) {
+								        	let target = document.getElementById("industryOfAreaChart");
+									        let clientRect = target.getBoundingClientRect();
+									        let rTop = clientRect.top;
+									        let rLeft = clientRect.left;
+									        let sTopLength = window.pageYOffset;
+									        let sLeftLength = window.pageXOffset;
+									        
+											tool.css("left", evt.clientX - (rLeft + sLeftLength) - (parseInt(tool.css("width"))/2));
+											let ttTop = evt.clientY + $(target).parent().parent().parent().parent().scrollTop() + 320;
+											//let ttTop = evt.clientY - (rTop + sTopLength) - 245;
+											
+									        tool.css("top", ttTop);
+										});
+								        
+								        dtval = this.series.data[this.x].y != undefined ? parseInt(this.series.data[this.x].y) : 0;
+								        var moveName = this.series.name;
+								        if(data[0].TBL_ID == "DT_1KI1514" || data[0].TBL_ID == "DT_1KI2006" || data[0].TBL_ID == "DT_1KI1514_10"){
+								        	moveName = this.series.data[this.x].category
+								        }
+								        //2020.10.13[신예리] 타일맵 툴팁 스타일 수정
+								        tool.html("<p style='color: #3d4956;white-space:nowrap;margin-bottom: 5px;margin-left: 16px;font-weight: 100'>" + stacked[$inMoreDetail.ui.selectedCharItmId][0].PRD_DE + "년 " + " " + $("#chrItmList option:selected").text() + "</p>" +
+											"<p style='padding-bottom: 5px; border-bottom: 1px solid #ddd; color: #3d4956; white-space:nowrap;margin-bottom: 5px;margin-left: 16px;font-weight: 100'>" +
+											moveName + "</p>" +
+											"<p style='color:#0982d8; font-weight: 700; display: inline-block; margin-top: 5px; padding-right: 3px; margin-left: 20px;;white-space:nowrap;font-weight: 100'>" + 
+											numberFormat(dtval) + " " + unit + "</p><br>" + 
+											"<p style='color:#EE3520; font-weight: 700; display: inline-block; margin-top: 3px; padding-right: 3px; margin-left: 20px;;white-space:nowrap;font-weight: 100'>" + 
+											numberFormat(ratio) + "</p>" + "%"); 
+								        
+							        }else{
+							        	
+							        	$(document).on("mousemove", function(evt) {
+								        	let target = document.getElementById("industryOfAreaChart");
+									        let clientRect = target.getBoundingClientRect();
+									        let rTop = clientRect.top;
+									        let rLeft = clientRect.left;
+									        let sTopLength = window.pageYOffset;
+									        let sLeftLength = window.pageXOffset;
+									        
+											tool.css("left", evt.clientX - (rLeft + sLeftLength) - (parseInt(tool.css("width"))/2));
+											//let ttTop = evt.clientY + $(target).parent().parent().parent().parent().scrollTop() - 245;
+											let ttTop = evt.clientY + $(target).parent().parent().parent().parent().scrollTop() +200 ;
+											
+											let tblist = opener.$inMoreDetail.ui.ajax.params.tbl_id_list;
+											
+									        tool.css("top", ttTop);
+										});
+							        	
+							        	//2020.10.13[신예리] 타일맵 툴팁 스타일 수정
+							        	tool.html("<p style='color: #3d4956;white-space:nowrap;margin-bottom: 5px;margin-left: 16px;font-weight: 100'>" + stacked[key][this.x].PRD_DE + "년 " + 
+							        			$("#chrItmList option:selected").text() + "(" + this.series.name + "성)</p>" +
+							        			"<p style='padding-bottom: 5px; border-bottom: 1px solid #ddd; color: #3d4956; white-space:nowrap;margin-bottom: 5px;margin-left: 16px;font-weight: 100'>" +
+							        			stacked[key][this.x][admKor] + "</p>" +
+							        			"<p style='color:#0982d8; font-weight: 700; display: inline-block; margin-top: 5px; padding-right: 3px; margin-left: 20px;;white-space:nowrap;font-weight: 100'>" + 
+							        			numberFormat(stacked[key][this.x+1].DTVAL_CO) + " " + unit + "</p><br>" + 
+							        			"<p style='color:#EE3520; font-weight: 700; display: inline-block; margin-top: 3px; padding-right: 3px; margin-left: 20px;;white-space:nowrap;font-weight: 100'>" + 
+							        			numberFormat(ratio) + "</p>" + "%"); 
+							        }
+								},
+								mouseOut: function() {
+									$(document).off("mousemove");							
+									tool.css("display", "none");
+								}
+							}
+						}
+					}
+				},
+				tooltip: {
+			    	formatter: function () {
+			    		var key = "";
+						for(var i=0; i<data.length; i++) {
+							if(this.series.name == data[i].CHAR_ITM_NM) {
+								key = data[i].CHAR_ITM_ID;
+							}
+						}
+						let vTot = 0;
+						for(var i=0; i<this.series.data.length; i++) {
+							vTot += this.series.data[i].y;
+						}
+			    		for(let i=0; i< this.series.data.length;i++){
+			    			if(this.series.data[i].category == this.x){
+					    		let tblist = opener.$inMoreDetail.ui.ajax.params.tbl_id_list;
+					    		let ratio = (parseInt(this.series.data[i].y) / vTot * 100).toFixed(2);
+					    		let dtval = this.series.data[i].y != undefined ? parseInt(this.series.data[i].y) : 0;
+								let unit = chartOpt[0].kosisUnitNm;
+								
+								var moveName = this.series.name;
+						        if(data[0].TBL_ID == "DT_1KI1514" || data[0].TBL_ID == "DT_1KI2006" || data[0].TBL_ID == "DT_1KI1514_10"){
+						        	moveName = this.series.data[i].category;
+						        }
+			    		
+					    		if(	tblist == "DT_1KI1509" 		|| tblist == "DT_1KI1510" 		|| tblist == "DT_1KI1511"
+						    	 || tblist == "DT_1KI1509_10" 	|| tblist == "DT_1KI1510_10" 	|| tblist == "DT_1KI1511_10"
+						    	 || tblist == "DT_1KI2001" 		|| tblist == "DT_1KI2002" 		|| tblist == "DT_1KI2003"){
+					    			if(flag==1){
+					    				return "<p style='color: #3d4956;white-space:nowrap;margin-bottom: 5px;margin-left: 16px;'>" + stacked[key][i+1].PRD_DE + "년 " + 
+					        			$("#chrItmList option:selected").text() + "(" + this.series.name + "성)</p>" +
+					        			"<div style='text-align:center;'><p style='padding-bottom: 5px; border-bottom: 1px solid #ddd; color: #3d4956; white-space:nowrap;margin-bottom: 5px;margin-left: 16px;'>" +
+					        			stacked[key][i+1].OV_L1_KOR + "</p></div>" +
+					        			"<div style='text-align:center;'><p style='color:#0982d8; display: inline-block; margin-top: 5px; padding-right: 3px; margin-left: 20px;;white-space:nowrap;'>" + 
+					        			numberFormat(stacked[key][i+1].DTVAL_CO) + " " + unit + "</p></div>" + 
+					        			"<div style='text-align:center;'><p style='color:#EE3520; display: inline-block; margin-top: 3px; padding-right: 3px; margin-left: 20px;;white-space:nowrap;'>" + 
+					        			numberFormat(ratio) + "</p>" + "%" +"</div>";
+					    			}else{
+					    				return "<p style='color: #3d4956;white-space:nowrap;margin-bottom: 5px;margin-left: 16px;'>" + stacked[key][i].PRD_DE + "년 " + 
+					        			$("#chrItmList option:selected").text() + "(" + this.series.name + "성)</p>" +
+					        			"<div style='text-align:center;'><p style='padding-bottom: 5px; border-bottom: 1px solid #ddd; color: #3d4956; white-space:nowrap;margin-bottom: 5px;margin-left: 16px;'>" +
+					        			stacked[key][i].OV_L1_KOR + "</p></div>" +
+					        			"<div style='text-align:center;'><p style='color:#0982d8; display: inline-block; margin-top: 5px; padding-right: 3px; margin-left: 20px;;white-space:nowrap;'>" + 
+					        			numberFormat(stacked[key][i].DTVAL_CO) + " " + unit + "</p></div>" + 
+					        			"<div style='text-align:center;'><p style='color:#EE3520; display: inline-block; margin-top: 3px; padding-right: 3px; margin-left: 20px;;white-space:nowrap;'>" + 
+					        			numberFormat(ratio) + "</p>" + "%" +"</div>";
+					    			}
+					    		}else{
+					    			return "<p style='color: #3d4956;white-space:nowrap;margin-bottom: 5px;margin-left: 16px;'>" + stacked[$inMoreDetail.ui.selectedCharItmId][0].PRD_DE + "년 " + " " + $("#chrItmList option:selected").text() + "</p>" +
+									"<div style='text-align:center;'><p style='padding-bottom: 5px; border-bottom: 1px solid #ddd; color: #3d4956; white-space:nowrap;margin-bottom: 5px;margin-left: 16px;'>" +
+									moveName + "</p></div>" +
+									"<div style='text-align:center;'><p style='color:#0982d8; display: inline-block; margin-top: 5px; padding-right: 3px; margin-left: 20px;;white-space:nowrap;'>" + 
+									numberFormat(dtval) + " " + unit + "</p></div>" + 
+									"<div style='text-align:center;'><p style='color:#EE3520; display: inline-block; margin-top: 3px; padding-right: 3px; margin-left: 20px;;white-space:nowrap;'>" + 
+									numberFormat(ratio) + "</p>" + "%" + "</div>";
+					    		}
+			    			}
+			    		}
+					},
+					useHTML: true,
+					shared: false,
+				    shadow: false,
+				    enabled: true,
+				},
+				xAxis: {
+			        categories: categories,
+					lineColor: "transparent",
+					tickLength: 0,
+					labels: {				
+						formatter: function() {
+							return this.value;
+						}
+					}
+			    },
+				yAxis: {
+					max: maxVal,
+					min: 0,
+			        title: {
+						text: null
+					},
+					labels: {
+						formatter: function() {
+							return this.value;
+						}
+					},
+					lineWidth: 1,
+					stackLabels: {
+			            enabled: true,
+			            style: {
+			                fontWeight: '100',
+			                color: "#000000",
+							fontFamily: 'NanumSquare',
+							textOutline: false
+			            },
+						formatter: function() {
+							return numberFormat(this.total);
+						}
+			        }
+			    },
+				series: chartData
+			});
+			
+			// 종사상지위별 총괄은 차트가 2개
+			if(data[0].TBL_ID == "DT_1KI1514" || data[0].TBL_ID == "DT_1KI2006" || data[0].TBL_ID == "DT_1KI1514_10" ){
+				$('#industryOfAreaChart2').show();
+				opener.$inMoreDetail.chart3_1 = $('#industryOfAreaChart2').highcharts({
+					chart: {
+				        type: chartKind,
+				        height: chartHeight,
+				        width: 600,
+				        events: {
+				        	load: function() {
+				        		if(this.series[0].chart.renderTo.id = "industryOfAreaChart2") {
+				        			if(opener.$inMoreDetail.selectedCategory != "") {
+					        			$("#industryOfAreaChart2").highcharts().series[0].data.forEach(function(selector) {
+											if(selector.category == opener.$inMoreDetail.selectedCategory) {
+												selector.select(true);
+												opener.$inMoreDetailMap.ui.selectedObj = $(selector); 
+											}
+										});
+									}
+				        		}
+				        	}
+				        }
+				    },
+					credits: {
+				        enabled: false
+				    },
+					navigation: {
+				        buttonOptions: {
+				            enabled: false
+				        }
+				    },
+					//colors: $ecnmyDash.chartsOption.color,
+					legend: {
+						enabled: true,
+						verticalAlign: 'top',
+					    itemMarginTop: 10,
+					    itemMarginBottom: 10,
+					    labelFormatter: function() {
+			             	return '<b>' + '사업체수' + '</b>&nbsp;<b>';
+			            },			
+				    },
+				    colors: ["#009589"],
+					title: {
+						text: "",
+						style: { "display": "none" }
+					},
+					plotOptions: {
+						column: {
+				            dataLabels: {
+				                enabled: false,
+				                style: {
+				                    fontWeight: '100',
+				                    color: "#000000",
+									textOutline: false
+				                },
+				                overflow: "allow",
+				                allowOverlap: true,
+				                formatter: function() {
+									return numberFormat(this.y);
+								}
+				            },
+				            pointInterval: 1,
+							borderWidth: 0,
+							pointWidth: 16,
+							groupPadding: 0.1
+				        },
+						series: {
+							cursor: 'pointer',
+							borderWidth: 0,
+							stacking: 'normal'
+						}
+					},
+					tooltip: {
+						useHTML: true,
+						shared: false,
+					    shadow: false,
+					    enabled: false,
+					},
+					xAxis: {
+				        categories: categories2,
+						lineColor: "transparent",
+						tickLength: 0,
+						labels: {				
+							formatter: function() {
+								return this.value;
+							}
+						}
+				    },
+					yAxis: {
+						max: maxVal2,
+						min: 0,
+				        title: {
+							text: null
+						},
+						labels: {
+							formatter: function() {
+								return this.value;
+							}
+						},
+						lineWidth: 1,
+						stackLabels: {
+				            enabled: true,
+				            style: {
+				                fontWeight: '100',
+				                color: "#000000",
+								fontFamily: 'NanumSquare',
+								textOutline: false
+				            },
+							formatter: function() {
+								return numberFormat(this.total);
+							}
+				        }
+				    },
+					series: chartData2
+				});
+			}
+			// 생략 무시
+			var ellipsisLegend = $("#industryOfAreaChart g.highcharts-axis-labels title");
+			for(var i=0; i<ellipsisLegend.length; i++) {
+				if(ellipsisLegend[i]) {
+					var str = $(ellipsisLegend[i]).text()
+						+ "<tspan class='highcharts-br' dy='15' x='21'>&ZeroWidthSpace;</tspan>";
+					$(ellipsisLegend[i]).parent().empty().append(str);
+				}
+			}
+
+			$("#industryOfAreaChart g.highcharts-axis-labels.highcharts-xaxis-labels text").css("font-size", "11px");
+			
+			$("#industryOfAreaChart").parent().parent().show();
+			
+			
+			let tbList = opener.$inMoreDetail.ui.ajax.params.tbl_id_list;
+			if(	  tbList == "DT_1KI1509" 		|| tbList == "DT_1KI1510" 		|| tbList == "DT_1KI1511" 
+				||tbList == "DT_1KI1509_10" 	|| tbList == "DT_1KI1510_10" 	|| tbList == "DT_1KI1511_10" 
+				||tbList == "DT_1KI2001" 		|| tbList == "DT_1KI2002" 		|| tbList == "DT_1KI2003" 
+			){
+				// 123 항목 데이터 순위 5개 색 다르게 해주기
+				let stackRank = _.cloneDeep(stacked[Object.keys(stacked)]);
+				stackRank.sort(function(a,b){
+					return b.DTVAL_CO - a.DTVAL_CO; 
+				});
+				
+				if(opener.$inMoreDetail.ui.dispOptions[chartOrd][0].regionVarOrd == 1){
+					if(stackRank[0].OV_L1_KOR == "전국"){
+						stackRank.splice(0,1);
+					}
+				}else{
+					if(stackRank[0].OV_L2_KOR == "전국"){
+						stackRank.splice(0,1);
+					}
+				}
+				
+				var lengthRank = stackRank.length > 5 ? 5 : stackRank.length;
+				
+				for(let i =0; i<$('#industryOfAreaChart').highcharts().series[0].data.length;i++){
+					// 상위 5개
+					for(let j=0;j<lengthRank;j++){
+						if($('#industryOfAreaChart').highcharts().series[0].data[i].category == stackRank[j].OV_L1_KOR
+								||$('#industryOfAreaChart').highcharts().series[0].data[i].category == stackRank[j].OV_L2_KOR){
+							$('#industryOfAreaChart').highcharts().series[0].data[i].update({ color : "#FFE08C"});
+						}
+					}
+				}
+			}
+		}
+		
+		let drawChart3_1 = function(data) {
+			var chartData = [], categories = [], stacked = {}, itmLv, totSurvWonObj = {}
+			, chartOrd = opener.$inMoreDetail.ui.selectedChartOrd;
+			let chartOpt = opener.$inMoreDetail.ui.dispOptions[chartOrd];
+			
+			let itemId = "OV_L"+chartOpt[0].varOrd+"_ID"
+			, itemSn = "OV_L"+chartOpt[0].varOrd+"_SN"
+			, itemKor = "OV_L"+chartOpt[0].varOrd+"_KOR"
+			
+			let chartHeight = opener.$inMoreDetail.ui.dispOptions[chartOrd][0].dispCo * 40;
+			let maxVal = 0, sumVal = [];	
+			let resArrCnt = [];
+			
+			let unitNm = opener.$inMoreDetail.ui.dispOptions[chartOrd][0].dispUnitNm;
+			var categoriesArr = [];
+			var total3_1  = 0;
+			var maxValArr = [];
+			var maxxAxis  = 4;
+			
+			var optChartOrd = opener.$inMoreDetail.ui.dispOptions[chartOrd];
+			
+			data.sort(function(a, b) { return a.ITM_RCGN_SN - b.ITM_RCGN_SN });
+			data.sort(function(a, b) { return a.OV_L1_SN - b.OV_L1_SN });
+			
+			for(var i=0; i<data.length; i++) {
+				var area_length = data[i].OV_L1_ID.length;
+				var areaCompareVal = "";
+				
+				if(area_length==2){
+					areaCompareVal = data[i].OV_L1_ID.substr(0,1);
+					if(areaCompareVal.match("0")){
+						
+					}else{
+						if(data[i].DTVAL_CO != undefined){
+							chartData.push([data[i].OV_L1_KOR, Number(data[i].DTVAL_CO), data[i].OV_L1_ID]);
+							maxValArr.push([Number(data[i].DTVAL_CO)]);
+							total3_1 += Number(data[i].DTVAL_CO);
+						}
+					}
+				}else if(area_length==5){
+					areaCompareVal = data[i].OV_L1_ID.substr(2,2);
+					if(areaCompareVal.match("00")){
+						
+					}else{
+						if(data[i].DTVAL_CO != undefined){
+							chartData.push([data[i].OV_L1_KOR, Number(data[i].DTVAL_CO), data[i].OV_L1_ID]);
+							maxValArr.push([Number(data[i].DTVAL_CO)]);
+							total3_1 += Number(data[i].DTVAL_CO);
+						}
+					}
+				}else if(area_length==7){
+					if(data[i].DTVAL_CO != undefined){
+						chartData.push([data[i].OV_L1_KOR, Number(data[i].DTVAL_CO), data[i].OV_L1_ID]);
+						maxValArr.push([Number(data[i].DTVAL_CO)]);
+						total3_1 += Number(data[i].DTVAL_CO);
+					}
+				}
+			}
+			
+			chartData.sort(function (a, b) { 
+				return a[1] > b[1] ? -1 : a[1] < b[1] ? 1 : 0;  
+			});
+			
+			maxVal = Math.max.apply(null, maxValArr);
+
+			Highcharts.setOptions({
+			    lang: {
+			        thousandsSep: ','
+			    }
+			});
+			
+			let chart3_1 = Highcharts.chart('industryOfAreaChart', {
+
+			    chart: {
+			        type: 'column'
+			    },
+
+			    credits: {
+			        enabled: false
+			    },
+			    
+			    navigation: {
+			        buttonOptions: {
+			            enabled: false
+			        }
+			    },
+			    
+			    legend: {
+			        enabled: false
+			    },
+			    
+			    title: {
+			        text: null
+			    },
+
+			    xAxis: {
+			        type: 'category',
+			        min: 0,
+			        width: 1400
+			    },
+			    
+			    yAxis: {
+			    	min: 0,
+			        max: maxVal,
+			    	allowDecimals: false,
+			        title: {
+			            text: null
+			        },
+			        plotLines : [ {
+						color : "#FF0000",
+						width : 2,
+						value : (function () {
+							var avg = total3_1 / chartData.length;
+							return avg;
+						})(),
+						zIndex : 5,
+						dashStyle : 'Dash',
+						events: {
+							mouseover: function(e) {
+								var series = this.axis.series[0],
+								chart = series.chart,
+									PointClass = series.pointClass,
+									tooltip = chart.tooltip,
+									point = (new PointClass()).init(
+											series, ["평균", this.options.value.toFixed(2)]
+									),
+									normalizedEvent = chart.pointer.normalize(e);
+					              
+								point.tooltipPos = [
+									normalizedEvent.chartX - chart.plotLeft,
+									normalizedEvent.chartY - chart.plotTop
+								];
+								
+								$(e.currentTarget).css({ "stroke": "rgba(255, 120, 50, 0.8)", "stroke-width": "4px" });
+					
+								tooltip.refresh(point);
+					        }
+						}
+					} ]
+			    },
+			    
+			    lang: {
+					thousandsSep: ','
+				},
+				
+				colors: ['#EA899A'],
+				
+			    tooltip: {
+					useHTML: true,
+					shared: false,
+				    shadow: false,
+				    enabled: false
+			    },
+			    
+			    plotOptions: {
+			    	series: {
+			            cursor: 'pointer'
+			        }
+			    },
+
+			    series: 
+			    	[{
+				        name: '',
+				        data: chartData,
+				        dataLabels: {
+				            enabled: true,
+				            style: {
+				                fontWeight: 'bold',
+				                color: (
+				                    Highcharts.defaultOptions.title.style &&
+				                    Highcharts.defaultOptions.title.style.color
+				                ) || 'gray'
+				            },
+				            formatter: function() {
+				            	var s  = numberFormat(this.y);
+								return s;
+				            }
+				        },
+				    }]
+			});
+		}
+		
+		let fn_bindItmList = function(data) {
+			let char_itm_id_list = "", ovL1List = "", ovL2List = "", ovL3List = "", ovL4List = "",
+					ovL5List = "", ovL6List = "", ovL7List = "", ovL8List = "";
+			for(var i=0; i<data.length; i++) {
+				if(data[i].varOrd == "0") {
+					if(char_itm_id_list != "") {
+						char_itm_id_list += "," + data[i].itmId;
+					}  else {
+						char_itm_id_list += data[i].itmId;
+					}
+				} else if(data[i].varOrd == "1") {
+					if(ovL1List != "") {
+						ovL1List += "," + data[i].itmId;
+					} else {
+						ovL1List += data[i].itmId;
+					}
+				} else if(data[i].varOrd == "2") {
+					if(ovL2List != "") {
+						ovL2List += "," + data[i].itmId;
+					} else {
+						ovL2List += data[i].itmId;
+					}
+				} else if(data[i].varOrd == "3") {
+					if(ovL3List != "") {
+						ovL3List += "," + data[i].itmId;
+					} else {
+						ovL3List += data[i].itmId;
+					}
+				} else if(data[i].varOrd == "4") {
+					if(ovL4List != "") {
+						ovL4List += "," + data[i].itmId;
+					} else {
+						ovL4List += data[i].itmId;
+					}
+				} else if(data[i].varOrd == "5") {
+					if(ovL5List != "") {
+						ovL5List += "," + data[i].itmId;
+					} else {
+						ovL5List += data[i].itmId;
+					}
+				} else if(data[i].varOrd == "6") {
+					if(ovL6List != "") {
+						ovL6List += "," + data[i].itmId;
+					} else {
+						ovL6List += data[i].itmId;
+					}
+				} else if(data[i].varOrd == "7") {
+					if(ovL7List != "") {
+						ovL7List += "," + data[i].itmId;
+					} else {
+						ovL7List += data[i].itmId;
+					}
+				} else if(data[i].varOrd == "8") {
+					if(ovL8List != "") {
+						ovL8List += "," + data[i].itmId;
+					} else {
+						ovL8List += data[i].itmId;
+					}
+				}
+			}
+			
+			opener.$inMoreDetail.ui.ajax.params.char_itm_id_list = char_itm_id_list;
+			opener.$inMoreDetail.ui.ajax.params.ov_l1_list = ovL1List;
+			opener.$inMoreDetail.ui.ajax.params.ov_l2_list = ovL2List;
+			opener.$inMoreDetail.ui.ajax.params.ov_l3_list = ovL3List;
+			opener.$inMoreDetail.ui.ajax.params.ov_l4_list = ovL4List;
+			opener.$inMoreDetail.ui.ajax.params.ov_l5_list = ovL5List;
+			opener.$inMoreDetail.ui.ajax.params.ov_l6_list = ovL6List;
+			opener.$inMoreDetail.ui.ajax.params.ov_l7_list = ovL7List;
+			opener.$inMoreDetail.ui.ajax.params.ov_l8_list = ovL8List;
+		}
+		
+		let drawGrid1_1 = function() {
+			$("#dataGrid_panel1").html();
+			let chartOrd =opener.$inMoreDetail.ui.selectedChartOrd;
+			
+			$("#title4").children(".sub-L").html(
+				"표 보기"
+			);
+
+			$("#title4").children(".sub-R").html(
+				"단위: " +opener.$inMoreDetail.ui.dispOptions[chartOrd][0].dispUnitNm
+			);
+			
+			if(Object.keys(opener.$inMoreDetail.ui.dispOptions).length > 0) {
+				let chartData =opener.$inMoreDetail.ui.dispOptions[chartOrd];
+				
+				opener.$inMoreDetail.ui.ajax.params = {
+					surv_year_list: opener.$("#tmsYears option:selected").val()		// 수록시점
+					, org_id_list:opener.$inMoreDetail.ui.selectedOrgId					// 조직번호
+					, tbl_id_list:opener.$inMoreDetail.ui.selectedTblId					// 통계표 ID
+					, list_var_ord_list: "" 									// 차트화 할 대상 T20, T21, T22, T31, T32, T41, T42, T51, T52, T60
+					, char_itm_id_list:opener.$inMoreDetail.ui.selectedCharItmId	// 표특성항목
+					, adm_cd:  ""// 지역코드
+					, prt_type: ""												// 출력방식 total:계 else 모두		
+					, category:opener.$inMoreDetailMap.ui.category							// 카테고리
+					, odr_col_list: "DTVAL_CO"									// 정렬기준
+					, odr_type: "DESC"											// 내림차순, 오름차순
+				};
+				
+				fn_bindItmList(chartData);
+				
+				// 현재 지역 파라미터 설정 필수
+				if(opener.$("#sbx_sido option:selected").val() != "00"){
+					opener.$inMoreDetail.ui.ajax.params["ov_l" + chartData[0].regionVarOrd + "_list"] = "up:"+opener.$("#sbx_sido option:selected").val();
+					if(opener.$("#sbx_sgg option:selected").val() != "000"){
+						opener.$inMoreDetail.ui.ajax.params["ov_l" + chartData[0].regionVarOrd + "_list"] = "up:"+opener.$("#sbx_sido option:selected").val()+(opener.$("#sbx_gg").val()==='000'?opener.$("#sbx_sgg").val():opener.$("#sbx_gg").val());
+						if(opener.$("#sbx_emd option:selected").val() != "000"){
+							opener.$inMoreDetail.ui.ajax.params["ov_l" + chartData[0].regionVarOrd + "_list"] = opener.$("#sbx_sido option:selected").val()+(opener.$("#sbx_gg").val()==='000'?opener.$("#sbx_sgg").val():opener.$("#sbx_gg").val())+opener.$("#sbx_emd option:selected").val();
+						}
+					}
+				}else if(opener.$("#sbx_sido option:selected").val() == "00"){
+					opener.$inMoreDetail.ui.ajax.params["ov_l" + chartData[0].regionVarOrd + "_list"] = "up:00";
+				}else{
+					opener.$inMoreDetail.ui.ajax.params["ov_l" + chartData[0].regionVarOrd + "_list"] = opener.$totSurvMain.ui.selectedArea;
+				}
+
+				$.ajax({
+					type:"GET",
+					async: false,
+					//url: "/view/kosisApi/TotsurvStatData.do",
+					url: sgis4thApiPath,
+			 		data:opener.$inMoreDetail.ui.ajax.params,
+					success:function( res ){
+						if( res.length > 0 ){
+							let htmlTable = "";
+							let arrRes = [];
+							let stacked = {};
+							let stacked2 = {};
+							let len = chartData.length-1;
+							
+							if(chartData[0].dispVarOrd == 0) {
+								res.sort(function(a, b) { return a["CHAR_ITM_SN"] - b["CHAR_ITM_SN"] });
+							} else {
+								res.sort(function(a, b) { return a["OV_L" + chartData[0].dispVarOrd + "_SN"] - b["OV_L" + chartData[0].dispVarOrd + "_SN"] });
+							}
+							
+							for(var i=0; i<res.length; i++) {
+								if(chartData[0].dispVarOrd == 0) {
+									if(stacked[res[i]["CHAR_ITM_ID"]] != undefined) {
+										stacked[res[i]["CHAR_ITM_ID"]].push(res[i]);
+									} else {
+										stacked[res[i]["CHAR_ITM_ID"]] = [];
+										stacked[res[i]["CHAR_ITM_ID"]].push(res[i]);
+									}
+								} else {
+									if(stacked[res[i]["OV_L" + chartData[0].dispVarOrd + "_ID"]] != undefined) {
+										stacked[res[i]["OV_L" + chartData[0].dispVarOrd + "_ID"]].push(res[i]);
+									} else {
+										stacked[res[i]["OV_L" + chartData[0].dispVarOrd + "_ID"]] = [];
+										stacked[res[i]["OV_L" + chartData[0].dispVarOrd + "_ID"]].push(res[i]);
+									}
+								}
+							}
+							
+							for(let i = 0 ;i<Object.keys(stacked).length;i++){
+								let stack = stacked[Object.keys(stacked)[i]];
+								let stackData = [], stackSn = [];
+								for(var j=0; j<stack.length; j++) {
+									if(stack[j].CHAR_ITM_ID != "13999001") {
+										if(chartData[0].regionVarOrd == 0) {
+											stackData.push({
+												region: stack[j].CHAR_ITM_NM, 
+												val: Number(stack[j].DTVAL_CO), 
+												sn: stack[j]["CHAR_ITM_SN"],
+												region_cd: stack[j]["CHAR_ITM_ID"]
+											});
+										} else {
+											stackData.push({
+												region: stack[j]["OV_L" + chartData[0].regionVarOrd + "_KOR"], 
+												val: Number(stack[j].DTVAL_CO), 
+												sn: stack[j]["OV_L" + chartData[0].regionVarOrd + "_SN"],
+												region_cd: stack[j]["OV_L" + chartData[0].regionVarOrd + "_ID"]
+											});
+										}
+									}
+								}
+								
+								if(chartData[0].dispVarOrd == 0) {
+									arrRes.push({
+										nm: stacked[Object.keys(stacked)[i]][0]["CHAR_ITM_NM"], 
+										id: stacked[Object.keys(stacked)[i]][0]["CHAR_ITM_ID"],
+										data: stackData, 
+										sn: stacked[Object.keys(stacked)[i]][0]["CHAR_ITM_SN"],
+									});
+								} else {
+									arrRes.push({
+										nm: stacked[Object.keys(stacked)[i]][0]["OV_L" + chartData[0].dispVarOrd + "_KOR"], 
+										id: stacked[Object.keys(stacked)[i]][0]["OV_L" + chartData[0].dispVarOrd + "_ID"],
+										data: stackData, 
+										sn: stacked[Object.keys(stacked)[i]][0]["OV_L" + chartData[0].dispVarOrd + "_SN"]
+									});
+								}
+							}
+							
+							var chartSn = "sn";
+							
+							arrRes.sort(function(a, b) { return a[chartSn] - b[chartSn] });
+							
+							for(let m=0; m<arrRes.length; m++){
+								arrRes[m].data.sort(function(a, b) { return a.sn - b.sn; });
+							}
+							
+							let gridWidth = 0
+							
+							if(arrRes.length > 4) {
+								gridWidth = (arrRes.length+1) * 130;
+							} else {
+								gridWidth = 637;
+							}
+							
+							$("#sbx_ksic option:selected").text();
+							htmlTable += '<div>';
+							
+							htmlTable += '<table class="gridCla" style="width:' + gridWidth + 'px;">';
+							htmlTable += '	<colgroup>';
+							if(arrRes.length > 4) {
+								for(let n=0;n<arrRes.length;n++){
+									htmlTable += '<col style="width:130px;" />';
+								}
+							}
+							htmlTable += '	</colgroup>';
+							htmlTable += 	'<thead>';
+							htmlTable += 		'<tr>';
+							htmlTable += 			'<td>지역</td>';
+							for(let m=0;m<arrRes.length;m++) {
+								htmlTable += 		'<td>'+ arrRes[m].nm +'</td>';
+							}
+							htmlTable += 		'</tr>';
+							htmlTable += 	'</thead>';
+							htmlTable += 	'<tbody>';
+							for(let m=0;m<arrRes[0].data.length;m++){
+								if(arrRes[0].data[m].region_cd == "00") {
+									htmlTable += 	'<tr>';
+									htmlTable += '<td>'+ arrRes[0].data[m].region +'</td>';
+									for(let n=0;n<arrRes.length;n++){
+										for(let o=0; o<arrRes[n].data.length; o++) {
+											if(arrRes[0].data[m].region_cd == arrRes[n].data[o].region_cd) {
+												htmlTable += '<td>'+ numberFormat(arrRes[n].data[o].val) +'</td>';
+											}
+										}
+									}
+									htmlTable += 	'</tr>';
+								}
+							}
+							for(let m=0;m<arrRes[0].data.length;m++){
+								if(arrRes[0].data[m].region_cd.substring(0,1) != "0") {
+									htmlTable += 	'<tr>';
+									htmlTable += '<td>'+ arrRes[0].data[m].region +'</td>';
+									for(let n=0;n<arrRes.length;n++){
+										for(let o=0; o<arrRes[n].data.length; o++) {
+											if(arrRes[0].data[m].region_cd == arrRes[n].data[o].region_cd) {
+												htmlTable += '<td>'+ numberFormat(arrRes[n].data[o].val) +'</td>';
+											}
+										}
+									}
+									htmlTable += 	'</tr>';
+								}
+							}
+							htmlTable += 	'</tbody>';
+							htmlTable += '</table>';
+							htmlTable += '</div>';
+							
+							$("#dataGrid_panel1").html(htmlTable);
+							$("#dataGrid_panel1").parent().show();
+						}else{
+//							$("#dataGrid_panel1").parent().children(".item").children(".sub-L").hide();
+//							$("#dataGrid_panel1").parent().children(".item").children(".sub-R").hide();
+//							alert("데이터가 없습니다.");
+							$("#dataGrid_panel1").parent().show();
+							$("#dataGrid_panel1").html($("body>.DataNone").clone().show()[0]);
+						}
+					},
+					error:function(data) {
+						alert('오류발생~!');
+					}
+				});
+			} else {
+				$("#dataGrid_panel1").parent().show();
+				$("#dataGrid_panel1").html($("body>.DataNone").clone().show()[0]);
+			}
+		}
+	</script>
+</head>
+<body>
+	<div id="paintDiv">
+		<div id="wrap">
+			<div class="printArea">
+				<div id="totSurvReportForm"> <!-- 총조사시각화 리포트 -->
+				 	<div class="pntPage">
+				 		<h1 class="pntHeader"><img src="/img/common/logoPlus.png" alt="SGIS 스마트플랫폼"></h1>	 
+				 		<div class="pntBtn"><a href="javascript:$totSurvDashPrint.ui.reportPdfDown();" id="pdfdown">PDF</a><a href="javascript:$totSurvDashPrint.ui.reportPrint();">인쇄</a><a href="javascript:$totSurvDashPrint.ui.reportClose();">닫기</a></div>
+				 		<p class="pntURI">통계지리정보서비스 (https://sgis.kostat.go.kr)</p> 
+				 		
+				 		<div id="hiddenReport">
+						</div>
+				 		<div id="content" style="margin-left: 0px;background:none;">
+							<div class="container">
+								<div class="com_col col02" id="container_panel2" style="width:49%;margin-top:10px;float:none;">
+									<div class="panel">
+										<div class="panel_head">
+											<h3 class="click_name">지도 
+												<span id="areaDiv">전국</span>
+												<span id="yearDiv" class="title charItmMapTitle green" style="display:none;">2020</span>
+												<span id="titleDiv" class="title charItmMapTitle blue" style="display:none;">총인구</span>
+											</h3>
+										</div>
+										<div class="panel_body" style="z-index: 2;">
+											<div>
+								      			<div class="Map totSurvMap" id="mapArea">
+							    				</div>
+						    				</div>
+					    				</div>
+									</div>
+								</div>
+						 		<div class="com_col col03" id="container_panel3" style="width:44.19%;margin-top:10px;float:none;">
+							 		<div class="panel_body">
+						            	<div class="ringt_panel"  >
+											<div class="item" id="description">
+												<ul>
+					<!-- 								<li>통계표 명 : <span class="desc tblNm">시·도별/산업소분류별/조직형태별 총괄</span>&nbsp;&nbsp;&nbsp;<a href="#" target='_blank' class="link-kosis link-btn" onclick="javascript: clickHref();">KOSIS 통계표 보기</a></li> -->
+													<li>통계표 명 : <span class="desc tblNm">시·도별/산업소분류별/조직형태별 총괄</span></li>
+								            		<li>출처 : 통계청, 경제총조사</li>	
+												</ul>
+											</div>
+											
+											<div id="chart_panel1">
+												<div class="item">
+													<div class="sub-L"></div>
+													<div class="sub-R"></div>
+												</div>
+												<div class="chart_inner">
+													<div id="inMoreDetailCorpCountOfIndustryChart" class="box_item">
+													</div>
+												</div>
+												<div class="chartToolTip">
+												</div>
+											</div>
+						            	</div>
+						            </div>
+								</div>
+								<div class="com_col col03" id="container_panel3_2" style="width:44.19%;margin-top:10px;float:none;">
+							 		<div class="panel_body">
+						            	<div class="ringt_panel">
+						            		<div class="item" id="description">
+												<ul>
+													<li>통계표 명 : <span class="desc tblNm">시·도별/산업소분류별/조직형태별 총괄</span></li>
+								            		<li>출처 : 통계청, 경제총조사</li>	
+												</ul>
+											</div>
+						            		<div id="chart_panel2" style="padding-top:10px;">
+												<div class="item"  id="title2">
+													<div class="sub-L"></div>
+													<div class="sub-R"></div>
+												</div>
+												<div id="timeSeriesCorpCountIndustryChart" class="box_item">
+												</div>
+												<div class="chartToolTip">
+												</div>
+											</div>
+						            	</div>
+						            </div>
+						        </div>
+						        <div style="page-break-after:always;"></div>
+						        <div class="com_col col03" id="container_panel3_3" style="width:1525px;margin-top:10px;float:none;">
+							 		<div class="panel_body">
+						            	<div class="ringt_panel">.
+						            		<div class="item" id="description">
+												<ul>
+													<li>통계표 명 : <span class="desc tblNm">시·도별/산업소분류별/조직형태별 총괄</span></li>
+								            		<li>출처 : 통계청, 경제총조사</li>	
+												</ul>
+											</div>
+						            		<div id="chart_panel3" style="padding-top:10px;">
+												<div class="item" id="title3">
+													<div class="sub-L"></div>
+													<div class="sub-R"></div>
+												</div>
+												<div id="industryOfAreaChart" class="box_item">
+												</div>
+												<div id="industryOfAreaChart2" class="box_item" style="display:none;">
+												</div>
+												<div class="chartToolTip">
+												</div>
+											</div>
+						            	</div>
+						            </div>
+						        </div>
+						        <div class="com_col col03" id="container_panel3_4" style="width:44.19%;margin-top:10px;float:none;display: inline-table;">
+							 		<div class="panel_body">
+						            	<div class="ringt_panel">
+						            		<div class="item" id="description">
+												<ul>
+													<li>통계표 명 : <span class="desc tblNm">시·도별/산업소분류별/조직형태별 총괄</span></li>
+								            		<li>출처 : 통계청, 경제총조사</li>	
+												</ul>
+											</div>
+						            		<div id="chart_panel4" style="padding-top:10px;">
+												<div class="item" id="title4">
+													<div class="sub-L"></div>
+													<div class="sub-R"></div>
+												</div>
+												<div id="dataGrid_panel1" class="box_item">
+												</div>
+												<div class="chartToolTip">
+												</div>
+											</div>
+						            	</div>
+						            </div>
+						        </div>
+							</div>
+						</div>
+					</div>
+				</div>
+			 </div>
+		</div>
+		
+	</div>
+	
+	
+	<div class="commonTotSurvBack_modal" id="totSurv_popup_back" style="display:none;"></div>
+	<div id="totSurv_popup_alert" class="commonTotSurvPopupWrap" style="left: calc(50% - 120px); top: calc(50% - 120px); width: 330px; display: none;">  	<!-- 2020-10-13 [신예리] 공통팝업 영역 위치 수정 --> 
+			<div class="commonTotSurvPopTit" style="background-color: #363A46;">
+				<h1>알림 팝업</h1>
+				<button type="button" class="commonTotSurvPopcloseBtn" id="totSurv_popup_alert_close" title="팝업 닫기"></button>
+			</div>
+			<div class="commonTotSurvPopCon">
+				<p class="commonTotSurvPopContxt" id="totSurv_popup_alert_message">비밀 번호를 입력하세요.</p>
+				<div class="commonTotSurvPopBtnBoxCurrent"  >
+					<button class="commonTotSurvPopOk" id="totSurv_popup_alert_ok" type="button">확인</button>
+				</div>
+			</div>  
+	</div>
+	
+	
+	<!-- 확인 팝업 START -->
+	<div id="totSurv_popup_confirm" class="commonTotSurvPopupWrap" style="left: calc(50% - 120px); top: 100px; width: 330px; display: none;">
+			<div class="commonTotSurvPopTit" style="background-color: #363A46;">
+				<h1>알림 팝업</h1>
+				<button type="button" class="commonTotSurvPopcloseBtn" id="totSurv_popup_confirm_close" title="팝업 닫기"></button>
+			</div> 
+			<div class="commonTotSurvPopCon">
+				<p class="commonTotSurvPopContxt" id="totSurv_popup_confirm_message"></p> 
+				<div class="commonTotSurvPopBtnBoxCurrent">
+						<button id="totSurv_popup_confirm_ok" class="commonTotSurvPopOk" type="button">확인</button>
+						<button id="totSurv_popup_confirm_cancel" class="commonTotSurvPopCancle" type="button">취소</button>
+					</div>
+			</div> 
+	</div>
+	<!-- 확인 팝업 END -->
+	<div class="DataNone" name="tiemTableNone" style="text-align: center;">
+		<img src="/images/totSurv/ChartNone.png" alt="선택하신 지역에 대한 정보가 없습니다." style="margin-top: 25px;margin-bottom:25px" />
+		<p style="margin-top: 15px;">통계표가 선택되지 않았거나 통계 정보가 없습니다.</p>
+	</div>
+	
+	<select id="chrItmList" style="display:none;">
+	</select>
+	
+	<select id="sbx_sido" style="display:none;">
+	</select>
+	<select id="sbx_sgg" style="display:none;">
+	</select>
+	<select id="sbx_gg" style="display:none;">
+	</select>
+	<select id="sbx_emd" style="display:none;">
+	</select>
+</body>
+	<script type="text/javascript" src="/js/administStatsDetail/highcharts/highcharts.js"></script>
+	
+	<!-- SGIS 공통 JS -->
+	<link rel="stylesheet" href="/js/plugins/jquery-easyui-1.4/sop.css" />
+	<script src="/js/plugins/jquery-easyui-1.4/sop.js"></script>
+	<script src="/js/plugins/jquery-easyui-1.4/sop-src.js"></script>
+	<script src="/js/plugins/jquery-easyui-1.4/sop-src.sync.js"></script>
+	<script src="/js/plugins/jquery.sha256.js"></script>
+	<script src="/js/plugins/durian-v2.0.js"></script>
+	<script src="/js/common/sop.portal.absAPI.js"></script>
+	<script src="/js/totSurv/inMoreDetail/map.js"></script>
+	<script src="/js/common/common.js"></script>
+	<script src="/js/totSurv/legendInfo.js"></script>
+	<script src="/js/plugins/jquery.wheelcolorpicker.js"></script>
+	<script src="/js/plugins/colorpicker/js/jquery.xcolor.js"></script>
+	<link rel="stylesheet" href="/css/wheelcolorpicker.css"/>
+    <script src="/js/plugins/jquery.wheelcolorpicker.js"></script>
+    <script type="text/javascript" src="/js/totSurv/totSurvLeft.js"></script>
+    <script type="text/javascript" src="/js/totSurv/totSurvMain.js"></script>
+</html>

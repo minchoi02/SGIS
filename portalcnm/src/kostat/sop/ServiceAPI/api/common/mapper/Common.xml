@@ -1,0 +1,1124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Common"> 
+	<select id="getBCommonCode" parameterType="String" resultType="Map">
+	 select 
+	 S_CLASS_CD,S_CLASS_CD_NM
+	 from  CMM_CD_COMCD
+	 where B_CLASS_CD = #{B_CLASS_CD}
+	 order by S_CLASS_CD_ORDER
+	</select>
+	<select id="getAPIBClassList"   parameterType="Map" resultType="Map">
+	 select 
+	    DISTINCT
+		API_B_CLASS_CD,
+		API_B_CLASS_NM
+	 from SRV_CD_APICLASS 
+	 where 1=1
+	 <if test="SRV_ATTR != null">
+	  and SRV_ATTR = #{SRV_ATTR}
+	 </if>
+	 order by API_B_CLASS_CD
+	</select>
+	<select id="getAPIMClassList" parameterType="Map"  resultType="Map">
+	 select 
+	 	DISTINCT
+	 	API_B_CLASS_CD,
+		API_M_CLASS_CD,
+		API_M_CLASS_NM
+	 from SRV_CD_APICLASS
+	 where 1=1
+	 <if test="API_B_CLASS_CD != null">
+	    	and API_B_CLASS_CD=#{API_B_CLASS_CD}
+	 </if>
+	 <if test="SRV_ATTR != null">
+	 	 and SRV_ATTR = #{SRV_ATTR}
+	 </if>
+	 order by API_B_CLASS_CD,API_M_CLASS_CD
+	</select>
+	
+	<select id="getLogBCdList" parameterType="Map"  resultType="Map">
+	 select usr_log_b_cd, class_nm
+	 from mng_dt_logbigclass
+	 order by usr_log_b_cd
+	</select>
+	
+	<select id="getLogSCdList" parameterType="Map"  resultType="Map">
+	 select usr_log_b_cd, usr_log_s_cd, s_class_nm
+	 from mng_dt_logsmlclass
+	 where 1=1
+	 <if test="SRV_ATTR != null">
+	    	and usr_log_b_cd=#{SRV_ATTR}
+	 </if>
+	 order by usr_log_b_cd,usr_log_s_cd
+	</select>
+	<select id="getLogTCdList" parameterType="Map"  resultType="Map">
+	 select thema_map_category, category_nm
+	 from MNG_DT_THEMAMAPCATEGORY
+	 order by thema_map_category
+	</select>
+	<select id="getFileCNT" parameterType="Map"  resultType="Integer">
+		select NVL(COUNT(sgis_census_detail_data_id),0) as COUNT
+		from sgis_census_req_year_code 
+		where sgis_census_req_id=#{SGIS_CENSUS_REQ_ID}
+	</select>
+	<select id="getFileList" parameterType="Map"  resultType="Map">
+		select
+		    A.sgis_census_req_id
+		    , SUBSTR(C.sgis_census_dir,1, 8)|| 'txt_' || SUBSTR(C.sgis_census_dir,9) || '/' || substr(sgis_census_file, 1, (instr(sgis_census_file, '_', -1) - 1)) || '_' || SUBSTR(A.census_output_area_year,1,4) as dir -- 텍스트 파일 경로
+		    ,case when 
+		            B.sgis_census_req_sido = '00' 
+		        then
+		            substr(A.census_output_area_year,1,4) || '년기준_' || B.sgis_census_req_year || '년_' || D.sgis_census_detail_data_nm || '.txt'
+		        when 
+		            B.sgis_census_req_sido != '00' and B.sgis_census_req_sigungu = '00000'
+		        then
+		            B.sgis_census_req_sido || '_' || B.sgis_census_req_year || '년_' || D.sgis_census_detail_data_nm || '.txt'
+		        else
+		            B.sgis_census_req_sigungu || '_' || B.sgis_census_req_year || '년_' || D.sgis_census_detail_data_nm || '.txt'
+		    end file_name
+		from
+		    sgis_census_req A
+		    , sgis_census_req_year_code B
+		    , sgis_census_sigungu_data C
+		    , sgis_census_detail_data_code D
+		where
+		    A.sgis_census_req_id = #{SGIS_CENSUS_REQ_ID}
+		    and B.sgis_census_req_id = #{SGIS_CENSUS_REQ_ID}
+		    and B.sgis_census_id = C.sgis_census_id
+		    and B.sgis_census_data_id = C.sgis_census_data_id
+		    and B.sgis_census_req_year = C.sgis_census_year
+		    and B.sgis_census_req_sido = C.sgis_census_sido
+		    and B.sgis_census_req_sigungu = C.sgis_census_sigungu
+		    and A.census_output_area_year = C.census_output_area_year
+		    and B.sgis_census_detail_data_id = D.sgis_census_detail_data_id
+		    and B.sgis_census_id != '2'
+		group by 
+		    A.sgis_census_req_id
+		    , A.census_output_area_year
+		    , B.sgis_census_req_year
+		    , B.sgis_census_req_sido
+		    , B.sgis_census_req_sigungu
+		    , D.sgis_census_detail_data_nm
+		    , C.sgis_census_dir
+		    , C.sgis_census_file
+	</select>
+	
+	<select id="getFileList2" parameterType="Map"  resultType="Map">
+	  select
+			  a.sgis_census_req_id
+			  	, SUBSTR(c.sgis_census_dir,1, 8)|| 'txt_' || SUBSTR(c.sgis_census_dir,9) || '/' ||  substr(sgis_census_file, 1, (instr(sgis_census_file, '_', -1) - 1)) || '_' || SUBSTR(NVL(a.census_output_area_dts_year,
+			  	a.census_output_area_year),1,4) as dir
+			  	, case when a.sgis_census_req_sido = '00' then
+		   				substr(NVL(a.census_output_area_dts_year,a.census_output_area_year),1,4) || '년기준_' || a.sgis_census_req_year || '년_' || d.sgis_census_detail_data_nm || '.txt'
+		  		       when a.sgis_census_req_sido != '00' and a.sgis_census_req_sigungu = '00000' then
+		  		   		a.sgis_census_req_sido || '_' || a.sgis_census_req_year || '년_' || d.sgis_census_detail_data_nm || '.txt'
+		             else a.sgis_census_req_sigungu || '_' || a.sgis_census_req_year || '년_' || d.sgis_census_detail_data_nm || '.txt' end file_name
+	    from  (
+			select distinct
+				  a.sgis_census_req_id
+				  , a.sgis_census_id
+				  , b.sgis_census_data_id
+				  , b.sgis_census_detail_data_id
+				  , a.census_output_area_year
+				  , b.census_output_area_dts_year
+				  , a.detail_data_seq
+				  , b.sgis_census_req_sido
+				  , b.sgis_census_req_sigungu
+				  , b.sgis_census_req_year
+			from sgis_census_req a inner join sgis_census_req_year_code	b
+							on a.sgis_census_req_id = #{SGIS_CENSUS_REQ_ID}
+							  and a.sgis_census_req_id = b.sgis_census_req_id
+							  and a.sgis_census_id = b.sgis_census_id
+							  and a.sgis_census_data_id = b.sgis_census_data_id
+							  and a.sgis_census_id in('1','4')
+	     ) a inner join sgis_census_sigungu_data c
+			  			on  a.sgis_census_id = c.sgis_census_id
+			   		      and a.sgis_census_data_id = c.sgis_census_data_id
+			  			  and a.sgis_census_req_year = c.sgis_census_year
+			  			  and a.sgis_census_req_sido = c.sgis_census_sido
+			  			  and a.sgis_census_req_sigungu = c.sgis_census_sigungu
+			  			  and a.census_output_area_dts_year = c.census_output_area_year
+	
+ 		inner join sgis_census_detail_data_code d
+		  			on a.sgis_census_detail_data_id = d.sgis_census_detail_data_id
+	  where 1=1		  	
+		
+	</select>
+	
+	<select id="getFileListArea" parameterType="Map"  resultType="Map">
+		select
+		      to_char(B.sgis_census_data_id) as sgis_census_data_id
+		    , to_char(B.sgis_census_req_year) as sgis_census_req_year
+		    , to_char(B.sgis_census_detail_data_id) as sgis_census_detail_data_id
+	    from sgis_census_req_year_code B
+		where B.sgis_census_req_id = #{SGIS_CENSUS_REQ_ID}
+		    and B.sgis_census_id = '7'
+	</select>
+	
+	
+	<insert id="addDynamicZipFile" parameterType="Map">
+		insert into
+		sgis_census_dynamic_zipfile
+		(sgis_census_req_id,sgis_census_file_path,sgis_census_file_name)
+		values
+		(#{sgis_census_req_id},#{filePath},#{fileName})
+	</insert>
+	
+	<!-- 신규 파일 생성 -->
+	<select id="cp_file" parameterType="Map" resultType="Map">
+		select * from
+		(
+		select a.base_year,
+		       a.tot_reg_cd,
+		       a.gbn,
+		       <if test = 'type == "cp_bnu"'>
+		       case when sum(a.corp_cnt) <![CDATA[<]]> 5 then 'N/A'
+		            else sum(a.corp_cnt)
+		       end na,
+		       sum(a.corp_cnt) cnt
+		       </if>
+		       <if test = 'type == "cp_bem"'>
+		       case when sum(a.employee_cnt) <![CDATA[<]]> 5 then 'N/A'
+		            else sum(a.employee_cnt)
+		       end na,
+		       sum(a.employee_cnt) cnt
+		       </if>
+		  from (select base_year
+		             , tot_reg_cd
+		             , ksic_1_cd
+		             , corp_cnt
+		             , employee_cnt
+		             , case when ksic_1_cd='A' then #{type}||'_001'
+				            when ksic_1_cd='B' then #{type}||'_002'
+				            when ksic_1_cd='C' then #{type}||'_003'
+				            when ksic_1_cd='D' then #{type}||'_004'
+				            when ksic_1_cd='E' then #{type}||'_005'
+				            when ksic_1_cd='F' then #{type}||'_006'
+				            when ksic_1_cd='G' then #{type}||'_007'
+				            when ksic_1_cd='H' then #{type}||'_008'
+				            when ksic_1_cd='I' then #{type}||'_009'
+				            when ksic_1_cd='J' then #{type}||'_010'
+				            when ksic_1_cd='K' then #{type}||'_011'
+				            when ksic_1_cd='L' then #{type}||'_012'
+				            when ksic_1_cd='M' then #{type}||'_013'
+				            when ksic_1_cd='N' then #{type}||'_014'
+				            when ksic_1_cd='O' then #{type}||'_015'
+				            when ksic_1_cd='P' then #{type}||'_016'
+				            when ksic_1_cd='Q' then #{type}||'_017'
+				            when ksic_1_cd='R' then #{type}||'_018'
+				            <if test = 'baseYear > 2005'>
+				            when ksic_1_cd='S' then #{type}||'_019'
+				            </if>
+				       end gbn
+		  		from srv_dt_corpclassreg
+		  		where base_year = #{baseYear} and ksic_1_cd != '0') a
+		 group by a.base_year, a.tot_reg_cd, a.gbn
+		
+		union all
+		
+		select
+		#{baseYear} base_year,
+		a.tot_reg_cd,
+		#{type}||'_999' gbn,
+		'0' na,
+		'0' cnt
+		from srv_pg_totregbord a
+		left outer join
+		(select tot_reg_cd from (
+		select a.tot_reg_cd,
+		       <if test = 'type == "cp_bnu"'>
+		       case when sum(a.corp_cnt) <![CDATA[<]]> 5 then 'N/A'
+		            else sum(a.corp_cnt)
+		       end na,
+		       sum(a.corp_cnt) cnt
+		       </if>
+		       <if test = 'type == "cp_bem"'>
+		       case when sum(a.employee_cnt) <![CDATA[<]]> 5 then 'N/A'
+		            else sum(a.employee_cnt)
+		       end na,
+		       sum(a.employee_cnt) cnt
+		       </if>
+		  from (select * from srv_dt_corpclassreg where base_year = #{baseYear} and ksic_1_cd != '0') a
+		 group by a.tot_reg_cd
+		) group by tot_reg_cd) l
+		on
+		a.tot_reg_cd = l.tot_reg_cd
+		where
+		l.tot_reg_cd is null
+		)
+		where 1 = 1
+		<if test='totRegCd != null and totRegCd != ""'>
+		and tot_reg_cd like #{totRegCd}||'%'
+		</if>
+		order by tot_reg_cd, gbn
+	</select>
+	
+	<!--2019년반영 시작-->
+	<select id="to_file" parameterType="Map" resultType="Map">
+		select
+			adm_cd             as adm_cd
+			, adm_nm           as adm_nm
+			, case when tot_ppltn <![CDATA[<=]]> 4 then 'N/A'
+				 when tot_ppltn <![CDATA[>]]> 4 then tot_ppltn end tot_ppltn --총인구 to_in_001
+			, avg_age          as avg_age --평균나이 to_in_002
+			, ppltn_dnsty      as ppltn_dnsty --인구밀도 to_in_003
+			, aged_child_idx   as aged_child_idx --노령화지수 to_in_004
+			, oldage_suprt_per as oldage_suprt_per --노년부양비 to_in_005
+			, juv_suprt_per    as juv_suprt_per --유년부양비 to_in_006
+			<choose>
+			<when test='NAnoNeed == null or NAnoNeed == ""'>
+			, case when tot_family <![CDATA[<=]]> 4 then 'N/A'
+					when tot_family <![CDATA[>]]> 4 then tot_family end tot_family --가구총괄 to_ga_001
+			, case when tot_house <![CDATA[<=]]> 4 then 'N/A'
+					when tot_house <![CDATA[>]]> 4 then tot_house end tot_house --주택총괄 to_ho_001		
+			</when>
+			<when test='NAnoNeed == "Yes"'>
+			,tot_family
+			,tot_house
+			</when>		
+			</choose>
+			, avg_fmember_cnt  as avg_fmember_cnt --가구총괄 to_ga_002
+			, case when corp_cnt <![CDATA[<=]]> 4 then 'N/A'
+					when corp_cnt <![CDATA[>]]> 4 then corp_cnt end corp_cnt --총괄사업체수 to_fa_010
+			, case when employee_cnt <![CDATA[<=]]> 4 then 'N/A'
+					else employee_cnt end employee_cnt
+			from (
+				select
+					addr.adm_cd             as adm_cd
+					, addr.adm_nm           as adm_nm
+					, sum(tot_ppltn)        as tot_ppltn
+					, sum(avg_age)          as avg_age
+					, sum(ppltn_dnsty)      as ppltn_dnsty
+					, sum(aged_child_idx)   as aged_child_idx
+					, sum(oldage_suprt_per) as oldage_suprt_per
+					, sum(juv_suprt_per)    as juv_suprt_per
+					, sum(tot_family)       as tot_family
+					, sum(avg_fmember_cnt)  as avg_fmember_cnt
+					, sum(tot_house)        as tot_house
+					, sum(corp_cnt)         as corp_cnt
+					, sum(employee_cnt)     as employee_cnt
+				from (
+					select 
+						base_year                  as base_year
+						, nvl(tot_ppltn, 0)        as tot_ppltn
+						, nvl(avg_age, 0)          as avg_age
+						, nvl(ppltn_dnsty, 0)      as ppltn_dnsty
+						, nvl(aged_child_idx, 0)   as aged_child_idx
+						, nvl(oldage_suprt_per, 0) as oldage_suprt_per
+						, nvl(juv_suprt_per, 0)    as juv_suprt_per
+						, nvl(tot_family, 0)       as tot_family
+						, nvl(avg_fmember_cnt, 0)  as avg_fmember_cnt
+						, nvl(tot_house, 0)        as tot_house
+						, to_int('0')              as corp_cnt
+						, to_int('0')              as employee_cnt
+						, tot_reg_cd     as tot_reg_cd
+					from srv_dt_totcensus_index 
+					where
+							base_year          = #{baseYear}
+							<if test='totRegCd != null and totRegCd != ""'>
+							and tot_reg_cd like #{totRegCd}||'%'
+							</if>
+					union all
+					select
+						base_year        as base_year
+						, to_int('0')    as tot_ppltn
+						, to_number('0') as avg_age
+						, to_number('0') as ppltn_dnsty
+						, to_number('0') as aged_child_idx
+						, to_number('0') as oldage_suprt_per
+						, to_number('0') as juv_suprt_per
+						, to_int('0')    as tot_family
+						, to_number('0') as avg_fmember_cnt
+						, to_int('0')    as tot_house
+						, corp_cnt       as corp_cnt
+						, employee_cnt   as employee_cnt
+						, tot_reg_cd     as tot_reg_cd
+					from srv_dt_totcorpcensus_index
+					where
+						base_year          = #{baseYear}
+						<if test='totRegCd != null and totRegCd != ""'>
+						and tot_reg_cd like #{totRegCd}||'%'
+						</if>
+				) totcensusindex
+				inner join (
+					select distinct
+							totbord.tot_reg_cd as adm_cd
+							, admbord.emdong_nm as adm_nm
+							, totbord.tot_reg_cd as tot_reg_cd
+					from 
+							srv_pg_admbord admbord
+					inner join srv_pg_totregbord totbord
+							on admbord.base_year = totbord.base_year 
+							and admbord.sido_cd = totbord.sido_cd 
+							and admbord.sgg_cd = totbord.sgg_cd 
+							and admbord.emdong_cd = totbord.emdong_cd
+					where
+							admbord.base_year = #{baseYear}
+							<if test='totRegCd != null and totRegCd != ""'>
+							and tot_reg_cd like #{totRegCd}||'%'
+							</if>
+				) addr 
+				on totcensusindex.tot_reg_cd = addr.tot_reg_cd
+				group by adm_cd, adm_nm
+			)
+	</select>
+	<!--2019년반영 끝-->
+	
+	<select id="gabu_jum_file" parameterType="Map" resultType="Map">
+		select * from
+		(
+		select #{baseYear} base_year,
+		       a.tot_reg_cd,
+		       a.gbn,
+		        case when sum(a.family_cnt) <![CDATA[<]]> 5 then 'N/A'
+		             else sum(a.family_cnt)
+		        end na,
+		        sum(a.family_cnt) cnt
+		   from (select tot_reg_cd
+		              , family_cnt
+		              , case when rd_ocptn_type = '1' then 'ga_po_001'
+				            when rd_ocptn_type = '2' then 'ga_po_002'
+				            when rd_ocptn_type = '3' then 'ga_po_003'
+				            when rd_ocptn_type = '5' then 'ga_po_004'
+				            when rd_ocptn_type = '6' then 'ga_po_005'
+				            when rd_ocptn_type = '4' then 'ga_po_006'
+				        end gbn
+		   		  from srv_dt_familyreg_${baseYear}
+		   		  where rd_ocptn_type != '9') a
+		 where 1 = 1
+		 group by a.tot_reg_cd, a.gbn
+		
+		union all
+		
+		select
+		#{baseYear} base_year,
+		a.tot_reg_cd,
+		'ga_po_999' gbn,
+		'0' na,
+		'0' cnt
+		from srv_pg_totregbord a
+		left outer join
+		(select tot_reg_cd tot_reg_cd from (
+		select a.tot_reg_cd,
+		        sum(a.family_cnt) cnt
+		   from srv_dt_familyreg_${baseYear} a
+		 where a.rd_ocptn_type != '9'
+		 group by a.tot_reg_cd
+		) group by tot_reg_cd) l
+		on
+		a.tot_reg_cd = l.tot_reg_cd
+		where
+		l.tot_reg_cd is null
+		)
+		where 1 = 1
+		<if test='totRegCd != null and totRegCd != ""'>
+		and tot_reg_cd like #{totRegCd}||'%'
+		</if>
+		order by tot_reg_cd, gbn
+	</select>
+	
+	<select id="gabu_seda_file" parameterType="Map" resultType="Map">
+		select * from
+		(
+		select 
+		    #{baseYear} base_year,
+		    a.tot_reg_cd tot_reg_cd,
+		    a.gbn,
+		     case when sum(a.family_cnt) <![CDATA[<]]> 5 then 'N/A'
+		          else sum(a.family_cnt)
+		     end na,
+		     sum(a.family_cnt) cnt
+		from (select tot_reg_cd
+		           , family_cnt
+		           , case when rd_household_type = '01' then 'ga_sd_001'
+				         when rd_household_type = '02' then 'ga_sd_002'
+				         when rd_household_type = '03' then 'ga_sd_003'
+				         when rd_household_type = '04' then 'ga_sd_004'
+				         when rd_household_type = 'A0' then 'ga_sd_005'
+				         when rd_household_type = 'B0' then 'ga_sd_006'
+				     end gbn
+		        from srv_dt_familyreg_${baseYear}) a
+		group by a.tot_reg_cd, a.gbn
+		
+		union all
+		
+		select
+		#{baseYear} base_year,
+		a.tot_reg_cd,
+		'ga_sd_999' gbn,
+		'0' na,
+		'0' cnt
+		from srv_pg_totregbord a
+		left outer join
+		(select tot_reg_cd tot_reg_cd from (
+		select a.tot_reg_cd tot_reg_cd,
+		     sum(a.family_cnt) cnt
+		from srv_dt_familyreg_${baseYear} a
+		group by a.tot_reg_cd
+		) group by tot_reg_cd) l
+		on
+		a.tot_reg_cd = l.tot_reg_cd
+		where
+		l.tot_reg_cd is null
+		)
+		where 1 = 1
+		<if test='totRegCd != null and totRegCd != ""'>
+		and tot_reg_cd like #{totRegCd}||'%'
+		</if>
+		order by tot_reg_cd, gbn
+	</select>
+	
+	<sql id="ho_yr_col">
+		case when rd_const_year = '13' then #{type}||'_001'
+            when rd_const_year = '12' then #{type}||'_002'
+            when rd_const_year = '11' then #{type}||'_003'
+            when rd_const_year = '10' then #{type}||'_004'
+            when rd_const_year = '09' then #{type}||'_005'
+            when rd_const_year = '08' then #{type}||'_006'
+            when rd_const_year = '07' then #{type}||'_007'
+            when rd_const_year = '06' then #{type}||'_008'
+            when rd_const_year = '05' then #{type}||'_009'
+            when rd_const_year = '04' then #{type}||'_010'
+            when rd_const_year = '03' then #{type}||'_011'
+            when rd_const_year = '02' then #{type}||'_012'
+            when rd_const_year = '01' then #{type}||'_013'
+       end gbn
+	</sql>
+	<sql id="ho_yr_where">
+		and rd_const_year in ('13', '12', '11', '10', '09', '08', '07', '06', '05', '04', '03', '02', '01')
+	</sql>
+	<sql id="ho_pr_col">
+		case when house_use_prid_cd = '01' then 'ho_pr_001'
+            when house_use_prid_cd = '02' then 'ho_pr_002'
+            when house_use_prid_cd = '03' then 'ho_pr_003'
+            when house_use_prid_cd = '04' then 'ho_pr_004'
+            when house_use_prid_cd = '05' then 'ho_pr_005'
+            when house_use_prid_cd = '06' then 'ho_pr_006'
+            when house_use_prid_cd = '07' then 'ho_pr_007'
+            when house_use_prid_cd = '08' then 'ho_pr_008'
+            when house_use_prid_cd = '09' then 'ho_pr_009'
+            when house_use_prid_cd = '10' then 'ho_pr_010'
+            when house_use_prid_cd = '11' then 'ho_pr_011'
+            when house_use_prid_cd = '12' then 'ho_pr_012'
+       end gbn
+	</sql>
+	<sql id="ho_pr_where">
+		and house_use_prid_cd in ('12', '11', '10', '09', '08', '07', '06', '05', '04', '03', '02', '01')
+	</sql>
+	<select id="gun_yyyy_file" parameterType="Map" resultType="Map">
+		select * from
+		(
+		select #{baseYear} base_year,
+		       a.tot_reg_cd tot_reg_cd,
+		       a.gbn,
+		       case when sum(a.resid_cnt) <![CDATA[<]]> 5 then 'N/A'
+		            else sum(a.resid_cnt)
+		       end na,
+		       sum(a.resid_cnt) cnt
+		  from (select tot_reg_cd,
+		               resid_cnt,
+				       house_yn,
+				       <if test='type == "ho_yr"'>
+				       		<include refid="ho_yr_col"/>
+				       </if>
+				       <if test='type == "ho_pr"'>
+				       		<include refid="ho_pr_col"/>
+				       </if>
+		          from srv_dt_housereg_${baseYear}
+				 where house_yn = 'Y'
+				   <if test='type == "ho_yr"'>
+			       		<include refid="ho_yr_where"/>
+			       </if>
+			       <if test='type == "ho_pr"'>
+			       		<include refid="ho_pr_where"/>
+			       </if>
+			 ) a
+		 group by a.tot_reg_cd, a.gbn
+		
+		union all
+		
+		select
+		#{baseYear} base_year,
+		a.tot_reg_cd,
+		#{type}||'_999' gbn,
+		'0' na,
+		'0' cnt
+		from srv_pg_totregbord a
+		left outer join
+		(select tot_reg_cd tot_reg_cd from (
+		select a.tot_reg_cd tot_reg_cd,
+		       sum(a.resid_cnt) cnt
+		  from srv_dt_housereg_${baseYear} a
+		 where a.house_yn = 'Y'
+		   <if test='type == "ho_yr"'>
+	       		<include refid="ho_yr_where"/>
+	       </if>
+	       <if test='type == "ho_pr"'>
+	       		<include refid="ho_pr_where"/>
+	       </if>
+		 group by a.tot_reg_cd
+		) group by tot_reg_cd) l
+		on
+		a.tot_reg_cd = l.tot_reg_cd
+		where
+		l.tot_reg_cd is null
+		)
+		where 1 = 1
+		<if test='totRegCd != null and totRegCd != ""'>
+		and tot_reg_cd like #{totRegCd}||'%'
+		</if>
+		order by tot_reg_cd, gbn
+	</select>
+	
+	<select id="ingu_file" parameterType="Map" resultType="Map">
+		select * from
+		(
+		/*남자*/
+		select #{baseYear} base_year, a.tot_reg_cd,
+		       a.gbn,
+		       case when sum(a.ppltn_cnt) <![CDATA[>=]]> 5 then sum(a.ppltn_cnt)
+		               else 'N/A'
+		       end na,
+		       sum(a.ppltn_cnt) cnt
+		  from (select tot_reg_cd,
+		               ppltn_cnt,
+		               case when age <![CDATA[<=]]> 4  then 'in_age_031'
+				            when age <![CDATA[>=]]> 5 and age <![CDATA[<=]]> 9   then 'in_age_032'
+				            when age <![CDATA[>=]]> 10 and age <![CDATA[<=]]> 14 then 'in_age_033'
+				            when age <![CDATA[>=]]> 15 and age <![CDATA[<=]]> 19 then 'in_age_034'
+				            when age <![CDATA[>=]]> 20 and age <![CDATA[<=]]> 24 then 'in_age_035'
+				            when age <![CDATA[>=]]> 25 and age <![CDATA[<=]]> 29 then 'in_age_036'
+				            when age <![CDATA[>=]]> 30 and age <![CDATA[<=]]> 34 then 'in_age_037'
+				            when age <![CDATA[>=]]> 35 and age <![CDATA[<=]]> 39 then 'in_age_038'
+				            when age <![CDATA[>=]]> 40 and age <![CDATA[<=]]> 44 then 'in_age_039'
+				            when age <![CDATA[>=]]> 45 and age <![CDATA[<=]]> 49 then 'in_age_040'
+				            when age <![CDATA[>=]]> 50 and age <![CDATA[<=]]> 54 then 'in_age_041'
+				            when age <![CDATA[>=]]> 55 and age <![CDATA[<=]]> 59 then 'in_age_042'
+				            when age <![CDATA[>=]]> 60 and age <![CDATA[<=]]> 64 then 'in_age_043'
+				            when age <![CDATA[>=]]> 65 and age <![CDATA[<=]]> 69 then 'in_age_044'
+				            when age <![CDATA[>=]]> 70 and age <![CDATA[<=]]> 74 then 'in_age_045'
+				            when age <![CDATA[>=]]> 75 and age <![CDATA[<=]]> 79 then 'in_age_046'
+				            when age <![CDATA[>=]]> 80 and age <![CDATA[<=]]> 84 then 'in_age_047'
+				            when age <![CDATA[>=]]> 85 and age <![CDATA[<=]]> 89 then 'in_age_048'
+							when age <![CDATA[>=]]> 90 and age <![CDATA[<=]]> 94 then 'in_age_049'
+				            when age <![CDATA[>=]]> 95 and age <![CDATA[<=]]> 99 then 'in_age_050'
+							when age <![CDATA[>=]]> 100 and age <![CDATA[<]]> 120 then 'in_age_051'
+							when age <![CDATA[>=]]> 120 then 'in_age_052'
+				       end gbn
+		          from srv_dt_popsreg_${baseYear}
+		         where gender = '1'
+		       ) a
+		 group by a.tot_reg_cd, a.gbn
+		
+		union all
+		
+		/*여자*/
+		select #{baseYear} base_year, a.tot_reg_cd,
+		       a.gbn,
+		       case when sum(a.ppltn_cnt) <![CDATA[>=]]> 5 then sum(a.ppltn_cnt)
+		               else 'N/A'
+		       end na,
+		       sum(a.ppltn_cnt) cnt
+		  from (select tot_reg_cd,
+		               ppltn_cnt,
+		               case when age <![CDATA[<=]]> 4 then 'in_age_061'
+				            when age <![CDATA[>=]]> 5 and age <![CDATA[<=]]> 9   then 'in_age_062'
+				            when age <![CDATA[>=]]> 10 and age <![CDATA[<=]]> 14 then 'in_age_063'
+				            when age <![CDATA[>=]]> 15 and age <![CDATA[<=]]> 19 then 'in_age_064'
+				            when age <![CDATA[>=]]> 20 and age <![CDATA[<=]]> 24 then 'in_age_065'
+				            when age <![CDATA[>=]]> 25 and age <![CDATA[<=]]> 29 then 'in_age_066'
+				            when age <![CDATA[>=]]> 30 and age <![CDATA[<=]]> 34 then 'in_age_067'
+				            when age <![CDATA[>=]]> 35 and age <![CDATA[<=]]> 39 then 'in_age_068'
+				            when age <![CDATA[>=]]> 40 and age <![CDATA[<=]]> 44 then 'in_age_069'
+				            when age <![CDATA[>=]]> 45 and age <![CDATA[<=]]> 49 then 'in_age_070'
+				            when age <![CDATA[>=]]> 50 and age <![CDATA[<=]]> 54 then 'in_age_071'
+				            when age <![CDATA[>=]]> 55 and age <![CDATA[<=]]> 59 then 'in_age_072'
+				            when age <![CDATA[>=]]> 60 and age <![CDATA[<=]]> 64 then 'in_age_073'
+				            when age <![CDATA[>=]]> 65 and age <![CDATA[<=]]> 69 then 'in_age_074'
+				            when age <![CDATA[>=]]> 70 and age <![CDATA[<=]]> 74 then 'in_age_075'
+				            when age <![CDATA[>=]]> 75 and age <![CDATA[<=]]> 79 then 'in_age_076'
+				            when age <![CDATA[>=]]> 80 and age <![CDATA[<=]]> 84 then 'in_age_077'
+				            when age <![CDATA[>=]]> 85 and age <![CDATA[<=]]> 89 then 'in_age_078'
+							when age <![CDATA[>=]]> 90 and age <![CDATA[<=]]> 94 then 'in_age_079'
+				            when age <![CDATA[>=]]> 95 and age <![CDATA[<=]]> 99 then 'in_age_080'
+							when age <![CDATA[>=]]> 100 and age <![CDATA[<]]> 120 then 'in_age_081'
+							when age <![CDATA[>=]]> 120 then 'in_age_082'
+				       end gbn
+		          from srv_dt_popsreg_${baseYear}
+		         where gender = '2'
+		       ) a
+		 group by a.tot_reg_cd, a.gbn
+		
+		union all
+		
+		/*전체*/
+		select #{baseYear} base_year, a.tot_reg_cd,
+		       a.gbn,
+		       case when sum(a.ppltn_cnt) <![CDATA[>=]]> 5 then sum(a.ppltn_cnt)
+		               else 'N/A'
+		       end na,
+		       sum(a.ppltn_cnt) cnt
+		  from (select tot_reg_cd,
+		               ppltn_cnt,
+		               case when age <![CDATA[<=]]> 4 then 'in_age_001'
+				            when age <![CDATA[>=]]> 5 and age <![CDATA[<=]]> 9   then 'in_age_002'
+				            when age <![CDATA[>=]]> 10 and age <![CDATA[<=]]> 14 then 'in_age_003'
+				            when age <![CDATA[>=]]> 15 and age <![CDATA[<=]]> 19 then 'in_age_004'
+				            when age <![CDATA[>=]]> 20 and age <![CDATA[<=]]> 24 then 'in_age_005'
+				            when age <![CDATA[>=]]> 25 and age <![CDATA[<=]]> 29 then 'in_age_006'
+				            when age <![CDATA[>=]]> 30 and age <![CDATA[<=]]> 34 then 'in_age_007'
+				            when age <![CDATA[>=]]> 35 and age <![CDATA[<=]]> 39 then 'in_age_008'
+				            when age <![CDATA[>=]]> 40 and age <![CDATA[<=]]> 44 then 'in_age_009'
+				            when age <![CDATA[>=]]> 45 and age <![CDATA[<=]]> 49 then 'in_age_010'
+				            when age <![CDATA[>=]]> 50 and age <![CDATA[<=]]> 54 then 'in_age_011'
+				            when age <![CDATA[>=]]> 55 and age <![CDATA[<=]]> 59 then 'in_age_012'
+				            when age <![CDATA[>=]]> 60 and age <![CDATA[<=]]> 64 then 'in_age_013'
+				            when age <![CDATA[>=]]> 65 and age <![CDATA[<=]]> 69 then 'in_age_014'
+				            when age <![CDATA[>=]]> 70 and age <![CDATA[<=]]> 74 then 'in_age_015'
+				            when age <![CDATA[>=]]> 75 and age <![CDATA[<=]]> 79 then 'in_age_016'
+				            when age <![CDATA[>=]]> 80 and age <![CDATA[<=]]> 84 then 'in_age_017'
+				            when age <![CDATA[>=]]> 85 and age <![CDATA[<=]]> 89 then 'in_age_018'
+							when age <![CDATA[>=]]> 90 and age <![CDATA[<=]]> 94 then 'in_age_019'
+				            when age <![CDATA[>=]]> 95 and age <![CDATA[<=]]> 99 then 'in_age_020'
+							when age <![CDATA[>=]]> 100 and age <![CDATA[<]]> 120 then 'in_age_021'
+							when age <![CDATA[>=]]> 120 then 'in_age_022'
+				       end gbn
+		          from srv_dt_popsreg_${baseYear}
+		       ) a
+		 group by a.tot_reg_cd, a.gbn
+		
+		union all
+		
+		select
+		#{baseYear} base_year,
+		a.tot_reg_cd,
+		'in_age_999' gbn,
+		'0' na,
+		0 cnt
+		from srv_pg_totregbord a
+		left outer join
+		(select tot_reg_cd from srv_dt_popsreg_${baseYear} group by tot_reg_cd) l
+		on
+		a.tot_reg_cd = l.tot_reg_cd
+		where
+		l.tot_reg_cd is null
+		)
+		where 1 = 1
+		<if test='totRegCd != null and totRegCd != ""'>
+		and tot_reg_cd like #{totRegCd}||'%'
+		</if>
+		order by tot_reg_cd, gbn
+	</select>
+	
+	<select id="to_fa_file" parameterType="Map" resultType="Map">
+		select * from
+		(
+		select base_year, tot_reg_cd, 'to_fa_010' gbn, 
+		        case when sum(corp_cnt) <![CDATA[<]]> 5 then 'N/A'
+		            else sum(corp_cnt)
+		        end na,
+		        sum(corp_cnt) cnt
+		from srv_dt_totcorpcensus_index
+		where base_year = #{baseYear}
+		group by base_year, tot_reg_cd
+		
+		union all
+		
+		select
+		#{baseYear} base_year,
+		a.tot_reg_cd,
+		'to_fa_999' gbn,
+		'0' na,
+		'0' cnt
+		from srv_pg_totregbord a
+		left outer join
+		(select tot_reg_cd from (
+		select tot_reg_cd,
+		        sum(corp_cnt) cnt
+		from srv_dt_totcorpcensus_index
+		where base_year = #{baseYear}
+		group by tot_reg_cd
+		order by tot_reg_cd
+		) group by tot_reg_cd) l
+		on
+		a.tot_reg_cd = l.tot_reg_cd
+		where
+		l.tot_reg_cd is null
+		)
+		where 1 = 1
+		<if test='totRegCd != null and totRegCd != ""'>
+		and tot_reg_cd like #{totRegCd}||'%'
+		</if>
+		order by tot_reg_cd, gbn
+	</select>
+	
+	<!-- 2019년반영 시작-->
+	<select id="ju_yu_file" parameterType="Map" resultType="Map">
+		select * from
+		(
+		select #{baseYear} base_year,
+		       a.tot_reg_cd,
+		       a.gbn,
+		       case when sum(a.resid_cnt) <![CDATA[<]]> 5 then 'N/A'
+		            else sum(a.resid_cnt)
+		       end na,
+		       sum(a.resid_cnt) cnt
+		  from (select tot_reg_cd,
+		               rd_resid_1_type,
+		               resid_cnt,
+		               case when rd_resid_1_type = '04'                              then 'ho_gb_001'
+				            when rd_resid_1_type = '01'                              then 'ho_gb_002'
+				            when rd_resid_1_type = '02'                              then 'ho_gb_003'
+				            when rd_resid_1_type = '03'                              then 'ho_gb_004'
+				            when rd_resid_1_type = '05'                              then 'ho_gb_005'
+				            <choose>
+								<when test="baseYear == '2018' or baseYear == '2017' or baseYear == '2016'">
+									when rd_resid_1_type in ( '06', '07', '08', '09', '10', '99' ) then 'ho_gb_006'
+								</when>
+								<otherwise>
+									when rd_resid_1_type in ( '06', '07', '08', '09', '10' ) then 'ho_gb_006'
+								</otherwise>
+							</choose>
+				       end gbn
+		          from srv_dt_housereg_${baseYear}
+		         where 1=1
+			 	<choose>
+					<when test="baseYear == '2018' or baseYear == '2017' or baseYear == '2016'">
+						and (house_yn = 'Y' or rd_resid_1_type in ( '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '99' ))
+					</when>
+					<otherwise>
+						and (house_yn = 'Y' or rd_resid_1_type in ( '01', '02', '03', '04', '05', '06', '07', '08', '09', '10' ))
+					</otherwise>
+				</choose>
+			) a
+		 group by a.tot_reg_cd, a.gbn
+		
+		union all
+		
+		select
+		#{baseYear} base_year,
+		a.tot_reg_cd,
+		'ho_gb_999' gbn,
+		'0' na,
+		'0' cnt
+		from srv_pg_totregbord a
+		left outer join
+		(select tot_reg_cd tot_reg_cd from (
+		select a.tot_reg_cd,
+		       sum(a.resid_cnt) cnt
+		  from srv_dt_housereg_${baseYear} a
+		 where 1=1
+		 <choose>
+		   <when test="baseYear == '2018' or baseYear == '2017' or baseYear == '2016'">
+				and (a.house_yn = 'Y' or a.rd_resid_1_type in ( '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '99' ))
+			</when>
+			<otherwise>
+				and (a.house_yn = 'Y' or a.rd_resid_1_type in ( '01', '02', '03', '04', '05', '06', '07', '08', '09', '10' ))
+			</otherwise>
+		 </choose>
+		 group by a.tot_reg_cd
+		) group by tot_reg_cd) l
+		on
+		a.tot_reg_cd = l.tot_reg_cd
+		where
+		l.tot_reg_cd is null
+		)
+		where 1 = 1
+		<if test='totRegCd != null and totRegCd != ""'>
+		and tot_reg_cd like #{totRegCd}||'%'
+		</if>
+		order by tot_reg_cd, gbn
+	</select>
+	<!-- 2019년반영 끝-->
+	<!-- 2019년반영 시작-->
+	<sql id="sqlSize">
+		<choose>
+		   <when test="baseYear == '2018' or baseYear == '2017' or baseYear == '2016' or baseYear == '2015'">
+		   		case when house_area_cd = '01' then 'ho_ar_001'
+		            when house_area_cd = '02' then 'ho_ar_002'
+		            when house_area_cd = '03' then 'ho_ar_003'
+		            when house_area_cd = '04' then 'ho_ar_004'
+		            when house_area_cd = '05' then 'ho_ar_005'
+		            when house_area_cd = '06' then 'ho_ar_006'
+		            when house_area_cd = '07' then 'ho_ar_007'
+		            when house_area_cd = '08' then 'ho_ar_008'
+		            when house_area_cd = '09' then 'ho_ar_009'
+		        end gbn
+			</when>
+			<otherwise>
+				case when rd_bdspace_mm <![CDATA[<=]]> 20  then 'ho_ar_001'
+		            when rd_bdspace_mm <![CDATA[>]]> 20  and rd_bdspace_mm <![CDATA[<=]]> 40  then 'ho_ar_002'
+		            when rd_bdspace_mm <![CDATA[>]]> 40  and rd_bdspace_mm <![CDATA[<=]]> 60  then 'ho_ar_003'
+		            when rd_bdspace_mm <![CDATA[>]]> 60  and rd_bdspace_mm <![CDATA[<=]]> 85  then 'ho_ar_004'
+		            when rd_bdspace_mm <![CDATA[>]]> 85  and rd_bdspace_mm <![CDATA[<=]]> 100 then 'ho_ar_005'
+		            when rd_bdspace_mm <![CDATA[>]]> 100 and rd_bdspace_mm <![CDATA[<=]]> 130 then 'ho_ar_006'
+		            when rd_bdspace_mm <![CDATA[>]]> 130 and rd_bdspace_mm <![CDATA[<=]]> 165 then 'ho_ar_007'
+		            when rd_bdspace_mm <![CDATA[>]]> 165 and rd_bdspace_mm <![CDATA[<=]]> 230 then 'ho_ar_008'
+		            when rd_bdspace_mm <![CDATA[>]]> 230                            then 'ho_ar_009'
+		        end gbn
+			</otherwise>
+		 </choose>
+	</sql>
+	<!--2019년반영 끝  -->
+	<select id="size_file" parameterType="Map" resultType="Map">
+		select * from
+		(
+		select #{baseYear} base_year,
+		       a.tot_reg_cd,
+		       a.gbn,
+		        case when sum(a.resid_cnt) <![CDATA[<]]> 5 then 'N/A'
+		             else sum(a.resid_cnt)
+		        end na,
+		        sum(a.resid_cnt) cnt
+		  from (select tot_reg_cd,
+		               resid_cnt,
+		               <include refid="sqlSize"/>
+		          from srv_dt_housereg_${baseYear}
+		         where house_yn = 'Y'
+		       ) a
+		 group by a.tot_reg_cd, a.gbn
+		
+		union all
+		
+		select
+		#{baseYear} base_year,
+		a.tot_reg_cd,
+		'ho_ar_999' gbn,
+		'0' na,
+		'0' cnt
+		from srv_pg_totregbord a
+		left outer join
+		(select tot_reg_cd tot_reg_cd from (
+		select a.tot_reg_cd,
+		        sum(a.resid_cnt) cnt
+		  from srv_dt_housereg_${baseYear} a
+		 where a.house_yn = 'Y'
+		 group by a.tot_reg_cd
+		) group by tot_reg_cd) l
+		on
+		a.tot_reg_cd = l.tot_reg_cd
+		where
+		l.tot_reg_cd is null
+		)
+		where 1 = 1
+		<if test='totRegCd != null and totRegCd != ""'>
+		and tot_reg_cd like #{totRegCd}||'%'
+		</if>
+		order by tot_reg_cd, gbn
+	</select>
+	
+	<select id="marry_file" parameterType="Map" resultType="Map">
+		select * from
+		(
+		select #{baseYear} base_year,
+		       a.tot_reg_cd,
+		       a.gbn,
+		          case when sum(a.ppltn_cnt) <![CDATA[>=]]> 5 then sum(a.ppltn_cnt)
+		               else 'N/A'
+		          end na,
+		          sum(a.ppltn_cnt) cnt
+		  from (select tot_reg_cd,
+		               ppltn_cnt,
+		               case when gender = '1' and rd_mrg_state = '1' then 'in_wed_001'
+				               when gender = '1' and rd_mrg_state = '2' then 'in_wed_002'
+				               when gender = '1' and rd_mrg_state = '3' then 'in_wed_003'
+				               when gender = '1' and rd_mrg_state = '4' then 'in_wed_004'
+				               when gender = '2' and rd_mrg_state = '1' then 'in_wed_005'
+				               when gender = '2' and rd_mrg_state = '2' then 'in_wed_006'
+				               when gender = '2' and rd_mrg_state = '3' then 'in_wed_007'
+				               when gender = '2' and rd_mrg_state = '4' then 'in_wed_008'
+				          end gbn,
+				        rd_mrg_state,
+				        age
+		          from srv_dt_popsreg_${baseYear}
+		         where age <![CDATA[>=]]> 15 and rd_mrg_state != '9'
+		       ) a
+		 group by a.tot_reg_cd, a.gbn
+		
+		union all
+		
+		select
+		#{baseYear} base_year,
+		a.tot_reg_cd,
+		'in_wed_999' gbn,
+		'0' na,
+		0 cnt
+		from srv_pg_totregbord a
+		left outer join
+		(select tot_reg_cd from (
+		select a.tot_reg_cd,
+		          sum(a.ppltn_cnt) cnt
+		  from srv_dt_popsreg_${baseYear} a
+		 where a.age <![CDATA[>=]]> 15
+		   and a.rd_mrg_state != '9'
+		 group by a.tot_reg_cd
+		) group by tot_reg_cd) l
+		on
+		a.tot_reg_cd = l.tot_reg_cd
+		where
+		l.tot_reg_cd is null
+		)
+		where 1 = 1
+		<if test='totRegCd != null and totRegCd != ""'>
+		and tot_reg_cd like #{totRegCd}||'%'
+		</if>
+		order by tot_reg_cd, gbn
+	</select>
+	
+	<select id="edu_file" parameterType="Map" resultType="Map">
+		select * from
+		(
+		select #{baseYear} base_year,
+		        a.tot_reg_cd,           
+		       a.gbn,
+		       case when sum(a.ppltn_cnt) <![CDATA[>=]]> 5 then sum(a.ppltn_cnt)
+		               else 'N/A'
+		       end na,            
+		       sum(a.ppltn_cnt) cnt
+		  from (select tot_reg_cd,
+		               ppltn_cnt,
+		               age,
+		               rd_edu_level,
+		               case when rd_edu_level = '2'                       then 'in_edu_001'
+				            when rd_edu_level = '3'                       then 'in_edu_002'
+				            when rd_edu_level = '4'                       then 'in_edu_003'
+				            when rd_edu_level = '5'                       then 'in_edu_004'
+				            when rd_edu_level = '6'                       then 'in_edu_005'
+				            when rd_edu_level = '7'                       then 'in_edu_006'
+				            when rd_edu_level = '8'                       then 'in_edu_007'
+				            when rd_edu_level = '0' or rd_edu_level = '1' then 'in_edu_008'
+				       end gbn
+		          from srv_dt_popsreg_${baseYear}
+		          where age >= 6 and rd_edu_level in ('0', '1', '2', '3', '4', '5', '6', '7', '8')
+		       ) a
+		 group by a.tot_reg_cd, a.gbn
+		
+		UNION ALL
+		
+		select #{baseYear} base_year,
+		a.tot_reg_cd,
+		'in_edu_999' gbn,
+		'0' na,
+		'0' cnt
+		from srv_pg_totregbord a
+		left outer join
+		(select tot_reg_cd from (
+		
+		select tot_reg_cd,
+		       sum(ppltn_cnt) cnt
+		  from srv_dt_popsreg_${baseYear}
+		 where age >= 6
+		   and rd_edu_level in ('0', '1', '2', '3', '4', '5', '6', '7', '8')
+		 group by tot_reg_cd
+		
+		) group by tot_reg_cd) l
+		on
+		a.tot_reg_cd = l.tot_reg_cd
+		where
+		l.tot_reg_cd is null
+		)
+		where 1 = 1
+		<if test='totRegCd != null and totRegCd != ""'>
+		and tot_reg_cd like #{totRegCd}||'%'
+		</if>
+		order by tot_reg_cd asc
+	</select>
+	
+	<select id="sigungu" parameterType="Map" resultType="Map">
+		select 0 as rr
+		     , '00000' as sgis_census_sigungu
+			 , '전체' as sigungu_nm
+			 , '전국' as sido_nm
+		  from dual
+		 where '00000' = #{sgis_census_sigungu_id}
+		   and '00' = #{sgis_census_sido_id}
+		 union all
+		select rownum as rr
+		     , sgis_census_sigungu
+			 , sigungu_nm 
+			 , sido_nm
+		  from ( select sgis_census_sigungu
+		              , sigungu_nm
+					  , sido_nm
+				   from ( select sgis_census_sigungu
+				               , sigungu_nm
+							   , sido_nm
+							   , count(*)
+						    from sgis_census_sigungu_data
+						   where sgis_census_id = 1
+						     and sgis_census_data_id = 3
+							 and sgis_census_year = #{baseYear}
+							 and census_output_area_year = #{census_output_area_year}
+							 and sgis_census_sigungu <![CDATA[<>]]> '00000'
+							 and sgis_census_sigungu = #{sgis_census_sigungu_id}
+						   group by sgis_census_sigungu
+						       , sigungu_nm
+							   , sido_nm
+					    )
+				  order by sigungu_nm
+		       )
+		 union all
+		select rownum as rr
+		     , sgis_census_sido as sgis_census_sigungu
+			 , '' as sigungu_nm
+			 , sido_nm
+		  from ( select sgis_census_sido
+		              , sido_nm
+				   from ( select sgis_census_sido
+				               , sido_nm
+							   , count(*)
+						    from sgis_census_sigungu_data
+						   where sgis_census_id = 1
+						     and sgis_census_data_id = 0
+							 and sgis_census_year = #{baseYear}
+							 and census_output_area_year = #{census_output_area_year}
+							 and sgis_census_sido <![CDATA[<>]]> '00'
+							 and sgis_census_sido = #{sgis_census_sido_id}
+						   group by sgis_census_sido
+						       , sido_nm
+						)
+				  order by sido_nm
+			   )
+	</select>
+	<!--2019년반영 시작-->
+	<select id="sidosigungucode" parameterType="Map" resultType="Map">
+		select 
+			sido_nm,sigungu_nm,sgis_census_sido,sgis_census_sigungu from sgis_census_sigungu_data
+		where 
+			sgis_census_id 	= #{sgis_census_id}
+		and 
+			sgis_census_data_id = #{sgis_census_data_id}  
+		and 
+			sgis_census_year 	= #{baseYear}
+		and
+			census_output_area_year = #{census_output_area_year}
+		order by 
+			sgis_census_sido
+	</select>
+	<select id="sidosigunguyear" parameterType="Map" resultType="Map">
+		select 
+			distinct sgis_census_year from  sgis_census_sigungu_data
+		where 
+			sgis_census_id 	= #{sgis_census_id}
+		and 
+			sgis_census_data_id = #{sgis_census_data_id}  
+		and 
+			census_output_area_year 	= #{census_output_area_year}
+		order by 
+			sgis_census_year desc
+	</select>
+	<select id="detaildataid" parameterType="Map" resultType="Map">
+		select 
+			sgis_census_detail_data_id, sgis_census_detail_data_nm
+		from 
+			sgis_census_detail_data_code
+		where
+			sgis_census_detail_data_id like #{data_id}||'%'
+		and	
+			sgis_census_detail_data_start_baseyear <![CDATA[<=]]> #{baseYear}
+		and
+			sgis_census_detail_data_end_baseyear <![CDATA[>=]]> #{baseYear}	
+	</select>
+	<!--2019년반영 끝 -->
+</mapper>

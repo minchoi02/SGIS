@@ -1,0 +1,1025 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="statsMeMap">
+	
+	<!-- Select List 통계자료관리 -->
+	<select id="selectListSrvDtCtlgDataList" parameterType="hashmap" resultType="hashmap">
+		select
+			a.*
+		from
+			srv_dt_ctlg_data_list a with(nolock)
+		where 1=1
+			and a.srv_yn = 'Y'
+		order by
+			a.stat_data_id
+	</select>
+	
+	<!-- Select One 통계자료관리 -->
+	<select id="selectOneSrvDtCtlgDataList" parameterType="hashmap" resultType="hashmap">
+		select
+			a.*
+		from
+			srv_dt_ctlg_data_list a with(nolock)
+		where
+			a.stat_data_id = #{stat_data_id}
+	</select>
+	
+	<!-- Select List 통계자료관리 추천 서비스 -->
+	<select id="selectListSrvDtCtlgDataListRecomendSvc" parameterType="hashmap" resultType="hashmap">
+		select
+			a.stat_data_id
+			,a.stat_data_nm
+			,a.stat_data_srv_nm		/* 2019.12.03[한광희] 통계자료서비스명 컬럼 추가  */
+			,a.menu_nm
+			,a.srv_nm
+			,a.b_class_nm
+			,a.m_class_nm
+			,a.s_class_nm
+		from
+			srv_dt_ctlg_data_list a with(nolock)
+		where 1=1
+			and a.srv_yn = 'Y'
+			<if test='main_kwrd != null'>
+				and a.main_kwrd is not null
+				and len(a.main_kwrd) > 0
+				and a.main_kwrd = #{main_kwrd}
+			</if>
+			<if test='srv_nm != null'>
+				and a.srv_nm is not null
+				and len(a.srv_nm) > 0
+				and a.srv_nm = #{srv_nm}
+			</if>
+			<if test='b_class_nm != null'>
+				and a.b_class_nm is not null
+				and len(a.b_class_nm) > 0
+				and a.b_class_nm = #{b_class_nm}
+			</if>
+			<if test='m_class_nm != null'>
+				and a.m_class_nm is not null
+				and len(a.m_class_nm) > 0
+				and a.m_class_nm = #{m_class_nm}
+			</if>
+			<if test='s_class_nm != null'>
+				and a.s_class_nm is not null
+				and len(a.s_class_nm) > 0
+				and a.s_class_nm = #{s_class_nm}
+			</if>
+			<if test='stat_data_id != null'>
+				and a.stat_data_id != #{stat_data_id}
+			</if>
+		order by
+			a.stat_data_id
+	</select>
+	
+	<!-- Select List 통계자료관리 키워드 -->
+	<select id="selectListSrvDtCtlgMainKwrdList" parameterType="hashmap" resultType="hashmap">
+		select
+			b.ctlg_main_kwrd
+		from
+			srv_dt_ctlg_main_kwrd_data a with(nolock)
+			inner join srv_dt_ctlg_main_kwrd_list b with(nolock) on b.ctlg_main_kwrd_serial = a.ctlg_main_kwrd_serial
+		where 1=1
+			and a.stat_data_id = #{stat_data_id}
+			and b.use_yn = 'Y'
+		order by
+			a.ctlg_main_kwrd_serial
+	</select>
+	
+	<!-- Select List 통계자료관리 추천 키워드 -->
+	<select id="selectListSrvDtCtlgCycleRecmdKwrd" parameterType="hashmap" resultType="hashmap">
+		select
+			distinct
+			d.lfe_cycle_id
+			,d.recmd_kwrd_1
+			,d.recmd_kwrd_2
+			,d.recmd_kwrd_3
+			,d.recmd_kwrd_4
+			,d.recmd_kwrd_5
+		from
+			srv_dt_ctlg_data_list a with(nolock)
+			inner join srv_dt_ctlg_distance_data b with(nolock) on b.stat_data_id = a.stat_data_id
+			inner join srv_dt_ctlg_lfe_cycle_list c with(nolock) on c.lfe_cycle_id = b.lfe_cycle_id and c.use_yn = 'Y'
+			inner join srv_dt_ctlg_cycle_recmd_kwrd d with(nolock) on d.lfe_cycle_id = c.lfe_cycle_id
+		where
+			a.stat_data_id = #{stat_data_id}
+		order by
+			d.lfe_cycle_id
+	</select>
+	
+	<!-- Select List 통계자료관리 유사 키워드 -->
+	<select id="selectListSrvDtCtlgSimilrKwrdList" parameterType="hashmap" resultType="hashmap">
+		select
+			c.ctlg_similr_kwrd
+		from
+			srv_dt_ctlg_main_kwrd_data a with(nolock)
+			inner join srv_dt_ctlg_main_similr_kwrd b with(nolock) on b.ctlg_main_kwrd_serial = a.ctlg_main_kwrd_serial
+			inner join srv_dt_ctlg_similr_kwrd_list c with(nolock) on c.ctlg_similr_kwrd_serial = b.ctlg_similr_kwrd_serial
+		where 1=1
+			and a.stat_data_id = #{stat_data_id}
+			and c.use_yn = 'Y'
+		order by
+			c.ctlg_similr_kwrd_serial
+	</select>
+	
+	<!-- Select List 지역경계 -->
+	<select id="selectListMapRegion" parameterType="hashmap" resultType="hashmap">
+		<choose>
+			<!-- 시도 경계 -->
+			<when test='region == "sido"'>
+				select
+					a.sido_cd as adm_cd
+					,a.sido_nm as adm_nm
+					,round(a.x_coor) AS x
+					,round(a.y_coor) AS y
+					,st_asbinary(a.lighten_bord) geometry
+				from
+					srv_pg_sidobord a with(nolock)
+					<choose>
+						<when test='base_year != null and base_year != ""'>
+							inner join (select #{base_year} as base_year from dual) b on b.base_year = a.base_year
+						</when>
+						<otherwise>
+							inner join (select max(base_year) as base_year from srv_pg_sidobord with(nolock)) b on b.base_year = a.base_year
+						</otherwise>
+					</choose>
+				where 1=1
+					<if test='sido_cd != null and sido_cd != ""'>
+						and a.sido_cd = #{sido_cd}
+					</if>
+			</when>
+			<!-- 시군구 경계 -->
+			<when test='region == "sgg"'>
+				select
+					a.sido_cd||a.sgg_cd as adm_cd
+					,a.sido_nm||' '||a.sgg_nm as adm_nm
+					,round(a.x_coor) AS x
+					,round(a.y_coor) AS y
+					,st_asbinary(a.lighten_bord) geometry
+				from
+					srv_pg_sggbord a with(nolock)
+					<choose>
+						<when test='base_year != null and base_year != ""'>
+							inner join (select #{base_year} as base_year from dual) b on b.base_year = a.base_year
+						</when>
+						<otherwise>
+							inner join (select max(base_year) as base_year from srv_pg_sggbord with(nolock)) b on b.base_year = a.base_year
+						</otherwise>
+					</choose>
+				where 1=1
+					<if test='sido_cd != null and sido_cd != ""'>
+						and a.sido_cd = #{sido_cd}
+					</if>
+					<if test='sgg_cd != null and sgg_cd != ""'>
+						and a.sgg_cd = #{sgg_cd}
+					</if>
+			</when>
+			<!-- 시군구 경계 (비자치구) -->
+			<when test='region == "atdrc"'>
+				select
+					a.sido_cd||a.sgg_cd as adm_cd
+					,a.sido_nm||' '||a.sgg_nm as adm_nm
+					,round(a.x_coor) AS x
+					,round(a.y_coor) AS y
+					,st_asbinary(a.lighten_bord) geometry
+				from
+					srv_pg_atdrcbord a with(nolock)
+					<choose>
+						<when test='base_year != null and base_year != ""'>
+							inner join (select #{base_year} as base_year from dual) b on b.base_year = a.base_year
+						</when>
+						<otherwise>
+							inner join (select max(base_year) as base_year from srv_pg_atdrcbord with(nolock)) b on b.base_year = a.base_year
+						</otherwise>
+					</choose>
+				where 1=1
+					<if test='sido_cd != null and sido_cd != ""'>
+						and a.sido_cd = #{sido_cd}
+					</if>
+					<if test='sgg_cd != null and sgg_cd != ""'>
+						and a.sgg_cd = #{sgg_cd}
+					</if>
+			</when>
+			<!-- 읍면동 경계 -->
+			<when test='region == "emdong"'>
+				select
+					a.sido_cd||a.sgg_cd||a.emdong_cd as adm_cd
+					,a.sido_nm||' '||a.sgg_nm||' '||a.emdong_nm as adm_nm
+					,round(a.x_coor) AS x
+					,round(a.y_coor) AS y
+					,st_asbinary(a.lighten_bord) geometry
+				from
+					srv_pg_admbord a with(nolock)
+					<choose>
+						<when test='base_year != null and base_year != ""'>
+							inner join (select #{base_year} as base_year from dual) b on b.base_year = a.base_year
+						</when>
+						<otherwise>
+							inner join (select max(base_year) as base_year from srv_pg_admbord with(nolock)) b on b.base_year = a.base_year
+						</otherwise>
+					</choose>
+				where 1=1
+					<if test='sido_cd != null and sido_cd != ""'>
+						and a.sido_cd = #{sido_cd}
+					</if>
+					<if test='sgg_cd != null and sgg_cd != ""'>
+						and a.sgg_cd = #{sgg_cd}
+					</if>
+					<if test='emdong_cd != null and emdong_cd != ""'>
+						and a.emdong_cd = #{emdong_cd}
+					</if>
+			</when>
+			<!-- 소지역 경계 -->
+			<when test='region == "totreg"'>
+				select
+					a.tot_reg_cd as adm_cd
+					,c.sido_nm||' '||c.sgg_nm||' '||c.emdong_nm as adm_nm
+					,round(a.x_coor) AS x
+					,round(a.y_coor) AS y
+					,st_asbinary(a.bord) geometry
+				from
+					srv_pg_totregbord a with(nolock)
+					<!-- 소지역은 base_year 안씀 -->
+					<!-- <choose>
+						<when test='base_year != null and base_year != ""'>
+							inner join (select #{base_year} as base_year from dual) b on b.base_year = a.base_year
+						</when>
+						<otherwise>
+							inner join (select max(base_year) as base_year from srv_pg_totregbord) b on b.base_year = a.base_year
+						</otherwise>
+					</choose> -->
+					inner join (select max(base_year) as base_year from srv_pg_totregbord with(nolock)) b on b.base_year = a.base_year	
+					inner join srv_pg_admbord c with(nolock) on c.sido_cd = a.sido_cd and c.sgg_cd = a.sgg_cd and c.emdong_cd = a.emdong_cd and c.base_year = a.base_year
+				where 1=1
+					<if test='sido_cd != null and sido_cd != ""'>
+						and a.sido_cd = #{sido_cd}
+					</if>
+					<if test='sgg_cd != null and sgg_cd != ""'>
+						and a.sgg_cd = #{sgg_cd}
+					</if>
+					<if test='emdong_cd != null and emdong_cd != ""'>
+						and a.emdong_cd = #{emdong_cd}
+					</if>
+			</when>
+			<!-- 격자(100k) -->
+			<when test='region == "100k"'>
+				with w_srv_pg_admbord as (
+					select
+						a.lighten_bord
+					from
+					<choose>
+						<when test='emdong_cd != null and emdong_cd != ""'>
+							srv_pg_admbord a with(nolock)
+							<choose>
+								<when test='base_year != null and base_year != ""'>
+									inner join (select '${base_year}' as base_year from dual) b on b.base_year = a.base_year
+								</when>
+								<otherwise>
+									inner join (select max(base_year) as base_year from srv_pg_admbord with(nolock)) b on b.base_year = a.base_year
+								</otherwise>
+							</choose>
+						where 1=1
+							and a.sido_cd = '${sido_cd}'
+							and a.sgg_cd = '${sgg_cd}'
+							and a.emdong_cd = '${emdong_cd}'
+						</when>
+						<when test='sgg_cd != null and sgg_cd != ""'>
+							srv_pg_sggbord a with(nolock)
+							<choose>
+								<when test='base_year != null and base_year != ""'>
+									inner join (select '${base_year}' as base_year from dual) b on b.base_year = a.base_year
+								</when>
+								<otherwise>
+									inner join (select max(base_year) as base_year from srv_pg_sggbord with(nolock)) b on b.base_year = a.base_year
+								</otherwise>
+							</choose>
+						where 1=1
+							and a.sido_cd = '${sido_cd}'
+							and a.sgg_cd = '${sgg_cd}'
+						</when>
+						<when test='sido_cd != null and sido_cd != ""'>
+							srv_pg_sidobord a with(nolock)
+							<choose>
+								<when test='base_year != null and base_year != ""'>
+									inner join (select '${base_year}' as base_year from dual) b on b.base_year = a.base_year
+								</when>
+								<otherwise>
+									inner join (select max(base_year) as base_year from srv_pg_sidobord with(nolock)) b on b.base_year = a.base_year
+								</otherwise>
+							</choose>
+						where 1=1
+							and a.sido_cd = '${sido_cd}'
+						</when>
+						<otherwise>
+							(
+								select
+									st_polyfromtext('POLYGON((0 0,0 9999999,9999999 9999999,9999999 0,0 0))', 1) as lighten_bord
+								from
+									dual  
+							) a
+							where 1=2
+						</otherwise>
+					</choose>
+				)
+				select
+					c.grid_100k_cd adm_cd
+					,c.grid_100k_cd adm_nm
+					,st_asbinary(c.bord) geometry
+				from
+					w_srv_pg_admbord a
+					inner join srv_pg_grid_100k_bord c with(nolock) on st_intersects(a.lighten_bord, c.bord) = 1
+			</when>
+			<!-- 격자(10k) -->
+			<when test='region == "10k"'>
+				with w_srv_pg_admbord as (
+					select
+						a.lighten_bord
+					from
+					<choose>
+						<when test='emdong_cd != null and emdong_cd != ""'>
+							srv_pg_admbord a with(nolock)
+							<choose>
+								<when test='base_year != null and base_year != ""'>
+									inner join (select '${base_year}' as base_year from dual) b on b.base_year = a.base_year
+								</when>
+								<otherwise>
+									inner join (select max(base_year) as base_year from srv_pg_admbord with(nolock)) b on b.base_year = a.base_year
+								</otherwise>
+							</choose>
+						where 1=1
+							and a.sido_cd = '${sido_cd}'
+							and a.sgg_cd = '${sgg_cd}'
+							and a.emdong_cd = '${emdong_cd}'
+						</when>
+						<when test='sgg_cd != null and sgg_cd != ""'>
+							srv_pg_sggbord a with(nolock)
+							<choose>
+								<when test='base_year != null and base_year != ""'>
+									inner join (select '${base_year}' as base_year from dual) b on b.base_year = a.base_year
+								</when>
+								<otherwise>
+									inner join (select max(base_year) as base_year from srv_pg_sggbord with(nolock)) b on b.base_year = a.base_year
+								</otherwise>
+							</choose>
+						where 1=1
+							and a.sido_cd = '${sido_cd}'
+							and a.sgg_cd = '${sgg_cd}'
+						</when>
+						<when test='sido_cd != null and sido_cd != ""'>
+							srv_pg_sidobord a with(nolock)
+							<choose>
+								<when test='base_year != null and base_year != ""'>
+									inner join (select '${base_year}' as base_year from dual) b on b.base_year = a.base_year
+								</when>
+								<otherwise>
+									inner join (select max(base_year) as base_year from srv_pg_sidobord with(nolock)) b on b.base_year = a.base_year
+								</otherwise>
+							</choose>
+						where 1=1
+							and a.sido_cd = '${sido_cd}'
+						</when>
+						<otherwise>
+							(
+								select
+									st_polyfromtext('POLYGON((0 0,0 9999999,9999999 9999999,9999999 0,0 0))', 1) as lighten_bord
+								from
+									dual  
+							) a
+							where 1=2
+						</otherwise>
+					</choose>
+				)
+				select
+					c.grid_10k_cd adm_cd
+					,c.grid_10k_cd adm_nm
+					,st_asbinary(c.bord) geometry
+				from
+					w_srv_pg_admbord a
+					inner join srv_pg_grid_10k_bord c with(nolock) on st_intersects(a.lighten_bord, c.bord) = 1
+			</when>
+			<!-- 격자(1k) -->
+			<when test='region == "1k"'>
+				with w_srv_pg_admbord as (
+					select
+						a.lighten_bord
+					from
+					<choose>
+						<when test='emdong_cd != null and emdong_cd != ""'>
+							srv_pg_admbord a with(nolock)
+							<choose>
+								<when test='base_year != null and base_year != ""'>
+									inner join (select '${base_year}' as base_year from dual) b on b.base_year = a.base_year
+								</when>
+								<otherwise>
+									inner join (select max(base_year) as base_year from srv_pg_admbord with(nolock)) b on b.base_year = a.base_year
+								</otherwise>
+							</choose>
+						where 1=1
+							and a.sido_cd = '${sido_cd}'
+							and a.sgg_cd = '${sgg_cd}'
+							and a.emdong_cd = '${emdong_cd}'
+						</when>
+						<when test='sgg_cd != null and sgg_cd != ""'>
+							srv_pg_sggbord a with(nolock)
+							<choose>
+								<when test='base_year != null and base_year != ""'>
+									inner join (select '${base_year}' as base_year from dual) b on b.base_year = a.base_year
+								</when>
+								<otherwise>
+									inner join (select max(base_year) as base_year from srv_pg_sggbord with(nolock)) b on b.base_year = a.base_year
+								</otherwise>
+							</choose>
+						where 1=1
+							and a.sido_cd = '${sido_cd}'
+							and a.sgg_cd = '${sgg_cd}'
+						</when>
+						<when test='sido_cd != null and sido_cd != ""'>
+							srv_pg_sidobord a with(nolock)
+							<choose>
+								<when test='base_year != null and base_year != ""'>
+									inner join (select '${base_year}' as base_year from dual) b on b.base_year = a.base_year
+								</when>
+								<otherwise>
+									inner join (select max(base_year) as base_year from srv_pg_sidobord with(nolock)) b on b.base_year = a.base_year
+								</otherwise>
+							</choose>
+						where 1=1
+							and a.sido_cd = '${sido_cd}'
+						</when>
+						<otherwise>
+							(
+								select
+									st_polyfromtext('POLYGON((0 0,0 9999999,9999999 9999999,9999999 0,0 0))', 1) as lighten_bord
+								from
+									dual  
+							) a
+							where 1=2
+						</otherwise>
+					</choose>
+				)
+				select
+					c.grid_1k_cd adm_cd
+					,c.grid_1k_cd adm_nm
+					,st_asbinary(c.bord) geometry
+				from
+					w_srv_pg_admbord a
+					inner join srv_pg_grid_1k_bord c with(nolock) on st_intersects(a.lighten_bord, c.bord) = 1
+			</when>
+			<!-- 격자(100m) -->
+			<when test='region == "100m"'>
+				with w_srv_pg_admbord as (
+					select
+						a.lighten_bord
+					from
+						srv_pg_admbord a with(nolock)
+						<choose>
+							<when test='base_year != null and base_year != ""'>
+								inner join (select '${base_year}' as base_year from dual) b on b.base_year = a.base_year
+							</when>
+							<otherwise>
+								inner join (select max(base_year) as base_year from srv_pg_admbord with(nolock)) b on b.base_year = a.base_year
+							</otherwise>
+						</choose>
+					where 1=1
+						and a.sido_cd = '${sido_cd}'
+						and a.sgg_cd = '${sgg_cd}'
+						and a.emdong_cd = '${emdong_cd}'
+				)
+				select
+					c.grid_100m_cd adm_cd
+					,c.grid_100m_cd adm_nm
+					,st_asbinary(c.bord) geometry
+				from
+					w_srv_pg_admbord a with(nolock)
+					inner join srv_pg_grid_100m_bord c on st_intersects(a.lighten_bord, c.bord) = 1
+			</when>
+			<otherwise>
+				select
+					'' as adm_cd
+					,'' as adm_nm
+					,'' AS x
+					,'' AS y
+					,'' geometry
+				from
+					dual
+				where 1=2
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- Select DataYn 카탈로그 데이터마트 -->
+	<select id="selectDataYnSrvDtCtlgDtwrh" parameterType="hashmap" resultType="string">
+		select
+			CASE nvl((select top 1 1 from srv_dt_ctlg_dtwrh with(nolock) where stat_data_id = #{stat_data_id}),0)
+			when 0 then 'N'
+			else 'Y' END AS data_yn
+		from
+			dual
+	</select>
+	
+	<!-- Select MaxStatsDtaSn 카탈로그 데이터마트 -->
+	<select id="selectMaxStatsDtaSnSrvDtCtlgDtwrh" parameterType="hashmap" resultType="int">
+		select
+			nvl((select max(stats_dta_sn) from srv_dt_ctlg_dtwrh with(nolock) where stat_data_id = #{stat_data_id}),0) as stats_dta_sn
+		from
+			dual
+	</select>
+	
+	<!-- Select List 카탈로그 데이터마트 -->
+	<select id="selectListSrvDtCtlgDtwrh" parameterType="hashmap" resultType="hashmap">
+		<choose>
+			<!-- 색상 / 격자(100k) -->
+			<when test='map_ty == "color" and area_bndry_se == "100k"'>
+				with w_srv_pg_admbord as (
+					select
+						a.lighten_bord
+					from
+					<choose>
+						<when test='emdong_cd != null and emdong_cd != ""'>
+							srv_pg_admbord a with(nolock)
+							inner join (select max(base_year) as base_year from srv_pg_admbord with(nolock)) b on b.base_year = a.base_year
+						where 1=1
+							and a.sido_cd = '${sido_cd}'
+							and a.sgg_cd = '${sgg_cd}'
+							and a.emdong_cd = '${emdong_cd}'
+						</when>
+						<when test='sgg_cd != null and sgg_cd != ""'>
+							srv_pg_sggbord a with(nolock)
+							inner join (select max(base_year) as base_year from srv_pg_sggbord with(nolock)) b on b.base_year = a.base_year
+						where 1=1
+							and a.sido_cd = '${sido_cd}'
+							and a.sgg_cd = '${sgg_cd}'
+						</when>
+						<when test='sido_cd != null and sido_cd != ""'>
+							srv_pg_sidobord a with(nolock)
+							inner join (select max(base_year) as base_year from srv_pg_sidobord with(nolock)) b on b.base_year = a.base_year
+						where 1=1
+							and a.sido_cd = '${sido_cd}'
+						</when>
+						<otherwise>
+							(
+								select
+									st_polyfromtext('POLYGON((0 0,0 9999999,9999999 9999999,9999999 0,0 0))', 1) as lighten_bord
+								from
+									dual  
+							) a
+							where 1=2
+						</otherwise>
+					</choose>
+				),
+				w_srv_pg_grid_bord as (
+					select
+						c.grid_100k_cd adm_cd
+					from
+						w_srv_pg_admbord a
+						inner join srv_pg_grid_100k_bord c with(nolock) on st_intersects(a.lighten_bord, c.bord) = 1
+				)
+			</when>
+			<!-- 색상 / 격자(10k) -->
+			<when test='map_ty == "color" and area_bndry_se == "10k"'>
+				with w_srv_pg_admbord as (
+					select
+						a.lighten_bord
+					from
+					<choose>
+						<when test='emdong_cd != null and emdong_cd != ""'>
+							srv_pg_admbord a with(nolock)
+							inner join (select max(base_year) as base_year from srv_pg_admbord with(nolock)) b on b.base_year = a.base_year
+						where 1=1
+							and a.sido_cd = '${sido_cd}'
+							and a.sgg_cd = '${sgg_cd}'
+							and a.emdong_cd = '${emdong_cd}'
+						</when>
+						<when test='sgg_cd != null and sgg_cd != ""'>
+							srv_pg_sggbord a with(nolock)
+							inner join (select max(base_year) as base_year from srv_pg_sggbord with(nolock)) b on b.base_year = a.base_year
+						where 1=1
+							and a.sido_cd = '${sido_cd}'
+							and a.sgg_cd = '${sgg_cd}'
+						</when>
+						<when test='sido_cd != null and sido_cd != ""'>
+							srv_pg_sidobord a with(nolock)
+							inner join (select max(base_year) as base_year from srv_pg_sidobord with(nolock)) b on b.base_year = a.base_year
+						where 1=1
+							and a.sido_cd = '${sido_cd}'
+						</when>
+						<otherwise>
+							(
+								select
+									st_polyfromtext('POLYGON((0 0,0 9999999,9999999 9999999,9999999 0,0 0))', 1) as lighten_bord
+								from
+									dual  
+							) a
+							where 1=2
+						</otherwise>
+					</choose>
+				),
+				w_srv_pg_grid_bord as (
+					select
+						c.grid_10k_cd adm_cd
+					from
+						w_srv_pg_admbord a
+						inner join srv_pg_grid_10k_bord c with(nolock) on st_intersects(a.lighten_bord, c.bord) = 1
+				)
+			</when>
+			<!-- 색상 / 격자(1k) -->
+			<when test='map_ty == "color" and area_bndry_se == "1k"'>
+				with w_srv_pg_admbord as (
+					select
+						a.lighten_bord
+					from
+					<choose>
+						<when test='emdong_cd != null and emdong_cd != ""'>
+							srv_pg_admbord a with(nolock)
+							inner join (select max(base_year) as base_year from srv_pg_admbord with(nolock)) b on b.base_year = a.base_year
+						where 1=1
+							and a.sido_cd = '${sido_cd}'
+							and a.sgg_cd = '${sgg_cd}'
+							and a.emdong_cd = '${emdong_cd}'
+						</when>
+						<when test='sgg_cd != null and sgg_cd != ""'>
+							srv_pg_sggbord a with(nolock)
+							inner join (select max(base_year) as base_year from srv_pg_sggbord with(nolock)) b on b.base_year = a.base_year
+						where 1=1
+							and a.sido_cd = '${sido_cd}'
+							and a.sgg_cd = '${sgg_cd}'
+						</when>
+						<when test='sido_cd != null and sido_cd != ""'>
+							srv_pg_sidobord a with(nolock)
+							inner join (select max(base_year) as base_year from srv_pg_sidobord with(nolock)) b on b.base_year = a.base_year
+						where 1=1
+							and a.sido_cd = '${sido_cd}'
+						</when>
+						<otherwise>
+							(
+								select
+									st_polyfromtext('POLYGON((0 0,0 9999999,9999999 9999999,9999999 0,0 0))', 1) as lighten_bord
+								from
+									dual  
+							) a
+							where 1=2
+						</otherwise>
+					</choose>
+				),
+				w_srv_pg_grid_bord as (
+					select
+						c.grid_1k_cd adm_cd
+					from
+						w_srv_pg_admbord a
+						inner join srv_pg_grid_1k_bord c with(nolock) on st_intersects(a.lighten_bord, c.bord) = 1
+				)
+			</when>
+			<!-- 색상 / 격자(100m) -->
+			<when test='map_ty == "color" and area_bndry_se == "100m"'>
+				with w_srv_pg_admbord as (
+					select
+						a.lighten_bord
+					from
+						srv_pg_admbord a with(nolock)
+						inner join (select max(base_year) as base_year from srv_pg_admbord with(nolock)) b on b.base_year = a.base_year
+					where 1=1
+						and a.sido_cd = '${sido_cd}'
+						and a.sgg_cd = '${sgg_cd}'
+						and a.emdong_cd = '${emdong_cd}'
+				),
+				w_srv_pg_grid_bord as (
+					select
+						c.grid_100m_cd adm_cd
+					from
+						w_srv_pg_admbord a with(nolock)
+						inner join srv_pg_grid_100m_bord c on st_intersects(a.lighten_bord, c.bord) = 1
+				)
+			</when>
+		</choose>
+		select
+			a.*
+		from
+			srv_dt_ctlg_dtwrh a with(nolock)
+			<choose>
+				<!-- 색상 / 격자(100k) -->
+				<when test='map_ty == "color" and area_bndry_se == "100k"'>
+				inner join w_srv_pg_grid_bord b on b.adm_cd = a.adm_cd
+				</when>
+				<!-- 색상 / 격자(10k) -->
+				<when test='map_ty == "color" and area_bndry_se == "10k"'>
+				inner join w_srv_pg_grid_bord b on b.adm_cd = a.adm_cd
+				</when>
+				<!-- 색상 / 격자(1k) -->
+				<when test='map_ty == "color" and area_bndry_se == "1k"'>
+				inner join w_srv_pg_grid_bord b on b.adm_cd = a.adm_cd
+				</when>
+				<!-- 색상 / 격자(100m) -->
+				<when test='map_ty == "color" and area_bndry_se == "100m"'>
+				inner join w_srv_pg_grid_bord b on b.adm_cd = a.adm_cd
+				</when>
+			</choose>
+		where 1=1
+			and a.stat_data_id = '${stat_data_id}'
+			and a.map_ty = '${map_ty}'
+			<if test='area_bndry_se != null and area_bndry_se != ""'>
+			and a.area_bndry_se = '${area_bndry_se}'
+			</if>
+			<if test='area_bndry_se != "100k" and area_bndry_se != "10k" and area_bndry_se != "1k" and area_bndry_se != "100m"'>
+				<if test='sido_cd != null and sido_cd != ""'>
+				and a.sido_cd = '${sido_cd}'
+				</if>
+				<if test='sgg_cd != null and sgg_cd != ""'>
+				and a.sgg_cd = '${sgg_cd}'
+				</if>
+				<if test='emdong_cd != null and emdong_cd != ""'>
+				and a.emdong_cd = '${emdong_cd}'
+				</if>
+			</if>
+			<if test='map_ty == "color" and berow_5_remove_yn == "Y"'>
+				and a.stats_dta_co <![CDATA[>=]]> 5 
+			</if>
+	</select>
+	
+	<!-- Insert 카탈로그 데이터마트 -->
+	<insert id="insertSrvDtCtlgDtwrh" parameterType="hashmap">
+		insert into srv_dt_ctlg_dtwrh
+		(
+			stat_data_id
+			,stats_dta_sn
+			,map_ty
+			,area_bndry_se
+			,base_year
+			,adm_cd
+			,adm_nm
+			,sido_cd
+			,sgg_cd
+			,emdong_cd
+			,x_coor
+			,y_coor
+			,poi_se_nm
+			,poi_nm
+			,unit
+			,unit_nm
+			,tooltip_cn
+			,stats_dta_co
+		)
+		values
+		(
+			#{stat_data_id}
+			,#{stats_dta_sn}
+			,#{map_ty}
+			,#{area_bndry_se}
+			,#{base_year}
+			,#{adm_cd}
+			,#{adm_nm}
+			,#{sido_cd}
+			,#{sgg_cd}
+			,#{emdong_cd}
+			,#{x_coor}
+			,#{y_coor}
+			,#{poi_se_nm}
+			,#{poi_nm}
+			,#{unit}
+			,#{unit_nm}
+			,#{tooltip_cn}
+			,#{stats_dta_co}
+		)
+	</insert>
+	
+	<!-- Delete List 카탈로그 데이터마트 -->
+	<delete id="deleteListSrvDtCtlgDtwrh" parameterType="hashmap">
+		delete from 
+			srv_dt_ctlg_dtwrh
+		where
+			stat_data_id = #{stat_data_id}
+	</delete>
+	
+	<!-- Update adm_nm 카탈로그 데이터마트 -->
+	<update id="updateAdmNmSrvDtCtlgDtwrh" parameterType="hashmap">
+		update srv_dt_ctlg_dtwrh
+		set adm_nm = b.adm_nm
+		from
+			(
+				select
+					s1.stat_data_id
+					,s1.stats_dta_sn
+					,case
+						when s1.area_bndry_se = 'sido'
+						then nvl((select top 1 ss1.sido_nm from srv_pg_sidobord ss1 with(nolock) where ss1.base_year = s2.base_year and ss1.sido_cd = s1.sido_cd),(select top 1 ss1.sido_nm from srv_pg_sidobord ss1 with(nolock) where ss1.sido_cd = s1.sido_cd))
+						when s1.area_bndry_se = 'sgg'
+						then nvl((select top 1 ss1.addr from srv_pg_sggbord ss1 with(nolock) where ss1.base_year = s3.base_year and ss1.sido_cd = s1.sido_cd and ss1.sgg_cd = s1.sgg_cd),(select top 1 ss1.addr from srv_pg_sggbord ss1 with(nolock) where ss1.sido_cd = s1.sido_cd and ss1.sgg_cd = s1.sgg_cd))
+						when s1.area_bndry_se = 'emdong' or s1.area_bndry_se = 'totreg'
+						then nvl((select top 1 ss1.addr from srv_pg_admbord ss1 with(nolock) where ss1.base_year = s4.base_year and ss1.sido_cd = s1.sido_cd and ss1.sgg_cd = s1.sgg_cd and ss1.emdong_cd = s1.emdong_cd),(select top 1 ss1.addr from srv_pg_admbord ss1 with(nolock) where ss1.sido_cd = s1.sido_cd and ss1.sgg_cd = s1.sgg_cd and ss1.emdong_cd = s1.emdong_cd))
+						when s1.area_bndry_se = 'all'
+						then nvl(nvl(nvl(nvl(nvl(
+								(select top 1 ss1.addr from srv_pg_admbord ss1 with(nolock) where ss1.base_year = s4.base_year and ss1.sido_cd = s1.sido_cd and ss1.sgg_cd = s1.sgg_cd and ss1.emdong_cd = s1.emdong_cd)
+								,(select top 1 ss1.addr from srv_pg_admbord ss1 with(nolock) where ss1.sido_cd = s1.sido_cd and ss1.sgg_cd = s1.sgg_cd and ss1.emdong_cd = s1.emdong_cd))
+								,(select top 1 ss1.addr from srv_pg_sggbord ss1 with(nolock) where ss1.base_year = s3.base_year and ss1.sido_cd = s1.sido_cd and ss1.sgg_cd = s1.sgg_cd))
+								,(select top 1 ss1.addr from srv_pg_sggbord ss1 with(nolock) where ss1.sido_cd = s1.sido_cd and ss1.sgg_cd = s1.sgg_cd))
+								,(select top 1 ss1.sido_nm from srv_pg_sidobord ss1 with(nolock) where ss1.base_year = s2.base_year and ss1.sido_cd = s1.sido_cd))
+								,(select top 1 ss1.sido_nm from srv_pg_sidobord ss1 with(nolock) where ss1.sido_cd = s1.sido_cd))
+					end as adm_nm
+				from
+					srv_dt_ctlg_dtwrh s1 with(nolock)
+					inner join (select max(base_year) as base_year from srv_pg_sidobord with(nolock)) s2 on 1=1
+					inner join (select max(base_year) as base_year from srv_pg_sggbord with(nolock)) s3 on 1=1
+					inner join (select max(base_year) as base_year from srv_pg_admbord with(nolock)) s4 on 1=1
+				where 1=1
+					and s1.stat_data_id = #{stat_data_id}
+					and s1.adm_nm is null
+			) b
+		where 1=1
+			and srv_dt_ctlg_dtwrh.stat_data_id = b.stat_data_id
+			and srv_dt_ctlg_dtwrh.stats_dta_sn = b.stats_dta_sn
+	</update>
+	
+	<!-- Select max(base_year) min(base_year) 카탈로그 데이터마트 -->
+	<select id="selectMaxMinBaseYearSrvDtCtlgDataList" parameterType="hashmap" resultType="hashmap">
+		select
+			min(a.base_year) base_year_min
+			,max(a.base_year) base_year_max
+		from
+			srv_dt_ctlg_dtwrh a with(nolock)
+		where 1=1
+			and a.stat_data_id = #{stat_data_id}
+			and a.map_ty = 'color'
+	</select>
+	
+	<!-- Select color_yn 카탈로그 데이터마트 -->
+	<select id="selectColorYnSrvDtCtlgDataList" parameterType="hashmap" resultType="hashmap">
+		select
+			CASE nvl((select top 1 1 from srv_dt_ctlg_dtwrh with(nolock) where stat_data_id = #{stat_data_id} and map_ty = 'color'),0)
+			when 0 then 'N' else 'Y' END AS color_yn,
+			CASE nvl((select top 1 1 from srv_dt_ctlg_dtwrh with(nolock) where stat_data_id = #{stat_data_id} and map_ty = 'color2'),0)
+			when 0 then 'N' else 'Y' END AS color2_yn
+		from
+			dual
+	</select>
+	
+	<!-- Update 융합 카탈로그 데이터마트 -->
+	<update id="updateFusionSrvDtCtlgDtwrh" parameterType="hashmap">
+		update srv_dt_ctlg_dtwrh
+		set
+			<choose>
+				<when test='fusion_type == "plus"'>
+					srv_dt_ctlg_dtwrh.stats_dta_co = srv_dt_ctlg_dtwrh.stats_dta_co+b.stats_dta_co
+				</when>
+				<when test='fusion_type == "minus"'>
+					srv_dt_ctlg_dtwrh.stats_dta_co = srv_dt_ctlg_dtwrh.stats_dta_co-b.stats_dta_co
+				</when>
+				<when test='fusion_type == "multiplication"'>
+					srv_dt_ctlg_dtwrh.stats_dta_co = srv_dt_ctlg_dtwrh.stats_dta_co*b.stats_dta_co
+				</when>
+				<when test='fusion_type == "division"'>
+					srv_dt_ctlg_dtwrh.stats_dta_co = case when b.stats_dta_co = 0 then 0 else round(srv_dt_ctlg_dtwrh.stats_dta_co/b.stats_dta_co,1) end
+				</when>
+			</choose>
+		from
+			(
+				select
+					s1.area_bndry_se
+					,s1.adm_cd
+					,s1.stats_dta_co
+				from
+					srv_dt_ctlg_dtwrh s1 with(nolock)
+				where 1=1
+					and s1.stat_data_id = #{stat_data_id}
+					and s1.map_ty = 'color2'
+				union all
+				select
+					s1.area_bndry_se
+					,s1.adm_cd
+					,cast(0 as number) as stats_dta_co
+				from
+					srv_dt_ctlg_dtwrh s1 with(nolock)
+				where 1=1
+					and s1.stat_data_id = #{stat_data_id}
+					and s1.map_ty = 'color'
+					and s1.adm_cd not in (
+						select
+							ss1.adm_cd
+						from
+							srv_dt_ctlg_dtwrh ss1 with(nolock)
+						where 1=1
+							and ss1.stat_data_id = #{stat_data_id}
+							and ss1.map_ty = 'color2'
+					)
+			) b
+		where 1=1
+			and srv_dt_ctlg_dtwrh.stat_data_id = #{stat_data_id}
+			and srv_dt_ctlg_dtwrh.map_ty = 'color'
+			and srv_dt_ctlg_dtwrh.area_bndry_se = b.area_bndry_se
+			and srv_dt_ctlg_dtwrh.adm_cd = b.adm_cd
+	</update>
+	
+	<!-- Insert 융합 카탈로그 데이터마트 -->
+	<insert id="insertFusionSrvDtCtlgDtwrh" parameterType="hashmap">
+		insert into srv_dt_ctlg_dtwrh
+		(
+			stat_data_id
+			,stats_dta_sn
+			,map_ty
+			,area_bndry_se
+			,base_year
+			,adm_cd
+			,adm_nm
+			,sido_cd
+			,sgg_cd
+			,emdong_cd
+			,x_coor
+			,y_coor
+			,poi_se_nm
+			,poi_nm
+			,unit
+			,unit_nm
+			,tooltip_cn
+			,stats_dta_co
+		)
+		select
+			a.stat_data_id
+			,${stats_dta_sn}+rownum as stats_dta_sn
+			,'color' as map_ty
+			,a.area_bndry_se
+			,a.base_year
+			,a.adm_cd
+			,a.adm_nm
+			,a.sido_cd
+			,a.sgg_cd
+			,a.emdong_cd
+			,a.x_coor
+			,a.y_coor
+			,a.poi_se_nm
+			,a.poi_nm
+			,a.unit
+			,a.unit_nm
+			,a.tooltip_cn
+			<choose>
+				<when test='fusion_type == "plus"'>
+					,a.stats_dta_co as stats_dta_co
+				</when>
+				<when test='fusion_type == "minus"'>
+					,-(a.stats_dta_co) as stats_dta_co
+				</when>
+				<when test='fusion_type == "multiplication"'>
+					,0 as stats_dta_co
+				</when>
+				<when test='fusion_type == "division"'>
+					,0 as stats_dta_co
+				</when>
+			</choose>
+		from
+			srv_dt_ctlg_dtwrh a with(nolock)
+			left outer join srv_dt_ctlg_dtwrh b with(nolock) on
+				b.stat_data_id = #{stat_data_id}
+				and b.map_ty = 'color'
+				and b.area_bndry_se = a.area_bndry_se
+				and b.adm_cd = a.adm_cd
+		where 1=1
+			and a.stat_data_id = #{stat_data_id}
+			and a.map_ty = 'color2'
+			and b.stat_data_id is null
+	</insert>
+	
+	<!-- Delete 융합 카탈로그 데이터마트 -->
+	<delete id="deleteFusionSrvDtCtlgDtwrh" parameterType="hashmap">
+		delete from 
+			srv_dt_ctlg_dtwrh
+		where
+			stat_data_id = #{stat_data_id}
+			and map_ty = 'color2'
+	</delete>
+	
+	<!-- Delete 융합 카탈로그 데이터마트 Before -->
+	<delete id="deleteFusionSrvDtCtlgDtwrhBefore" parameterType="hashmap">
+		delete from 
+			srv_dt_ctlg_dtwrh
+		where
+			stat_data_id = #{stat_data_id}
+			and map_ty in ('color','color2')
+			and stats_dta_co <![CDATA[<]]> 5
+	</delete>
+	
+	<!-- 2020.04.02[한광희] SGIS 포털 검색 시 My통계로 카탈로그 검색 START -->
+	<select id="selectPotalStatsMeCatalogList" parameterType="hashmap" resultType="hashmap">
+		SELECT STAT_DATA_ID
+			 , STAT_DATA_NM
+			 , STAT_DATA_SRV_NM
+		  FROM SRV_DT_CTLG_DATA_LIST
+		 WHERE 1=1
+		   AND SRV_YN = 'Y'
+		<if test="searchword != null">
+			AND STAT_DATA_SRV_NM LIKE '%' || #{searchword} || '%'
+		</if>
+		ORDER BY STAT_DATA_SRV_NM
+		<choose>
+			<when test="resultCnt != null and pagenum != null "> LIMIT ${pagenum}, ${resultCnt}</when>
+	    	<when test="resultCnt != null "> LIMIT #{resultCnt}</when>
+	    </choose>				
+	</select>
+	
+	<select id="selectPotalStatsMeCatalogCount" parameterType="hashmap" resultType="integer">
+		SELECT COUNT(*)
+		  FROM SRV_DT_CTLG_DATA_LIST
+		 WHERE 1=1
+		   AND SRV_YN = 'Y'
+		<if test="searchword != null">
+			AND STAT_DATA_SRV_NM LIKE '%' || #{searchword} || '%'
+		</if>
+		ORDER BY STAT_DATA_SRV_NM		
+	</select>
+	<!-- 2020.04.02[한광희] SGIS 포털 검색 시 My통계로 카탈로그 검색 END -->
+</mapper>

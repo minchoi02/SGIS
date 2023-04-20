@@ -1,0 +1,3350 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="statsMeMap2">
+	
+	<!-- Select List 카탈로그 데이터마트 -->
+	<select id="selectListSrvDtCtlgDtwrh" parameterType="hashmap" resultType="hashmap">
+		<choose>
+			<!-- 통계주제도 시작 -->
+			<!-- thema_map_type이 07이면 POI 데이터 표출 -->
+			<when test='menu_nm == "통계주제도" and thema_map_type == "07" and map_ty == "poi"'>
+				<!-- statsMeMap_ThematicMap_insertSrvDtCtlgDtwrh_ThematicMap_1 -->
+				select
+					cast('poi' as varchar(100)) as map_ty
+					,cast('all' as varchar(100)) as area_bndry_se
+					,cast(b.base_year as varchar(100)) as base_year
+					,cast(a.tot_reg_cd as varchar(50)) as adm_cd
+					,cast('' as varchar(200)) as adm_nm
+					,cast(substr(a.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd
+					,cast(substr(a.tot_reg_cd, 3, 3) as varchar(50)) as sgg_cd
+					,cast(substr(a.tot_reg_cd, 6, 2) as varchar(50)) as emdong_cd
+					,cast(round(st_x(a.pt)) as varchar(100)) as x_coor
+					,cast(round(st_y(a.pt)) as varchar(100)) as y_coor
+					,cast('1' as varchar(100)) as poi_se_nm
+					,cast(b.corp_nm as varchar(200)) as poi_nm
+					,cast('' as varchar(100)) as unit
+					,cast('' as varchar(100)) as unit_nm
+					,cast('' as varchar(300)) as tooltip_cn
+					,cast(0 as number) as stats_dta_co
+				from
+					srv_pt_bd a with(nolock)
+					<choose>
+						<when test='stat_data_base_year != null and stat_data_base_year lte "2005"'>
+							inner join srv_dt_corpcensus_8 b with(nolock) on b.sufid = a.sufid
+						</when>
+						<when test='stat_data_base_year != null and stat_data_base_year lte "2016"'>
+							inner join srv_dt_corpcensus_9 b with(nolock) on b.sufid = a.sufid
+						</when>
+						<otherwise>
+							inner join srv_dt_corpcensus_10 b with(nolock) on b.sufid = a.sufid
+						</otherwise>
+					</choose>
+				where 1=1
+					and b.base_year = #{stat_data_base_year}
+					<if test='theme_cd != null and theme_cd != undefined'>
+						and b.theme_cd in
+						<foreach collection="theme_cd" item="data" open="(" separator="," close=")">
+							#{data}
+						</foreach>
+					</if>
+					<if test='corp_class_cd != null and corp_class_cd != undefined'>
+						and b.ksic_5_cd in
+						<foreach collection="corp_class_cd" item="data" open="(" separator="," close=")">
+							#{data}
+						</foreach>
+					</if>
+					<choose>
+						<when test='emdong_cd != null and emdong_cd != ""'>
+							and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+						</when>
+						<when test='sgg_cd != null and sgg_cd != ""'>
+							and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+						</when>
+						<when test='sido_cd != null and sido_cd != ""'>
+							and a.tot_reg_cd like '${sido_cd}' || '%'
+						</when>
+					</choose>
+			</when>
+			
+			<!-- mng_s 2020. 12. 01 j.h.Seok 통계주제도 통합 -->
+			<when test='menu_nm == "통계주제도" and map_ty == "poi" and stat_thema_map_id == "sFKoutEowH20201208140301610JputqDxrrK"'>
+				<!-- statsMeMap_ThematicMap_insertSrvDtCtlgDtwrh_ThematicMap_1 -->
+				select
+					cast('poi' as varchar(100)) as map_ty
+					,cast('all' as varchar(100)) as area_bndry_se
+					,cast(b.base_year as varchar(100)) as base_year
+					,cast(a.tot_reg_cd as varchar(50)) as adm_cd
+					,cast('' as varchar(200)) as adm_nm
+					,cast(substr(a.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd
+					,cast(substr(a.tot_reg_cd, 3, 3) as varchar(50)) as sgg_cd
+					,cast(substr(a.tot_reg_cd, 6, 2) as varchar(50)) as emdong_cd
+					,cast(round(st_x(a.pt)) as varchar(100)) as x_coor
+					,cast(round(st_y(a.pt)) as varchar(100)) as y_coor
+					,cast('1' as varchar(100)) as poi_se_nm
+					,cast(b.corp_nm as varchar(200)) as poi_nm
+					,cast('' as varchar(100)) as unit
+					,cast('' as varchar(100)) as unit_nm
+					,cast('' as varchar(300)) as tooltip_cn
+					,cast(0 as number) as stats_dta_co
+				from
+					srv_pt_bd a with(nolock)
+					<choose>
+						<when test='stat_data_base_year != null and stat_data_base_year lte "2005"'>
+							inner join srv_dt_corpcensus_8 b with(nolock) on b.sufid = a.sufid
+						</when>
+						<when test='stat_data_base_year != null and stat_data_base_year lte "2016"'>
+							inner join srv_dt_corpcensus_9 b with(nolock) on b.sufid = a.sufid
+						</when>
+						<otherwise>
+							inner join srv_dt_corpcensus_10 b with(nolock) on b.sufid = a.sufid
+						</otherwise>
+					</choose>
+				where 1=1
+					and b.base_year = (select top 1 base_year from srv_dt_corpclasssgg where base_year != '9016' order by base_year desc)
+					<if test='theme_cd != null and theme_cd != undefined'>
+						and b.theme_cd in
+						<foreach collection="theme_cd" item="data" open="(" separator="," close=")">
+							#{data}
+						</foreach>
+					</if>
+					<if test='corp_class_cd != null and corp_class_cd != undefined'>
+						and b.ksic_5_cd in
+						<foreach collection="corp_class_cd" item="data" open="(" separator="," close=")">
+							#{data}
+						</foreach>
+					</if>
+					<choose>
+						<when test='emdong_cd != null and emdong_cd != ""'>
+							and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+						</when>
+						<when test='sgg_cd != null and sgg_cd != ""'>
+							and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+						</when>
+						<when test='sido_cd != null and sido_cd != ""'>
+							and a.tot_reg_cd like '${sido_cd}' || '%'
+						</when>
+					</choose>
+			</when>
+			<!-- mng_e 2020. 12. 01 j.h.Seok 통계주제도 통합 -->
+			
+			<!-- thema_map_type이 04이면서 귀농귀촌귀어가 아닌경우 차트데이터 표출 -->
+			<when test='menu_nm == "통계주제도" and thema_map_type == "04" and map_ty == "color" and stat_thema_map_id != "FlM5JUWj0T20181120214718029IpoBrl4UVw"'>
+				<!-- statsMeMap_ThematicMap_insertSrvDtCtlgDtwrh_ThematicMap_2 -->
+				select
+					cast('color' as varchar(100)) as map_ty
+					,cast(isnull(#{area_bndry_se},'') as varchar(100)) as area_bndry_se
+					,cast(trim(a.irds_year) as varchar(100)) as base_year
+					,cast(trim(a.adm_cd) as varchar(50)) as adm_cd
+					,cast('' as varchar(200)) as adm_nm
+					,cast(substr(a.adm_cd, 1, 2) as varchar(50)) as sido_cd
+					,cast(substr(a.adm_cd, 3, 3) as varchar(50)) as sgg_cd
+					,cast(substr(a.adm_cd, 6, 2) as varchar(50)) as emdong_cd
+					,cast('' as varchar(100)) as x_coor
+					,cast('' as varchar(100)) as y_coor
+					,cast('' as varchar(100)) as poi_se_nm
+					,cast('' as varchar(200)) as poi_nm
+					,cast(isnull(#{unit},'') as varchar(100)) as unit
+					,cast(isnull(#{unit_nm},'') as varchar(100)) as unit_nm
+					,cast(trim(trim(a.irds_year)||'년 '||#{tooltip_cn}) as varchar(300)) as tooltip_cn
+					,cast(a.chart_value as number) as stats_dta_co
+				from
+					mng_dt_themamapchange a with(nolock)
+				where 1=1
+					and trim(a.thema_map_data_id) = #{thema_map_data_id}
+					and a.irds_year = #{stat_data_base_year}
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							and a.region_div = '1'
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							and a.region_div = '2'
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							and a.region_div = '3'
+						</when>
+					</choose>
+					<choose>
+						<when test='emdong_cd != null and emdong_cd != ""'>
+							and a.adm_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+						</when>
+						<when test='sgg_cd != null and sgg_cd != ""'>
+							and a.adm_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+						</when>
+						<when test='sido_cd != null and sido_cd != ""'>
+							and a.adm_cd like '${sido_cd}' || '%'
+						</when>
+					</choose>
+			</when>
+			<when test='menu_nm == "통계주제도" and map_ty == "color"'>
+				select
+					cast('color' as varchar(100)) as map_ty
+					,cast(isnull(#{area_bndry_se},'') as varchar(100)) as area_bndry_se
+					,cast(replace(trim(base_year),'9016','2016') as varchar(100)) as base_year
+					,cast(trim(a.adm_cd) as varchar(50)) as adm_cd
+					,cast('' as varchar(200)) as adm_nm
+					,cast(substr(a.adm_cd, 1, 2) as varchar(50)) as sido_cd
+					,cast(substr(a.adm_cd, 3, 3) as varchar(50)) as sgg_cd
+					,cast(substr(a.adm_cd, 6, 2) as varchar(50)) as emdong_cd
+					,cast('' as varchar(100)) as x_coor
+					,cast('' as varchar(100)) as y_coor
+					,cast('' as varchar(100)) as poi_se_nm
+					,cast('' as varchar(200)) as poi_nm
+					,cast(isnull(#{unit},'') as varchar(100)) as unit
+					,cast(isnull(#{unit_nm},'') as varchar(100)) as unit_nm
+					,cast(trim(replace(trim(base_year),'9016','2016')||'년 '||#{tooltip_cn}) as varchar(300)) as tooltip_cn
+					,cast(a.left_sep_value as number) as stats_dta_co
+				from
+					mng_dt_themamapdata a with(nolock)
+				where 1=1
+					and trim(a.thema_map_data_id) = #{thema_map_data_id}
+					and a.base_year = #{stat_data_base_year}
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							and a.region_div = '1'
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							and a.region_div = '2'
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							and a.region_div = '3'
+						</when>
+					</choose>
+					<choose>
+						<when test='emdong_cd != null and emdong_cd != ""'>
+							and a.adm_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+						</when>
+						<when test='sgg_cd != null and sgg_cd != ""'>
+							and a.adm_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+						</when>
+						<when test='sido_cd != null and sido_cd != ""'>
+							and a.adm_cd like '${sido_cd}' || '%'
+						</when>
+					</choose>
+			</when>
+			<!-- 보육업체 취약인구현황 열지도 조회 100m -->
+			<when test='menu_nm == "통계주제도" and map_ty == "heat" and area_bndry_se == "100m" and stat_thema_map_id == "mtjKxt2Zkb20171109101132537k7SYSI50kn"'>
+				with w_srv_pt_childcare_100m as (
+					select
+						a.grid_100m_cd as adm_cd, sum(a.cnt) as cnt
+					from
+						srv_pt_childcare a with(nolock)
+						inner join srv_pg_grid_100m_bord b with(nolock) on b.grid_100m_cd = a.grid_100m_cd
+					group by
+						a.grid_100m_cd
+				)
+				select
+					cast('heat' as varchar(100)) as map_ty
+					,cast('100m' as varchar(100)) as area_bndry_se
+					,cast('' as varchar(100)) as base_year
+					,cast(a.adm_cd as varchar(50)) as adm_cd
+					,cast(a.adm_cd as varchar(200)) as adm_nm
+					,cast('' as varchar(50)) as sido_cd
+					,cast('' as varchar(50)) as sgg_cd
+					,cast('' as varchar(50)) as emdong_cd
+					,cast(st_x(st_centroid(b.bord)) as varchar(100)) as x_coor
+					,cast(st_y(st_centroid(b.bord)) as varchar(100)) as y_coor
+					,cast('' as varchar(100)) as poi_se_nm
+					,cast('' as varchar(200)) as poi_nm
+					,cast('' as varchar(100)) as unit
+					,cast('' as varchar(100)) as unit_nm
+					,cast('' as varchar(300)) as tooltip_cn
+					,cast(a.cnt as number) as stats_dta_co
+				from
+					w_srv_pt_childcare_100m a
+					inner join srv_pg_grid_100m_bord b with(nolock) on b.grid_100m_cd = a.adm_cd
+			</when>
+			<!-- 보육업체 취약인구현황 열지도 조회 1k -->
+			<when test='menu_nm == "통계주제도" and map_ty == "heat" and area_bndry_se == "1k" and stat_thema_map_id == "mtjKxt2Zkb20171109101132537k7SYSI50kn"'>
+				with w_srv_pt_childcare_1k as (
+					select
+						a.grid_1k_cd as adm_cd, sum(a.cnt) as cnt
+					from
+						srv_pt_childcare a with(nolock)
+						inner join srv_pg_grid_1k_bord b with(nolock) on b.grid_1k_cd = a.grid_1k_cd
+					group by
+						a.grid_1k_cd
+				)
+				select
+					cast('heat' as varchar(100)) as map_ty
+					,cast('1k' as varchar(100)) as area_bndry_se
+					,cast('' as varchar(100)) as base_year
+					,cast(a.adm_cd as varchar(50)) as adm_cd
+					,cast(a.adm_cd as varchar(200)) as adm_nm
+					,cast('' as varchar(50)) as sido_cd
+					,cast('' as varchar(50)) as sgg_cd
+					,cast('' as varchar(50)) as emdong_cd
+					,cast(st_x(st_centroid(b.bord)) as varchar(100)) as x_coor
+					,cast(st_y(st_centroid(b.bord)) as varchar(100)) as y_coor
+					,cast('' as varchar(100)) as poi_se_nm
+					,cast('' as varchar(200)) as poi_nm
+					,cast('' as varchar(100)) as unit
+					,cast('' as varchar(100)) as unit_nm
+					,cast('' as varchar(300)) as tooltip_cn
+					,cast(a.cnt as number) as stats_dta_co
+				from
+					w_srv_pt_childcare_1k a
+					inner join srv_pg_grid_1k_bord b with(nolock) on b.grid_1k_cd = a.adm_cd
+			</when>
+			<!-- 보육업체 취약인구현황 열지도 조회 10k -->
+			<when test='menu_nm == "통계주제도" and map_ty == "heat" and area_bndry_se == "10k" and stat_thema_map_id == "mtjKxt2Zkb20171109101132537k7SYSI50kn"'>
+				with w_srv_pt_childcare_10k as (
+					select
+						a.grid_10k_cd as adm_cd, sum(a.cnt) as cnt
+					from
+						srv_pt_childcare a with(nolock)
+						inner join srv_pg_grid_10k_bord b with(nolock) on b.grid_10k_cd = a.grid_10k_cd
+					group by
+						a.grid_10k_cd
+				)
+				select
+					cast('heat' as varchar(100)) as map_ty
+					,cast('10k' as varchar(100)) as area_bndry_se
+					,cast('' as varchar(100)) as base_year
+					,cast(a.adm_cd as varchar(50)) as adm_cd
+					,cast(a.adm_cd as varchar(200)) as adm_nm
+					,cast('' as varchar(50)) as sido_cd
+					,cast('' as varchar(50)) as sgg_cd
+					,cast('' as varchar(50)) as emdong_cd
+					,cast(st_x(st_centroid(b.bord)) as varchar(100)) as x_coor
+					,cast(st_y(st_centroid(b.bord)) as varchar(100)) as y_coor
+					,cast('' as varchar(100)) as poi_se_nm
+					,cast('' as varchar(200)) as poi_nm
+					,cast('' as varchar(100)) as unit
+					,cast('' as varchar(100)) as unit_nm
+					,cast('' as varchar(300)) as tooltip_cn
+					,cast(a.cnt as number) as stats_dta_co
+				from
+					w_srv_pt_childcare_10k a
+					inner join srv_pg_grid_10k_bord b with(nolock) on b.grid_10k_cd = a.adm_cd
+			</when>
+			<!-- 도서관 분포현항 POI 조회 -->
+			<when test='menu_nm == "통계주제도" and map_ty == "poi" and stat_thema_map_id == "yFwtuGMFxt20160629174353420HvLDEFvqyu"'>
+				select
+					cast('poi' as varchar(100)) as map_ty
+					,cast('all' as varchar(100)) as area_bndry_se
+					,cast('' as varchar(100)) as base_year
+					,cast(trim(a.tot_oa_cd) as varchar(50)) as adm_cd
+					,cast(a.addr as varchar(200)) as adm_nm
+					,cast(substr(a.tot_oa_cd, 1, 2) as varchar(50)) as sido_cd
+					,cast(substr(a.tot_oa_cd, 3, 3) as varchar(50)) as sgg_cd
+					,cast(substr(a.tot_oa_cd, 6, 2) as varchar(50)) as emdong_cd
+					,cast(a.x_coord as varchar(100)) as x_coor
+					,cast(a.y_coord as varchar(100)) as y_coor
+					,cast('1' as varchar(100)) as poi_se_nm
+					,cast('도서관명 : '||a.lib_nm as varchar(200)) as poi_nm
+					,cast('' as varchar(100)) as unit
+					,cast('' as varchar(100)) as unit_nm
+					,cast('' as varchar(300)) as tooltip_cn
+					,cast(0 as number) as stats_dta_co
+				from
+					srv_dt_library a with(nolock)
+				where 1=1
+					<choose>
+						<when test='emdong_cd != null and emdong_cd != ""'>
+							and a.tot_oa_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+						</when>
+						<when test='sgg_cd != null and sgg_cd != ""'>
+							and a.tot_oa_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+						</when>
+						<when test='sido_cd != null and sido_cd != ""'>
+							and a.tot_oa_cd like '${sido_cd}' || '%'
+						</when>
+					</choose>
+			</when>
+			<!-- 지진발생 분포지역 POI 조회 -->
+			<when test='menu_nm == "통계주제도" and map_ty == "poi" and stat_thema_map_id == "41d1dhxBgx20180627145739008kXnl0kFaa8"'>
+				select
+					cast('poi' as varchar(100)) as map_ty
+					,cast('all' as varchar(100)) as area_bndry_se
+					,cast(a.base_year as varchar(100)) as base_year
+					,cast(a.sido_cd as varchar(50)) as adm_cd
+					,cast('' as varchar(200)) as adm_nm
+					,cast(a.sido_cd as varchar(50)) as sido_cd
+					,cast('' as varchar(50)) as sgg_cd
+					,cast('' as varchar(50)) as emdong_cd
+					,cast(a.x_coord as varchar(100)) as x_coor
+					,cast(a.y_coord as varchar(100)) as y_coor
+					,cast('2' as varchar(100)) as poi_se_nm
+					,cast('' as varchar(200)) as poi_nm
+					,cast('' as varchar(100)) as unit
+					,cast('' as varchar(100)) as unit_nm
+					,cast('' as varchar(300)) as tooltip_cn
+					,cast(0 as number) as stats_dta_co
+				from
+					srv_pt_earthquake a with(nolock)
+				where 1=1
+					and a.base_year = #{stat_data_base_year}
+					<if test='sido_cd != null and sido_cd != ""'>
+						and a.sido_cd = '${sido_cd}'
+					</if>
+			</when>
+			<!-- 응급의료시설 접근현황 POI 조회 -->
+			<when test='menu_nm == "통계주제도" and map_ty == "poi" and stat_thema_map_id == "2qAx0jvYOk20180802165500441EHhhaQZQaK"'>
+				select
+					cast('poi' as varchar(100)) as map_ty
+					,cast('all' as varchar(100)) as area_bndry_se
+					,cast(isnull(#{stat_data_base_year},'') as varchar(100)) as base_year
+					,cast(a.adm_cd as varchar(50)) as adm_cd
+					,cast('' as varchar(200)) as adm_nm
+					,cast(substr(a.adm_cd, 1, 2) as varchar(50)) as sido_cd
+					,cast(substr(a.adm_cd, 3, 3) as varchar(50)) as sgg_cd
+					,cast(substr(a.adm_cd, 6, 2) as varchar(50)) as emdong_cd
+					,cast(a.x as varchar(100)) as x_coor
+					,cast(a.y as varchar(100)) as y_coor
+					,cast('1' as varchar(100)) as poi_se_nm
+					,cast(a.name as varchar(200)) as poi_nm
+					,cast('' as varchar(100)) as unit
+					,cast('' as varchar(100)) as unit_nm
+					,cast('' as varchar(300)) as tooltip_cn
+					,cast(0 as number) as stats_dta_co
+				from
+					srv_pt_network_data a with(nolock)
+				where 1=1
+					and a.thema_map_data_id = 'net_emergency_cnt'
+					<choose>
+						<when test='emdong_cd != null and emdong_cd != ""'>
+							and a.adm_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+						</when>
+						<when test='sgg_cd != null and sgg_cd != ""'>
+							and a.adm_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+						</when>
+						<when test='sido_cd != null and sido_cd != ""'>
+							and a.adm_cd like '${sido_cd}' || '%'
+						</when>
+					</choose>
+			</when>
+			<!-- 통계주제도 종료 -->
+			<!-- 일자리 맵 > 일자리 통계분석 시작 -->
+			<!-- 공통 통계 -->
+			<when test='menu_nm == "일자리 맵" and srv_nm == "일자리 통계분석" and map_ty == "color" and area_bndry_se == "sido" and link_id != "I3306_1"'>
+				select
+					 cast('color' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast('sido' as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(a.prd_de as varchar(100)) as base_year	/* 기준년도 */
+					,cast(a.c1 as varchar(50)) as adm_cd	/* 지역코드 */
+					,cast('' as varchar(200)) as adm_nm /* 지역명 */
+					,cast(a.c1 as varchar(50)) as sido_cd	/* 시도코드 */
+					,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+					,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast(a.unit_nm as varchar(100)) as unit	/* 단위 */
+					,cast(
+						case
+							when a.unit_nm = '%' then '율'
+					   		when a.unit_nm = '개' then '수'
+					   		when a.unit_nm = '건' then '수'
+						    when a.unit_nm = '명' then '인구'
+						    when instr(a.unit_nm,'명') > 0 then '인구'
+						    when instr(a.unit_nm,'원') > 0 then '금액'
+						    when instr(a.unit_nm,'호') > 0 then '세대'
+						    else ''
+						end
+					 as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast(
+						case
+							when len(a.prd_de) = 4 then a.prd_de||'년'
+							<choose>
+								<when test='updt_period == "분기"'>
+									when len(a.prd_de) = 6 then substr(a.prd_de,1,4)||'년 '||substr(a.prd_de,5,2)||'분기'
+								</when>
+								<otherwise>
+									when len(a.prd_de) = 6 then substr(a.prd_de,1,4)||'년 '||substr(a.prd_de,5,2)||'월'
+								</otherwise>
+							</choose>
+							else ''
+						end
+					 as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					,cast(a.dt as number) as stats_dta_co	/* 통계자료건수 */
+				from
+					srv_dt_kosis_data a with(nolock)
+					inner join (
+						select
+							max(s1.prd_de) as prd_de
+						from
+							srv_dt_kosis_data s1 with(nolock)
+						where 1=1
+							and s1.c1 not in ('00', 'T10')
+							and s1.link_id = #{link_id}
+							<if test='link_id == "I3114" or link_id == "I3104" or link_id == "I3112"'>
+								and s1.c2 = '0'
+							</if>
+							<if test='link_id == "I3117"'>
+								and s1.c2 = '00'
+							</if>
+							<if test='link_id == "E3224" or link_id == "E3219" or link_id == "E3218" or link_id == "E3208" or link_id == "I3207" or link_id == "I3206" or link_id == "I3306"'>
+								and s1.itm_id = #{itm_id}
+							</if>
+							<if test='link_id == "I3402"'>
+								and s1.itm_id = #{itm_id}
+								and s1.c2 = 'Z10'
+							</if>
+					) b on b.prd_de = a.prd_de
+				where 1=1
+					and a.c1 not in ('00', 'T10')
+					and a.link_id = #{link_id}
+					<if test='link_id == "I3114" or link_id == "I3104" or link_id == "I3112"'>
+						and a.c2 = '0'
+					</if>
+					<if test='link_id == "I3117"'>
+						and a.c2 = '00'
+					</if>
+					<if test='link_id == "E3224" or link_id == "E3219" or link_id == "E3218" or link_id == "E3208" or link_id == "I3207" or link_id == "I3206" or link_id == "I3306"'>
+						and a.itm_id = #{itm_id}
+					</if>
+					<if test='link_id == "I3402"'>
+						and a.itm_id = #{itm_id}
+						and a.c2 = 'Z10'
+					</if>
+			</when>
+			<!-- 비정규직 근로자 비율 -->
+			<when test='menu_nm == "일자리 맵" and srv_nm == "일자리 통계분석" and map_ty == "color" and area_bndry_se == "sido" and link_id == "I3306_1"'>
+				select
+					 cast('color' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast('sido' as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(isnull(#{stat_data_base_year},'') as varchar(100)) as base_year	/* 기준년도 */
+					,cast(a.C1 as varchar(50)) as adm_cd	/* 지역코드 */
+					,cast('' as varchar(200)) as adm_nm /* 지역명 */
+					,cast(a.C1 as varchar(50)) as sido_cd	/* 시도코드 */
+					,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+					,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast('%' as varchar(100)) as unit	/* 단위 */
+					,cast('비율' as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast(isnull(#{stat_data_base_year_orginl},'') as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					,cast(a.DT as number) as stats_dta_co	/* 통계자료건수 */
+				from
+					(
+						SELECT
+							TO_CHAR(TRUNC(T03.DT / T01.DT * 100, 1)) AS DT
+							,T01.C1
+							,T01.C1_NM
+							,SUBSTR(T01.PRD_DE, 1, 4) PRD_DE
+							,T01.PRD_DE AS O_PRD_DE
+						FROM
+							(
+								SELECT PRD_DE, DT, C1, C1_NM
+								FROM SRV_DT_KOSIS_DATA WITH(NOLOCK)
+								WHERE LINK_ID = 'I3306'
+								AND ITM_ID = 'T01' 
+							) T01
+							LEFT JOIN (
+								SELECT PRD_DE, DT, C1, C1_NM
+								FROM SRV_DT_KOSIS_DATA WITH(NOLOCK) 				
+								WHERE LINK_ID = 'I3306'
+								AND ITM_ID = 'T03' 
+							) T03 ON T01.PRD_DE = T03.PRD_DE AND T01.C1 = T03.C1 AND T01.PRD_DE LIKE #{stat_data_base_year} || '%'
+				   	) a
+		 		where 1=1
+		 			and a.PRD_DE like #{stat_data_base_year} || '%'
+					and a.C1 not in ('00')
+			</when>
+			<!-- 일자리 맵 > 일자리 통계분석 종료 -->
+			<!-- 일자리 맵 > 일자리보기 시작 -->
+			<when test='menu_nm == "일자리 맵" and srv_nm == "일자리보기" and map_ty == "poi"'>
+				select 
+					cast('poi' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast('all' as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(a.create_dt as varchar(100)) as base_year	/* 기준년도 */
+					,cast(a.sido_cd||a.sgg_cd||a.emdong_cd as varchar(50)) as adm_cd	/* 지역코드 */
+					,cast('' as varchar(200)) as adm_nm /* 지역명 */
+					,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+					,cast(a.sgg_cd as varchar(50)) as sgg_cd	/* 시군구코드 */
+					,cast(a.emdong_cd as varchar(50)) as emdong_cd	/* 읍면동코드 */
+					,cast(a.x as varchar(100)) as x_coor	/* X 좌표 */
+					,cast(a.y as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('1' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast(a.corp_nm as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast('' as varchar(100)) as unit	/* 단위 */
+					,cast('' as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast(a.recru_nm as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					,cast(0 as number) as stats_dta_co	/* 통계자료건수 */
+				from
+					srv_dt_job_sm a with(nolock)
+					inner join (select max(create_dt) as create_dt from srv_dt_job_sm s1 with(nolock)) b on b.create_dt = a.create_dt
+				where 1=1
+					and a.clos_dt <![CDATA[>=]]> to_char(sysdate, 'yyyymmdd')
+					<if test='b_class_cd != null and b_class_cd != ""'>
+						<choose>
+							<!-- 기업형태 -->
+							<when test='b_class_cd == "ENTTYP"'>
+								and a.entrprs_type = #{s_class_cd}
+							</when>
+							<!-- 직종분류 (모집직종) -->
+							<when test='b_class_cd == "RCRJSS"'>
+								and a.rcrit_jssfc like #{s_class_cd} || '%'
+							</when>
+							<!-- 고용형태 -->
+							<when test='b_class_cd == "EMPTYP"'>
+								and a.emplym_type = #{s_class_cd}
+							</when>
+							<!-- 학력 -->
+							<when test='b_class_cd == "ACDMCR"'>
+								and a.acdmcr = #{s_class_cd}
+							</when>
+							<!-- 경력 -->
+							<when test='b_class_cd == "CAREER"'>
+								and a.career = #{s_class_cd}
+							</when>
+							<!-- 산업분류 -->
+							<when test='b_class_cd == "INDCLA"'>
+								and a.indust_class like #{s_class_cd} || '%'
+							</when>
+						</choose>
+					</if>
+					<if test='sido_cd != null and sido_cd != ""'>
+						and a.sido_cd = '${sido_cd}'
+					</if>
+					<if test='sgg_cd != null and sgg_cd != ""'>
+						and a.sgg_cd = '${sgg_cd}'
+					</if>
+					<if test='emdong_cd != null and emdong_cd != ""'>
+						and a.emdong_cd = '${emdong_cd}'
+					</if>
+			</when>
+			<!-- 일자리 맵 > 일자리보기 종료 -->
+			<!-- 업종통계지도: 생활업종통계지도 > 시군구별 업종현황 시작 -->
+			<when test='menu_nm == "업종통계지도: 생활업종통계지도" and srv_nm == "시군구별 업종현황" and map_ty == "color" and area_bndry_se == "sido"'>
+				select
+					 cast('color' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast('sido' as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(a.base_year as varchar(100)) as base_year	/* 기준년도 */
+					,cast(trim(a.sido_cd) as varchar(50)) as adm_cd	/* 지역코드 */
+					,cast('' as varchar(200)) as adm_nm /* 지역명 */
+					,cast(trim(a.sido_cd) as varchar(50)) as sido_cd	/* 시도코드 */
+					,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+					,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast('개' as varchar(100)) as unit	/* 단위 */
+					,cast('수' as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast('' as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					,cast(a.corp_cnt as number) as stats_dta_co	/* 통계자료건수 */
+				from
+					srv_dt_sidolifebiz_corp_2020 a with(nolock) /* 2020.10.23[심창무] 테마코드 테이블 변경 */
+				where 1=1
+					and a.base_year = #{stat_data_base_year}
+					and a.theme_cd = #{theme_cd}
+					<if test='sido_cd != null and sido_cd != ""'>
+						and trim(a.sido_cd) = '${sido_cd}'
+					</if>
+			</when>
+			<when test='menu_nm == "업종통계지도: 생활업종통계지도" and srv_nm == "시군구별 업종현황" and map_ty == "color" and area_bndry_se == "sgg"'>
+				select
+					 cast('color' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast('sgg' as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(a.base_year as varchar(100)) as base_year	/* 기준년도 */
+					,cast(trim(a.sido_cd)||trim(a.sgg_cd) as varchar(50)) as adm_cd	/* 지역코드 */
+					,cast('' as varchar(200)) as adm_nm /* 지역명 */
+					,cast(trim(a.sido_cd) as varchar(50)) as sido_cd	/* 시도코드 */
+					,cast(trim(a.sgg_cd) as varchar(50)) as sgg_cd	/* 시군구코드 */
+					,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast('개' as varchar(100)) as unit	/* 단위 */
+					,cast('수' as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast('' as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					,cast(a.corp_cnt as number) as stats_dta_co	/* 통계자료건수 */
+				from
+					srv_dt_bizcategorymap_sgg a with(nolock)
+				where 1=1
+					and a.base_year = #{stat_data_base_year}
+					and a.theme_cd = #{theme_cd}
+					<if test='sido_cd != null and sido_cd != ""'>
+						and trim(a.sido_cd) = '${sido_cd}'
+					</if>
+					<if test='sgg_cd != null and sgg_cd != ""'>
+						and trim(a.sgg_cd) = '${sgg_cd}'
+					</if>
+			</when>
+			<!-- 업종통계지도: 생활업종통계지도 > 시군구별 업종현황 종료 -->
+			<!-- 업종통계지도: 생활업종통계지도 > 개업현황 시작 -->
+			<when test='menu_nm == "업종통계지도: 생활업종통계지도" and srv_nm == "개업현황" and map_ty == "heat"'>
+				select
+					 cast('heat' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast(isnull(#{area_bndry_se},'') as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					<choose>
+						<when test='area_bndry_se == "sido" or area_bndry_se == "sgg"'>
+							,cast(a.base_year as varchar(100)) as base_year	/* 기준년도 */
+							,cast(a.adm_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(a.adm_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(a.adm_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(a.adm_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+							,cast(round(c.x_coor) as varchar(100)) as x_coor	/* X 좌표 */
+							,cast(round(c.y_coor) as varchar(100)) as y_coor	/* Y 좌표 */
+							,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+							,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+							,cast('' as varchar(100)) as unit	/* 단위 */
+							,cast('' as varchar(100)) as unit_nm	/* 단위 명 */
+							,cast('' as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+							,cast(a.cnt as number) as stats_dta_co	/* 통계자료건수 */
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							,cast(left(a.apvpermymd, 4) as varchar(100)) as base_year	/* 기준년도 */
+							,cast(a.tot_oa_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(a.tot_oa_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(a.tot_oa_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(a.tot_oa_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+							,cast(a.coord_x as varchar(100)) as x_coor	/* X 좌표 */
+							,cast(a.coord_y as varchar(100)) as y_coor	/* Y 좌표 */
+							,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+							,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+							,cast('' as varchar(100)) as unit	/* 단위 */
+							,cast('' as varchar(100)) as unit_nm	/* 단위 명 */
+							,cast('' as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+							,cast(count(*) as number) as stats_dta_co	/* 통계자료건수 */
+						</when>
+					</choose>
+				from
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							(
+								select 
+									substr(s1.tot_oa_cd, 0, 7) as adm_cd
+									,left(s1.apvpermymd, 4) as base_year
+									,count(*) as cnt
+								from 
+									srv_pt_localdata s1 with(nolock)
+								where 1=1
+									and left(s1.apvpermymd, 4) = '${stat_data_base_year}'
+									and s1.service_code = '${service_code}'
+									<choose>
+										<when test='emdong_cd != null and emdong_cd != ""'>
+											and s1.tot_oa_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+										</when>
+										<when test='sgg_cd != null and sgg_cd != ""'>
+											and s1.tot_oa_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+										</when>
+										<when test='sido_cd != null and sido_cd != ""'>
+											and s1.tot_oa_cd like '${sido_cd}' || '%'
+										</when>
+									</choose>
+								group by
+									substr(s1.tot_oa_cd, 0, 7)
+									,left(s1.apvpermymd, 4)
+							) a
+							inner join (select max(base_year) as base_year from srv_pg_admbord with(nolock)) b on 1=1
+							inner join srv_pg_admbord c with(nolock) on c.base_year = b.base_year and c.sido_cd||c.sgg_cd||c.emdong_cd = a.adm_cd
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							(
+								select 
+									s1.tot_oa_cd as adm_cd
+									,left(s1.apvpermymd, 4) as base_year
+									,count(*) as cnt
+								from 
+									srv_pt_localdata s1 with(nolock)
+								where 1=1
+									and left(s1.apvpermymd, 4) = '${stat_data_base_year}'
+									and s1.service_code = '${service_code}'
+									<choose>
+										<when test='emdong_cd != null and emdong_cd != ""'>
+											and s1.tot_oa_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+										</when>
+										<when test='sgg_cd != null and sgg_cd != ""'>
+											and s1.tot_oa_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+										</when>
+										<when test='sido_cd != null and sido_cd != ""'>
+											and s1.tot_oa_cd like '${sido_cd}' || '%'
+										</when>
+									</choose>
+								group by
+									s1.tot_oa_cd
+									,left(s1.apvpermymd, 4)
+							) a
+							inner join (select max(base_year) as base_year from srv_pg_totregbord with(nolock)) b on 1=1
+							inner join srv_pg_totregbord c with(nolock) on c.base_year = b.base_year and c.tot_reg_cd = a.adm_cd
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							srv_pt_localdata a with(nolock)
+						where 1=1
+							and left(a.apvpermymd, 4) = '${stat_data_base_year}'
+							and a.service_code = '${service_code}'
+							<choose>
+								<when test='emdong_cd != null and emdong_cd != ""'>
+									and a.tot_oa_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+								</when>
+								<when test='sgg_cd != null and sgg_cd != ""'>
+									and a.tot_oa_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+								</when>
+								<when test='sido_cd != null and sido_cd != ""'>
+									and a.tot_oa_cd like '${sido_cd}' || '%'
+								</when>
+							</choose>
+						group by left(a.apvpermymd, 4), a.tot_oa_cd, a.coord_x, a.coord_y
+						</when>
+					</choose>
+			</when>
+			<when test='menu_nm == "업종통계지도: 생활업종통계지도" and srv_nm == "개업현황" and map_ty == "poi"'>
+				select
+					 cast('poi' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast('all' as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(left(a.apvpermymd, 4) as varchar(100)) as base_year	/* 기준년도 */
+					,cast(a.tot_oa_cd as varchar(50)) as adm_cd	/* 지역코드 */
+					,cast(a.sitewhladdr as varchar(200)) as adm_nm /* 지역명 */
+					,cast(substr(a.tot_oa_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+					,cast(substr(a.tot_oa_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+					,cast(substr(a.tot_oa_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+					,cast(a.coord_x as varchar(100)) as x_coor	/* X 좌표 */
+					,cast(a.coord_y as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('5' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast(a.bplcnm||'$'||a.service_nm as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast('' as varchar(100)) as unit	/* 단위 */
+					,cast('' as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast('' as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					,cast(0 as number) as stats_dta_co	/* 통계자료건수 */
+				from
+					srv_pt_localdata a with(nolock)
+				where 1=1
+					and left(a.apvpermymd, 4) = #{stat_data_base_year}
+					and a.service_code = #{service_code}
+					<choose>
+						<when test='emdong_cd != null and emdong_cd != ""'>
+							and a.tot_oa_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+						</when>
+						<when test='sgg_cd != null and sgg_cd != ""'>
+							and a.tot_oa_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+						</when>
+						<when test='sido_cd != null and sido_cd != ""'>
+							and a.tot_oa_cd like '${sido_cd}' || '%'
+						</when>
+					</choose>
+			</when>
+			<!-- 업종통계지도: 생활업종통계지도 > 개업현황 종료 -->
+			<!-- 업종통계지도: 생활업종통계지도 > 업종 밀집도 변화 시작 -->
+			<when test='menu_nm == "업종통계지도: 생활업종통계지도" and srv_nm == "업종 밀집도 변화" and map_ty == "heat"'>
+				select
+					 cast('heat' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast(isnull(#{area_bndry_se},'') as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(a.base_year as varchar(100)) as base_year	/* 기준년도 */
+					<choose>
+						<when test='area_bndry_se == "sido" or area_bndry_se == "sgg"'>
+							,cast(a.adm_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(a.adm_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(a.adm_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(a.adm_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+							,cast(round(c.x_coor) as varchar(100)) as x_coor	/* X 좌표 */
+							,cast(round(c.y_coor) as varchar(100)) as y_coor	/* Y 좌표 */
+							,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+							,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+							,cast('' as varchar(100)) as unit	/* 단위 */
+							,cast('' as varchar(100)) as unit_nm	/* 단위 명 */
+							,cast('' as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+							,cast(a.cnt as number) as stats_dta_co	/* 통계자료건수 */
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							,cast(b.tot_reg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(b.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(b.tot_reg_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(b.tot_reg_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+							,cast(round(st_x(b.pt)) as varchar(100)) as x_coor	/* X 좌표 */
+							,cast(round(st_y(b.pt)) as varchar(100)) as y_coor	/* Y 좌표 */
+							,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+							,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+							,cast('' as varchar(100)) as unit	/* 단위 */
+							,cast('' as varchar(100)) as unit_nm	/* 단위 명 */
+							,cast('' as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+							,cast(count(*) as number) as stats_dta_co	/* 통계자료건수 */
+						</when>
+					</choose>
+				from
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							(
+								select 
+									substr(s1.tot_reg_cd, 0, 7) as adm_cd
+									,s1.base_year
+									,sum(s1.corp_cnt) as cnt
+								from 
+									srv_dt_corpthemereg s1 with(nolock)
+								where 1=1
+									and s1.base_year = '${stat_data_base_year}'
+									and s1.theme_cd = '${theme_cd}'
+									<choose>
+										<when test='emdong_cd != null and emdong_cd != ""'>
+											and s1.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+										</when>
+										<when test='sgg_cd != null and sgg_cd != ""'>
+											and s1.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+										</when>
+										<when test='sido_cd != null and sido_cd != ""'>
+											and s1.tot_reg_cd like '${sido_cd}' || '%'
+										</when>
+									</choose>
+								group by
+									substr(s1.tot_reg_cd, 0, 7)
+									,s1.base_year
+							) a
+							inner join srv_pg_admbord c with(nolock) on c.base_year = '${bnd_year}' and c.sido_cd||c.sgg_cd||c.emdong_cd = a.adm_cd
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							(
+								select 
+									s1.tot_reg_cd as adm_cd
+									,s1.base_year
+									,sum(s1.corp_cnt) as cnt
+								from 
+									srv_dt_corpthemereg s1 with(nolock)
+								where 1=1
+									and s1.base_year = '${stat_data_base_year}'
+									and s1.theme_cd = '${theme_cd}'
+									<choose>
+										<when test='emdong_cd != null and emdong_cd != ""'>
+											and s1.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+										</when>
+										<when test='sgg_cd != null and sgg_cd != ""'>
+											and s1.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+										</when>
+										<when test='sido_cd != null and sido_cd != ""'>
+											and s1.tot_reg_cd like '${sido_cd}' || '%'
+										</when>
+									</choose>
+								group by
+									s1.tot_reg_cd
+									,s1.base_year
+							) a
+							inner join (select max(base_year) as base_year from srv_pg_totregbord with(nolock)) b on 1=1
+							inner join srv_pg_totregbord c with(nolock) on c.base_year = b.base_year and c.tot_reg_cd = a.adm_cd
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+								<choose>
+									<when test='stat_data_base_year != null and stat_data_base_year lte "2005"'>
+										srv_dt_corpcensus_8 a with(nolock)
+									</when>
+									<when test='stat_data_base_year != null and stat_data_base_year lte "2016"'>
+										srv_dt_corpcensus_9 a with(nolock)
+									</when>
+									<otherwise>
+										srv_dt_corpcensus_10 a with(nolock)
+									</otherwise>
+								</choose>
+								inner join srv_pt_bd b with(nolock) on b.sufid = a.sufid
+								inner join srv_pg_censusbd c with(nolock) on c.sufid = a.sufid
+								inner join cmm_cd_theme d with(nolock) on d.theme_cd = a.theme_cd
+							where 1=1
+								and a.base_year = #{stat_data_base_year}
+								and a.theme_cd = #{theme_cd}
+								<choose>
+									<when test='emdong_cd != null and emdong_cd != ""'>
+										and a.adm_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+									</when>
+									<when test='sgg_cd != null and sgg_cd != ""'>
+										and a.adm_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+									</when>
+									<when test='sido_cd != null and sido_cd != ""'>
+										and a.adm_cd like '${sido_cd}' || '%'
+									</when>
+								</choose>
+						   group by a.base_year, b.tot_reg_cd, b.tot_reg_cd, round(st_x(b.pt)), round(st_y(b.pt))
+						</when>
+					</choose>
+			</when>
+			<when test='menu_nm == "업종통계지도: 생활업종통계지도" and srv_nm == "업종 밀집도 변화" and map_ty == "poi"'>
+				select
+					 cast('poi' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast('all' as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(a.base_year as varchar(100)) as base_year	/* 기준년도 */
+					,cast(b.tot_reg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+					,cast('' as varchar(200)) as adm_nm /* 지역명 */
+					,cast(substr(b.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+					,cast(substr(b.tot_reg_cd, 3, 3)  as varchar(50)) as sgg_cd	/* 시군구코드 */
+					,cast(substr(b.tot_reg_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+					,cast(round(st_x(b.pt)) as varchar(100)) as x_coor	/* X 좌표 */
+					,cast(round(st_y(b.pt)) as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('5' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast(a.corp_nm||'$'||d.b_theme_cd_nm||'/'||d.s_theme_cd_nm as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast('' as varchar(100)) as unit	/* 단위 */
+					,cast('' as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast('' as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					,cast(0 as number) as stats_dta_co	/* 통계자료건수 */
+				from
+					<choose>
+						<when test='stat_data_base_year != null and stat_data_base_year lte "2005"'>
+							srv_dt_corpcensus_8 a with(nolock)
+						</when>
+						<when test='stat_data_base_year != null and stat_data_base_year lte "2016"'>
+							srv_dt_corpcensus_9 a with(nolock)
+						</when>
+						<otherwise>
+							srv_dt_corpcensus_10 a with(nolock)
+						</otherwise>
+					</choose>
+					inner join srv_pt_bd b with(nolock) on b.sufid = a.sufid
+					inner join srv_pg_censusbd c with(nolock) on c.sufid = a.sufid
+					inner join cmm_cd_theme d with(nolock) on d.theme_cd = a.theme_cd
+				where 1=1
+					and a.base_year = #{stat_data_base_year}
+					and a.theme_cd = #{theme_cd}
+					<choose>
+						<when test='emdong_cd != null and emdong_cd != ""'>
+							and a.adm_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+						</when>
+						<when test='sgg_cd != null and sgg_cd != ""'>
+							and a.adm_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+						</when>
+						<when test='sido_cd != null and sido_cd != ""'>
+							and a.adm_cd like '${sido_cd}' || '%'
+						</when>
+					</choose>
+			</when>
+			<!-- 업종통계지도: 생활업종통계지도 > 업종 밀집도 변화 종료 -->
+			<!-- 업종통계지도: 기술업종통계지도 시작 -->
+			<when test='menu_nm == "업종통계지도: 기술업종통계지도" and map_ty == "color"'>
+				select
+					 cast('color' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast(isnull(#{area_bndry_se},'') as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(a.base_year as varchar(100)) as base_year	/* 기준년도 */
+					,cast(trim(a.adm_cd) as varchar(50)) as adm_cd	/* 지역코드 */
+					,cast('' as varchar(200)) as adm_nm /* 지역명 */
+					,cast(substr(trim(a.adm_cd), 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+					,cast(substr(trim(a.adm_cd), 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+					,cast(substr(trim(a.adm_cd), 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast('개' as varchar(100)) as unit	/* 단위 */
+					,cast('사업체 수' as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast(trim(a.base_year||'년 사업체 수') as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					,cast(a.corp_cnt as number) as stats_dta_co	/* 통계자료건수 */
+				from
+					srv_dt_techbiz_chartrinfo a with(nolock)
+				where 1=1
+					and a.base_year = #{stat_data_base_year}
+					and a.techbiz_class_cd = #{techbiz_class_cd}
+					<if test='area_bndry_se == "sido"'>
+						and a.region_div = '1'
+					</if>
+					<if test='area_bndry_se == "sgg"'>
+						and a.region_div = '2'
+					</if>
+					<if test='area_bndry_se == "emdong"'>
+						and a.region_div = '3'
+					</if>
+					<choose>
+						<when test='emdong_cd != null and emdong_cd != ""'>
+							and trim(a.adm_cd) like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+						</when>
+						<when test='sgg_cd != null and sgg_cd != ""'>
+							and trim(a.adm_cd) like '${sido_cd}' || '${sgg_cd}' || '%'
+						</when>
+						<when test='sido_cd != null and sido_cd != ""'>
+							and trim(a.adm_cd) like '${sido_cd}' || '%'
+						</when>
+					</choose>
+			</when>
+			<!-- 업종통계지도: 기술업종통계지도 종료 -->
+			<!-- 살고싶은 우리동네 시작 -->
+			<when test='menu_nm == "살고싶은 우리동네" and map_ty == "color"'>
+				select
+					 cast('color' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast(isnull(#{area_bndry_se},'') as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast('' as varchar(100)) as base_year	/* 기준년도 */
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							,cast(a.sido_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							,cast(a.sido_cd||a.sgg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(a.sgg_cd as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							,cast(a.sido_cd||a.sgg_cd||a.emdong_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(a.sgg_cd as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(a.emdong_cd as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+					</choose>
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast(b.unit as varchar(100)) as unit	/* 단위 */
+					,cast(
+						case
+							when b.unit = '%' then '비율'
+					   		when b.unit = '개' then '수'
+					   		when b.unit = '등급' then '등급'
+						    when b.unit = '명' then '인구'
+						    when b.unit = '원' then '금액'
+						    when b.unit = '제곱미터' then '면적'
+						    else ''
+					   	end
+					 as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast(isnull(#{stat_data_nm},'') as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					,cast(round(a.value, 2) as number) as stats_dta_co	/* 통계자료건수 */
+				from
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							srv_dt_sido_ix_order a with(nolock)
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							srv_dt_sgg_ix_order a with(nolock)
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							srv_dt_emdong_ix_order a with(nolock)
+						</when>
+					</choose>
+					inner join srv_dt_mlsfc_ix b with(nolock) on b.b_class_idx_id = a.b_class_idx_id and b.m_class_idx_id = a.m_class_idx_id
+				where 1=1
+					and a.b_class_idx_id = #{b_class_idx_id}
+					and a.m_class_idx_id = #{m_class_idx_id}
+					<if test='sido_cd != null and sido_cd != ""'>
+						and a.sido_cd = '${sido_cd}'
+					</if>
+					<if test='sgg_cd != null and sgg_cd != ""'>
+						and a.sgg_cd = '${sgg_cd}'
+					</if>
+					<if test='emdong_cd != null and emdong_cd != ""'>
+						and a.emdong_cd = '${emdong_cd}'
+					</if>
+			</when>
+			<!-- 살고싶은 우리동네 종료 -->
+			<!-- 대화형 통계지도 > 전국 사업체조사: 산업분류 시작 -->
+			<when test='menu_nm == "대화형 통계지도" and srv_nm == "전국 사업체조사: 산업분류" and map_ty == "color"'>
+				select
+					 cast('color' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast(isnull(#{area_bndry_se},'') as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(a.base_year as varchar(100)) as base_year	/* 기준년도 */
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							,cast(a.sido_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							,cast(a.sido_cd||a.sgg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(a.sgg_cd as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							,cast(substr(a.tot_reg_cd, 1, 7) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "totreg"'>
+							,cast(a.tot_reg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(a.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(a.tot_reg_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(a.tot_reg_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+					</choose>
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast('개' as varchar(100)) as unit	/* 단위 */
+					,cast('사업체수' as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast(a.base_year||'년 사업체수' as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					,cast(sum(a.corp_cnt) as number) as stats_dta_co	/* 통계자료건수 */
+				from
+					<choose>
+						<when test='area_bndry_se == "sido" or area_bndry_se == "sgg"'>
+							srv_dt_corpclasssgg a with(nolock)
+						</when>
+						<when test='area_bndry_se == "emdong" or area_bndry_se == "totreg"'>
+							srv_dt_corpclassreg a with(nolock)
+						</when>
+					</choose>
+				where 1=1
+					and a.base_year = #{stat_data_base_year}
+					and a.ksic_1_cd = #{ksic_1_cd}
+					and a.ksic_5_cd like #{ksic_4_cd} || '%'
+					<choose>
+						<when test='area_bndry_se == "sido" or area_bndry_se == "sgg"'>
+							<if test='sido_cd != null and sido_cd != ""'>
+								and a.sido_cd = '${sido_cd}'
+							</if>
+							<if test='sgg_cd != null and sgg_cd != ""'>
+								and a.sgg_cd = '${sgg_cd}'
+							</if>
+						</when>
+						<when test='area_bndry_se == "emdong" or area_bndry_se == "totreg"'>
+							<choose>
+								<when test='emdong_cd != null and emdong_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+								</when>
+								<when test='sgg_cd != null and sgg_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+								</when>
+								<when test='sido_cd != null and sido_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '%'
+								</when>
+							</choose>
+						</when>
+					</choose>
+				<choose>
+					<when test='area_bndry_se == "sido"'>
+						group by a.base_year, a.sido_cd
+					</when>
+					<when test='area_bndry_se == "sgg"'>
+						group by a.base_year, a.sido_cd, a.sgg_cd
+					</when>
+					<when test='area_bndry_se == "emdong"'>
+						group by a.base_year, substr(a.tot_reg_cd, 1, 7)
+					</when>
+					<when test='area_bndry_se == "totreg"'>
+						group by a.base_year, a.tot_reg_cd
+					</when>
+				</choose>
+				<if test='berow_5_remove_yn == "Y"'>
+					having cast(sum(a.corp_cnt) as number) <![CDATA[ >= ]]> 5
+				</if>
+			</when>
+			<!-- 대화형 통계지도 > 전국 사업체조사: 산업분류 종료 -->
+			<!-- 대화형 통계지도 > 전국 사업체조사: 테마업종 시작 -->
+			<when test='menu_nm == "대화형 통계지도" and srv_nm == "전국 사업체조사: 테마업종" and map_ty == "color"'>
+				select
+					 cast('color' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast(isnull(#{area_bndry_se},'') as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(a.base_year as varchar(100)) as base_year	/* 기준년도 */
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							,cast(a.sido_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							,cast(a.sido_cd||a.sgg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(a.sgg_cd as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							,cast(substr(a.tot_reg_cd, 1, 7) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "totreg"'>
+							,cast(a.tot_reg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(a.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(a.tot_reg_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(a.tot_reg_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+					</choose>
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast('개' as varchar(100)) as unit	/* 단위 */
+					,cast('사업체수' as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast(a.base_year||'년 사업체수' as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					,cast(sum(a.corp_cnt) as number) as stats_dta_co	/* 통계자료건수 */
+				from
+					<choose>
+						<when test='area_bndry_se == "sido" or area_bndry_se == "sgg"'>
+							srv_dt_corpthemesgg a with(nolock)
+						</when>
+						<when test='area_bndry_se == "emdong" or area_bndry_se == "totreg"'>
+							srv_dt_corpthemereg a with(nolock)
+						</when>
+					</choose>
+				where 1=1
+					and a.base_year = #{stat_data_base_year}
+					and a.theme_cd = #{theme_cd}
+					<choose>
+						<when test='area_bndry_se == "sido" or area_bndry_se == "sgg"'>
+							<if test='sido_cd != null and sido_cd != ""'>
+								and a.sido_cd = '${sido_cd}'
+							</if>
+							<if test='sgg_cd != null and sgg_cd != ""'>
+								and a.sgg_cd = '${sgg_cd}'
+							</if>
+						</when>
+						<when test='area_bndry_se == "emdong" or area_bndry_se == "totreg"'>
+							<choose>
+								<when test='emdong_cd != null and emdong_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+								</when>
+								<when test='sgg_cd != null and sgg_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+								</when>
+								<when test='sido_cd != null and sido_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '%'
+								</when>
+							</choose>
+						</when>
+					</choose>
+				<choose>
+					<when test='area_bndry_se == "sido"'>
+						group by a.base_year, a.sido_cd
+					</when>
+					<when test='area_bndry_se == "sgg"'>
+						group by a.base_year, a.sido_cd, a.sgg_cd
+					</when>
+					<when test='area_bndry_se == "emdong"'>
+						group by a.base_year, substr(a.tot_reg_cd, 1, 7)
+					</when>
+					<when test='area_bndry_se == "totreg"'>
+						group by a.base_year, a.tot_reg_cd
+					</when>
+				</choose>
+				<if test='berow_5_remove_yn == "Y"'>
+					having cast(sum(a.corp_cnt) as number) <![CDATA[ >= ]]> 5
+				</if>
+			</when>
+			<!-- 대화형 통계지도 > 전국 사업체조사: 테마업종 종료 -->
+			<!-- 대화형 통계지도 > 인구주택총조사 > 인구조건 시작 -->
+			<when test='menu_nm == "대화형 통계지도" and srv_nm == "인구주택총조사" and b_class_nm == "인구조건" and map_ty == "color"'>
+				select
+					 cast('color' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast(isnull(#{area_bndry_se},'') as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(isnull(#{stat_data_base_year},'') as varchar(100)) as base_year	/* 기준년도 */
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							,cast(a.sido_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							,cast(a.sido_cd||a.sgg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(a.sgg_cd as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							,cast(substr(a.tot_reg_cd, 1, 7) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "totreg"'>
+							,cast(a.tot_reg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(a.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(a.tot_reg_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(a.tot_reg_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+					</choose>
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast('명' as varchar(100)) as unit	/* 단위 */
+					,cast('인구' as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast(#{stat_data_base_year}||'년 인구' as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					,cast(sum(a.ppltn_cnt) as number) as stats_dta_co	/* 통계자료건수 */
+				from
+					<choose>
+						<when test='area_bndry_se == "sido" or area_bndry_se == "sgg"'>
+							srv_dt_popsgg_${stat_data_base_year} a with(nolock)
+						</when>
+						<when test='area_bndry_se == "emdong" or area_bndry_se == "totreg"'>
+							srv_dt_popsreg_${stat_data_base_year} a with(nolock)
+						</when>
+					</choose>
+				where 1=1
+					<if test='age_from != null and age_from != ""'>
+						and a.age <![CDATA[>=]]> ${age_from}
+					</if>
+					<if test='age_to != null and age_to != ""'>
+						and a.age <![CDATA[<=]]> ${age_to}
+					</if>
+					<if test='gender != null and gender != "" and gender != "0"'>
+						and a.gender = #{gender}
+					</if>
+					<choose>
+						<when test='area_bndry_se == "sido" or area_bndry_se == "sgg"'>
+							<if test='sido_cd != null and sido_cd != ""'>
+								and a.sido_cd = '${sido_cd}'
+							</if>
+							<if test='sgg_cd != null and sgg_cd != ""'>
+								and a.sgg_cd = '${sgg_cd}'
+							</if>
+						</when>
+						<when test='area_bndry_se == "emdong" or area_bndry_se == "totreg"'>
+							<choose>
+								<when test='emdong_cd != null and emdong_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+								</when>
+								<when test='sgg_cd != null and sgg_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+								</when>
+								<when test='sido_cd != null and sido_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '%'
+								</when>
+							</choose>
+						</when>
+					</choose>
+				<choose>
+					<when test='area_bndry_se == "sido"'>
+						group by a.sido_cd
+					</when>
+					<when test='area_bndry_se == "sgg"'>
+						group by a.sido_cd, a.sgg_cd
+					</when>
+					<when test='area_bndry_se == "emdong"'>
+						group by substr(a.tot_reg_cd, 1, 7)
+					</when>
+					<when test='area_bndry_se == "totreg"'>
+						group by a.tot_reg_cd
+					</when>
+				</choose>
+				<if test='berow_5_remove_yn == "Y"'>
+					having cast(sum(a.ppltn_cnt) as number) <![CDATA[ >= ]]> 5
+				</if>
+			</when>
+			<!-- 대화형 통계지도 > 인구주택총조사 > 인구조건 종료 -->
+			<!-- 대화형 통계지도 > 인구주택총조사 > 가구조건 시작 -->
+			<when test='menu_nm == "대화형 통계지도" and srv_nm == "인구주택총조사" and b_class_nm == "가구조건" and map_ty == "color"'>
+				<choose>
+					<!-- 색상 / 격자(100k) -->
+					<when test='map_ty == "color" and area_bndry_se == "100k"'>
+						with w_srv_pg_admbord as (
+							select
+								a.lighten_bord
+							from
+							<choose>
+								<when test='emdong_cd != null and emdong_cd != ""'>
+									srv_pg_admbord a with(nolock)
+									inner join (select max(base_year) as base_year from srv_pg_admbord with(nolock)) b on b.base_year = a.base_year
+								where 1=1
+									and a.sido_cd = '${sido_cd}'
+									and a.sgg_cd = '${sgg_cd}'
+									and a.emdong_cd = '${emdong_cd}'
+								</when>
+								<when test='sgg_cd != null and sgg_cd != ""'>
+									srv_pg_sggbord a with(nolock)
+									inner join (select max(base_year) as base_year from srv_pg_sggbord with(nolock)) b on b.base_year = a.base_year
+								where 1=1
+									and a.sido_cd = '${sido_cd}'
+									and a.sgg_cd = '${sgg_cd}'
+								</when>
+								<when test='sido_cd != null and sido_cd != ""'>
+									srv_pg_sidobord a with(nolock)
+									inner join (select max(base_year) as base_year from srv_pg_sidobord with(nolock)) b on b.base_year = a.base_year
+								where 1=1
+									and a.sido_cd = '${sido_cd}'
+								</when>
+								<otherwise>
+									(
+										select
+											st_polyfromtext('POLYGON((0 0,0 9999999,9999999 9999999,9999999 0,0 0))', 1) as lighten_bord
+										from
+											dual
+									) a
+									where 1=2
+								</otherwise>
+							</choose>
+						),
+						w_srv_pg_grid_bord as (
+							select
+								c.grid_100k_cd adm_cd
+							from
+								w_srv_pg_admbord a
+								inner join srv_pg_grid_100k_bord c with(nolock) on st_intersects(a.lighten_bord, c.bord) = 1
+						)
+					</when>
+					<!-- 색상 / 격자(10k) -->
+					<when test='map_ty == "color" and area_bndry_se == "10k"'>
+						with w_srv_pg_admbord as (
+							select
+								a.lighten_bord
+							from
+							<choose>
+								<when test='emdong_cd != null and emdong_cd != ""'>
+									srv_pg_admbord a with(nolock)
+									inner join (select max(base_year) as base_year from srv_pg_admbord with(nolock)) b on b.base_year = a.base_year
+								where 1=1
+									and a.sido_cd = '${sido_cd}'
+									and a.sgg_cd = '${sgg_cd}'
+									and a.emdong_cd = '${emdong_cd}'
+								</when>
+								<when test='sgg_cd != null and sgg_cd != ""'>
+									srv_pg_sggbord a with(nolock)
+									inner join (select max(base_year) as base_year from srv_pg_sggbord with(nolock)) b on b.base_year = a.base_year
+								where 1=1
+									and a.sido_cd = '${sido_cd}'
+									and a.sgg_cd = '${sgg_cd}'
+								</when>
+								<when test='sido_cd != null and sido_cd != ""'>
+									srv_pg_sidobord a with(nolock)
+									inner join (select max(base_year) as base_year from srv_pg_sidobord with(nolock)) b on b.base_year = a.base_year
+								where 1=1
+									and a.sido_cd = '${sido_cd}'
+								</when>
+								<otherwise>
+									(
+										select
+											st_polyfromtext('POLYGON((0 0,0 9999999,9999999 9999999,9999999 0,0 0))', 1) as lighten_bord
+										from
+											dual  
+									) a
+									where 1=2
+								</otherwise>
+							</choose>
+						),
+						w_srv_pg_grid_bord as (
+							select
+								c.grid_10k_cd adm_cd
+							from
+								w_srv_pg_admbord a
+								inner join srv_pg_grid_10k_bord c with(nolock) on st_intersects(a.lighten_bord, c.bord) = 1
+						)
+					</when>
+					<!-- 색상 / 격자(1k) -->
+					<when test='map_ty == "color" and area_bndry_se == "1k"'>
+						with w_srv_pg_admbord as (
+							select
+								a.lighten_bord
+							from
+							<choose>
+								<when test='emdong_cd != null and emdong_cd != ""'>
+									srv_pg_admbord a with(nolock)
+									inner join (select max(base_year) as base_year from srv_pg_admbord with(nolock)) b on b.base_year = a.base_year
+								where 1=1
+									and a.sido_cd = '${sido_cd}'
+									and a.sgg_cd = '${sgg_cd}'
+									and a.emdong_cd = '${emdong_cd}'
+								</when>
+								<when test='sgg_cd != null and sgg_cd != ""'>
+									srv_pg_sggbord a with(nolock)
+									inner join (select max(base_year) as base_year from srv_pg_sggbord with(nolock)) b on b.base_year = a.base_year
+								where 1=1
+									and a.sido_cd = '${sido_cd}'
+									and a.sgg_cd = '${sgg_cd}'
+								</when>
+								<when test='sido_cd != null and sido_cd != ""'>
+									srv_pg_sidobord a with(nolock)
+									inner join (select max(base_year) as base_year from srv_pg_sidobord with(nolock)) b on b.base_year = a.base_year
+								where 1=1
+									and a.sido_cd = '${sido_cd}'
+								</when>
+								<otherwise>
+									(
+										select
+											st_polyfromtext('POLYGON((0 0,0 9999999,9999999 9999999,9999999 0,0 0))', 1) as lighten_bord
+										from
+											dual  
+									) a
+									where 1=2
+								</otherwise>
+							</choose>
+						),
+						w_srv_pg_grid_bord as (
+							select
+								c.grid_1k_cd adm_cd
+							from
+								w_srv_pg_admbord a
+								inner join srv_pg_grid_1k_bord c with(nolock) on st_intersects(a.lighten_bord, c.bord) = 1
+						)
+					</when>
+					<!-- 색상 / 격자(100m) -->
+					<when test='map_ty == "color" and area_bndry_se == "100m"'>
+						with w_srv_pg_admbord as (
+							select
+								a.lighten_bord
+							from
+								srv_pg_admbord a with(nolock)
+								inner join (select max(base_year) as base_year from srv_pg_admbord with(nolock)) b on b.base_year = a.base_year
+							where 1=1
+								and a.sido_cd = '${sido_cd}'
+								and a.sgg_cd = '${sgg_cd}'
+								and a.emdong_cd = '${emdong_cd}'
+						),
+						w_srv_pg_grid_bord as (
+							select
+								c.grid_100m_cd adm_cd
+							from
+								w_srv_pg_admbord a with(nolock)
+								inner join srv_pg_grid_100m_bord c on st_intersects(a.lighten_bord, c.bord) = 1
+						)
+					</when>
+				</choose>
+				select
+					 cast('color' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast(isnull(#{area_bndry_se},'') as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(isnull(#{stat_data_base_year},'') as varchar(100)) as base_year	/* 기준년도 */
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							,cast(a.sido_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							,cast(a.sido_cd||a.sgg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(a.sgg_cd as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							,cast(substr(a.tot_reg_cd, 1, 7) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "totreg"'>
+							,cast(a.tot_reg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(a.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(a.tot_reg_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(a.tot_reg_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "100k" or area_bndry_se == "10k" or area_bndry_se == "1k" or area_bndry_se == "100m"'>
+							,cast(a.grid_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast(a.grid_cd as varchar(200)) as adm_nm /* 지역명 */
+							,cast('' as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+					</choose>
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast('가구' as varchar(100)) as unit	/* 단위 */
+					,cast('가구수' as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast(#{stat_data_base_year}||'년 가구수' as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					,cast(sum(a.family_cnt) as number) as stats_dta_co	/* 통계자료건수 */
+				from
+					<choose>
+						<when test='area_bndry_se == "sido" or area_bndry_se == "sgg"'>
+							srv_dt_familysgg_${stat_data_base_year} a with(nolock)
+						</when>
+						<when test='area_bndry_se == "emdong" or area_bndry_se == "totreg"'>
+							srv_dt_familyreg_${stat_data_base_year} a with(nolock)
+						</when>
+						<when test='area_bndry_se == "100k" or area_bndry_se == "10k" or area_bndry_se == "1k" or area_bndry_se == "100m"'>
+							srv_dt_grid_family_2015_mt a with(nolock)
+							inner join w_srv_pg_grid_bord b on b.adm_cd = a.grid_cd
+						</when>
+					</choose>
+				where 1=1
+					and a.rd_household_type = 'A0'
+					<if test='area_bndry_se == "100k" or area_bndry_se == "10k" or area_bndry_se == "1k" or area_bndry_se == "100m"'>
+						and a.base_year = #{stat_data_base_year}
+						and a.grid_level_div = #{area_bndry_se}
+					</if>
+					<choose>
+						<when test='area_bndry_se == "sido" or area_bndry_se == "sgg"'>
+							<if test='sido_cd != null and sido_cd != ""'>
+								and a.sido_cd = '${sido_cd}'
+							</if>
+							<if test='sgg_cd != null and sgg_cd != ""'>
+								and a.sgg_cd = '${sgg_cd}'
+							</if>
+						</when>
+						<when test='area_bndry_se == "emdong" or area_bndry_se == "totreg"'>
+							<choose>
+								<when test='emdong_cd != null and emdong_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+								</when>
+								<when test='sgg_cd != null and sgg_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+								</when>
+								<when test='sido_cd != null and sido_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '%'
+								</when>
+							</choose>
+						</when>
+					</choose>
+				<choose>
+					<when test='area_bndry_se == "sido"'>
+						group by a.sido_cd
+					</when>
+					<when test='area_bndry_se == "sgg"'>
+						group by a.sido_cd, a.sgg_cd
+					</when>
+					<when test='area_bndry_se == "emdong"'>
+						group by substr(a.tot_reg_cd, 1, 7)
+					</when>
+					<when test='area_bndry_se == "totreg"'>
+						group by a.tot_reg_cd
+					</when>
+					<when test='area_bndry_se == "100k" or area_bndry_se == "10k" or area_bndry_se == "1k" or area_bndry_se == "100m"'>
+						group by a.base_year, a.grid_cd
+					</when>
+				</choose>
+				<if test='berow_5_remove_yn == "Y"'>
+					having cast(sum(a.family_cnt) as number) <![CDATA[ >= ]]> 5
+				</if>
+			</when>
+			<!-- 대화형 통계지도 > 인구주택총조사 > 가구조건 종료 -->
+			<!-- 대화형 통계지도 > 인구주택총조사 > 주택조건 시작 -->
+			<when test='menu_nm == "대화형 통계지도" and srv_nm == "인구주택총조사" and b_class_nm == "주택조건" and map_ty == "color"'>
+				<choose>
+					<!-- 색상 / 격자(100k) -->
+					<when test='map_ty == "color" and area_bndry_se == "100k"'>
+						with w_srv_pg_admbord as (
+							select
+								a.lighten_bord
+							from
+							<choose>
+								<when test='emdong_cd != null and emdong_cd != ""'>
+									srv_pg_admbord a with(nolock)
+									inner join (select max(base_year) as base_year from srv_pg_admbord with(nolock)) b on b.base_year = a.base_year
+								where 1=1
+									and a.sido_cd = '${sido_cd}'
+									and a.sgg_cd = '${sgg_cd}'
+									and a.emdong_cd = '${emdong_cd}'
+								</when>
+								<when test='sgg_cd != null and sgg_cd != ""'>
+									srv_pg_sggbord a with(nolock)
+									inner join (select max(base_year) as base_year from srv_pg_sggbord with(nolock)) b on b.base_year = a.base_year
+								where 1=1
+									and a.sido_cd = '${sido_cd}'
+									and a.sgg_cd = '${sgg_cd}'
+								</when>
+								<when test='sido_cd != null and sido_cd != ""'>
+									srv_pg_sidobord a with(nolock)
+									inner join (select max(base_year) as base_year from srv_pg_sidobord with(nolock)) b on b.base_year = a.base_year
+								where 1=1
+									and a.sido_cd = '${sido_cd}'
+								</when>
+								<otherwise>
+									(
+										select
+											st_polyfromtext('POLYGON((0 0,0 9999999,9999999 9999999,9999999 0,0 0))', 1) as lighten_bord
+										from
+											dual
+									) a
+									where 1=2
+								</otherwise>
+							</choose>
+						),
+						w_srv_pg_grid_bord as (
+							select
+								c.grid_100k_cd adm_cd
+							from
+								w_srv_pg_admbord a
+								inner join srv_pg_grid_100k_bord c with(nolock) on st_intersects(a.lighten_bord, c.bord) = 1
+						)
+					</when>
+					<!-- 색상 / 격자(10k) -->
+					<when test='map_ty == "color" and area_bndry_se == "10k"'>
+						with w_srv_pg_admbord as (
+							select
+								a.lighten_bord
+							from
+							<choose>
+								<when test='emdong_cd != null and emdong_cd != ""'>
+									srv_pg_admbord a with(nolock)
+									inner join (select max(base_year) as base_year from srv_pg_admbord with(nolock)) b on b.base_year = a.base_year
+								where 1=1
+									and a.sido_cd = '${sido_cd}'
+									and a.sgg_cd = '${sgg_cd}'
+									and a.emdong_cd = '${emdong_cd}'
+								</when>
+								<when test='sgg_cd != null and sgg_cd != ""'>
+									srv_pg_sggbord a with(nolock)
+									inner join (select max(base_year) as base_year from srv_pg_sggbord with(nolock)) b on b.base_year = a.base_year
+								where 1=1
+									and a.sido_cd = '${sido_cd}'
+									and a.sgg_cd = '${sgg_cd}'
+								</when>
+								<when test='sido_cd != null and sido_cd != ""'>
+									srv_pg_sidobord a with(nolock)
+									inner join (select max(base_year) as base_year from srv_pg_sidobord with(nolock)) b on b.base_year = a.base_year
+								where 1=1
+									and a.sido_cd = '${sido_cd}'
+								</when>
+								<otherwise>
+									(
+										select
+											st_polyfromtext('POLYGON((0 0,0 9999999,9999999 9999999,9999999 0,0 0))', 1) as lighten_bord
+										from
+											dual  
+									) a
+									where 1=2
+								</otherwise>
+							</choose>
+						),
+						w_srv_pg_grid_bord as (
+							select
+								c.grid_10k_cd adm_cd
+							from
+								w_srv_pg_admbord a
+								inner join srv_pg_grid_10k_bord c with(nolock) on st_intersects(a.lighten_bord, c.bord) = 1
+						)
+					</when>
+					<!-- 색상 / 격자(1k) -->
+					<when test='map_ty == "color" and area_bndry_se == "1k"'>
+						with w_srv_pg_admbord as (
+							select
+								a.lighten_bord
+							from
+							<choose>
+								<when test='emdong_cd != null and emdong_cd != ""'>
+									srv_pg_admbord a with(nolock)
+									inner join (select max(base_year) as base_year from srv_pg_admbord with(nolock)) b on b.base_year = a.base_year
+								where 1=1
+									and a.sido_cd = '${sido_cd}'
+									and a.sgg_cd = '${sgg_cd}'
+									and a.emdong_cd = '${emdong_cd}'
+								</when>
+								<when test='sgg_cd != null and sgg_cd != ""'>
+									srv_pg_sggbord a with(nolock)
+									inner join (select max(base_year) as base_year from srv_pg_sggbord with(nolock)) b on b.base_year = a.base_year
+								where 1=1
+									and a.sido_cd = '${sido_cd}'
+									and a.sgg_cd = '${sgg_cd}'
+								</when>
+								<when test='sido_cd != null and sido_cd != ""'>
+									srv_pg_sidobord a with(nolock)
+									inner join (select max(base_year) as base_year from srv_pg_sidobord with(nolock)) b on b.base_year = a.base_year
+								where 1=1
+									and a.sido_cd = '${sido_cd}'
+								</when>
+								<otherwise>
+									(
+										select
+											st_polyfromtext('POLYGON((0 0,0 9999999,9999999 9999999,9999999 0,0 0))', 1) as lighten_bord
+										from
+											dual  
+									) a
+									where 1=2
+								</otherwise>
+							</choose>
+						),
+						w_srv_pg_grid_bord as (
+							select
+								c.grid_1k_cd adm_cd
+							from
+								w_srv_pg_admbord a
+								inner join srv_pg_grid_1k_bord c with(nolock) on st_intersects(a.lighten_bord, c.bord) = 1
+						)
+					</when>
+					<!-- 색상 / 격자(100m) -->
+					<when test='map_ty == "color" and area_bndry_se == "100m"'>
+						with w_srv_pg_admbord as (
+							select
+								a.lighten_bord
+							from
+								srv_pg_admbord a with(nolock)
+								inner join (select max(base_year) as base_year from srv_pg_admbord with(nolock)) b on b.base_year = a.base_year
+							where 1=1
+								and a.sido_cd = '${sido_cd}'
+								and a.sgg_cd = '${sgg_cd}'
+								and a.emdong_cd = '${emdong_cd}'
+						),
+						w_srv_pg_grid_bord as (
+							select
+								c.grid_100m_cd adm_cd
+							from
+								w_srv_pg_admbord a with(nolock)
+								inner join srv_pg_grid_100m_bord c on st_intersects(a.lighten_bord, c.bord) = 1
+						)
+					</when>
+				</choose>
+				select
+					 cast('color' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast(isnull(#{area_bndry_se},'') as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(isnull(#{stat_data_base_year},'') as varchar(100)) as base_year	/* 기준년도 */
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							,cast(a.sido_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							,cast(a.sido_cd||a.sgg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(a.sgg_cd as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							,cast(substr(a.tot_reg_cd, 1, 7) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "totreg"'>
+							,cast(a.tot_reg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(a.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(a.tot_reg_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(a.tot_reg_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "100k" or area_bndry_se == "10k" or area_bndry_se == "1k" or area_bndry_se == "100m"'>
+							,cast(a.grid_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast(a.grid_cd as varchar(200)) as adm_nm /* 지역명 */
+							,cast('' as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+					</choose>
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast('호' as varchar(100)) as unit	/* 단위 */
+					,cast('주택수' as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast(#{stat_data_base_year}||'년 주택수' as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					,cast(sum(a.resid_cnt) as number) as stats_dta_co	/* 통계자료건수 */
+				from
+					<choose>
+						<when test='area_bndry_se == "sido" or area_bndry_se == "sgg"'>
+							srv_dt_housesgg_${stat_data_base_year} a with(nolock)
+						</when>
+						<when test='area_bndry_se == "emdong" or area_bndry_se == "totreg"'>
+							srv_dt_housereg_${stat_data_base_year} a with(nolock)
+						</when>
+						<when test='area_bndry_se == "100k" or area_bndry_se == "10k" or area_bndry_se == "1k" or area_bndry_se == "100m"'>
+							srv_dt_grid_house_2015_mt a with(nolock)
+							inner join w_srv_pg_grid_bord b on b.adm_cd = a.grid_cd
+						</when>
+					</choose>
+				where 1=1
+					and a.house_yn = 'Y'
+					<if test='area_bndry_se == "100k" or area_bndry_se == "10k" or area_bndry_se == "1k" or area_bndry_se == "100m"'>
+						and a.base_year = #{stat_data_base_year}
+						and a.grid_level_div = #{area_bndry_se}
+					</if>
+					<choose>
+						<when test='area_bndry_se == "sido" or area_bndry_se == "sgg"'>
+							<if test='sido_cd != null and sido_cd != ""'>
+								and a.sido_cd = '${sido_cd}'
+							</if>
+							<if test='sgg_cd != null and sgg_cd != ""'>
+								and a.sgg_cd = '${sgg_cd}'
+							</if>
+						</when>
+						<when test='area_bndry_se == "emdong" or area_bndry_se == "totreg"'>
+							<choose>
+								<when test='emdong_cd != null and emdong_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+								</when>
+								<when test='sgg_cd != null and sgg_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+								</when>
+								<when test='sido_cd != null and sido_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '%'
+								</when>
+							</choose>
+						</when>
+					</choose>
+				<choose>
+					<when test='area_bndry_se == "sido"'>
+						group by a.sido_cd
+					</when>
+					<when test='area_bndry_se == "sgg"'>
+						group by a.sido_cd, a.sgg_cd
+					</when>
+					<when test='area_bndry_se == "emdong"'>
+						group by substr(a.tot_reg_cd, 1, 7)
+					</when>
+					<when test='area_bndry_se == "totreg"'>
+						group by a.tot_reg_cd
+					</when>
+					<when test='area_bndry_se == "100k" or area_bndry_se == "10k" or area_bndry_se == "1k" or area_bndry_se == "100m"'>
+						group by a.base_year, a.grid_cd
+					</when>
+				</choose>
+				<if test='berow_5_remove_yn == "Y"'>
+					having cast(sum(a.resid_cnt) as number) <![CDATA[ >= ]]> 5
+				</if>
+			</when>
+			<!-- 대화형 통계지도 > 인구주택총조사 > 주택조건 종료 -->
+			<!-- 2020.05.13[한광희] My통계로 인구주택총조사 1인가구 지표 추가 START -->
+			<!-- 대화형 통계지도 > 인구주택총조사 > 결합조건 시작 -->
+			<when test='menu_nm == "대화형 통계지도" and srv_nm == "인구주택총조사" and b_class_nm == "결합조건" and map_ty == "color"'>
+				select
+					cast('color' as varchar(100)) as map_ty	/* 지도유형 */
+				   ,cast(isnull(#{area_bndry_se},'') as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+				   ,cast(isnull(#{stat_data_base_year},'') as varchar(100)) as base_year	/* 기준년도 */
+				   <choose>
+				   		<when test='area_bndry_se == "sido"'>
+							,cast(a.sido_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							,cast(a.tot_reg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(a.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(a.tot_reg_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							,cast(a.tot_reg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(a.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(a.tot_reg_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(a.tot_reg_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "totreg"'>
+							,cast(a.tot_reg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(a.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(a.tot_reg_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(a.tot_reg_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+					</choose>
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast('명' as varchar(100)) as unit	/* 단위 */
+					,cast('인구' as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast(#{stat_data_base_year}||'년 인구' as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					,cast(sum(a.data_cnt) as number) as stats_dta_co	/* 통계자료건수 */
+				  from (
+				  		<choose>
+							<when test='area_bndry_se == "sido"'>
+								select substr(tot_reg_cd, 1, 2) as sido_cd
+									 , CASE WHEN COUNT(*) <![CDATA[ <= ]]> 4 THEN 0 WHEN COUNT(*) <![CDATA[ > ]]> 4 THEN COUNT(*) END as data_cnt
+								  from (select ppl.sufid
+											 , family.adm_cd
+											 , family.ppltn_family_join_key
+											 , family.rd_tot_fmember_cnt
+											 , house.resid_join_key
+											 , bd.tot_reg_cd
+										  from srv_dt_ppltncensus_${stat_data_base_year} with (nolock) ppl 
+											 , srv_dt_familycensus_${stat_data_base_year} with (nolock) family
+											 , srv_dt_housecensus_${stat_data_base_year} with (nolock) house
+											 , srv_pt_bd with (nolock) bd
+										 where ppl.ppltn_family_join_key = family.ppltn_family_join_key
+										   and family.resid_join_key = house.resid_join_key
+										   and ppl.sufid = bd.sufid
+										   and family.family_yn = 'Y'
+										   <if test='gender != null and gender != "" and gender != "0"'>
+												and gender = #{gender}
+										   </if>
+										   and rd_household_type in ( 'A0' )
+									   )
+								 group by substr(tot_reg_cd, 1, 2)
+							</when>
+							<when test='area_bndry_se == "sgg" or area_bndry_se == "emdong" or area_bndry_se == "totreg"'>
+								select x.tot_reg_cd 
+									 , CASE WHEN COUNT(*) <![CDATA[ <= ]]> 4 THEN 0 WHEN COUNT(*) <![CDATA[ > ]]> 4 THEN COUNT(*) END as data_cnt
+								  from (select ppl.*
+											 , bd.sufid
+											 <choose>
+												<when test='area_bndry_se == "sgg"'>
+													, substr(bd.tot_reg_cd, 1, 5) as tot_reg_cd
+												</when>
+												<when test='area_bndry_se == "emdong"'>
+													, substr(bd.tot_reg_cd, 1, 7) as tot_reg_cd
+												</when>
+												<when test='area_bndry_se == "totreg"'>
+													, bd.tot_reg_cd
+												</when>
+											 </choose>
+										  from srv_dt_ppltncensus_${stat_data_base_year} with (nolock) ppl,
+											   (select sufid
+													 , tot_reg_cd
+												  from srv_pt_bd with (nolock)
+												 where 1=1 
+												 <choose>
+													<when test='area_bndry_se == "sgg"'>
+														and tot_reg_cd like '${sido_cd}' || '%'
+													</when>
+													<when test='area_bndry_se == "emdong"'>
+														and tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+													</when>
+													<when test='area_bndry_se == "totreg"'>
+														and tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+													</when>
+												 </choose>
+											   ) bd
+										 where ppl.sufid = bd.sufid
+										 <if test='gender != null and gender != "" and gender != "0"'>
+											and gender = #{gender}
+										 </if>
+									   ) x,
+									   (select *
+										  from (select *
+												  from srv_dt_familycensus_${stat_data_base_year} with (nolock) 
+												 where 1=1 
+												   and family_yn = 'Y' 
+												   and rd_household_type in ( 'A0' ) ) family,
+											   (select sufid
+												  from srv_pt_bd with (nolock)
+												 where 1=1 
+												 <choose>
+													<when test='area_bndry_se == "sgg"'>
+														and tot_reg_cd like '${sido_cd}' || '%'
+													</when>
+													<when test='area_bndry_se == "emdong"'>
+														and tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+													</when>
+													<when test='area_bndry_se == "totreg"'>
+														and tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+													</when>
+												 </choose>
+											   ) bd
+										 where family.sufid = bd.sufid ) y,
+									   (select *
+										  from (select *
+												  from srv_dt_housecensus_${stat_data_base_year} with (nolock) 
+												 where 1=1 ) house,
+											   (select sufid
+												  from srv_pt_bd with (nolock)
+												 where 1=1
+												 <choose>
+													<when test='area_bndry_se == "sgg"'>
+														and tot_reg_cd like '${sido_cd}' || '%'
+													</when>
+													<when test='area_bndry_se == "emdong"'>
+														and tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+													</when>
+													<when test='area_bndry_se == "totreg"'>
+														and tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+													</when>
+												 </choose>
+											   ) bd
+										 where house.sufid = bd.sufid ) z
+								 where x.ppltn_family_join_key = y.ppltn_family_join_key
+								   and y.resid_join_key = z.resid_join_key
+								 group by x.tot_reg_cd
+							</when>
+						</choose>
+				  	   ) a
+				 where 1=1
+				 <choose>
+				 	<when test='area_bndry_se == "sido"'>
+				 		group by a.sido_cd, a.data_cnt
+				 	</when>
+				 	<when test='area_bndry_se == "sgg" or area_bndry_se == "emdong" or area_bndry_se == "totreg"'>
+				 		group by a.tot_reg_cd, a.data_cnt
+				 	</when>
+				 </choose>
+				 <if test='berow_5_remove_yn == "Y"'>
+				 	having cast(sum(a.data_cnt) as number) <![CDATA[ >= ]]> 5
+				 </if>
+			</when>
+			<!-- 대화형 통계지도 > 인구주택총조사 > 결합조건 종료 -->
+			<!-- 2020.05.13[한광희] My통계로 인구주택총조사 1인가구 지표 추가 END -->
+			<!-- 정책통계지도 시작 -->
+			<when test='menu_nm == "정책통계지도" and call_url == "/OpenAPI3/stats/company.json"'>
+				select
+					 cast('color' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast(isnull(#{area_bndry_se},'') as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(a.base_year as varchar(100)) as base_year	/* 기준년도 */
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							,cast(a.sido_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							,cast(a.sido_cd||a.sgg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(a.sgg_cd as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							,cast(substr(a.tot_reg_cd, 1, 7) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "totreg"'>
+							,cast(a.tot_reg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(a.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(a.tot_reg_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(a.tot_reg_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+					</choose>
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast(isnull(#{unit},'') as varchar(100)) as unit	/* 단위 */
+					,cast(isnull(#{showTitle},'') as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast(a.base_year||'년 '||isnull(#{showTitle},'') as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					<choose>
+						<when test='showData == "corp_cnt"'>
+							,cast(sum(a.corp_cnt) as number) as stats_dta_co	/* 통계자료건수 */
+						</when>
+						<when test='showData == "tot_worker"'>
+							,cast(sum(a.employee_cnt) as number) as stats_dta_co	/* 통계자료건수 */
+						</when>
+						<otherwise>
+							,cast(0 as number) as stats_dta_co	/* 통계자료건수 */
+						</otherwise>
+					</choose>
+				from
+					<choose>
+						<when test='(area_bndry_se == "sido" or area_bndry_se == "sgg") and theme_cd != null and theme_cd != ""'>
+							srv_dt_corpthemesgg a with(nolock)
+						</when>
+						<when test='(area_bndry_se == "emdong" or area_bndry_se == "totreg") and theme_cd != null and theme_cd != ""'>
+							srv_dt_corpthemereg a with(nolock)
+						</when>
+						<when test='area_bndry_se == "sido" or area_bndry_se == "sgg"'>
+							srv_dt_corpclasssgg a with(nolock)
+						</when>
+						<when test='area_bndry_se == "emdong" or area_bndry_se == "totreg"'>
+							srv_dt_corpclassreg a with(nolock)
+						</when>
+					</choose>
+				where 1=1
+					<choose>
+						<when test='data_year == "max"'>
+							and a.base_year = 
+							<choose>
+								<when test='(area_bndry_se == "sido" or area_bndry_se == "sgg") and theme_cd != null and theme_cd != ""'>
+									(
+										select max(s1.base_year)
+										from srv_dt_corpthemesgg s1 with(nolock)
+										where s1.base_year != '9016'
+										<if test='theme_cd != null and theme_cd != ""'>
+											and s1.theme_cd = #{theme_cd}
+										</if>
+									)
+								</when>
+								<when test='(area_bndry_se == "emdong" or area_bndry_se == "totreg") and theme_cd != null and theme_cd != ""'>
+									(
+										select max(s1.base_year)
+										from srv_dt_corpthemereg s1 with(nolock)
+										where s1.base_year != '9016'
+										<if test='theme_cd != null and theme_cd != ""'>
+											and s1.theme_cd = #{theme_cd}
+										</if>
+									)
+								</when>
+								<when test='area_bndry_se == "sido" or area_bndry_se == "sgg"'>
+									(
+										select max(s1.base_year)
+										from srv_dt_corpclasssgg s1 with(nolock)
+										where s1.base_year != '9016'
+										<if test='ksic1 != null and ksic1 != ""'>
+											and s1.ksic_1_cd = #{ksic1}
+										</if>
+										<if test='ksic5 != null and ksic5 != ""'>
+											and s1.ksic_5_cd like #{ksic5} || '%'
+										</if>
+									)
+								</when>
+								<when test='area_bndry_se == "emdong" or area_bndry_se == "totreg"'>
+									(
+										select max(s1.base_year)
+										from srv_dt_corpclassreg s1 with(nolock)
+										where s1.base_year != '9016'
+										<if test='ksic1 != null and ksic1 != ""'>
+											and s1.ksic_1_cd = #{ksic1}
+										</if>
+										<if test='ksic5 != null and ksic5 != ""'>
+											and s1.ksic_5_cd like #{ksic5} || '%'
+										</if>
+									)
+								</when>
+							</choose>
+						</when>
+						<when test='data_year == "min"'>
+							and a.base_year = '9016'
+						</when>
+						<otherwise>
+							and a.base_year = #{year}
+						</otherwise>
+					</choose>
+					<if test='theme_cd != null and theme_cd != ""'>
+						and a.theme_cd = #{theme_cd}
+					</if>
+					<if test='ksic1 != null and ksic1 != ""'>
+						and a.ksic_1_cd = #{ksic1}
+					</if>
+					<if test='ksic5 != null and ksic5 != ""'>
+						and a.ksic_5_cd like #{ksic5} || '%'
+					</if>
+					<choose>
+						<when test='area_bndry_se == "sido" or area_bndry_se == "sgg"'>
+							<if test='sido_cd != null and sido_cd != ""'>
+								and a.sido_cd = '${sido_cd}'
+							</if>
+							<if test='sgg_cd != null and sgg_cd != ""'>
+								and a.sgg_cd = '${sgg_cd}'
+							</if>
+						</when>
+						<when test='area_bndry_se == "emdong" or area_bndry_se == "totreg"'>
+							<choose>
+								<when test='emdong_cd != null and emdong_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+								</when>
+								<when test='sgg_cd != null and sgg_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+								</when>
+								<when test='sido_cd != null and sido_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '%'
+								</when>
+							</choose>
+						</when>
+					</choose>
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							group by a.base_year, a.sido_cd
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							group by a.base_year, a.sido_cd, a.sgg_cd
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							group by a.base_year, substr(a.tot_reg_cd, 1, 7)
+						</when>
+						<when test='area_bndry_se == "totreg"'>
+							group by a.base_year, a.tot_reg_cd
+						</when>
+					</choose>
+				<choose>
+					<when test='showData == "corp_cnt"'>
+						having cast(sum(a.corp_cnt) as number) <![CDATA[ >= ]]> 5
+					</when>
+					<when test='showData == "tot_worker"'>
+						having cast(sum(a.employee_cnt) as number) <![CDATA[ >= ]]> 5
+					</when>
+					<otherwise>
+					</otherwise>
+				</choose>
+			</when>
+			<when test='menu_nm == "정책통계지도" and call_url == "/OpenAPI3/stats/farmhousehold.json"'>
+				select
+					 cast('color' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast(isnull(#{area_bndry_se},'') as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(isnull(${year},'') as varchar(100)) as base_year	/* 기준년도 */
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							,cast(substr(b.tot_reg_cd, 1, 2) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(b.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							,cast(substr(b.tot_reg_cd, 1, 5) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(substr(b.tot_reg_cd, 1, 5), 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(substr(b.tot_reg_cd, 1, 5), 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							,cast(substr(b.tot_reg_cd, 1, 7) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(substr(b.tot_reg_cd, 1, 7), 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(substr(b.tot_reg_cd, 1, 7), 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(substr(b.tot_reg_cd, 1, 7), 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "totreg"'>
+							,cast(b.tot_reg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(b.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(b.tot_reg_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(b.tot_reg_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+					</choose>
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast(isnull(#{unit},'') as varchar(100)) as unit	/* 단위 */
+					,cast(isnull(#{showTitle},'') as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast(${year}||'년 '||isnull(#{showTitle},'') as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					<choose>
+						<when test='showData == "farm_cnt"'>
+							,cast(count(*) as number) as stats_dta_co	/* 통계자료건수 */
+						</when>
+						<when test='showData == "population"'>
+							,cast(sum(a.fmember_cnt) as number) as stats_dta_co	/* 통계자료건수 */
+						</when>
+						<otherwise>
+							,cast(0 as number) as stats_dta_co	/* 통계자료건수 */
+						</otherwise>
+					</choose>
+				from
+					srv_dt_nonggacensus_${year} a with(nolock)
+					inner join srv_pt_bd b with(nolock) on b.sufid = a.sufid
+				where 1=1
+					<choose>
+						<when test='emdong_cd != null and emdong_cd != ""'>
+							and b.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+						</when>
+						<when test='sgg_cd != null and sgg_cd != ""'>
+							and b.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+						</when>
+						<when test='sido_cd != null and sido_cd != ""'>
+							and b.tot_reg_cd like '${sido_cd}' || '%'
+						</when>
+					</choose>
+				<choose>
+					<when test='area_bndry_se == "sido"'>
+						group by substr(b.tot_reg_cd, 1, 2)
+					</when>
+					<when test='area_bndry_se == "sgg"'>
+						group by substr(b.tot_reg_cd, 1, 5)
+					</when>
+					<when test='area_bndry_se == "emdong"'>
+						group by substr(b.tot_reg_cd, 1, 7)
+					</when>
+					<when test='area_bndry_se == "totreg"'>
+						group by b.tot_reg_cd
+					</when>
+				</choose>
+				<choose>
+					<when test='showData == "farm_cnt"'>
+						having cast(count(*) as number) <![CDATA[ >= ]]> 5
+					</when>
+					<when test='showData == "population"'>
+						having cast(sum(a.fmember_cnt) as number) <![CDATA[ >= ]]> 5
+					</when>
+				</choose>
+			</when>
+			<when test='menu_nm == "정책통계지도" and call_url == "/OpenAPI3/stats/fisheryhousehold.json"'>
+				select
+					 cast('color' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast(isnull(#{area_bndry_se},'') as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(isnull(${year},'') as varchar(100)) as base_year	/* 기준년도 */
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							,cast(substr(b.tot_reg_cd, 1, 2) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(b.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							,cast(substr(b.tot_reg_cd, 1, 5) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(substr(b.tot_reg_cd, 1, 5), 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(substr(b.tot_reg_cd, 1, 5), 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							,cast(substr(b.tot_reg_cd, 1, 7) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(substr(b.tot_reg_cd, 1, 7), 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(substr(b.tot_reg_cd, 1, 7), 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(substr(b.tot_reg_cd, 1, 7), 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "totreg"'>
+							,cast(b.tot_reg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(b.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(b.tot_reg_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(b.tot_reg_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+					</choose>
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast(isnull(#{unit},'') as varchar(100)) as unit	/* 단위 */
+					,cast(isnull(#{showTitle},'') as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast(${year}||'년 '||isnull(#{showTitle},'') as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					<choose>
+						<when test='showData == "fishery_cnt"'>
+							,cast(count(*) as number) as stats_dta_co	/* 통계자료건수 */
+						</when>
+						<when test='showData == "population"'>
+							,cast(sum(a.fmember_cnt) as number) as stats_dta_co	/* 통계자료건수 */
+						</when>
+						<otherwise>
+							,cast(0 as number) as stats_dta_co	/* 통계자료건수 */
+						</otherwise>
+					</choose>
+				from
+					srv_dt_ogacensus_${year} a with(nolock)
+					inner join srv_pt_bd b with(nolock) on b.sufid = a.sufid
+				where 1=1
+					<if test='oga_div != "0" '>
+						and a.oga_div = #{oga_div}
+					</if>
+					<choose>
+						<when test='emdong_cd != null and emdong_cd != ""'>
+							and b.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+						</when>
+						<when test='sgg_cd != null and sgg_cd != ""'>
+							and b.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+						</when>
+						<when test='sido_cd != null and sido_cd != ""'>
+							and b.tot_reg_cd like '${sido_cd}' || '%'
+						</when>
+					</choose>
+				<choose>
+					<when test='area_bndry_se == "sido"'>
+						group by substr(b.tot_reg_cd, 1, 2)
+					</when>
+					<when test='area_bndry_se == "sgg"'>
+						group by substr(b.tot_reg_cd, 1, 5)
+					</when>
+					<when test='area_bndry_se == "emdong"'>
+						group by substr(b.tot_reg_cd, 1, 7)
+					</when>
+					<when test='area_bndry_se == "totreg"'>
+						group by b.tot_reg_cd
+					</when>
+				</choose>
+				<choose>
+					<when test='showData == "fishery_cnt"'>
+						having cast(count(*) as number) <![CDATA[ >= ]]> 5
+					</when>
+					<when test='showData == "population"'>
+						having cast(sum(a.fmember_cnt) as number) <![CDATA[ >= ]]> 5
+					</when>
+				</choose>
+			</when>
+			<when test='menu_nm == "정책통계지도" and call_url == "/OpenAPI3/stats/forestryhousehold.json"'>
+				select
+					 cast('color' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast(isnull(#{area_bndry_se},'') as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(isnull(${year},'') as varchar(100)) as base_year	/* 기준년도 */
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							,cast(substr(b.tot_reg_cd, 1, 2) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(b.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							,cast(substr(b.tot_reg_cd, 1, 5) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(substr(b.tot_reg_cd, 1, 5), 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(substr(b.tot_reg_cd, 1, 5), 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							,cast(substr(b.tot_reg_cd, 1, 7) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(substr(b.tot_reg_cd, 1, 7), 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(substr(b.tot_reg_cd, 1, 7), 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(substr(b.tot_reg_cd, 1, 7), 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "totreg"'>
+							,cast(b.tot_reg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(b.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(b.tot_reg_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(b.tot_reg_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+					</choose>
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast(isnull(#{unit},'') as varchar(100)) as unit	/* 단위 */
+					,cast(isnull(#{showTitle},'') as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast(${year}||'년 '||isnull(#{showTitle},'') as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					<choose>
+						<when test='showData == "forestry_cnt"'>
+							,cast(count(*) as number) as stats_dta_co	/* 통계자료건수 */
+						</when>
+						<when test='showData == "population"'>
+							,cast(sum(a.fmember_cnt) as number) as stats_dta_co	/* 통계자료건수 */
+						</when>
+						<otherwise>
+							,cast(0 as number) as stats_dta_co	/* 통계자료건수 */
+						</otherwise>
+					</choose>
+				from
+					srv_dt_imgacensus_${year} a with(nolock)
+					inner join srv_pt_bd b with(nolock) on b.sufid = a.sufid
+				where 1=1
+					<choose>
+						<when test='emdong_cd != null and emdong_cd != ""'>
+							and b.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+						</when>
+						<when test='sgg_cd != null and sgg_cd != ""'>
+							and b.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+						</when>
+						<when test='sido_cd != null and sido_cd != ""'>
+							and b.tot_reg_cd like '${sido_cd}' || '%'
+						</when>
+					</choose>
+				<choose>
+					<when test='area_bndry_se == "sido"'>
+						group by substr(b.tot_reg_cd, 1, 2)
+					</when>
+					<when test='area_bndry_se == "sgg"'>
+						group by substr(b.tot_reg_cd, 1, 5)
+					</when>
+					<when test='area_bndry_se == "emdong"'>
+						group by substr(b.tot_reg_cd, 1, 7)
+					</when>
+					<when test='area_bndry_se == "totreg"'>
+						group by b.tot_reg_cd
+					</when>
+				</choose>
+				<choose>
+					<when test='showData == "forestry_cnt"'>
+						having cast(count(*) as number) <![CDATA[ >= ]]> 5
+					</when>
+					<when test='showData == "population"'>
+						having cast(sum(a.fmember_cnt) as number) <![CDATA[ >= ]]> 5
+					</when>
+				</choose>
+			</when>
+			<when test='menu_nm == "정책통계지도" and call_url == "/OpenAPI3/stats/house.json"'>
+				select
+					 cast('color' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast(isnull(#{area_bndry_se},'') as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(isnull(${year},'') as varchar(100)) as base_year	/* 기준년도 */
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							,cast(a.sido_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							,cast(a.sido_cd||a.sgg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(a.sgg_cd as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							,cast(substr(a.tot_reg_cd, 1, 7) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "totreg"'>
+							,cast(a.tot_reg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(a.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(a.tot_reg_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(a.tot_reg_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+					</choose>
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast(isnull(#{unit},'') as varchar(100)) as unit	/* 단위 */
+					,cast(isnull(#{showTitle},'') as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast(${year}||'년 '||isnull(#{showTitle},'') as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					,cast(sum(a.resid_cnt) as number) as stats_dta_co	/* 통계자료건수 */
+				from
+					<choose>
+						<when test='area_bndry_se == "sido" or area_bndry_se == "sgg"'>
+							srv_dt_housesgg_${year} a with(nolock)
+						</when>
+						<when test='area_bndry_se == "emdong" or area_bndry_se == "totreg"'>
+							srv_dt_housereg_${year} a with(nolock)
+						</when>
+					</choose>
+				where 1=1
+					and a.house_yn = 'Y'
+					<if test='house_type != null '>
+						and a.rd_resid_1_type in
+						<foreach  collection="house_type" item="type" open="(" separator="," close=")">
+							#{type}
+						</foreach>
+					</if>
+					<choose>
+						<when test='area_bndry_se == "sido" or area_bndry_se == "sgg"'>
+							<if test='sido_cd != null and sido_cd != ""'>
+								and a.sido_cd = '${sido_cd}'
+							</if>
+							<if test='sgg_cd != null and sgg_cd != ""'>
+								and a.sgg_cd = '${sgg_cd}'
+							</if>
+						</when>
+						<when test='area_bndry_se == "emdong" or area_bndry_se == "totreg"'>
+							<choose>
+								<when test='emdong_cd != null and emdong_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+								</when>
+								<when test='sgg_cd != null and sgg_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+								</when>
+								<when test='sido_cd != null and sido_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '%'
+								</when>
+							</choose>
+						</when>
+					</choose>
+				<choose>
+					<when test='area_bndry_se == "sido"'>
+						group by a.sido_cd
+					</when>
+					<when test='area_bndry_se == "sgg"'>
+						group by a.sido_cd, a.sgg_cd
+					</when>
+					<when test='area_bndry_se == "emdong"'>
+						group by substr(a.tot_reg_cd, 1, 7)
+					</when>
+					<when test='area_bndry_se == "totreg"'>
+						group by a.tot_reg_cd
+					</when>
+				</choose>
+				having cast(sum(a.resid_cnt) as number) <![CDATA[ >= ]]> 5
+			</when>
+			<when test='menu_nm == "정책통계지도" and call_url == "/OpenAPI3/stats/household.json"'>
+				select
+					 cast('color' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast(isnull(#{area_bndry_se},'') as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(isnull(${year},'') as varchar(100)) as base_year	/* 기준년도 */
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							,cast(substr(a.tot_reg_cd, 1, 2) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(a.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							,cast(substr(a.tot_reg_cd, 1, 5) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 5), 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 5), 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							,cast(substr(a.tot_reg_cd, 1, 7) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "totreg"'>
+							,cast(a.tot_reg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(a.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(a.tot_reg_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(a.tot_reg_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+					</choose>
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast(isnull(#{unit},'') as varchar(100)) as unit	/* 단위 */
+					,cast(isnull(#{showTitle},'') as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast(${year}||'년 '||isnull(#{showTitle},'') as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					,cast(sum(a.family_cnt) as number) as stats_dta_co	/* 통계자료건수 */
+				from
+					srv_dt_familyreg_${year} a with(nolock)
+				where 1=1
+					<if test='household_type != null '>
+						and a.rd_household_type in
+						<foreach collection="household_type" item="household" open="(" separator="," close=")">
+							#{household}
+						</foreach>
+					</if>
+					<choose>
+						<when test='emdong_cd != null and emdong_cd != ""'>
+							and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+						</when>
+						<when test='sgg_cd != null and sgg_cd != ""'>
+							and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+						</when>
+						<when test='sido_cd != null and sido_cd != ""'>
+							and a.tot_reg_cd like '${sido_cd}' || '%'
+						</when>
+					</choose>
+				<choose>
+					<when test='area_bndry_se == "sido"'>
+						group by substr(a.tot_reg_cd, 1, 2)
+					</when>
+					<when test='area_bndry_se == "sgg"'>
+						group by substr(a.tot_reg_cd, 1, 5)
+					</when>
+					<when test='area_bndry_se == "emdong"'>
+						group by substr(a.tot_reg_cd, 1, 7)
+					</when>
+					<when test='area_bndry_se == "totreg"'>
+						group by a.tot_reg_cd
+					</when>
+				</choose>
+				having cast(sum(a.family_cnt) as number) <![CDATA[ >= ]]> 5
+			</when>
+			<when test='menu_nm == "정책통계지도" and call_url == "/OpenAPI3/stats/innersearchpopulation.json"'>
+				select
+					 cast('color' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast(isnull(#{area_bndry_se},'') as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(isnull(#{year},'') as varchar(100)) as base_year	/* 기준년도 */
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							,cast(a.sido_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							,cast(a.sido_cd||a.sgg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(a.sgg_cd as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							,cast(substr(a.tot_reg_cd, 1, 7) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(substr(a.tot_reg_cd, 1, 7), 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "totreg"'>
+							,cast(a.tot_reg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(a.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(a.tot_reg_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(a.tot_reg_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+					</choose>
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast(isnull(#{unit},'') as varchar(100)) as unit	/* 단위 */
+					,cast(isnull(#{showTitle},'') as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast(${year}||'년 '||isnull(#{showTitle},'') as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					,cast(sum(a.ppltn_cnt) as number) as stats_dta_co	/* 통계자료건수 */
+				from
+					<choose>
+						<when test='area_bndry_se == "sido" or area_bndry_se == "sgg"'>
+							srv_dt_popsgg_${year} a with(nolock)
+						</when>
+						<when test='area_bndry_se == "emdong" or area_bndry_se == "totreg"'>
+							srv_dt_popsreg_${year} a with(nolock)
+						</when>
+					</choose>
+				where 1=1
+					<if test='age_from != null and age_from != ""'>
+						and a.age <![CDATA[>=]]> ${age_from}
+					</if>
+					<if test='age_to != null and age_to != ""'>
+						and a.age <![CDATA[<=]]> ${age_to}
+					</if>
+					<if test='gender != null and gender != "" and gender != "0"'>
+						and a.gender = #{gender}
+					</if>
+					<choose>
+						<when test='area_bndry_se == "sido" or area_bndry_se == "sgg"'>
+							<if test='sido_cd != null and sido_cd != ""'>
+								and a.sido_cd = '${sido_cd}'
+							</if>
+							<if test='sgg_cd != null and sgg_cd != ""'>
+								and a.sgg_cd = '${sgg_cd}'
+							</if>
+						</when>
+						<when test='area_bndry_se == "emdong" or area_bndry_se == "totreg"'>
+							<choose>
+								<when test='emdong_cd != null and emdong_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+								</when>
+								<when test='sgg_cd != null and sgg_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+								</when>
+								<when test='sido_cd != null and sido_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '%'
+								</when>
+							</choose>
+						</when>
+					</choose>
+				<choose>
+					<when test='area_bndry_se == "sido"'>
+						group by a.sido_cd
+					</when>
+					<when test='area_bndry_se == "sgg"'>
+						group by a.sido_cd, a.sgg_cd
+					</when>
+					<when test='area_bndry_se == "emdong"'>
+						group by substr(a.tot_reg_cd, 1, 7)
+					</when>
+					<when test='area_bndry_se == "totreg"'>
+						group by a.tot_reg_cd
+					</when>
+				</choose>
+				having cast(sum(a.ppltn_cnt) as number) <![CDATA[ >= ]]> 5
+			</when>
+			<when test='menu_nm == "정책통계지도" and call_url == "/OpenAPI3/stats/population.json"'>
+				select
+					 cast('color' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast(isnull(#{area_bndry_se},'') as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(a.base_year as varchar(100)) as base_year	/* 기준년도 */
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							,cast(a.region_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.region_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							,cast(a.region_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(a.region_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(a.region_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							,cast(a.region_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(a.region_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(a.region_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(a.region_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "totreg"'>
+							,cast(a.tot_reg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(a.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(a.tot_reg_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(a.tot_reg_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+					</choose>
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast(isnull(#{unit},'') as varchar(100)) as unit	/* 단위 */
+					,cast(isnull(#{showTitle},'') as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast(${year}||'년 '||isnull(#{showTitle},'') as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					,cast(sum(a.${showData}) as number) as stats_dta_co	/* 통계자료건수 */
+				from
+					<choose>
+						<when test='area_bndry_se == "sido" or area_bndry_se == "sgg" or area_bndry_se == "emdong"'>
+							<choose>
+								<when test='showData == "corp_cnt" or showData == "employee_cnt"'>
+									srv_dt_corpcensus_index a with(nolock)
+								</when>
+								<otherwise>
+									srv_dt_census_index a with(nolock)
+								</otherwise>
+							</choose>
+						</when>
+						<when test='area_bndry_se == "totreg"'>
+							<choose>
+								<when test='showData == "corp_cnt" or showData == "employee_cnt"'>
+									srv_dt_totcorpcensus_index a with(nolock)
+								</when>
+								<otherwise>
+									srv_dt_totcensus_index a with(nolock)
+								</otherwise>
+							</choose>
+						</when>
+					</choose>
+				where 1=1
+					<choose>
+						<when test='data_year == "max"'>
+							and a.base_year = 
+							<choose>
+								<when test='area_bndry_se == "sido" or area_bndry_se == "sgg" or area_bndry_se == "emdong"'>
+									<choose>
+										<when test='showData == "corp_cnt" or showData == "employee_cnt"'>
+											(select max(s1.base_year) from srv_dt_corpcensus_index s1 with(nolock) where s1.base_year != '9016' and s1.${showData} != 0)
+										</when>
+										<otherwise>
+											(select max(s1.base_year) from srv_dt_census_index s1 with(nolock) where s1.base_year != '9016' and s1.${showData} != 0)
+										</otherwise>
+									</choose>
+								</when>
+								<when test='area_bndry_se == "totreg"'>
+									<choose>
+										<when test='showData == "corp_cnt" or showData == "employee_cnt"'>
+											(select max(s1.base_year) from srv_dt_totcorpcensus_index s1 with(nolock) where s1.base_year != '9016' and s1.${showData} != 0)
+										</when>
+										<otherwise>
+											(select max(s1.base_year) from srv_dt_totcensus_index s1 with(nolock) where s1.base_year != '9016' and s1.${showData} != 0)
+										</otherwise>
+									</choose>
+								</when>
+							</choose>
+						</when>
+						<when test='data_year == "min"'>
+							<choose>
+								<!-- 
+								농림어가일 경우, 년도수정
+								case "nongga_cnt":		//농가수
+								case "nongga_ppltn":	//농가인구수
+								case "naesuoga_cnt":	//내수면어가수
+								case "naesuoga_ppltn":	//내수면어가인구수
+								case "haesuoga_cnt":	//해수면어가수
+								case "haesuoga_ppltn":	//해수면어가인구수
+								 -->
+								<when test='showData == "nongga_cnt" or showData == "nongga_ppltn" or showData == "naesuoga_cnt" or showData == "naesuoga_ppltn" or showData == "haesuoga_cnt" or showData == "haesuoga_ppltn"'>
+									and a.base_year = '2000'
+								</when>
+								<!-- 
+								임가일 경우, 년도수정
+								case "imga_cnt":		//임가수
+								case "imga_ppltn":		//임가인구수
+								 -->
+								<when test='showData == "imga_cnt" or showData == "imga_ppltn"'>
+									and a.base_year = '2005'
+								</when>
+								<otherwise>
+									and a.base_year = '9016'
+								</otherwise>
+							</choose>
+						</when>
+						<otherwise>
+							and a.base_year = #{year}
+						</otherwise>
+					</choose>
+					<choose>
+						<when test='area_bndry_se == "sido" or area_bndry_se == "sgg" or area_bndry_se == "emdong"'>
+							<choose>
+								<when test='area_bndry_se == "sido"'>
+									and a.info_div = '1'
+								</when>
+								<when test='area_bndry_se == "sgg"'>
+									and a.info_div = '2'
+								</when>
+								<when test='area_bndry_se == "emdong"'>
+									and a.info_div = '3'
+								</when>
+							</choose>
+							<choose>
+								<when test='emdong_cd != null and emdong_cd != ""'>
+									and a.region_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+								</when>
+								<when test='sgg_cd != null and sgg_cd != ""'>
+									and a.region_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+								</when>
+								<when test='sido_cd != null and sido_cd != ""'>
+									and a.region_cd like '${sido_cd}' || '%'
+								</when>
+							</choose>
+						</when>
+						<when test='area_bndry_se == "totreg"'>
+							<choose>
+								<when test='emdong_cd != null and emdong_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+								</when>
+								<when test='sgg_cd != null and sgg_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+								</when>
+								<when test='sido_cd != null and sido_cd != ""'>
+									and a.tot_reg_cd like '${sido_cd}' || '%'
+								</when>
+							</choose>
+						</when>
+					</choose>
+				<choose>
+					<when test='area_bndry_se == "sido" or area_bndry_se == "sgg" or area_bndry_se == "emdong"'>
+						group by a.base_year, a.region_cd
+					</when>
+					<when test='area_bndry_se == "totreg"'>
+						group by a.base_year, a.tot_reg_cd
+					</when>
+				</choose>
+				<if test='showData == "tot_ppltn" or showData == "tot_family" or showData == "tot_house" or showData == "nongga_cnt" or showData == "nongga_ppltn" or showData == "imga_cnt" or showData == "imga_ppltn" or showData == "naesuoga_cnt" or showData == "naesuoga_ppltn" or showData == "haesuoga_cnt" or showData == "haesuoga_ppltn" or showData == "corp_cnt" or showData == "employee_cnt"'>
+					having cast(sum(a.${showData}) as number) <![CDATA[ >= ]]> 5
+				</if>
+			</when>
+			<when test='menu_nm == "정책통계지도" and call_url == "/ServiceAPI/policyWrite/getLocalGovernmentPolygonData.json"'>
+				select
+					 cast('color' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast(isnull(#{area_bndry_se},'') as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(isnull(#{bnd_year},'') as varchar(100)) as base_year	/* 기준년도 */
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							,cast(a.sido_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							,cast(a.sido_cd||a.sgg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(a.sgg_cd as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							,cast(a.sido_cd||a.sgg_cd||a.emdong_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(a.sgg_cd as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(a.emdong_cd as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "totreg"'>
+							,cast(a.tot_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(a.sido_cd as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(a.sgg_cd as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(a.emdong_cd as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+					</choose>
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast(b.data_unit as varchar(100)) as unit	/* 단위 */
+					,cast(b.div_nm as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast(b.div_nm as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					,cast(a.cnt as number) as stats_dta_co	/* 통계자료건수 */
+				from
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							srv_dt_open_data_sido_tot a with(nolock)
+							inner join srv_dt_open_data_nm b with(nolock) on b.div_cd = a.div_cd
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							srv_dt_open_data_sgg_tot a with(nolock)
+							inner join srv_dt_open_data_nm b with(nolock) on b.div_cd = a.div_cd
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							srv_dt_open_data_emdong_tot a with(nolock)
+							inner join srv_dt_open_data_nm b with(nolock) on b.div_cd = a.div_cd
+						</when>
+						<when test='area_bndry_se == "totreg"'>
+							srv_dt_open_data_tot_cd_tot a with(nolock)
+							inner join srv_dt_open_data_nm b with(nolock) on b.div_cd = a.div_cd
+						</when>
+					</choose>
+				where 1=1
+					and a.div_cd = #{div_cd}
+					<if test='sido_cd != null and sido_cd != ""'>
+						and a.sido_cd = '${sido_cd}'
+					</if>
+					<if test='sgg_cd != null and sgg_cd != ""'>
+						and a.sgg_cd = '${sgg_cd}'
+					</if>
+					<if test='emdong_cd != null and emdong_cd != ""'>
+						and a.emdong_cd = '${emdong_cd}'
+					</if>
+			</when>
+			<when test='menu_nm == "정책통계지도" and call_url == "/ServiceAPI/stats/fusionstats.json"'>
+				<!-- combine_base  == "household" -->
+				<!-- fusion_query_type == "population_household" -->
+				<!-- 건수 같음 count(*) == count(distinct ppltn_family_join_key) -->
+				select
+					 cast('color' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast(isnull(#{area_bndry_se},'') as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast(isnull(#{year},'') as varchar(100)) as base_year	/* 기준년도 */
+					<choose>
+						<when test='area_bndry_se == "sido"'>
+							,cast(substr(d.tot_reg_cd, 1, 2) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(d.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "sgg"'>
+							,cast(substr(d.tot_reg_cd, 1, 5) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(substr(d.tot_reg_cd, 1, 5), 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(substr(d.tot_reg_cd, 1, 5), 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "emdong"'>
+							,cast(substr(d.tot_reg_cd, 1, 7) as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(substr(d.tot_reg_cd, 1, 7), 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(substr(d.tot_reg_cd, 1, 7), 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(substr(d.tot_reg_cd, 1, 7), 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+						<when test='area_bndry_se == "totreg"'>
+							,cast(d.tot_reg_cd as varchar(50)) as adm_cd	/* 지역코드 */
+							,cast('' as varchar(200)) as adm_nm /* 지역명 */
+							,cast(substr(d.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd	/* 시도코드 */
+							,cast(substr(d.tot_reg_cd, 3, 3) as varchar(50)) as sgg_cd	/* 시군구코드 */
+							,cast(substr(d.tot_reg_cd, 6, 2) as varchar(50)) as emdong_cd	/* 읍면동코드 */
+						</when>
+					</choose>
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast(isnull(#{unit},'') as varchar(100)) as unit	/* 단위 */
+					,cast(isnull(#{showTitle},'') as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast(${year}||'년 '||isnull(#{showTitle},'') as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					,cast(count(*) as number) as stats_dta_co	/* 통계자료건수 */
+				from
+					srv_dt_ppltncensus_${year} a with(nolock)
+					inner join srv_dt_familycensus_${year} b with(nolock) on b.ppltn_family_join_key = a.ppltn_family_join_key
+					<!-- inner join srv_dt_housecensus_${year} c with(nolock) on c.resid_join_key = b.resid_join_key -->
+					inner join srv_pt_bd d with(nolock) on d.sufid = a.sufid
+				where 1=1
+					and b.family_yn = 'Y'
+					<if test='age_from != null and age_from != ""'>
+						and a.age <![CDATA[>=]]> ${age_from}
+					</if>
+					<if test='age_to != null and age_to != ""'>
+						and a.age <![CDATA[<=]]> ${age_to}
+					</if>
+					<if test='gender != null and gender != "" and gender != "0"'>
+						and a.gender = #{gender}
+					</if>
+					<if test='household_type != null '>
+						and b.rd_household_type in
+						<foreach collection="household_type" item="household" open="(" separator="," close=")">
+							#{household}
+						</foreach>
+					</if>
+					<choose>
+						<when test='emdong_cd != null and emdong_cd != ""'>
+							and d.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+						</when>
+						<when test='sgg_cd != null and sgg_cd != ""'>
+							and d.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+						</when>
+						<when test='sido_cd != null and sido_cd != ""'>
+							and d.tot_reg_cd like '${sido_cd}' || '%'
+						</when>
+					</choose>
+				<choose>
+					<when test='area_bndry_se == "sido"'>
+						group by substr(d.tot_reg_cd, 1, 2)
+					</when>
+					<when test='area_bndry_se == "sgg"'>
+						group by substr(d.tot_reg_cd, 1, 5)
+					</when>
+					<when test='area_bndry_se == "emdong"'>
+						group by substr(d.tot_reg_cd, 1, 7)
+					</when>
+					<when test='area_bndry_se == "totreg"'>
+						group by d.tot_reg_cd
+					</when>
+				</choose>
+				having cast(count(*) as number) <![CDATA[ >= ]]> 5
+			</when>
+			<when test='menu_nm == "정책통계지도" and call_url == "/view/map/policyWrite/getCompanyPoiList.do"'>
+				select
+					cast('poi' as varchar(100)) as map_ty
+					,cast('all' as varchar(100)) as area_bndry_se
+					,cast(b.base_year as varchar(100)) as base_year
+					,cast(a.tot_reg_cd as varchar(50)) as adm_cd
+					,cast('' as varchar(200)) as adm_nm
+					,cast(substr(a.tot_reg_cd, 1, 2) as varchar(50)) as sido_cd
+					,cast(substr(a.tot_reg_cd, 3, 3) as varchar(50)) as sgg_cd
+					,cast(substr(a.tot_reg_cd, 6, 2) as varchar(50)) as emdong_cd
+					,cast(st_x(a.pt) as varchar(100)) as x_coor
+					,cast(st_y(a.pt) as varchar(100)) as y_coor
+					,cast('3' as varchar(100)) as poi_se_nm
+					,cast(b.corp_nm || '$' || c.naddr as varchar(200)) as poi_nm
+					,cast('' as varchar(100)) as unit
+					,cast('' as varchar(100)) as unit_nm
+					,cast('' as varchar(300)) as tooltip_cn
+					,cast(0 as number) as stats_dta_co
+				from
+					srv_pt_bd a with(nolock)
+					<choose>
+						<when test='stat_data_base_year != null and stat_data_base_year lte "2005"'>
+							inner join srv_dt_corpcensus_8 b with(nolock) on b.sufid = a.sufid
+						</when>
+						<when test='stat_data_base_year != null and stat_data_base_year lte "2016"'>
+							inner join srv_dt_corpcensus_9 b with(nolock) on b.sufid = a.sufid
+						</when>
+						<otherwise>
+							inner join srv_dt_corpcensus_10 b with(nolock) on b.sufid = a.sufid
+						</otherwise>
+					</choose>
+					inner join srv_pg_censusbd c with(nolock) on c.sufid = a.sufid
+				where 1=1
+					and b.base_year = #{stat_data_base_year}
+					and b.ksic_1_cd = #{ksic_1_cd}
+					and b.ksic_5_cd = #{ksic_5_cd}
+					<choose>
+						<when test='emdong_cd != null and emdong_cd != ""'>
+							and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+						</when>
+						<when test='sgg_cd != null and sgg_cd != ""'>
+							and a.tot_reg_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+						</when>
+						<when test='sido_cd != null and sido_cd != ""'>
+							and a.tot_reg_cd like '${sido_cd}' || '%'
+						</when>
+					</choose>
+			</when>
+			<when test='menu_nm == "정책통계지도" and call_url == "/view/map/policyWrite/getLocalGovernmentPoiList.do"'>
+				select
+					cast('poi' as varchar(100)) as map_ty
+					,cast('all' as varchar(100)) as area_bndry_se
+					,cast('' as varchar(100)) as base_year
+					,cast(a.adm_dr_cd as varchar(50)) as adm_cd
+					,cast('' as varchar(200)) as adm_nm
+					,cast(substr(a.adm_dr_cd, 1, 2) as varchar(50)) as sido_cd
+					,cast(substr(a.adm_dr_cd, 3, 3) as varchar(50)) as sgg_cd
+					,cast(substr(a.adm_dr_cd, 6, 2) as varchar(50)) as emdong_cd
+					,cast(st_x(a.pt) as varchar(100)) as x_coor
+					,cast(st_y(a.pt) as varchar(100)) as y_coor
+					,cast('3' as varchar(100)) as poi_se_nm
+					,cast(a.div_nm as varchar(200)) as poi_nm
+					,cast('' as varchar(100)) as unit
+					,cast('' as varchar(100)) as unit_nm
+					,cast(a.div_nm as varchar(300)) as tooltip_cn
+					,cast(0 as number) as stats_dta_co
+				from
+					srv_pt_open_data a with(nolock)
+				where 1=1
+					<if test='div_cd != null and div_cd != "" and div_cd != undefined'>
+						and a.div_cd = #{div_cd}
+					</if>
+					<choose>
+						<when test='emdong_cd != null and emdong_cd != ""'>
+							and a.adm_dr_cd like '${sido_cd}' || '${sgg_cd}' || '${emdong_cd}' || '%'
+						</when>
+						<when test='sgg_cd != null and sgg_cd != ""'>
+							and a.adm_dr_cd like '${sido_cd}' || '${sgg_cd}' || '%'
+						</when>
+						<when test='sido_cd != null and sido_cd != ""'>
+							and a.adm_dr_cd like '${sido_cd}' || '%'
+						</when>
+					</choose>
+			</when>
+			<!-- 정책통계지도 종료 -->
+			<otherwise>
+				select
+					 cast('' as varchar(100)) as map_ty	/* 지도유형 */
+					,cast('' as varchar(100)) as area_bndry_se	/* 지역경계구분 */
+					,cast('' as varchar(100)) as base_year	/* 기준년도 */
+					,cast('' as varchar(50)) as adm_cd	/* 지역코드 */
+					,cast('' as varchar(200)) as adm_nm /* 지역명 */
+					,cast('' as varchar(50)) as sido_cd	/* 시도코드 */
+					,cast('' as varchar(50)) as sgg_cd	/* 시군구코드 */
+					,cast('' as varchar(50)) as emdong_cd	/* 읍면동코드 */
+					,cast('' as varchar(100)) as x_coor	/* X 좌표 */
+					,cast('' as varchar(100)) as y_coor	/* Y 좌표 */
+					,cast('' as varchar(100)) as poi_se_nm	/* 점(POI) 구분 */
+					,cast('' as varchar(200)) as poi_nm	/* 점(POI) 명 */
+					,cast('' as varchar(100)) as unit	/* 단위 */
+					,cast('' as varchar(100)) as unit_nm	/* 단위 명 */
+					,cast('' as varchar(300)) as tooltip_cn	/* 툴팁내용 */
+					,cast(0 as number) as stats_dta_co	/* 통계자료건수 */
+				from dual
+				where 1=2
+			</otherwise>
+		</choose>
+	</select>
+	
+</mapper>

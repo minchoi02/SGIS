@@ -1,0 +1,244 @@
+function getReversGeoCode(map){
+	var x_coor = map.center[0];
+	var y_coor = map.center[1];
+	
+	$('#searchZoom').val(map.zoom);
+	
+	if(map.zoom < 4 && sMap.map.mapCategory != 2){
+		
+		$.ajax({
+			  type: "GET",
+			  url: "/js/data/geo_sido_" + $('#searchYear').val() + ".js",
+			  dataType: "json",
+			  success: function(res) {
+				  //getMapdata(map,"00",res);
+				  setRank(map,"00",res);
+			  } ,
+		});
+		
+	}else{
+		
+		
+		
+		$.ajax({
+			  type: "GET",
+			  url: openApiPath + "/OpenAPI3/addr/rgeocode.json",
+			  data : {"accessToken" : accessToken,"addr_type" :  "20","x_coor" :  x_coor,"y_coor" : y_coor,"bnd_year" :  $('#searchYear').val()},
+			  dataType: "json",
+			  success: function(res) {
+				  var admCd = "";
+				  if(res.result == null) return null;
+				  
+				  if(map.zoom < 7) {
+					  mapCd = res.result[0].sido_cd;
+				  }else{
+					  mapCd = res.result[0].sido_cd+""+res.result[0].sgg_cd;
+				  }
+				  
+				  if(map.zoom < 4) {
+					  admCd = res.result[0].sido_cd;
+				  }else if(map.zoom < 7){
+					  admCd = res.result[0].sido_cd+""+res.result[0].sgg_cd;
+				  }else{
+					  admCd = res.result[0].sido_cd+""+res.result[0].sgg_cd+""+res.result[0].emdong_cd;
+				  }
+				  getHadMareaCode(map,admCd,mapCd);
+			  }   
+		});
+	
+	}
+}
+
+function getHadMareaCode(map,admCd,mapCd){
+		
+	
+	   var category =  $('#searchCategory').val();
+	   if(category == "") category =1;
+	
+	   console.log(category);
+		$.ajax({
+			  type: "GET",
+			  url: openApiPath + "/OpenAPI3/boundary/hadmarea.geojson",
+			  data : {"accessToken" : accessToken,"adm_cd" : mapCd ,"year" :  $('#searchYear').val(),"low_search": "1", "areaInfo": sMap.map.selectMapType ,"category":category},
+			  dataType: "json",
+			  success: function(res) {
+				  $sbrActiveMap.ui.polygonData = res;
+				  setRank(map,admCd,res);
+			  }   
+		});
+}
+
+
+
+
+function setRank(map,admCd,mapData){
+	
+	$('#searchAdmCd').val(admCd);
+	$('#searchCategory').val(sMap.map.mapCategory);
+	
+	sMap.map.mapDataInfo = mapData;
+
+	var admCdList = [];
+	mapData.features.forEach(function(item,index){
+		if($('#searchArea').val() == 1)	admCdList[index] = item.properties.adm_cd;
+		else                         	admCdList[index] = item.properties.search_id;
+	});
+	
+	$('#searchAdminCdList').val(admCdList);
+	var formData = $('#searchFrom').serialize();
+	
+	$.ajax({
+		method: "POST",
+		async: true,
+		url: "/view/sbrStats/sbrRankListInfo",
+		data: formData,
+		dataType: "json",
+		success: function(res) {
+			
+			sMap.map.rankData = res;
+			
+			html = "";
+			res.forEach(function(data,index) {
+				
+				var iclass = "";
+				if(data.growth >0 ) iclass = "up";
+				else if(data.growth <0 ) iclass = "down";
+				
+				var x_coor = data.x_coor;
+				var y_coor = data.y_coor;
+				if(data.center_point != null){
+					var point = data.center_point.split(" ");
+					console.log(point);
+					x_coor = point[0].replace("POINT(","");
+					y_coor = point[1].replace(")","");
+				}
+				
+				
+				html += '<li onclick="showRankDetail(\''+data.bord_cd+'\',\''+x_coor+'\',\''+y_coor+'\')">';
+	            html += '<span><i class="rank">' + (index+1) + '</i>'+data.addr+'</span>';
+	            html += '<span>'+getCash(data.ent_co)+'개</span>'
+	            html += '<span>'+data.growth+'% <i class="'+iclass+'"></i></span>'
+	            html += '<span>'+data.distribution+'%</span>'
+	            html += '</li>'
+			});
+			
+			$(".rankList.table").html(html);
+			
+			rankExpandSet();
+			
+			getMapdata(map,admCd,mapData);
+		}
+	});
+}
+
+function getMapdata(map,admCd,data){
+	
+	$('#searchAdmCd').val(admCd);
+	var formData = $('#searchFrom').serialize();
+	
+	
+	if($('#searchArea').val() == 1){
+	
+	  data.features.forEach(function(item,index){
+		  sMap.map.rankData.forEach(function(item2,index2){
+			  if(item.properties.adm_cd == item2.bord_cd){
+				  item.properties.value = item2.ent_co;
+			  }
+		  });
+	  });
+	
+	}else{
+		
+		data.features.forEach(function(item,index){
+			  sMap.map.rankData.forEach(function(item2,index2){
+				  if(item.properties.search_id == item2.bord_cd){
+					  item.properties.value = item2.ent_co;
+				  }
+			  });
+		  });
+		
+		
+	}
+	
+	  
+	  //임시 데이터 없어서 처리
+	  data.features.forEach(function(item,index){
+		  if(item.properties.value == null ){
+			  item.properties.value = 0;
+		  }
+	  });
+	  
+	  map.setLegendForStatsData(data);
+	  map.addPolygonGeoJson(data,"polygon");
+	  
+	  if($sbrActiveMap.ui.isTogether){
+		  getTogetherMapData($sbrActiveMap.ui.mapList[1],admCd);
+	  }
+	  
+}
+
+
+
+function getTogetherMapData(map,admCd){
+	
+	$('#togetherSearchFrom').find('input[name=accessToken]').val(accessToken);
+	
+	var url = "/view/sbrStats/innersearchpopulationForBorough.json";
+	
+	 if(map.zoom < 7) {
+		 admCd = admCd.substring(0,2);
+	 }
+	
+	
+	if(admCd.length == 2){
+		url = "/view/sbrStats/innersearchpopulationForBorough.json";
+	}else{
+		$('#togetherSearchFrom').find('input[name=adm_cd]').val("00");
+	}
+	
+	$('#togetherSearchFrom').find('input[name=adm_cd]').val(admCd);
+	
+	var formData = $('#togetherSearchFrom').serialize();
+	
+	$.ajax({
+		  type: "GET",
+		  url: url,
+		  data : formData,
+		  dataType: "json",
+		  success: function(res) {
+			  
+			  
+			  var selectYear = $('#togetherSearchFrom').find('input[name=year]').val();
+			  
+			  
+			  $sbrActiveMap.ui.polygonData.features.forEach(function(item,index){
+				  
+				  res.forEach(function(item2,index2){
+					  if(item.properties.adm_cd == item2.adm_cd ){
+						  if(item2.t_year == selectYear){
+							  item.properties.value = item2.population;
+						  }
+					  }
+				  });
+			  });
+			  
+			  sMap.map.togetherData = res;
+			  
+			  map.setLegendForStatsData($sbrActiveMap.ui.polygonData);
+			  map.addPolygonGeoJson($sbrActiveMap.ui.polygonData,"polygon");
+			  
+			  
+		  }   
+	});
+	
+}
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,171 @@
+<!-- 
+* 검색창에 입력한 단어와 연관되는 데이터를 보여주는 HTML입니다.
+* 
+* history : 엘티메트릭, 1.0, 2019/10/07  초기 작성
+* author : 김남민
+* version : 1.0
+* see : 
+*
+//-->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>보고서</title>
+	
+	<link rel="stylesheet" type="text/css" href="/css/jquery-ui-1.10.4.custom.css" />
+	<link rel="stylesheet" type="text/css" href="/js/plugins/jquery-easyui-1.4/sop.css" />
+	<link rel="stylesheet" type="text/css" href="/css/reportForm.css" />
+	<link rel="stylesheet" type="text/css" href="/css/common.css" />
+	<link rel="stylesheet" type="text/css" href="/css/wheelcolorpicker.css" />
+	<script type="text/javascript" src="/js/plugins/jquery-1.11.1.min.js"></script>
+	<script type="text/javascript" src="/js/plugins/btoa.js"></script>
+	<script type="text/javascript" src="/js/plugins/highcharts/highcharts.js"></script>
+	<script type="text/javascript" src="/js/plugins/jsPDF/jspdf.min.js"></script>
+	<script type="text/javascript" src="/js/plugins/imageCapture/rgbcolor.js"></script>
+	<script type="text/javascript" src="/js/plugins/imageCapture/canvg.js"></script> <!-- 2017.03.13 pdf저장 이슈  -->
+    <script type="text/javascript" src="/js/plugins/imageCapture/html2canvas.js"></script>
+	<script type="text/javascript" src="/js/plugins/highcharts/modules/exporting.js"></script>
+	<script type="text/javascript" src="/js/plugins/jquery-easyui-1.4/sop-src.js"></script>
+	<script type="text/javascript" src="/js/plugins/jquery.sha256.js"></script>
+	<script type="text/javascript" src="/js/plugins/durian-v2.0.js"></script>
+	<script type="text/javascript" src="/js/common/sop.portal.absAPI.js"></script>
+	<script type="text/javascript" src="/js/common/common.js"></script>	    
+	<script type="text/javascript" src="/js/common/map.js"></script>
+	<script type="text/javascript" src="/js/common/mapInfo/legendInfo.js"></script>
+	<script type="text/javascript" src="/js/statsMe/report/reportForm.js"></script>
+	<script type="text/javascript" src="/js/statsMe/report/reportFormEvent.js"></script>
+	
+	<style type="text/css" media="print">@page{size:auto;margin:10mm;}body{margin:0;}</style> 
+	<style type="text/css">
+		#AlertMessage {
+			width : 400px;
+			overflow : hidden;
+			border : 3px solid #656972;
+			barder-radius : 5px;
+			padding : 20px 20px 20px 70px;
+			font-size : 20px;
+			color : #333333;
+			box-shadow : 1px 1px 3px #cccccc;
+			word-break : break-all;
+			position : absolute;
+			top : 45%;
+			left : 20%;
+		}
+		
+		html, body {min-width: 100%;}
+		div.printArea {margin: 0px 16.5px;}
+	</style>
+	
+	<script>
+            var beforePrint = function() {
+                //console.log("1");
+            };
+            var afterPrint = function() {
+                //console.log("2");
+            };
+
+            if (window.matchMedia) {
+                var mediaQueryList = window.matchMedia('print');
+                mediaQueryList.addListener(function(mql) {
+                    if (mql.matches) {
+                        beforePrint();
+                    } else {
+                        afterPrint();
+                    }
+                });
+            }
+
+            window.onbeforeprint = beforePrint;
+            window.onafterprint = afterPrint;
+        </script>
+	
+</head>
+<body>
+	<div id="wrap">
+		<div class="printArea">
+			<div id="statsMeMapReportForm"> <!-- My통계로 (지도) -->
+			 	<div class="pntPage">
+			 		<!-- 2020-02-12 [김남민] 보고서 설명 문구 중 ‘SGIS 오픈플랫폼’을 ‘SGIS 스마트플랫폼＇으로 문구 수정 -->
+			 		<h1 class="pntHeader"><img src="/img/common/logoPlus.png" alt="SGIS 스마트플랫폼"></h1>	 
+			 		<div class="pntBtn"><a href="javascript:$reportFormEvent.UI.reportPdfDown();" id="pdfdown">PDF</a><a href="javascript:$reportFormEvent.UI.reportPrint();">인쇄</a><a href="javascript:$reportFormEvent.UI.reportClose();">닫기</a></div>
+			 		<p class="pntURI">통계지리정보서비스 (https://sgis.kostat.go.kr)</p> 
+			 		<div class="pntNewCenter" style="margin-top:10px; background-color: #f1f1f1;"><h3 style="border-right: none;">서비스명</h3><div id="statsMeMapReportForm_stat_data_nm" class="pntNewRight" style="height:auto; background-color: #ffffff; border-left: 1px solid #ccc;"></div></div>
+			 		<div class="pntNewCenter" style="background-color: #f1f1f1;"><h3 style="border-right: none;">통계자료설명</h3><div id="statsMeMapReportForm_stat_data_exp" class="pntNewRight" style="height:auto; background-color: #ffffff; border-left: 1px solid #ccc;"></div></div>
+			 		<div class="pntNewCenter" style="background-color: #f1f1f1;"><h3 style="border-right: none;">작성일자</h3><div id="statsMeMapReportForm_yyyymmdd" class="pntNewRight" style="height:auto; background-color: #ffffff; border-left: 1px solid #ccc;"></div></div>
+			 		<div class="pntNewCenter" style="background-color: #f1f1f1;"><h3 style="border-right: none;">데이터 출처</h3><div id="statsMeMapReportForm_source" class="pntNewRight" style="height:auto; background-color: #ffffff; border-left: 1px solid #ccc;"></div></div>
+			 		<div class="pntNewCenter" style="background-color: #f1f1f1;"><h3 style="border-right: none;">SGIS 콘텐츠 출처</h3><div id="statsMeMapReportForm_sgis" class="pntNewRight" style="height:auto; background-color: #ffffff; border-left: 1px solid #ccc;"></div></div>
+					<div id="mainMapDiv_show" class="pntShowBtn"><a href="javascript:$reportForm.ui.onOffDiv('mainMapDiv');"><img src='/img/im/btn_plus.png' alt='보이기' /></a></div>
+					<div id="pntLegend_show" class="pntShowBtn"><a href="javascript:$reportForm.ui.onOffDiv('pntLegend');"><img src="/img/im/btn_plus.png" alt="보이기"></a></div>
+			 		<div id="mainMapDiv" class="pntCenter" style="position:relative;">
+				 		<div class="pntNewCenterTitle"><h3>지도 시각화 화면</h3></div>
+				 		<div class="pntCloseBtn"><a href="javascript:$reportForm.ui.onOffDiv('mainMapDiv');"><img src='/img/um/btn_closel01.png' alt='숨기기' /></a></div>
+				 		<div id="pntLegend" style="width:220px;height:270px;border-right:1px solid #ccc;position:absolute;bottom:0px;z-index:10;background-color:#fff;">
+							<h3 class="pntLegendTitle" id="legendTitle">범례 (단위 : 명)</h3>
+							<div class="pntCloseBtn"><a href="javascript:$reportForm.ui.onOffDiv('pntLegend');"><img src="/img/um/btn_closel01.png" alt="숨기기"></a></div>
+							<div id="legend" class="pntLegend remarkbox" style="display: block; position: relative;width:215px;">
+								<!-- <div data-html2canvas-ignore="true" class="legendRing legendBox max" id="legendBox_20191010143154331" data-ing="max"><div class="color" id="typeArea_20191010143154331"><ul class="colorbar" id="colorStatus_20191010143154331" style="font-family: Arial;"><li style="background: rgb(217, 66, 25); border: 0px solid rgb(217, 66, 25); height: 34px;"><span style="font-size: 12px;">1,686 초과</span></li><li style="background: rgb(230, 116, 48); border: 0px solid rgb(230, 116, 48); height: 31px;" class="ck"><span style="font-size: 12px;">959 ~ 1,686 이하</span></li><li style="background: rgb(242, 165, 70); border: 0px solid rgb(242, 165, 70); height: 31px;"><span style="font-size: 12px;">33 ~ 959 이하</span></li><li style="background: rgb(255, 215, 93); border: 0px solid rgb(255, 215, 93); height: 31px;"><span style="font-size: 12px;">0 ~ 33 이하</span></li><li style="background: rgb(147, 149, 176); border: 0px solid rgb(147, 149, 176); height: 31px;"><span style="font-size: 12px;">0 ~ 0 이하</span></li><li style="background: rgb(90, 94, 149); border: 0px solid rgb(90, 94, 149); height: 31px;"><span style="font-size: 12px;">0 ~ 0 이하</span></li><li style="background: rgb(34, 39, 122); border: 0px solid rgb(34, 39, 122); height: 31px;"><span style="font-size: 11px;">0 이하</span></li></ul><ul class="colorck" id="legendColor_20191010143154331"><li><a id="grid_lg_color_0" href="javascript:void(0)" class="" data-color="#cd1103" start-color="#ffd75d" style="background: rgb(205, 17, 3);">#cd1103</a></li><li><a id="grid_lg_color_1" href="javascript:void(0)" class="" data-color="#0e4000" start-color="#eaf5c0" style="background: rgb(14, 64, 0);">#0e4000</a></li><li><a id="grid_lg_color_2" href="javascript:void(0)" class="" data-color="#004574" start-color="#cccccc" style="background: rgb(0, 69, 116);">#004574</a></li><li><a id="grid_lg_color_3" href="javascript:void(0)" class="" data-color="#230064" start-color="#cccccc" style="background: rgb(35, 0, 100);">#230064</a></li><li><a id="grid_lg_color_4" href="javascript:void(0)" class="" data-color="#00076a" start-color="#cccccc" style="background: rgb(0, 7, 106);">#00076a</a></li><li><a id="grid_lg_color_5" href="javascript:void(0)" class="" data-color="#783300" start-color="#fdf3d6" style="background: rgb(120, 51, 0);">#783300</a></li><li id="combineColor_20191010143154331" style="display:none;"><a href="javascript:void(0)" class="combined" data-color="combined" start-color="combined" style="background: rgb(255, 255, 255);">#fff</a></li><li id="negativeDefaultColor_20191010143154331" class="negativeDefaultColor" style=""><a href="javascript:void(0)" class="on" data-color="#cccccc" style="background: rgb(204, 204, 204);">#cccccc</a></li></ul><div class="heatMin" id="heatMinLegend_20191010143154331" style="display:none;"><img src="/img/ico/wheel.500.png" style="width:80px;height:80px;margin:14px 10px 10px 10px;"></div><ul class="legendLine" id="bubbleLegendLine_20191010143154331" style="display:none;"><li><span style="margin-left: -30px; display: none;">10Lv</span></li><li><span style="margin-left: -30px; display: none;">09Lv</span></li><li><span style="margin-left: -30px; display: none;">08Lv</span></li><li><span style="margin-left:-30px;">07Lv</span></li><li><span style="margin-left:-30px;">06Lv</span></li><li><span style="margin-left:-30px;">05Lv</span></li><li><span style="margin-left:-30px;">04Lv</span></li><li><span style="margin-left:-30px;">03Lv</span></li><li><span style="margin-left:-30px;">02Lv</span></li><li><span style="margin-left:-30px;">01Lv</span></li></ul><a href="javascript:void(0)" id="reverseBtn_20191010143154331" class="legendRrefresh" style="right: 13px;">새로고침</a><div class="jumArea"><div class="jumText">점 크기 조절</div><ul class="jumGage"><li>작게</li><li>중간</li><li>크게</li></ul><div class="jumSlide ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" aria-disabled="false"><a class="ui-slider-handle ui-state-default ui-corner-all" href="#" style="left: 0%;"></a></div></div><div class="heatArea"><div style="height:15px;"></div><img src="/img/ico/ico_dbPlay.png" style="float:left;margin:4px 10px 0 10px;width:10px;height:10px;"><div style="height:20px;font-size:11px;">반지름 조절 (Radius)</div><div style="height:50px;"><div class="heatRadiusSlider heatSlider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" aria-disabled="false"><a class="ui-slider-handle ui-state-default ui-corner-all" href="#" style="left: 42.8571%;"></a></div><div class="heatRadiusText heatInputText">20</div><ul class="heatGuage" style="margin-top:5px;"><li style="margin-top:5px;">5</li><li style="margin-right:10px;float:right;margin-top:5px;">40</li></ul></div><img src="/img/ico/ico_dbPlay.png" width="10" height="10" style="float:left;margin:4px 10px 0 10px;width:10px;height:10px;"><div style="height:20px;font-size:11px;">흐림도 조절 (Blur)</div><div style="height:50px;"><div class="heatBlurSlider heatSlider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" aria-disabled="false"><a class="ui-slider-handle ui-state-default ui-corner-all" href="#" style="left: 10%;"></a></div><div class="heatBlurText heatInputText">30</div><ul class="heatGuage"><li style="margin-top:5px;">20</li><li style="margin-top:5px;">120</li></ul></div></div></div><div class="legendRound" style="display: none;"><a href="javascript:void(0)" id="btn_legend_20191010143154331" class="btn_legend">데이터 시각화</a><a href="javascript:void(0)" id="btn_legendSetting_20191010143154331" class="btn_legendSetting">설정</a></div></div><ul class="lgListBox" id="lgListBox_20191010143154331" style="display: none;"><li style="display: none;"><ul id="lgTypeList_20191010143154331" class="lgTypeList" style="display: none;"><li style="display:none;"><a id="showData_20191010143154331" href="javascript:void(0)" data-type="data" data-subj="통계치 팁()" title="통계치" class=""><span>통계치 off</span></a></li><li><a href="javascript:void(0)" data-type="color" data-subj="색상지도 팁(Shaded Area map)" title="지도 내  경계영역 내 설정된 범례 범위값과 생상으로 시각화된 데이터를 통해 지역별로 비교할 수 있습니다."><span>색상</span></a></li><li><a href="javascript:void(0)" data-type="bubble" data-subj="버블지도 팁(Bubbles map)" title="지도내 경계영역 내 설정된 범례 범위값에 따라 경계영역 내 그려진 원형 크기로 시각화된 데이터를 통해 지역별로 비교할 수 있습니다."><span>버블</span></a></li><li><a href="javascript:void(0)" data-type="dot" data-subj="점지도 팁(Dot Destiny map)" title="지도내 경계영역 내 그려진 점으로 시각화된 데이터를 통해 지역별 밀집도를 비교할 수 있습니다."><span>점</span></a></li><li><a href="javascript:void(0)" data-type="heat" data-subj="열지도(Heat map)" title="지도내 경계여역 내 설정된 범례범위값과 색상으로 시각화된 데이터를 통해 지역벼로 비교할 수 있습니다."><span>열</span></a></li></ul><a href="javascript:void(0)" id="legendPopEvent00_20191010143154331"><span>타입<br>설정</span></a></li><li><a href="javascript:void(0)" id="legendPopEvent01_20191010143154331" class="legendPopEvent" data-id="guganSettingLayer"><span>단계<br>설정</span></a></li><li><a href="javascript:void(0)" ;="" id="legendPopEvent02_20191010143154331" class="legendPopEvent" data-id="colorSettingLayer"><span>색상<br>설정</span></a></li><li><a href="javascript:void(0)" id="initButton_20191010143154331"><span>초기화</span></a></li><li><a href="javascript:void(0)" id="legendPopEvent04_20191010143154331" class="legendPopEvent"><span>투명도<br>설정</span></a></li></ul><div class="popBox guganSettingLayer" id="guganSettingLayer_20191010143154331" style="display: none;"><div class="topbar"><span>범례 구간설정</span><select class="lvSelect" id="lvSelect_20191010143154331" title="범례 구간설정">undefined<option value="10">10레벨</option><option value="9">9레벨</option><option value="8">8레벨</option><option value="7">7레벨</option><option value="6">6레벨</option><option value="5">5레벨</option></select><a href="javascript:void(0)">닫기</a></div><div class="popContents" id="popContents01_20191010143154331"><div class="tabs" id="guganSettingButton_20191010143154331"><span>분류방법</span><a href="javascript:void(0)" id="guganNagative_20191010143154331" class="btnStyle01 al on" title="표출되는 통계값의 범위내에서 음수/양수로 자동으로 구간을 확정">분할범례</a><a href="javascript:void(0)" id="guganEqual_20191010143154331" class="btnStyle01 ac" title="표출되는 통계값의 범위내에서 균등하게 확정">균등범례</a><a href="javascript:void(0)" id="guganUser_20191010143154331" class="btnStyle01 ar" title="표출 구간을 사용자가 정의">사용자정의</a></div><div class="goganDisabled" id="goganDisabled_20191010143154331"></div><div class="goganList on" id="goganList_20191010143154331" style="height:160px;" data-highcharts-chart="1"><div class="highcharts-container" id="highcharts-5" style="position: relative; overflow: hidden; width: 380px; height: 160px; text-align: left; line-height: normal; z-index: 0; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); touch-action: none;"><svg version="1.1" style="font-family:&quot;Lucida Grande&quot;, &quot;Lucida Sans Unicode&quot;, Arial, Helvetica, sans-serif;font-size:12px;" xmlns="http://www.w3.org/2000/svg" width="380" height="160"><desc>Created with Highcharts 4.1.1</desc><defs><clipPath id="highcharts-6"><rect x="0" y="0" width="355" height="110"></rect></clipPath></defs><rect x="0" y="0" width="380" height="160" strokewidth="0" fill="#FFFFFF" class=" highcharts-background"></rect><path fill="#22277a" d="M 14.5 10 L 14.5 120 77.5 120 77.5 10"></path><path fill="#5a5e95" d="M 77.5 10 L 77.5 120 162.5 120 162.5 10"></path><path fill="#9395b0" d="M 162.5 10 L 162.5 120 181.5 120 181.5 10"></path><path fill="#ffd75d" d="M 181.5 10 L 181.5 120 222.5 120 222.5 10"></path><path fill="#f2a546" d="M 222.5 10 L 222.5 120 267.5 120 267.5 10"></path><path fill="#e67430" d="M 267.5 10 L 267.5 120 304.5 120 304.5 10"></path><path fill="#d94219" d="M 304.5 10 L 304.5 120 369.5 120 369.5 10"></path><g class="highcharts-grid" zindex="1"></g><g class="highcharts-grid" zindex="1"></g><g class="highcharts-axis" zindex="2"><path fill="none" d="M 23.5 120 L 23.5 130" stroke="#C0D0E0" stroke-width="1" opacity="1"></path><path fill="none" d="M 96.5 120 L 96.5 130" stroke="#C0D0E0" stroke-width="1" opacity="1"></path><path fill="none" d="M 168.5 120 L 168.5 130" stroke="#C0D0E0" stroke-width="1" opacity="1"></path><path fill="none" d="M 240.5 120 L 240.5 130" stroke="#C0D0E0" stroke-width="1" opacity="1"></path><path fill="none" d="M 312.5 120 L 312.5 130" stroke="#C0D0E0" stroke-width="1" opacity="1"></path><path fill="none" d="M 15 120.5 L 370 120.5" stroke="#C0D0E0" stroke-width="1" zindex="7" visibility="visible"></path></g><g class="highcharts-axis" zindex="2"></g><g class="highcharts-series-group" zindex="3"><g class="highcharts-series highcharts-tracker" visibility="visible" zindex="0.1" transform="translate(15,10) scale(1 1)" style="cursor:move;" clip-path="url(#highcharts-6)"><rect x="63" y="0" width="1" height="111" fill="rgba(0,0,0,0)" rx="0" ry="0"></rect><rect x="148" y="0" width="1" height="111" fill="rgba(0,0,0,0)" rx="0" ry="0"></rect><rect x="167" y="0" width="1" height="111" fill="rgba(0,0,0,0)" rx="0" ry="0"></rect><rect x="208" y="0" width="1" height="111" fill="rgba(0,0,0,0)" rx="0" ry="0"></rect><rect x="253" y="0" width="1" height="111" fill="rgba(0,0,0,0)" rx="0" ry="0"></rect><rect x="289" y="0" width="1" height="111" fill="rgba(0,0,0,0)" rx="0" ry="0"></rect></g><g class="highcharts-markers" visibility="visible" zindex="0.1" transform="translate(15,10) scale(1 1)" clip-path="none"></g><g class="highcharts-series" visibility="visible" zindex="0.1" transform="translate(15,10) scale(1 1)" clip-path="url(#highcharts-6)"><path fill="rgba(45,45,45,0.3)" d="M -1435.621387283237 110 L -1435.621387283237 71.5 L 62.78901734104047 71.5 L 62.78901734104047 110 L 62.78901734104047 110 L 62.78901734104047 104.5 L 148.0491329479769 104.5 L 148.0491329479769 110 L 148.0491329479769 110 L 148.0491329479769 104.5 L 166.97976878612718 104.5 L 166.97976878612718 110 L 166.97976878612718 110 L 166.97976878612718 99 L 208.02023121387285 99 L 208.02023121387285 110 L 208.02023121387285 110 L 208.02023121387285 99 L 253.106936416185 99 L 253.106936416185 110 L 253.106936416185 110 L 253.106936416185 104.5 L 289.52312138728325 104.5 L 289.52312138728325 110 L 289.52312138728325 110 L 289.52312138728325 104.5 L 681.6040462427745 104.5 L 681.6040462427745 110 z" zindex="1" stroke-linejoin="round" stroke-linecap="round"></path></g><g class="highcharts-markers" visibility="visible" zindex="0.1" transform="translate(15,10) scale(1 1)" clip-path="url(#highcharts-7)"></g></g><g class="highcharts-legend" zindex="7"><g zindex="1"><g></g></g></g><g class="highcharts-axis-labels highcharts-xaxis-labels" zindex="7"><text x="24.465317919075147" style="color:#606060;cursor:default;font-size:11px;fill:#606060;" text-anchor="middle" transform="translate(0,0)" y="139" opacity="1">0</text><text x="96.71965317919076" style="color:#606060;cursor:default;font-size:11px;fill:#606060;" text-anchor="middle" transform="translate(0,0)" y="139" opacity="1">500</text><text x="168.97398843930637" style="color:#606060;cursor:default;font-size:11px;fill:#606060;" text-anchor="middle" transform="translate(0,0)" y="139" opacity="1">1000</text><text x="241.228323699422" style="color:#606060;cursor:default;font-size:11px;fill:#606060;" text-anchor="middle" transform="translate(0,0)" y="139" opacity="1">1500</text><text x="313.48265895953756" style="color:#606060;cursor:default;font-size:11px;fill:#606060;" text-anchor="middle" transform="translate(0,0)" y="139" opacity="1">2000</text></g><g class="highcharts-axis-labels highcharts-yaxis-labels" zindex="7"><text x="0" style="color:#606060;cursor:default;font-size:11px;fill:#606060;width:1px;text-overflow:clip;" text-anchor="start" transform="translate(0,0)" y="125" opacity="1"></text><text x="0" style="color:#606060;cursor:default;font-size:11px;fill:#606060;width:1px;text-overflow:clip;" text-anchor="start" transform="translate(0,0)" y="70" opacity="1">10</text><text x="0" style="color:#606060;cursor:default;font-size:11px;fill:#606060;width:1px;text-overflow:clip;" text-anchor="start" transform="translate(0,0)" y="15" opacity="1">20</text></g><g class="highcharts-tooltip" zindex="8" style="cursor:default;padding:0;white-space:nowrap;" transform="translate(0,-9999)"><path fill="none" d="M 3 0 L 13 0 C 16 0 16 0 16 3 L 16 13 C 16 16 16 16 13 16 L 3 16 C 0 16 0 16 0 13 L 0 3 C 0 0 0 0 3 0" isshadow="true" stroke="black" stroke-opacity="0.049999999999999996" stroke-width="5" transform="translate(1, 1)"></path><path fill="none" d="M 3 0 L 13 0 C 16 0 16 0 16 3 L 16 13 C 16 16 16 16 13 16 L 3 16 C 0 16 0 16 0 13 L 0 3 C 0 0 0 0 3 0" isshadow="true" stroke="black" stroke-opacity="0.09999999999999999" stroke-width="3" transform="translate(1, 1)"></path><path fill="none" d="M 3 0 L 13 0 C 16 0 16 0 16 3 L 16 13 C 16 16 16 16 13 16 L 3 16 C 0 16 0 16 0 13 L 0 3 C 0 0 0 0 3 0" isshadow="true" stroke="black" stroke-opacity="0.15" stroke-width="1" transform="translate(1, 1)"></path><path fill="rgba(249, 249, 249, .85)" d="M 3 0 L 13 0 C 16 0 16 0 16 3 L 16 13 C 16 16 16 16 13 16 L 3 16 C 0 16 0 16 0 13 L 0 3 C 0 0 0 0 3 0"></path><text x="8" zindex="1" style="font-size:12px;color:#333333;fill:#333333;" y="20"></text></g><text x="370" text-anchor="end" zindex="8" style="cursor:pointer;color:#909090;font-size:9px;fill:#909090;" y="155"></text></svg></div></div><div class="btnBox" style="width: 50%; float: left;"><a href="javascript:void(0)" class="btnStyle01" id="themaInit_20191010143154331">초기화</a></div><div class="btnBox" style="width: 50%; float: left;"><a href="javascript:void(0)" class="btnStyle01" id="goganEvent_20191010143154331">적용</a></div></div></div><div class="popBox colorSettingLayer" id="colorSettingLayer_20191010143154331"><div class="topbar"><span>사용자 설정</span><a href="javascript:void(0)">닫기</a></div><div class="popContents" id="popContents02_20191010143154331"><div class="tabs only" id="tabsSelector_20191010143154331"><a href="javascript:void(0)" class="btnStyle01 al on">기본색상</a><a href="javascript:void(0)" class="btnStyle01 ac">혼합색상</a><a href="javascript:void(0)" class="btnStyle01 ar">사용자정의</a></div> <div id="opacityBox_20191010143154331" class="opacityBox"><ul class="colorck" id="colorSetting_20191010143154331"><li><a href="javascript:void(1)" class="on" style="background: rgb(205, 17, 3);">#cd1103</a></li><li><a href="javascript:void(2)" style="background: rgb(246, 86, 74);">#f6564a</a></li><li><a href="javascript:void(3)" style="background: rgb(166, 60, 186);">#a63cba</a></li><li><a href="javascript:void(4)" style="background: rgb(83, 83, 83);">#535353</a></li><li><a href="javascript:void(5)" style="background: rgb(59, 145, 206);">#3b91ce</a></li><li><a href="javascript:void(6)" style="background: rgb(49, 201, 162);">#31c9a2</a></li></ul></div><div class="colorbarBox" id="colorbarBox_20191010143154331"><a href="javascript:void(0)" class="fl">#00b051</a><ul class="colorSettingList01" id="colorSettingList01_20191010143154331"><li style="background: rgb(255, 215, 93); border: 0px solid rgb(255, 215, 93); height: 31px; width: 14.2857%;"><span>07Lv</span></li><li style="background: rgb(246, 182, 78); border: 0px solid rgb(246, 182, 78); height: 31px; width: 14.2857%;"><span>06Lv</span></li><li style="background: rgb(238, 149, 63); border: 0px solid rgb(238, 149, 63); height: 31px; width: 14.2857%;"><span>05Lv</span></li><li style="background: rgb(230, 116, 48); border: 0px solid rgb(230, 116, 48); height: 31px; width: 14.2857%;"><span>04Lv</span></li><li style="background: rgb(221, 83, 33); border: 0px solid rgb(221, 83, 33); height: 31px; width: 14.2857%;"><span>03Lv</span></li><li style="background: rgb(213, 50, 18); border: 0px solid rgb(213, 50, 18); height: 31px; width: 14.2857%;"><span>02Lv</span></li><li style="background: rgb(205, 17, 3); border: 0px solid rgb(205, 17, 3); height: 31px; width: 14.2857%;"><span>01Lv</span></li></ul><a href="javascript:void(0)" class="fr">#193b70</a></div><div class="btnBox"><a href="javascript:void(0)" class="btnStyle01" id="colorConfirm_20191010143154331">적용</a></div></div></div><div class="popBox opacityLayer" id="opacityLayer_20191010143154331" style="display:none; width:200px; left:580px; top:auto; bottom:70px;"><div class="topbar"><span>투명도 설정</span><a href="javascript:void(0)">닫기</a></div><div class="popContents" id="popContents03_20191010143154331"><div id="opacityBox_20191010143154331" class="opacityBox" style="height:20px;"><div id="legendDataSlider" class="dataSlider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" style="margin-left:5px" aria-disabled="false"><div class="ui-slider-range ui-widget-header ui-corner-all ui-slider-range-min" style="width: 66.6667%;"></div><a class="ui-slider-handle ui-state-default ui-corner-all" href="#" style="left: 66.6667%;"></a></div></div></div></div> -->
+							</div>
+			 			</div>
+				 		<div style="width:798px;height:auto;float:right;">
+				 			<div class="pntMap" style="height: auto;">
+				 				<img id="reportMapDiv" src="" style="max-width: 100%;">
+				 			</div>
+				 		</div>
+			 		</div>	
+				</div>
+			</div>
+		 	<div class="pntPage">
+		 		<div id="gridArea_show" class="pntShowBtn"><a href="javascript:$reportForm.ui.onOffDiv('gridArea');"><img src='/img/im/btn_plus.png' alt='보이기' /></a></div>
+		 		<div class="pntData">
+		 			<div class="pntDataBox fc" id="gridArea" style="position:relative;">
+			 			<div class="pntCloseBtn" style="top:2px;"><a href="javascript:$reportForm.ui.onOffDiv('gridArea');"><img src='/img/um/btn_closel01.png' alt='숨기기' /></a></div>
+			 				<table id="statsMeMapReportForm_dataTable" class="pntTable" summary="항목,순위,값(명), 비율(%)">
+			 					<caption>데이터 표1</caption>
+			 					<colgroup>
+			 						<!-- 20200810 박은식 표 간격 조절  start-->
+			 						<col width="60" />
+			 						<col width="" />
+			 						<col width="180" />
+			 						<col width="220" />
+			 						<!-- 20200810 박은식 표 간격 조절  end-->
+								</colgroup>
+								<thead>
+									<tr>
+			 	 						<th scope="col">순위</th>
+					 					<th scope="col">행정구역</th>
+					 					<th scope="col" id="statsMeMapReportForm_dataTable_unit"></th>
+			 	 					</tr>
+								</thad>
+			 					<tbody>
+					 			</tbody>
+					 		</table>
+					 	</div>
+					</div>
+				</div>
+			 	<dl class="pntDl">
+			 		<dt>※ 자료 이용시 유의사항</dt>
+			 		<dd>
+			 			<!-- 2020-02-12 [김남민] 보고서 설명 문구 중 ‘SGIS 오픈플랫폼’을 ‘SGIS 스마트플랫폼＇으로 문구 수정  -->
+			 			<p>SGIS 스마트플랫폼에서 제공하는 센서스 통계는 일부 특별조사구와 외국인, 개인운수업 등의 자료를 제외하고 최신경계를 반영하기 때문에 KOSIS 등 공표된 통계와 차이가 있습니다.
+			 			</p>
+			 			<ol>
+			 			 	<li>제외된 자료 
+				 			 	<br />- 인구/가구/주택 센서스 : 해외주재공간, 교도소 및 소년원, 군부대
+				 			 	<br />- 사업체 센서스 : 개인 운수업(사업장이 일정치 않음)
+			 			 	</li>
+			 			 	<li>
+			 			 		최신 경계 반영에 따른 차이
+			 			 		<br />- SGIS는 최신 행정구역 경계에 맞추어 서비스 함에 따라 KOSIS 자료와 다를 수 있습니다.
+			 			 	</li>
+			 			 </ol>
+			 		</dd>
+			 	</dl>
+		 	</div>
+		 </div>
+	</div>
+	<div id="hiddenReport"></div>
+</body>
+</html>

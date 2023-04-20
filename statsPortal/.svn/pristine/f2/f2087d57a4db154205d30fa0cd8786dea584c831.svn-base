@@ -1,0 +1,576 @@
+/* 
+    zIndex
+    left 90  
+    leftSub 100
+    popup 999
+    layerLg 종합분석 999 
+    
+*/
+
+/* 임시 배경 이미지 */
+/* body {background: url(/img/sbr/bg.png) no-repeat center center;background-size: cover;}
+body.bg2 {background: url(/img/sbr/bg2.png) no-repeat center center;background-size: cover;} */
+
+/* 세로 스크롤 */
+.noScroll {overflow: hidden;}
+.scroll {overflow-x: hidden; overflow-y: scroll;}
+.scroll::-webkit-scrollbar{width: 5px;background: none;}
+.scroll::-webkit-scrollbar-thumb {background: none;}
+
+.scroll:hover::-webkit-scrollbar{width: 5px;background: #ededed;}
+.scroll:hover::-webkit-scrollbar-thumb {background: #C5C5C5;}
+
+/* 셀렉트박스 */
+.selectBox.category {width: 160px; margin-right:0}
+.selectBox .icon {display: inline-block; vertical-align: middle; width:30px; height:30px; margin-right:5px; margin-left:0}
+.selectBox.icon .selected {padding-left:9px; white-space: nowrap;text-overflow: ellipsis;overflow: hidden;}
+
+.selectBox {position: relative;display: -webkit-box;display: -ms-flexbox;display: flex;width: 100%;-webkit-box-orient: vertical;-webkit-box-direction: normal;-ms-flex-direction: column;flex-direction: column; margin-right:10px; height:inherit}
+.selectBox .optionContainer {position: absolute;top:48px;background: #fff;color: #000;max-height: 0;width: 100%;opacity: 0;-webkit-transition: all 0.4s;-o-transition: all 0.4s;transition: all 0.4s;border-radius: 8px;overflow: hidden;-webkit-box-ordinal-group: 2;-ms-flex-order: 1;order: 1; z-index: 200;}
+.selectBox .optionContainer label {padding-left:9px}
+.selected {background: #fff;border-radius: 4px;    color: #000;position: relative;-webkit-box-ordinal-group: 1;-ms-flex-order: 0;order: 0;border: 1px solid #D9D9D9;padding:0 15px;line-height:40px;}
+.selected::after {content: "";background: url("/img/sbr/arrow.svg");background-size: contain;background-repeat: no-repeat;position: absolute;height: 100%;width: 10px;height: 8px;right: 10px;top: 18px;-webkit-transition: all 0.2s;-o-transition: all 0.2s;transition: all 0.2s;}
+.selectBox .optionContainer.active {border:1px solid #9E9E9E;max-height: 800px;opacity: 1;}
+.selectBox.search .optionContainer.active {max-height: 260px; border:2px solid #0475F4}
+
+
+.selectBox .optionContainer.active+.selected::after {-webkit-transform: rotateX(180deg);transform: rotateX(180deg);top: 15px;}
+.selectBox .optionContainer::-webkit-scrollbar {width: 8px;background: #ededed;border-radius: 0 4px 4px 0;}
+.selectBox .optionContainer::-webkit-scrollbar-thumb {background: #C5C5C5;border-radius: 0 4px 4px 0;}
+.selectBox .option,
+.selected {cursor: pointer; line-height: 38px;}
+.selectBox .option:hover {background: #0475F4; color:#fff}
+.selectBox label {cursor: pointer;}
+.selectBox .option .radio {display: none;}
+.selectLayer {display: none;}
+.selectLayer.active {display: block; width: 100%; height: 100%; background-color: rgba(0,0,0); position: absolute; z-index: 101;}
+
+.selectBox.year,
+.selectBox.year2,
+.selectBox.area,
+.selectBox.gubun {width: 120px;height: auto; margin-left:0}
+.selectBox.gubun2 {width: 180px;height: auto; margin-left:0}
+.selectBox.companyCount {width:150px}
+.selectBox.search{width:110px}
+.selected .icon {background:url(/img/sbr/icon_filter.png);}
+.selected .icon.companyCount {background:url(/img/sbr/icon_resultLayer.png); width:20px; height:20px;}
+.selected.active {border:1px solid #0475F4; color:#0475F4;}
+
+.selectBox.search .selected {border:2px solid #0475F4;}
+.selectBox.search .selected.active {border:2px solid #0475F4; color:#0475F4;}
+
+
+.selectBox.year .selected .icon {background-position: 0px 0px;}
+.selectBox.area .selected .icon {background-position: -30px 0px;}
+.selectBox.gubun .selected .icon {background-position: -60px 0px;}
+.selectBox.gubun2 .selected .icon {background-position: -90px 0px;}
+
+.selectBox.year .selected.active .icon {background-position: 0px -30px;}
+.selectBox.area .selected.active .icon {background-position: -30px -30px;}
+.selectBox.gubun .selected.active .icon {background-position: -60px -30px;}
+.selectBox.gubun2 .selected.active .icon {background-position: -90px -30px;}
+
+.optionContainer.depth {min-width:250px; min-height:0 ; overflow-y: hidden;}
+.optionContainer.depth .optionHead {padding:9px; border-bottom:1px solid #dedede; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center; -webkit-box-pack: end; -ms-flex-pack: end; justify-content: flex-end; }
+.optionContainer.depth .optionHead li {margin-right:10px}
+.optionContainer.depth .optionHead li:first-child {color:#111; font-weight: 600; margin-right:auto; font-size:16px}
+.optionContainer.depth .optionHead li.open {color:#0475F4; cursor: pointer;}
+.optionContainer.depth .optionHead li.close {margin-right:0; color:#0475F4; cursor: pointer;} 
+.optionContainer.depth .optionHead li.open:hover, .selectBox.gubun .optionContainer.depth .optionHead li.close:hover {font-weight: 600;}
+.optionContainer.depth .optionAcc {padding: 9px; max-height: 500px;}
+.optionContainer.depth .optionAcc .item {border-bottom:1px dashed #9E9E9E; margin-bottom:9px}
+.optionContainer.depth .optionAcc .item .parent { margin-bottom:4px; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center;}
+.optionContainer.depth .optionAcc .item .parent i {background: url(/img/sbr/icon_acc.png); display: block; width:20px; height:20px; margin-right:4px; cursor: pointer;}
+.optionContainer.depth .optionAcc .item .parent i.active {background-position: 0 -20px;}
+.optionContainer.depth .optionAcc .item .parent i {background-position: -20px -20px;}
+.optionContainer.depth .optionAcc .item .parent span {font-weight: 500; color:#333}
+.optionContainer.depth .optionAcc .item .child li {display:-webkit-box;display:-ms-flexbox;display:flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center; margin-left:7px; margin-bottom:6px}
+.optionContainer.depth .optionAcc .item .child li::before {background: url(/img/sbr/icon_acc.png); display: block; width:20px; height:20px; margin-right:4px; cursor: pointer;}
+.optionContainer.depth .optionAcc .item .parent:hover, .optionContainer.depth .optionAcc .item .child li:hover {background: #D7ECFB; cursor: pointer;}
+.optionContainer.depth .optionAcc .item .child li i.radio {background: url(/img/sbr/icon_acc.png); display: block; width:20px; height:20px; margin-right:4px; cursor: pointer; background-position: 0px 0px;}
+.optionContainer.depth .optionAcc .item .child li i.radio.active { background-position: -20px 0px;}
+.optionContainer.depth .optionAcc .item .child li span {color:#666}
+.layerLg .gubun .optionContainer {position: absolute; border-radius: 4px; border:2px solid #0475F4; top:40px; background-color: #fff; z-index: 1; left:-1px; display: none;}
+
+/* 버튼  */
+.btnPrimary {background-color: #0475F4;color: #fff}
+.btnLine {border:1px solid #0475F4; color: #0475F4; border-radius: 4px; text-align: center;}
+.btnLine2 {border:1px solid #0475F4; color: #0475F4; border-radius: 4px; text-align: center; font-size:12px; padding: 2px 6px}
+.btnLine:hover {background-color: #0475F4; color:#fff}
+
+/* 팝업 */
+.popup {position: absolute; -webkit-transform: translate(-50%,-50%); -ms-transform: translate(-50%,-50%); transform: translate(-50%,-50%); left:50%; top:50%; display: none; z-index: 999;}
+.popup.normal {background: #fff; border:1px solid #d9d9d9; border-radius: 4px;}
+.popup .popupContainer {padding:20px}
+.popup .popupContainer .titleWrap {margin-bottom:10px; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center;}
+.popup .popupContainer .titleWrap .title {font-size:18px; font-weight: 500;}
+.popup .popupContainer .titleWrap .closeBtn {margin-left:auto; background: url(/img/sbr/icon_close.png);background-size: 30px 30px;width: 30px;height: 30px;display: block;background-repeat: no-repeat;background-position: center;cursor: pointer;}
+.popup .popupContainer .hintContent {background-color: rgba(4,117,244,0.05); border-radius: 4px; margin-bottom:15px}
+.popup .popupContainer .hintContent .text {color:#0475F4; padding:12px; word-break: keep-all; word-wrap: break-word;}
+.popup .popupContainer .btnWrap {text-align: center;}
+.popup .popupContainer .btnWrap .btn {padding:5px 10px; border-radius: 4px;}
+.popup .popupContainer .btnWrap .btn:first-child {margin-right:5px}
+
+/* 팝업 지역랭킹 */
+.popup.rankResult {background: #fff; border-radius: 4px; border: 1px solid #0475F4; border-radius: 4px;z-index: 99;}
+.popup.rankResult .popupContainer {padding:10px}
+.popup.rankResult .popupContainer .titleWrap {border-bottom:1px solid #4B4B4B; padding-bottom:5px}
+.popup.rankResult .popupContainer .titleWrap i.station {background: url(/img/sbr/icon_rankpopup.png); width:20px; height:20px; background-position: 0 0; margin-right:5px}
+.popup.rankResult .popupContainer .titleWrap .title {color:#0068C3; font-weight: 600; font-size:16px}
+.popup.rankResult .popupContainer ul.content {list-style: none;}
+.popup.rankResult .popupContainer ul.content li {display: -webkit-box;display: -ms-flexbox;display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center; -ms-flex-wrap: nowrap; flex-wrap: nowrap; margin-bottom:7px}
+.popup.rankResult .popupContainer ul.content li i {width:20px; height:20px; background: url(/img/sbr/icon_rankpopup.png); margin-right:4px; image-rendering: -webkit-optimize-contrast !important; -webkit-transform: translateZ(0); transform: translateZ(0); -webkit-backface-visibility: hidden; backface-visibility: hidden;}
+.popup.rankResult .popupContainer ul.content li i.company {background-position: -20px 0;}
+.popup.rankResult .popupContainer ul.content li i.lastYear {background-position: -40px 0;}
+.popup.rankResult .popupContainer ul.content li i.area {background-position: -60px 0;}
+.popup.rankResult .popupContainer ul.content li i.rank {background-position: -80px 0;}
+.popup.rankResult .popupContainer ul.content li span.text {color:#323232;font-weight: 400; font-size:14px; line-height: 20px; min-width:110px}
+.popup.rankResult .popupContainer ul.content li span:last-child {margin-left:auto; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center;}
+.popup.rankResult .popupContainer ul.content li span.countWrap::after {width:16px; height:16px; display: block; content: '';}
+.popup.rankResult .popupContainer ul.content li span.up::after {background: url(/img/sbr/icon_table.png); background-position: 0 -16px; width:16px; height: 16px; content: ''; display: block;}
+.popup.rankResult .popupContainer ul.content li span.down::after {background: url(/img/sbr/icon_table.png); background-position: -16px -16px; width:16px; height: 16px; content: ''; display: block;}
+.popup.rankResult .popupContainer ul.content li span span.count {font-weight: 900; color:#323232} 
+
+
+/* 박스 텍스트 */
+.hintType1 {padding:12px 0; background: #F3F7F8; width:100%; margin-bottom:20px}
+.hintType1 p {color:#777777; text-align: center;  word-break: keep-all; word-wrap: break-word;}
+.hintType1 p .bold {font-weight: 700; color:#000}
+
+.hintType2 {background-color: rgba(4,117,244,0.05); border-radius: 4px; margin-bottom:20px}
+.hintType2 p {color:#0475F4; padding:12px; word-break: keep-all; word-wrap: break-word;}
+.hintType2 p .bold {font-weight: 700;}
+.iconTitle .hintType2 {background-color: rgba(4,117,244,0.09); border-radius: 4px; margin-bottom:10px}
+.iconTitle .hintType2 p {text-align: center; color:#333; font-weight: 400; word-break: keep-all; word-wrap: break-word;}
+.iconTitle .hintType2 p .bold {font-weight: 700; color:#0475F4}
+
+
+/* 뱃지 */
+.badge .company {width:15px; height: 12px; background: url(/img/sbr/city.png); display: inline-block; margin-right: 3px;}
+
+/* 레프트 팝업  type1*/
+.leftContent.tipType1 .titleWrap .title {font-size:16px; font-weight: 600; color: #333; margin-bottom:11px; border: none;}
+
+/* 설정 */
+.leftContent.settingBox, .leftContent.rankResult, .leftContent.measureResult, .leftContent.filterSearch {display: none;}
+
+.result .subTitle li:first-child, .settingBox .subTitle li:first-child {font-size:14px; margin-bottom:0; color: #828282; font-weight: 400;}
+.settingBox .subTitle li:last-child {margin-left:auto}
+.settingBox .subTitle li .badge {padding:5px 15px; border-radius: 50px; background: #F2F8FE; font-size: 12px; color: #1e1e1e; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center;} 
+.settingCheckbox {padding-bottom:10px; margin-bottom:20px; border-bottom: 1px solid rgba(0,0,0,0.1);}
+.settingCheckbox .title {display: -webkit-box;display: -ms-flexbox;display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center;}
+.settingCheckbox .title .icon {font-size:0; margin-right:5px}
+.settingCheckbox .title .text {font-size:18px; color:#000; font-weight: 600;}
+.settingCheckbox .title button {color:#666666; border: 1px solid #666666; border-radius: 30px; font-size: 10px; padding:2px 7px; margin-left:auto}
+.settingCheckbox .title button.on {color:#fff; background-color: #0475F4; border:1px solid #0475F4}
+
+.settingCheckbox .content {list-style: none; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center; margin-top:20px; -ms-flex-wrap: wrap; flex-wrap: wrap;}
+.settingCheckbox .content li {margin-bottom:8px}
+.settingCheckbox .content li.full {width:100%}
+.settingCheckbox .content input[type=checkbox],.settingCheckbox .content input[type=radio] {display: none;}
+.settingCheckbox .content li.full input[type=checkbox] + label, .settingCheckbox .content li.full input[type=radio] + label {width:100%}
+.settingCheckbox .content input[type=checkbox] + label, .settingCheckbox .content input[type=radio] + label {padding:10px 0; font-weight: 300; color:#333; border: 1px solid rgba(0,0,0,0.2); border-radius: 4px; margin-right: 10px; display: block; cursor: pointer; width:98px; text-align: center;}
+.settingCheckbox .content li:nth-child(3n) input[type=checkbox] + label, .settingCheckbox .content li:nth-child(3n) input[type=radio] + label {margin-right:0}
+.settingCheckbox .content input[type=checkbox] + label:hover, .settingCheckbox .content input[type=radio] + label:hover {border: 1px solid #0475F4; color: #0475F4; background: #F2F8FE; font-weight: 500;}
+.settingCheckbox .content input[type=checkbox]:checked + label, .settingCheckbox .content input[type=radio]:checked + label {border: 1px solid #0475F4; color: #0475F4; background: #F2F8FE; font-weight: 500;}
+
+.settingCheckbox .tab {list-style: none; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center; margin-top:10px}
+.settingCheckbox .tab li {color:#666666; padding-left:14px; padding-right:14px; border-right: 1px solid #DEDEDE; line-height: 11px; height: 11px; cursor: pointer;}
+.settingCheckbox .tab li.on {color:#29A0FE; font-weight: 600;}
+.settingCheckbox .tab li:first-child{padding-left:5px}
+.settingCheckbox .tab li:last-child {border:none}
+ 
+.settingCheckbox .title .icon.icon_group {background: url(/img/sbr/icon_setting.png);  background-position: -60px 0px; width:20px; height:20px; display: block;}
+.settingCheckbox .title .icon.icon_ceo {background: url(/img/sbr/icon_setting.png);  background-position: -40px 0px; width:20px; height:20px; display: block;}
+.settingCheckbox .title .icon.icon_worker {background: url(/img/sbr/icon_setting.png);  background-position: -20px 0px; width:20px; height:20px; display: block;}
+.settingCheckbox .title .icon.icon_won {background: url(/img/sbr/icon_setting.png);  background-position: 0px 0px; width:20px; height:20px; display: block;}
+
+
+.leftContent.rankResult {height:calc(100% - 64px)}
+.leftContent.rankResult .section {list-style: none; display: block; border-bottom:1px solid #EFEFEF; margin-bottom:32px}
+/* .leftContent.rankResult .section.signal {background:rgba(0,0,0,0.03)} */
+.leftContent.rankResult .subTitle {position:sticky; top:66px; background:#fff; margin-bottom:10px; z-index:1}
+.leftContent.rankResult .section li.title,
+.leftContent.rankResult .subTitle .title {margin-bottom:10px; padding-bottom:17px; border-bottom:1px solid #EFEFEF; font-size:16px; font-weight: 600; padding-left:0}
+.leftContent.rankResult .subTitle li.title {border-bottom:1px dashed #aaa}
+.leftContent.rankResult .subTitle .title {line-height: 18px; display: -webkit-box;display: -ms-flexbox;display: flex;-webkit-box-align: center;-ms-flex-align: center;align-items: center;padding: 17px 0;}
+
+.leftContent.rankResult .section li {line-height: 18px;display: -webkit-box;display: -ms-flexbox;display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center; cursor: pointer; padding: 11px 0 11px 30px}
+.leftContent.rankResult .section.signal li {padding:11px 0px;}
+.leftContent.rankResult .section.signal li.title {padding-left:0;border-bottom:1px dashed #aaa;  background:#fff}
+.leftContent.rankResult .subTitle li.title {background:#fff; border-bottom:1px dashed #aaa; padding:11px 0}
+.leftContent.rankResult .section.iconTitle li {padding-bottom:0}
+.leftContent.rankResult .section.iconTitle li.title {padding-bottom:10px}
+.leftContent.rankResult .section li.title::after {content: '';}
+.leftContent.rankResult .subTitle li.title #year, 
+.leftContent.rankResult .subTitle li.title #bizName {margin-right:5px}
+.leftContent.rankResult .subTitle li.title #bizName {text-overflow:ellipsis; overflow:hidden; white-space:nowrap; max-width:calc(100% - 140px)}
+ 
+.leftContent.rankResult .signal li:not(.title):hover {font-weight: bold;}
+.leftContent.rankResult .signal li.active {font-weight: bold; background-color: #D7ECFB;}
+.leftContent.rankResult .signal li:last-child {margin-bottom:10px}
+.leftContent.rankResult .signal li span.point {color:#0475F4; font-weight: 600; margin:0 0 0 3px;}
+.leftContent.rankResult .signal li i {width:20px; height:20px; background: url(/img/sbr/icon_result.png); margin-right: 5px;}
+/* .leftContent.rankResult .signal li .icon_signal {background-position: 0  0;} */
+.leftContent.rankResult .signal li .icon_signal,
+.leftContent.rankResult .subTitle .title .icon_signal{width:5px; height:18px; background:rgba(4,117,244,0.3); border-radius:5px}
+.leftContent.rankResult .subTitle .title .icon_signal {margin-right:5px}
+.leftContent.rankResult .signal li .icon_sales {background-position: -80px 0;}
+.leftContent.rankResult .signal li .icon_house {background-position: -100px 0;}
+.leftContent.rankResult .signal li .icon_chart {background-position: -20px 0;}
+.leftContent.rankResult .signal li .icon_people {background-position: -40px 0;}
+.leftContent.rankResult .signal li .icon_area {background-position: -60px 0;}
+.leftContent.rankResult .signal li .icon_kind {background-position: -80px 0;}
+.leftContent.rankResult .signal li:not(.title)::after {content: ''; width:20px; height:20px; background: url(/img/sbr/icon_result.png); background-position: -20px -20px; margin-left:auto; -webkit-transform: rotate(90deg); -ms-transform: rotate(90deg); transform: rotate(90deg); cursor: pointer;}
+
+.leftContent.rankResult .iconTitle li i {width:20px; height:20px; background: url(/img/sbr/icon_result.png); margin-right: 5px;}
+.leftContent.rankResult .iconTitle li .icon_activity {background-position: 0px -20px;}
+.leftContent.rankResult .iconTitle li .icon_status {background-position: -40px -20px;}
+.leftContent.rankResult .iconTitle li .icon_people {background-position: -60px -20px;}
+.leftContent.rankResult .iconTitle li .icon_mostKind {background-position: -80px -20px;}
+.leftContent.rankResult .iconTitle li .icon_peopleHome {background-position: -100px -20px;}
+.leftContent.rankResult .iconTitle li .icon_areaBuilding {background-position: -120px -20px;}
+.leftContent.rankResult .iconTitle li.title {padding-left:0; cursor: auto; display: -webkit-box; display: -ms-flexbox; display: flex;}
+.leftContent.rankResult .iconTitle li {display: block; padding-left:0; cursor: auto;}
+.leftContent.rankResult .iconTitle li i.help,
+.leftContent.rankResult .signal li i.help {width:20px; height:20px; display:block; cursor:pointer; background:url(/img/sbr/icon_resultLayer.png); background-position:-120px 0; margin:0 0 0 3px}
+.leftContent.rankResult .resultBtn {width:360px; background: #0475F4; color:#fff; height:40px; position: fixed; bottom:0; left:80px; text-align: center; line-height: 40px; font-size:16px; cursor: pointer;}
+
+/* 면적측정 결과 */
+.leftContent.measureResult .countWrap {width:100%; display: flex; border-bottom:1px solid #ececec}
+.leftContent.measureResult .countWrap li {width:50%; display: flex; justify-content: center; margin:10px 0 15px 0}
+.leftContent.measureResult .countWrap li:first-child {border-right:1px solid #ececec}
+.leftContent.measureResult .countWrap li > div p:first-child {font-weight: 500; color:#111}
+.leftContent.measureResult .countWrap li > div p:last-child {color:#0475F4;}
+.leftContent.measureResult .countWrap li > div p:last-child span {font-size:30px; font-weight: 900; margin-right:3px}
+
+.leftContent.measureResult .section li.title {margin-bottom:10px; padding-bottom:17px; border-bottom:1px solid #EFEFEF; font-size:18px; font-weight: 600; padding-left:0}
+.leftContent.measureResult .section li {line-height: 18px;display: -webkit-box;display: -ms-flexbox;display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center; cursor: pointer; padding: 11px 0 11px 30px}
+.leftContent.measureResult .section.iconTitle li {padding-bottom:0}
+.leftContent.measureResult .section.iconTitle li.title {padding-bottom:10px}
+.leftContent.measureResult .iconTitle li i {width:20px; height:20px; background: url(/img/sbr/icon_result.png); margin-right: 5px;}
+.leftContent.measureResult .iconTitle li i.icon_sizeStatus {background-position: -40px -20px;}
+.leftContent.measureResult .iconTitle li i.icon_kindStatus {background-position: -80px -20px;}
+
+.leftContent.measureResult .kindStatus table {width:100%; max-height: 400px;}
+.leftContent.measureResult .kindStatus table thead th {background:#F3F8FE; border-top: 1px solid #CBE3FE;border-bottom: 1px solid #CBE3FE; font-weight: 500; padding:12px 0; text-align: center; color: #0475F4;}
+.leftContent.measureResult .kindStatus table tbody tr:hover {background: rgba(4, 117, 244,0.1);}
+.leftContent.measureResult .kindStatus table tbody tr {border-bottom:1px solid #ececec;} 
+.leftContent.measureResult .kindStatus table tbody tr td {padding:10px 0; text-align: center; color:#333; font-size:13px; text-align:right; padding-right:10px}
+.leftContent.measureResult .kindStatus table tbody tr td:first-child {text-align:left; padding-left:10px;text-overflow: ellipsis;
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden; width:180px}
+/* 종합분석 */
+.layerLg .container > .content {display: none;}
+.layerLg .menuWrap .tab li i, .layerLg .menuWrap .btnWrap li i {background: url(/img/sbr/icon_resultLayer.png);}
+.layerLg .menuWrap .tab li i.kind {background-position: 0 -20px;}
+.layerLg .menuWrap .tab li i.company {background-position: -20px -20px;}
+.layerLg .menuWrap .tab li i.area {background-position: -40px -20px;}
+.layerLg .menuWrap .tab li:hover i.kind ,.layerLg .menuWrap .tab li.active i.kind {background-position: 0 -40px;}
+.layerLg .menuWrap .tab li:hover i.company ,.layerLg .menuWrap .tab li.active i.company {background-position: -20px -40px;}
+.layerLg .menuWrap .tab li:hover i.area ,.layerLg .menuWrap .tab li.active i.area {background-position: -40px -40px;}
+.layerLg .menuWrap .btnWrap > li {border-radius: 4px; background: #fff; width:36px; height:36px; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center; -webkit-box-pack: start; -ms-flex-pack: start; justify-content: flex-start; border: 1px solid #cdcdcd; margin-right:10px; position: relative;}
+.layerLg .menuWrap .btnWrap > li.location {width:inherit; padding: 0 10px}
+.layerLg .menuWrap .btnWrap > li:not(.location, .year):hover , 
+.layerLg .menuWrap .btnWrap > li:not(.location, .year).active  {background: #0475F4; color:#fff; border:1px solid #0475F4}
+.layerLg .menuWrap .btnWrap .selectBox.year {border:none; width:120px}
+.layerLg .menuWrap .btnWrap .selectBox.icon .selected {width:120px; line-height: 34px;}
+
+.layerLg .menuWrap .btnWrap li i.menu, 
+.layerLg .menuWrap .btnWrap li i.print {margin:0 auto; cursor:pointer;}
+.layerLg .menuWrap .btnWrap li i.menu {background-position: -60px -20px;}
+.layerLg .menuWrap .btnWrap li i.print {background-position: -80px -20px;}
+.layerLg .menuWrap .btnWrap li:hover i.menu, 
+.layerLg .menuWrap .btnWrap li.active i.menu {background-position: -60px -40px;}
+.layerLg .menuWrap .btnWrap li:hover i.print,
+.layerLg .menuWrap .btnWrap li.active i.print {background-position: -80px -40px;}
+
+.layerLg article .titleWrap i {background: url(/img/sbr/icon_resultLayer.png);   }
+.layerLg article .titleWrap i.companyCount   {background-position: 0 0px;}
+.layerLg article .titleWrap i.activity {background-position: -20px 0;}
+.layerLg article .titleWrap i.openClose {background-position: -60px 0;}
+.layerLg article .titleWrap i.growCompany {background-position: -40px 0;}
+.layerLg article .titleWrap i.avrCost {background-position: -80px 0;}
+.layerLg article .titleWrap i.avrTime {background-position: -100px 0;}
+.layerLg article .titleWrap i.help {background-position: -120px 0; cursor: pointer;}
+
+.chartDummy {background-color: cadetblue; text-align: center;}
+
+/* 전체기업수 */
+.layerLg article.kind .content {display: block;}
+.layerLg article.kind .content .chartDummy {height:165px} /* 임의 차트 에어리어 */
+.layerLg article.kind .content .textBox {margin-top:20px; padding-top:10px; border-top:1px solid #999}
+.layerLg article.kind .content .textBox ul {display: -webkit-box;display: -ms-flexbox;display: flex; -ms-flex-wrap: nowrap; flex-wrap: nowrap; -webkit-box-pack: end; -ms-flex-pack: end; justify-content: flex-end; -webkit-box-align: center; -ms-flex-align: center; align-items: center;}
+.layerLg article.kind .content .textBox ul li:first-child {display: -webkit-box;display: -ms-flexbox;display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center; margin-right:auto; margin-left:0}
+.layerLg article.kind .content .textBox ul li:first-child p {font-weight: 600;}
+.layerLg article.kind .content .textBox ul li:first-child i.help {background: url(/img/sbr/icon_resultLayer.png); background-position: -120px 0; cursor: pointer; display: block; width:20px; height:20px; margin-left:3px}
+.layerLg article.kind .content .textBox ul li {margin-left:10px; font-weight: 600;}
+.layerLg article.kind .content .textBox ul li.updown {display: -webkit-box;display: -ms-flexbox;display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center;}
+.layerLg article.kind .content .textBox ul li.updown.up {color:#E54C4B}
+.layerLg article.kind .content .textBox ul li.updown.up:before {width:20px; height: 20px; display: block; content:''; background: url(/img/sbr/icon_resultLayer.png); background-position: 0 -60px;}
+.layerLg article.kind .content .textBox ul li.updown.down {color:#0475F4}
+.layerLg article.kind .content .textBox ul li.updown.down:before {width:20px; height: 20px; display: block; content:''; background: url(/img/sbr/icon_resultLayer.png); background-position: -20px -60px;}
+.layerLg article.kind .content .textBox ul li.badge {background: #E54C4B; color:#fff; height:20px; border-radius: 20px; padding:0 9px}
+
+/* 활동기업수 */
+.layerLg article.activity .content {width:100%; display: block;}
+.layerLg article.activity .content .chartDummy {height:150px}
+.layerLg article.activity .content .textBox {margin-top:20px; padding-top:10px; border-top:1px solid #999}
+.layerLg article.activity .content .textBox ul {display: block;}
+.layerLg article.activity .content .textBox ul li {display: -webkit-box;display: -ms-flexbox;display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center;}
+.layerLg article.activity .content .textBox ul li span.count {margin-left:auto; }
+.layerLg article.activity .content .textBox ul li span.count.on {color:#FF6D8B}
+.layerLg article.activity .content .textBox ul li span.count.off {color:#40A6EC}
+
+/* 성장기업분포 */
+.layerLg article .growCompanyWrap {display: -webkit-box;display: -ms-flexbox;display: flex; -ms-flex-wrap: nowrap; flex-wrap: nowrap;}
+.layerLg article .growCompanyWrap .chartWrap {width:60%}
+.layerLg article .growCompanyWrap .content {width:40%; border-bottom:none; border-top:none}
+.layerLg article .growCompanyWrap .content .dataBox {border-radius: 4px; border: 1px solid #CFD4D6; padding:10px 15px; display: block; width:100%}
+.layerLg article .growCompanyWrap .content .dataBox .title {font-size:16px; margin-bottom:7px;}
+.layerLg article .growCompanyWrap .content .dataBox .dim {border:1px solid #F2F3F3; width:100%; margin-bottom:7px}
+.layerLg article .growCompanyWrap .content .dataBox p.count, .layerLg article .growCompanyWrap .content .dataBox p:last-child {text-align: right;} 
+.layerLg article .growCompanyWrap .content .dataBox p.count {color:#0475F4; font-size:16px}
+.layerLg article .growCompanyWrap .content .dataBox p span {color:#0475F4}
+.layerLg article .growCompanyWrap .content .legend {margin-top:10px; padding-top:10px; border-top:1px solid #999999; width:100%}
+.layerLg article .growCompanyWrap .content .legend .legendContent {list-style: none; }
+.layerLg article .growCompanyWrap .content .legend .legendContent li {display: -webkit-box;display: -ms-flexbox;display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center; margin-bottom:3px}
+.layerLg article .growCompanyWrap .content .legend .legendContent li::before {content:''; width:8px; height:8px; display: block; border-radius: 20px; background: #0475F4; margin-right:5px}
+.layerLg article .growCompanyWrap .content .legend .legendContent li span:last-child {margin-left:auto; color:#333; font-weight: 600;}
+
+
+/* 종합분석 개폐업현황 */
+.layerLg article.openClose .content ul {-webkit-box-shadow: 0px 1px 6px rgba(0,0,0,0.1);box-shadow: 0px 1px 6px rgba(0,0,0,0.1); border-radius: 4px; border:1px solid #CFD4D6; padding:10px 15px; width:100%; position: relative; margin-bottom:15px}
+.layerLg article.openClose .content ul:last-child {margin-bottom:0}
+.layerLg article.openClose .content ul li {display: -webkit-box;display: -ms-flexbox;display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center;}
+.layerLg article.openClose .content ul.open li.title {color:#E54C4B; font-weight: 600; font-size:16px; padding-bottom:7px; border-bottom:1px solid #F2F3F3; margin-bottom:7px}
+.layerLg article.openClose .content ul.close li.title {color:#35A0FC; font-weight: 600; font-size:16px; padding-bottom:7px; border-bottom:1px solid #F2F3F3; margin-bottom:7px}
+.layerLg article.openClose .content ul li span.count {margin-left:auto}
+.layerLg article.openClose .content ul li.badge {position: absolute; top:-10px; left:50%; -webkit-transform: translateX(-50%); -ms-transform: translateX(-50%); transform: translateX(-50%); color:#fff; font-size: 12px; line-height: 20px; padding:0 10px; border-radius: 30px;}
+.layerLg article.openClose .content ul.open li.badge {background: #E54C4B;}
+.layerLg article.openClose .content ul.close li.badge {background: #35A0FC;}
+
+/* 종합분석 평균 매출액 */
+.layerLg article.avrCost .content {position: relative;}
+.layerLg article.avrCost .content .gaugeBox {position: relative; width:100%; min-height: 40px; }
+.layerLg article.avrCost .content .gaugeBox .barBg {background: #DDDDDD; height:4px; bottom:5px; position: absolute; width:100%;}
+.layerLg article.avrCost .content .gaugeBox .gaugeInner .gaugeLen {background: #0475F4; height:4px; position: absolute; width:50%; bottom:5px}
+.layerLg article.avrCost .content .gaugeBox .gaugeInner .pointer {background: #fff; border:1px solid #0475F4; border-radius: 50px; width:12px; height:12px; display: block; position: absolute; bottom:1px; left:50%}
+.layerLg article.avrCost .content .gaugeBox .gaugeInner .gaugeTip {position: absolute; left:50%; bottom: 19px; -webkit-transform: translateX(-50%); -ms-transform: translateX(-50%); transform: translateX(-50%);}
+.layerLg article.avrCost .content .gaugeBox .gaugeInner .gaugeTip .badge{background: #0475F4; color:#fff; font-size: 14px; border-radius: 4px; padding:2px 6px; }
+.layerLg article.avrCost .content .gaugeText {display: -webkit-box;display: -ms-flexbox;display: flex; -webkit-box-align: start; -ms-flex-align: start; align-items: flex-start; width:100%; line-height: 16px;}
+.layerLg article.avrCost .content .gaugeText li .count {font-size:16px; color:#333; font-weight: 500;}
+.layerLg article.avrCost .content .gaugeText li .desc {font-size:14px; color:#666}
+.layerLg article.avrCost .content .gaugeText .high {margin-left:auto; text-align: right;} 
+
+/* 종합분석 평균 영업시간 */
+.layerLg article.avrTime .content {position: relative;}
+.layerLg article.avrTime .content .gaugeBox {position: relative; width:100%; min-height: 40px; }
+.layerLg article.avrTime .content .gaugeBox .barBg {background: #DDDDDD; height:4px; bottom:5px; position: absolute; width:100%;}
+.layerLg article.avrTime .content .gaugeBox .gaugeInner .gaugeLen {background: #0475F4; height:4px; position: absolute; width:70%; bottom:5px}
+.layerLg article.avrTime .content .gaugeBox .gaugeInner .pointer {background: #fff; border:1px solid #0475F4; border-radius: 50px; width:12px; height:12px; display: block; position: absolute; bottom:1px; left:70%}
+.layerLg article.avrTime .content .gaugeBox .gaugeInner .gaugeTip {position: absolute; left:70%; bottom: 19px; -webkit-transform: translateX(-50%); -ms-transform: translateX(-50%); transform: translateX(-50%);}
+.layerLg article.avrTime .content .gaugeBox .gaugeInner .gaugeTip .badge{background: #0475F4; color:#fff; font-size: 14px; border-radius: 4px; padding:2px 6px; }
+.layerLg article.avrTime .content .gaugeText {display: -webkit-box;display: -ms-flexbox;display: flex; -webkit-box-align: start; -ms-flex-align: start; align-items: flex-start; width:100%; line-height: 16px;}
+.layerLg article.avrTime .content .gaugeText li .count {font-size:16px; color:#333; font-weight: 500;}
+.layerLg article.avrTime .content .gaugeText li .desc {font-size:14px; color:#666}
+.layerLg article.avrTime .content .gaugeText .high {margin-left:auto; text-align: right;} 
+
+/* 종합분석 기업분석 테이블 */
+.layerLg .comapnyStatus .table {width: 100%;} 
+.layerLg .comapnyStatus .table.dashedTable tr td {border-bottom:1px dashed #CCCCCC; border-right:1px dashed #CCCCCC; text-align: center; padding:15px 0; color:#555}
+.layerLg .comapnyStatus .table.dashedTable tr td:last-child {border-right:none}
+.layerLg .comapnyStatus .table.dashedTable tr:last-child td {border-bottom:none;}
+.layerLg .comapnyStatus .table.dashedTable tr td:hover {background: #F4F8FF;}
+.layerLg .comapnyStatus .table.dashedTable tr.head td {font-weight: 500; color:#333}
+.layerLg .comapnyStatus .table.dashedTable tr td span {font-size:12px}
+.layerLg .comapnyStatus .table.dashedTable tr td span.count {font-size:16px; font-weight: 700; color:#555; margin-right:2px}
+.layerLg .comapnyStatus .table.dashedTable tr td.updown span {font-size:18px; font-weight: 500;}
+.layerLg .comapnyStatus .table.dashedTable tr td.updown.up {color: #E54C4B;}
+.layerLg .comapnyStatus .table.dashedTable tr td.updown.down {color:#0475F4}
+.layerLg .comapnyStatus .table.dashedTable tr td i {background: url(/img/sbr/icon_resultLayer.png); width:20px; height: 20px; display: block;}
+.layerLg .comapnyStatus .table.dashedTable tr td.title i.company {background-position: 0px -80px;}
+.layerLg .comapnyStatus .table.dashedTable tr td.title i.people {background-position: -20px -80px;}
+.layerLg .comapnyStatus .table.dashedTable tr td.title i.won {background-position: -40px -80px;}
+.layerLg .comapnyStatus .table.dashedTable tr td.updown i.up {background-position: -60px -80px;}
+.layerLg .comapnyStatus .table.dashedTable tr td.updown i.down {background-position: -80px -80px;}
+.layerLg .comapnyStatus .table.dashedTable tr td.title div, .layerLg .comapnyStatus .table.dashedTable tr td.updown div{display: -webkit-box;display: -ms-flexbox;display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center; margin:0 auto; -webkit-box-pack: center; -ms-flex-pack: center; justify-content: center;}
+
+/* 종합분석 기업분석 주요기업 */
+.layerLg .mostCompany .tabBox {display: -webkit-box;display: -ms-flexbox;display: flex; -webkit-box-pack: start; -ms-flex-pack: start; justify-content: flex-start; -webkit-box-align: center; -ms-flex-align: center; align-items: center;}
+.layerLg .mostCompany .tabBox li {background: #F4f4f4; padding:6px 20px; border-radius: 20px; margin-right:10px; cursor: pointer;}
+.layerLg .mostCompany .tabBox li.active {background: #242424; color:#fff}
+.layerLg .mostCompany .tabContent {width:100%; height:180px; margin-top:10px}
+.layerLg .mostCompany .tabContent li {padding:9px; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center; text-align: center; border-bottom: 1px solid #F2F4FF;}
+.layerLg .mostCompany .tabContent li:hover {background-color: #F4F8FF;}
+.layerLg .mostCompany .tabContent li:hover .number {background-color: #0475F4; color:#fff}
+.layerLg .mostCompany .tabContent li .number {color:#141563; background: #D0D0D0; font-size:12px; font-weight: 800; margin-right:10px; width:16px; height: 16px;}
+.layerLg .mostCompany .tabContent li .title {font-weight: 400;}
+.layerLg .mostCompany .tabContent li .count {margin-left:auto; font-weight: 400;}
+
+/* 종합분석 기업분석 기업위치 */
+.layerLg .companyMap .mapBox {width:100%; height:220px;}
+
+/* 종합분석 공간분석  */
+.layerLg .differArea {height: 590px; width:100%; position: relative; border-top:1px solid #d8d8d8; border-bottom:1px solid #d8d8d8}
+.layerLg .differArea .verticalDim {border-right:1px solid #d8d8d8; position: absolute; top:0; left:50%; height:590px}
+.layerLg .differArea .titleWrap {display: flex; align-items: center; border-bottom:none; padding-top:10px}
+.layerLg .differArea .titleWrap li {font-size:18px; width:50%}
+.layerLg .differArea .titleWrap .left {text-align: right; padding-right:15px;}
+.layerLg .differArea .titleWrap .right {text-align: left; display: flex; align-items: center; margin-left:15px;}
+.layerLg .differArea .titleWrap .right button {margin-left:10px; font-size:12px; padding:2px 5px}
+
+.layerLg .differArea .dataListWrap > li {display: flex; align-items: center; flex-wrap: nowrap; justify-content: center; height:40px; margin-bottom:5px}
+.layerLg .differArea .dataListWrap > li:first-child{height:36px}
+.layerLg .differArea .dataListWrap > li > div.title {margin-right:auto; height:100%; display: flex; align-items: center; flex-wrap: nowrap;}
+.layerLg .differArea .dataListWrap > li > div.title p {background-color: #F4F4F4; width:140px; border-radius: 60px; text-align: center; line-height: 25px; margin-right:10px}
+.layerLg .differArea .dataListWrap > li div.leftData, .layerLg .differArea .dataListWrap > li div.rightData {width:calc(50% - 150px); height:25px; position: relative; display: flex; flex-wrap: nowrap;}
+.layerLg .differArea .dataListWrap > li div.leftData .bg {background: rgba(255,99,132,0.2); border:1px solid rgba(255,99,132,1); width:100%; height:100%; margin-left:auto; max-width: 100%;}
+.layerLg .differArea .dataListWrap > li div.leftData > p {position: absolute; right:30px; top:50%; transform: translateY(-50%);}
+.layerLg .differArea .dataListWrap > li div.rightData .bg {background: rgba(54,162,235,0.2); border:1px solid rgba(54,162,235,1); width:50%; height:100%;  max-width: 100%;}
+.layerLg .differArea .dataListWrap > li div.rightData > p {position: absolute; left:30px; top:50%; transform: translateY(-50%);}
+
+.layerLg .differArea .dataListWrap > li .differ {display: flex; margin-left:auto; width:150px;  justify-content: flex-end;  height:100%; align-items: center;}
+.layerLg .differArea .dataListWrap > li .differ > div {margin-left:10px; width:140px; background-color: #F4F4F4; border-radius: 50px; height: 25px; display: flex; align-items: center; padding-right:10px}
+.layerLg .differArea .dataListWrap > li .differ .equal {margin-left:10px; margin-right:auto; color:#666}
+.layerLg .differArea .dataListWrap > li .differ .count {font-size:12px; margin-right:10px}
+.layerLg .differArea .dataListWrap > li .differ .count.plus {color:#E54C4B}
+.layerLg .differArea .dataListWrap > li .differ .count.minus {color:#0475F4}
+.layerLg .differArea .dataListWrap > li .differ .icon_chart {background: url(/img/sbr/icon_chart.png); width:20px; height:20px; background-size: cover; display: block; cursor:pointer}
+
+.layerLg .differArea .innerPopup {position: absolute; background-color: #fff; border:2px solid #0475F4; display: none; border-radius: 4px;}
+.layerLg .differArea .mapArea.innerPopup {left:calc(50% + 12px); height:530px; top:40px; width:calc(50% - 150px)}
+.layerLg .differArea .mapArea .wrapper {position: relative; padding:10px; height:100%; width:100%;}
+.layerLg .differArea .mapArea .wrapper i.close, .layerLg .differArea .chartArea .wrapper i.close {position:absolute; top:10px; right:10px; background: url(/img/sbr/icon_close.png);background-size: 30px 30px;width: 30px;height: 30px;display: block;background-repeat: no-repeat;background-position: center;cursor: pointer;z-index: 99}
+.layerLg .differArea .mapArea .wrapper .mapContent {background: #D9D9D9; border-radius: 4px; width:100%; height:100%}
+
+.layerLg .differArea .chartArea.innerPopup {top:50%; left:50%; transform: translate(-50%,-50%); width:750px; height:500px;}
+.layerLg .differArea .chartArea .wrapper {position: relative; padding:10px; height:100%; width:100%;}
+.layerLg .differArea .chartArea.innerPopup .wrapper i {z-index: 100;}
+
+i.help, i.icon_groupMarker {position: relative;}
+i.help .hint, i.icon_groupMarker .hint,.sliderContainer .icon_info .hint  {display: none;}
+i.help:hover .hint, i.icon_groupMarker:hover .hint,.sliderContainer .icon_info:hover .hint  {display: block; position: absolute; left:15px; top: 7px; padding:10px; font-size:13px; color:#111; background: #fff; border-radius: 4px; min-width:250px; max-width:600px; font-weight: 400; z-index: 200; border:2px solid #0475F4; word-wrap: break-word; word-break: keep-all;}
+i.icon_groupMarker:hover .hint {min-width: 70px; width:inherit}
+.sliderContainer:hover .icon_info .hint  {top:-50px; }
+
+/* 슬라이더 커스텀 */
+.rs-container {margin-top:8px}
+.rs-container .rs-scale span::before {background-color: #bbb; top:-15px}
+.rs-container .rs-scale span::after {background-color: #bbb; top: 19px;content: "";height: 8px;left: 0;position: absolute;width: 1px;}
+.rs-container .rs-scale span ins {font-size: 0;}
+.rs-container .rs-selected {background: #0475F4; border-color: #0362cd;}
+.rs-tooltip {min-width: 40px; border-color: #0475F4;}
+
+.selectBox.customSelectBox .optionContainer {padding:10px; width:250px}
+.selectBox.customSelectBox .optionContainer .tab {display: none;}
+.selectBox.customSelectBox .optionContainer .tab.active {display: flex;}
+.selectBox.customSelectBox .optionContainer .tab li {width:50%; padding:5px; cursor: pointer;}
+.selectBox.customSelectBox .optionContainer .tab li.active {border-bottom:2px solid #0475F4; background: #fff; color:#0475F4}
+.selectBox.customSelectBox .optionContainer .tabContent {background:#efefef; display: block;}
+.selectBox.customSelectBox .optionContainer .tabContent li {padding:10px; display: none;}
+.selectBox.customSelectBox .optionContainer .tabContent li.active {display: block;}
+.selectBox.customSelectBox .optionContainer .tabContent .summary {display: flex; align-items: center; justify-content: center; margin-top:10px}
+.selectBox.customSelectBox .optionContainer .tabContent .summary select {border:1px solid #c9c9c9; border-radius: 4px; padding:2px 4px}
+.selectBox.customSelectBox .optionContainer .tabContent .summary span {font-size:12px}
+.selectBox.customSelectBox .optionContainer .tabContent .sliderContent {display: block; margin-top:50px}
+.selectBox.customSelectBox .optionContainer .tabContent .summary+.desc {text-align: center; font-size:12px; color:#777}
+.selectBox.customSelectBox .optionContainer .tabContent .btnWrap {display: flex; align-items: center; background-color: #fff;}
+.selectBox.customSelectBox .optionContainer .tabContent .btnWrap button {width:calc(50% - 5px); font-size:12px; height:30px; min-width: inherit; margin-right:10px; line-height: 30px;}
+.selectBox.customSelectBox .optionContainer .tabContent .btnWrap button:last-child {margin-right:0}
+
+.selectBox.customSelectBox .optionContainer .inputWrap {margin-bottom:8px}
+.selectBox.customSelectBox .optionContainer .inputWrap:last-child {margin-bottom:0}
+.selectBox.customSelectBox .optionContainer .inputWrap input[type=radio],
+.selectBox.customSelectBox .optionContainer .inputWrap input[type=checkbox] {display: none;}
+.selectBox.customSelectBox .optionContainer .inputWrap input[type=radio] + label {display: flex; align-items: center; justify-content: flex-start; padding-left:0}
+.selectBox.customSelectBox .optionContainer .inputWrap input[type=radio] + label:before {display: block; background: url(/img/sbr/icon_radio.png); width:16px; height: 16px; margin-right:4px; content:'';}
+.selectBox.customSelectBox .optionContainer .inputWrap input[type=radio]:checked + label:before {background-position: -16px 0;}
+
+.selectBox.customSelectBox .optionContainer .inputWrap input[type=checkbox] + label {display: flex; align-items: center; justify-content: flex-start;}
+.selectBox.customSelectBox .optionContainer .inputWrap input[type=checkbox] + label:before {display: block; background: url(/img/sbr/icon_radio.png); width:16px; height: 16px; margin-right:4px; content:''; background-position: 0 -16px;}
+.selectBox.customSelectBox .optionContainer .inputWrap input[type=checkbox]:checked + label:before {background-position: -16px -16px;}
+
+
+.selectBox.customSelectBox.homeGroup .optionContainer .tabContent li:first-child {display: none;}
+.selectBox.customSelectBox.homeGroup .optionContainer .tabContent .btnWrap {display: flex;}
+.selectBox.customSelectBox.bulidYear .optionContainer .tabContent li {max-height: 300px;}
+
+
+#rightSelectArea li:not(.halfGubun, .btnWrap) {display: none;}
+#rightSelectArea li.year, #rightSelectArea li.sex, #rightSelectArea li.age {display: block;}
+#rightSelectArea li.year .selected .icon {background-position: 0 -60px;}
+#rightSelectArea li.year2 .selected .icon {background-position: 0 -60px;}
+#rightSelectArea li.sex .selected .icon {background-position: -30px -60px;}
+#rightSelectArea li.age .selected .icon {background-position: -90px -60px;}
+#rightSelectArea li.homeGroup .selected .icon {background-position: -60px -60px;}
+#rightSelectArea li.type .selected .icon {background-position: -120px -60px;}
+#rightSelectArea li.bulidYear .selected .icon {background-position: -150px -60px;}
+#rightSelectArea li.allAreaSize .selected .icon {background-position: -180px -60px;}
+#rightSelectArea li.farmType .selected .icon {background-position: -210px -60px;}
+#rightSelectArea li.sexType2 .selected .icon {background-position: -30px -60px;}
+
+
+@media (max-width:1600px) {
+    .selectBox .selected .icon, .topNav .filter li.setting button .icon.setting {display: none;}
+    .selectBox.year, .selectBox.sex, .selectBox.age, .selectBox.homeGroup, .selectBox.bulidYear, .selectBox.sexType2, .selectBox.type, .selectBox.farmType, .selectBox.allAreaSize {width:90px}
+    .selectBox.halfGubun, .selectBox.year {width:70px}
+    .selectBox.area, .selectBox.gubun {width:90px}
+    .selectBox.gubun2 {width:110px}
+    .topNav .filter {padding-left:10px}
+    .selectBox .optionContainer {min-width:140px}
+    .optionContainer.depth {min-width:250px}
+}
+
+
+
+ .leftContent.helpContent {height:calc(100% - 64px); display: flex; flex-direction: column;}
+ .leftContent.helpContent .container {display: flex; flex-direction: column;}
+ .leftContent.helpContent .section {list-style: none; display: block; border-bottom:1px solid #EFEFEF; margin-bottom:32px}
+ .leftContent.helpContent .section li.title {margin-bottom:10px; padding-bottom:17px; border-bottom:1px solid #EFEFEF; font-size:18px; font-weight: 600; padding-left:0}
+ .leftContent.helpContent .section li {line-height: 18px; cursor: pointer; padding: 6px 0 6px 15px; font-weight: 500; margin-bottom:5px}
+ .leftContent.helpContent .section li span {display: block;}
+ .leftContent.helpContent .section li.acc p {margin-bottom:10px; cursor: auto;}
+ .leftContent.helpContent .section li.acc ul {margin:0 0 0 20px; padding:0; cursor: inherit;}
+ .leftContent.helpContent .section li.acc ul li {list-style-type: disc; font-weight: 400; padding:5px 0; color:#666}
+ 
+ .leftContent.helpContent .section.bottom {margin-top:auto; margin-bottom:10px; border-bottom:none}
+ .leftContent.helpContent .section.bottom li{margin-bottom:15px}
+ .leftContent.helpContent .section.bottom li:last-child {margin-bottom:0}
+ .leftContent.helpContent .section.bottom li a img {width:100%; margin-bottom:5px}
+ .leftContent.helpContent .section.bottom li a p {font-weight: 400; font-size:14px}
+
+ .toast {position: absolute; bottom:30px; left:50%; transform: translate(-50%); display: none;z-index: 90}
+ .toast .toastMsg {background: rgba(255,255,255,0.9);border-radius: 100px;border: 1px solid #0475F4; min-width:200px}
+ .toast .toastMsg p {font-size:14px; font-weight: 400; color:#111; padding:15px 30px; text-align: center;}
+
+
+ .rankWrapper .rankContent .lowLevel {margin:15px 0}
+ .rankWrapper .rankContent .lowLevel p {text-align: center; font-size:14px; margin-bottom:15px}
+ .rankWrapper .rankContent .lowLevel button {width:inherit; padding:6px 15px; margin:0 auto;}
+ 
+ 
+ /* 지표설명 css 추가 */
+ .leftSub.helpSub {background:#fff;height: calc(100% - 60px);    width: calc(100% - 440px);    z-index: 300;}
+ .leftSub.helpSub .container {padding:0 20px 20px 20px}
+ .leftSub.helpSub .container .titleWrap {position: -webkit-sticky;position: sticky; top:0px; background: #fff; padding-top:20px; z-index: 1;}
+ .leftSub.helpSub .container .titleWrap > .title {border-bottom:1px solid #4D4D4D; padding-bottom:15px; font-size:18px; font-weight: 500; margin-bottom:20px; display: flex; align-items: center;}
+ .leftSub.helpSub .container .titleWrap > .title > i {display: none;}
+ .leftSub.helpSub .container .titleWrap > .title.arrow i.arrow {width: 20px;height: 20px;background: url(/img/sbr/icon_result.png);background-position: -20px -20px;-webkit-transform: rotate(90deg);-ms-transform: rotate(90deg);transform: rotate(90deg);cursor: pointer;display: block; margin-left:auto}
+ .leftSub.helpSub .container .titleWrap > .subTitle {border-bottom: 1px solid rgba(0,0,0,0.1); color:#828282; padding-bottom:15px; list-style: none; display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center; margin-bottom:30px}
+ .leftSub.helpSub .container .titleWrap > .title .closeBtn {background: url(/img/sbr/icon_close.png);background-size: 30px 30px;width: 40px;height: 40px;display: block;background-repeat: no-repeat;background-position: center;cursor: pointer;margin-left:auto}
+  
+ .leftSub.helpSub .section > img {width:auto; height:100%; display: block; margin:0 auto}
+
+ .indicatorTable {width:100%; border-collapse: separate; }
+ .indicatorTable thead th {background:#ededed; border-bottom:2px solid #666; border-top:2px solid #666; border-right:1px dashed #aaa; font-weight: 600; position: sticky; top:75px}
+ .indicatorTable thead th:last-child {border-right:none}
+ .indicatorTable thead th,
+ .indicatorTable tbody td {padding:6px 10px;}
+ .indicatorTable tbody td {border-bottom:1px dashed #ccc; border-right:1px dashed #ccc}
+ .indicatorTable tbody td:last-child{border-right:none}
+ .indicatorTable tbody tr.bd td {border-bottom:1px solid #444}
+ .indicatorTable tbody tr td.bd {border-bottom:1px solid #444}
+ 
+ 

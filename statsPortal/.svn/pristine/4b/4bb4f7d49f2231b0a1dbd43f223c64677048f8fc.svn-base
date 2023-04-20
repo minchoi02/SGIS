@@ -1,0 +1,506 @@
+
+<%
+	/**************************************************************************************************************************
+	* Program Name	: 행정통계시각화 Main
+	* File Name		: administStatsMain.jsp
+	* Comment		:
+	* History		:
+	*	신규 
+	*
+	**************************************************************************************************************************/
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+
+<!DOCTYPE html>
+<script  src="/js/plugins/jquery.mCustomScrollbar.concat.min.js"></script>
+<script>
+	$(document).ready(function() {
+		$(document).on("click", "a.link-kosis.link-btn", function(e) {
+			console.log(this);
+		});
+		
+		//배천규 추가
+		if(gv_url == "house"){
+			$("#divContent").css("min-height","910px")
+		}
+	});
+</script>
+<link rel="stylesheet" href="/css/administStats/common.css" />
+<div id="maps">
+	<div class="map-view">
+		<div class="Map" id="mapRgn_3" style="height: 100%; z-index: 1;">
+		</div>
+		<div class="Map" id="mapRgn_2" style="height: 100%; z-index: 1; display:none;"></div>
+	</div>
+	<div class="charItmMapDiv mapDiv" >	
+		<span class="ttitle charItmMapTitle green">
+		</span>
+		<!-- 
+		<span class="ttitle charItmMapTitle red">
+		</span>
+		 -->
+		<span class="ttitle charItmMapTitle blue">
+		</span>
+	</div>
+	<div class="charItmMapDiv mapDiv1" style="display:none;">	
+		<span class="ttitle1 charItmMapTitle green">
+		</span>
+		<span class="ttitle1 charItmMapTitle red">
+		</span>
+		<span class="ttitle1 charItmMapTitle blue">
+		</span>
+	</div>
+	<div class="selectbox">
+	  	<select id="dash_sido">
+		</select>
+	</div>
+	<!-- 시군구 설정 -->
+	<div class="selectbox">
+		<select id="dash_sgg">
+		</select>
+	</div>
+	<!-- 시군구 설정 -->
+	<div class="selectbox">
+		<select id="dash_emd">
+		</select>
+	</div>
+	<div class="list-panel bg-gray" style="z-index: 100;">
+		<div class="searchbox">
+			<div class="search">
+				<input type="text" value="" class="searchInput" onkeyup="if(window.event.keyCode==13){searchInputButton()}" placeholder="검색어를 입력하세요."/>
+				<button onclick="searchInputButton();"><i class="fa fa-search"></i></button>
+				<div class="searchLayer">
+					<img src="/images/administStatsDetail/btnClose.png" alt="" class="searchClose"/>
+					<table cellpadding="0" cellspacing="0" border="0" width="100%">
+						<tr>
+							<th colspan="2"><img src="/images/administStatsDetail/searchIcon1.png" alt="" /> 최근검색어</th>
+						</tr>
+					</table>
+					<div class="searchMemory">
+						<table cellpadding="0" cellspacing="0" border="0" width="100%">
+							<tbody id="searchMemory"></tbody>							
+						</table>
+					</div>
+					<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:10px">
+						<tr>
+							<th colspan="2"><img src="/images/administStatsDetail/searchIcon2.png" alt="" /> 검색목록 <span id="searchCount">0건</span></th>
+						</tr>
+					</table>
+					<div class="scrollBox">
+						<table cellpadding="0" cellspacing="0" border="0" width="100%">
+							<tbody id="searchList"></tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="panel-content panel_pd">
+			
+			<div class="accordion-list">
+				<ul class="accordion-ul" id="mainpanel">
+					<li class="accordion-li"><button type="button" class="toggle panel_txt" onclick="accorToggle($(this))" id="middlepanelmain1">주택수</button>
+			         	<ul id="list1"></ul>
+					</li>
+					<li class="accordion-li"><button type="button" class="toggle panel_txt" onclick="accorToggle($(this))" id="middlepanelmain2">주택소유자수</button>
+			         	<ul id="list2"></ul>
+					</li>					
+					<li class="accordion-li" id="mainpanel3"><button type="button" class="toggle panel_txt" onclick="accorToggle($(this))" id="middlepanelmain3">주택소유가구</button>
+			         	<ul id="list3"></ul>
+					</li>
+					<li class="accordion-li" id="mainpanel4"><button type="button" class="toggle panel_txt" onclick="accorToggle($(this))" id="middlepanelmain4">무주택가구</button>
+			         	<ul id="list4"></ul>
+					</li>
+				</ul>
+			</div>
+			
+			<div class="modal-search" style="z-index: 100; display:none">
+				<div class="modal-body">
+					<div class="form-group"><a href="javascript:void(0)" class="stepClose2"></a></div>
+					<div class="form-group">
+						<label for="modalSearchTitle">항목</label>
+						<!-- label id="modalSearchTitle"></label -->
+						<select id="modalSearchTitle" class="select1">
+							<!-- option value="">연차별 신혼부부 수</option -->
+						</select>
+					</div>
+					<div class="form-group">
+						<label for="modalSearchYear">연도</label>
+						<select id="modalSearchYear" class="select1">
+							<!-- option value="">2019</option -->
+						</select>
+					</div>
+					<div class="form-group" style="display:none;">
+						<label for="modalSearchArea">지역</label>
+						<button id="administStatsHelp" class="moreInfoBtn" type="button"></button>
+						<select id="modalSearchArea" class="select1">
+							<option value="">전국</option>
+						</select>
+					</div>
+				</div>
+		
+				<div class="modal-footer tac">
+					<button type="button" class="btn btn-gray" id="modalSearchBtn" onclick="javascript:modalSearchBtn();">통계정보 조회</button>
+				</div>
+			</div>
+			<!-- // modal-search -->
+			
+		</div>
+		<div class="bottom"><a href="javascript:void(0);" class="stepClose on" data-closeidx="1">닫기</a></div>
+	</div>
+	<!-- // list-panel bg-gray -->
+
+
+
+	<!-- <div class="modal-search" style="z-index: 100; display:none">
+		<div class="modal-body">
+			<div class="form-group"><a href="javascript:void(0)" class="stepClose2"></a></div>
+			<div class="form-group">
+				<label for="modalSearchTitle">항목</label>
+				label id="modalSearchTitle"></label
+				<select id="modalSearchTitle" class="select1">
+					option value="">연차별 신혼부부 수</option
+				</select>
+			</div>
+			<div class="form-group">
+				<label for="modalSearchYear">연도</label>
+				<select id="modalSearchYear" class="select1">
+					option value="">2019</option
+				</select>
+			</div>
+			<div class="form-group" style="display:none;">
+				<label for="modalSearchArea">지역</label>
+				<button id="administStatsHelp" class="moreInfoBtn" type="button"></button>
+				<select id="modalSearchArea" class="select1">
+					<option value="">전국</option>
+				</select>
+			</div>
+		</div>
+
+		<div class="modal-footer tac">
+			<button type="button" class="btn btn-gray" id="modalSearchBtn" onclick="javascript:modalSearchBtn();">통계정보 조회</button>
+		</div>
+	</div>
+	// modal-search -->
+
+
+	<div class="modal-location" style="z-index: 101; display:none; width:225px;">
+		<div class="modal-header">
+			<h2>순위 지역 바로가기</h2>
+		</div>
+		<div class="" style="padding : 10px 10px 10px 10px;">
+			<div class="" style="padding-bottom: 5px;">
+				<strong id="area_name" style="line-height:18px; padding-bottom:5px;"></strong>
+				<span style="line-height:18px;" id="RankArea">전국 시군구 250개 중 </span>&nbsp;&nbsp;<span id="RankText" style="line-height:18px; ">선택</span>
+				<!-- <input type="number" name="Rank" id="Rank" value="0" style="font-size:14px; width : 45px;" /> -->
+				<!-- <span style="line-height:18px;">위</span> -->
+			</div>
+			<div class="">
+				<input type="range" min="1" max="100" value="0" class="rankSlider" id="rankRange" />
+			</div>
+		</div>
+
+		<div class="modal-footer tac" style="padding:7px">
+			<button type="button" class="btn btn-gray" onclick="$('#mapRank').click();" style="width:80px;height:21px;font-size:14px;">닫기</button>
+		</div>
+	</div>
+	<!-- // modal-search -->
+
+
+
+<!-- 
+	<div class="color-select" style="background-color: #f6f7fa; z-index: 2;">
+		<div class="color-panel">
+		</div>
+		<button type="button" class="btn-view-data"></button>
+	</div>
+-->
+ 
+	<!-- // color-select -->
+
+<!-- 
+	<div class="btn-type" style="z-index: 2;">
+		<button type="button">색상</button>
+		<button type="button">열</button>
+		<button type="button" class="on">타입<br>설정</button>
+	</div>
+-->
+
+	<div class="map-conrol on" style="z-index: 100;height: 100px;bottom:111px;">
+		<button type="button" class="mr-t1 btn-mr" id="mapDivision" style="display:none;"></button>
+		<!-- <button type="button" class="mr-t2 btn-mr"></button> -->
+		<!-- <button type="button" class="mr-t3 btn-mr" id="mapRank" onclick="$('#mapRgn_2').is(':visible') ? '' : ($('.modal-location').is(':visible') ? $('.modal-location').css('display', 'none') : $('.modal-location').css('display', 'block'));"></button> -->
+		<button type="button" class="mr-t3 btn-mr" id="mapRank" ></button>
+		<!-- <button type="button" class="mr-t4 btn-mr"></button> -->
+
+		<div class="zoom">
+			<button type="button" title="확대" class="btn-zoomin" id="pZoom"></button>
+			<div class="position-name" id="position-name">시도</div>
+			<button type="button" title="축소" class="btn-zoomout" id="pOut"></button>
+		</div>
+	</div>
+	
+	<!--<div class="map-conrol off" id = "mapDivisionIcon1" style="z-index: 100;height: 100px;bottom:99px; display:none;">
+		<button type="button" class="mr-t3 btn-mr" id="mapRank1"></button>
+		<div class="zoom">
+			<button type="button" title="확대" class="btn-zoomin" id="pZoom1"></button>
+			<div class="position-name" id="position-name1">시도</div>
+			<button type="button" title="축소" class="btn-zoomout" id="pOut1"></button>
+		</div>
+	</div>-->
+	<div class="chart-panel bg-gray" style="z-index: 101;">
+		<div class="panel-head v2">
+			<h3 class="panel-tit" id="chartPanelTitle">데이터보드</h3>
+		</div>
+		<div class="panel-content overflow-y-scroll" id="chartPanelContent" style="display: block;">
+			<!-- <div class="panel_title">혼인연차별 신혼부부 수</div> -->
+			<div class="in-content" id="panel1">
+				<div class="panel-tit2 panel_flex">
+					<h4 class="pancon1h panel_txt_r" role="button" onclick="showhide($(this),'.pancon1')"></h4>
+					<div class="">
+						<button type="button" class="imgSaveBtn" name="imgSaveBtn" title="이미지 저장"><img src="/images/administStatsDetail/housedash_icon02.png"></button>
+						<button type="button" class="toggleBtn on" name="toggleBtn" title="펼치기" ><img src="/images/administStatsDetail/housedash_icon01.png"></button>
+					</div>
+				</div>	
+				<div id="chart_mainn" style="width:100%;">
+					<div class="con-box pancon1" style="padding-top: 5px;padding-bottom: 0px">
+						<div id="chart_main" style="height:200px;"></div>
+					</div>
+					<div class="con-box pancon11" style="padding-top: 5px;padding-bottom: 0px; display:none;">
+						<div id="chart_main1" style="height:200px;"></div>
+					</div>
+				</div>
+			</div>
+			<div class="in-content" id="panel11">
+				<!-- <h4 class="panel-tit2 pancon11h" role="button" onclick="showhide($(this),'.pancon11')">파이 차트</h4>
+				<button type="button" class="imgSaveBtn" name="imgSaveBtn" title="이미지 저장"></button> -->
+				<!-- <div class="con-box pancon11" style="padding-top: 5px;padding-bottom: 0px">
+					<div id="chart_main1" style="height:200px"></div>
+				</div> -->
+			</div>
+			<div class="in-content" id="panel2">
+				<div class="panel-tit2 panel_flex">
+					<h4 class=" pancon3h panel_txt_r" role="button" onclick="showhide($(this),'.pancon3')">시계열 보기</h4>
+					<div class="">
+						<button type="button" class="imgSaveBtn" name="imgSaveBtn" title="이미지 저장"><img src="/images/administStatsDetail/housedash_icon02.png"></button>
+						<button type="button" class="toggleBtn on" name="toggleBtn" title="펼치기"><img src="/images/administStatsDetail/housedash_icon01.png"></button>
+					</div>
+				</div>	
+				<div class="con-box pancon3" style="padding-top: 5px;padding-bottom: 0px">
+				<!-- <h5 id="selected_local_name" class="panel-tit3">지역 이름</h5> -->
+					<div id="chart_year" style="height:200px"></div>
+				</div>
+			</div>
+			<div class="in-content" id="panel21">
+				<h4 class="panel-tit2 pancon31h" role="button" onclick="showhide($(this),'.pancon31')">시계열 보기</h4>
+				<div class="btnDiv">
+					<button type="button" class="imgSaveBtn" name="imgSaveBtn" title="이미지 저장"></button>
+					<button type="button" class="toggleBtn on" name="toggleBtn" title="펼치기"></button>
+				</div>
+				<div class="con-box pancon31" style="padding-top: 5px;padding-bottom: 0px">
+				<!-- <h5 id="selected_local_name" class="panel-tit3">지역 이름</h5> -->
+					<div id="chart_year1" style="height:200px"></div>
+				</div>
+			</div>
+			<div class="in-content" id="panel3">
+				<div class="panel-tit2 panel_flex">
+					<h4 class=" pancon2h panel_txt_r" role="button" onclick="showhide($(this),'.pancon2')">지역별 비교 보기</h4>
+					<div class="btnDiv">
+						<button type="button" class="imgSaveBtn" name="imgSaveBtn" title="이미지 저장"><img src="/images/administStatsDetail/housedash_icon02.png"></button>
+						<button type="button" class="toggleBtn on" name="toggleBtn" title="펼치기"><img src="/images/administStatsDetail/housedash_icon01.png"></button>
+					</div>
+				</div>	
+				<div class="con-box pancon2" style="padding-top: 5px;padding-bottom: 0px">
+					<div id="chart_local" style="height:205px"></div>
+				</div>
+			</div>			
+			<div class="in-content" id="panel31">
+				<h4 class="panel-tit2 pancon21h" role="button" onclick="showhide($(this),'.pancon21')">지역별 비교 보기</h4>
+				<div class="btnDiv">
+					<button type="button" class="imgSaveBtn" name="imgSaveBtn" title="이미지 저장"></button>
+					<button type="button" class="toggleBtn on" name="toggleBtn" title="펼치기"></button>
+				</div>
+				<div class="con-box pancon21" style="padding-top: 5px;padding-bottom: 0px">
+					<div id="chart_local1" style="height:200px"></div>
+				</div>
+			</div>			
+			<div class="in-content" id="panel32">
+				<h4 class="panel-tit2 pancon22h" role="button" onclick="showhide($(this),'.pancon22')">지역별 비교 보기</h4>
+				<div class="btnDiv">
+					<button type="button" class="imgSaveBtn" name="imgSaveBtn" title="이미지 저장"></button>
+					<button type="button" class="toggleBtn on" name="toggleBtn" title="펼치기"></button>
+				</div>
+				<div class="con-box pancon22" style="padding-top: 5px;padding-bottom: 0px">
+					<div id="chart_local2" style="height:200px"></div>
+				</div>
+			</div>			
+			<div class="in-content" id="panel4">
+				<div class="panel-tit2 panel_flex">
+					<h4 class=" pancon4h panel_txt_r" role="button" onclick="showhide($(this),'.pancon4')">지역별 데이터 보기</h4>
+					<div class="btnDiv">
+						<button type="button" class="imgSaveBtn" name="imgSaveBtn" title="이미지 저장"><img src="/images/administStatsDetail/housedash_icon02.png"></button>
+						<button type="button" class="toggleBtn on" name="toggleBtn" title="펼치기"><img src="/images/administStatsDetail/housedash_icon01.png"></button>
+					</div>
+				</div>	
+				<div class="con-box pancon4" style="padding-top: 5px;padding-bottom: 0px; width: 514px; overflow:none;">
+					<div id="chart_table"></div>
+				</div>
+			</div>
+			<div class="in-content" id="panel41">
+				<h4 class="panel-tit2 pancon41h" role="button" onclick="showhide($(this),'.pancon41')">지역별 데이터 보기</h4>
+				<div class="btnDiv">
+					<button type="button" class="imgSaveBtn" name="imgSaveBtn" title="이미지 저장"></button>
+					<button type="button" class="toggleBtn on" name="toggleBtn" title="펼치기"></button>
+				</div>
+				<div class="con-box pancon41" style="padding-top: 5px;padding-bottom: 0px">
+					<div id="chart_table1"></div>
+				</div>
+			</div>
+		</div>
+		<div class="panel-bottom"><a href="#" class="stepClose on" data-closeidx="1">닫기</a></div>
+	</div>
+	<!-- // chart-panel -->
+
+</div>
+<style type="text/css">
+	.highcharts-scrolling {
+		overflow: auto hiiden;
+		height: 210px !important;
+	}
+</style>
+
+<script>
+	$('.container').scroll(function(){
+		var $thisTop = $(this).scrollTop();
+		$('.fixed-col').css('top',$thisTop+'px');
+	})
+	
+	$('#maps').scroll(function(){
+		var $thisTop = $(this).scrollTop();
+		$('.map-view').css('top',$thisTop+'px');
+	})
+
+
+
+	// 차트안의 슬라이드
+	function chartSlider(){
+		var $el = $('.slider');
+		$el.slick({
+		  slidesToShow: 1,
+		  slidesToScroll: 1,
+		  autoplay: false,
+		  arrows: true
+		});
+	}
+	chartSlider()
+
+	// 아코디언 토글
+	function accorToggle(arg){
+		var $_this = arg;
+
+		if($_this.is('.on')){
+			$_this.removeClass('on')
+			$_this.next('ul').stop().slideUp(250)
+		} else{
+			$_this.addClass('on')
+			$_this.next('ul').stop().slideDown(250)
+			$_this.parent('li').siblings('li').find('button').removeClass('on')
+			$_this.parent('li').siblings('li').find('ul').stop().slideUp(250)
+		}
+
+	}
+	
+	
+	$("#top_control_chart").attr("onclick", "javascript:charpanelscroll();");
+	function charpanelscroll(){
+		if($('.map-conrol').is('.on')){
+			$('.panel-head.v2').show();
+			if($houseDash.searchDataFin){
+				$('.chart-panel').animate({"right": '-=580'});
+				$('.map-conrol').animate({"right": '-=580'});
+				$('.map-conrol').removeClass('on');
+			}else{
+				alert('통계항목 선택 후 검색을 실행해 주십시요.');
+			}			
+			$('.panel-bottom .stepClose').removeClass("on");
+		}else{			
+			$('.chart-panel').animate({"right": '+=580'});
+			$('.map-conrol').animate({"right": '+=580'});
+			$('.map-conrol').addClass('on');
+			$('.panel-bottom .stepClose').addClass("on");
+		}
+	}
+	
+	$("div.bottom .stepClose").attr("onclick", "javascript:mainpanelscroll();");
+	$(".stepClose2").attr("onclick", "javascript:$('.modal-search').css('display', 'none');");
+	function mainpanelscroll(){
+		if($('.stepClose').is('.on')){
+			$('.list-panel').animate({"left": '-=440'},{complete: function(){ $('.stepClose').removeClass('on'); }});
+			//$(".modal-search").hide(); 221220 주석처리
+			//$('.stepClose').removeClass('on');
+		}else{
+			$('.list-panel').animate({"left": '+=440'},{complete: function(){ $('.stepClose').addClass('on'); }});
+			//$('.stepClose').addClass('on');
+		}
+	}
+	
+	$("div.panel-bottom .stepClose").attr("onclick", "javascript:charpanelscroll();");
+	
+	function showhide(arg,arg2){
+		var $_this = arg;
+		var $_target = $(arg2);
+
+		if($_this.is('.on')){
+			$_this.removeClass('on');
+			$_target.stop().slideDown(250);
+		} else{
+			$_this.addClass('on');
+			$_target.stop().slideUp(250);
+		}
+		
+		//다 닫혀있을때
+		/* if($('#chartPanelContent .on').length == 4){
+			$('#chartPanelContent').css('height','');
+			
+		//하나 열었을때
+		}else if($('#chartPanelContent .on').length == 3){
+			if(!$('.panel-tit2.pancon4h').is('.on')){
+				$('#chartPanelContent').css('height','70vh');
+			}else{
+				$('#chartPanelContent').css('height','');
+			}
+			
+		//두개 열었을때
+		}else if($('#chartPanelContent .on').length == 2){
+			if(!$('.panel-tit2.pancon4h').is('.on')){
+				$('#chartPanelContent').css('height','70vh');
+			}else{
+				$('#chartPanelContent').css('height','');	
+			}
+			
+		//세개 열었을때
+		}else if($('#chartPanelContent .on').length == 1){
+			$('#chartPanelContent').css('height','70vh');
+			
+		//다 열었을때
+		}else{
+			$('#chartPanelContent').css('height','70vh');
+		} */
+	}
+	
+	$(document).ready(function() {
+		$("ul#list1,ul#list2,ul#list3,ul#list4").mCustomScrollbar({
+		    axis:"y",
+		    theme:"light",
+		    autoHideScrollbar: true
+		});
+		
+		$("#panel11").hide();
+		$("#panel21").hide();
+		$("#panel31").hide();
+		$("#panel32").hide();
+		$("#panel41").hide();
+	});
+</script>

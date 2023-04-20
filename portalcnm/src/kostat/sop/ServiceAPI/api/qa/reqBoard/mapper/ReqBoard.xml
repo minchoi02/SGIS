@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ReqBoard">
+	<!-- 요청게시판 목록 검색 -->
+	<select id="searchReqBoard" parameterType="Map" resultType="Map">
+		SELECT *
+		  FROM (
+				SELECT ROWNUM AS RNUM, a.*
+				  FROM (
+				  		 SELECT REQ_SEQ
+				  		 	  , REQ_DIV_CD
+				  		 	  , ( SELECT S_CLASS_CD_NM FROM CMM_CD_COMCD WHERE S_CLASS_CD = REQ_DIV_CD AND B_CLASS_CD = 'COM038' ) AS REQ_DIV_CD_NM
+				  		 	  , REQ_PRGRS_STATS_CD
+				  		 	  , ( SELECT S_CLASS_CD_NM FROM CMM_CD_COMCD WHERE S_CLASS_CD = REQ_PRGRS_STATS_CD AND B_CLASS_CD = 'COM039' ) REQ_PRGRS_STATS_CD_NM
+				  		 	  , REQ_TITLE
+							  , SUBSTR(TO_CHAR(REQ_DT,'yyyy-MM-dd'),0,10) AS REQ_DT
+				  		 	  , ( SELECT MANAGER_NM FROM MNG_DT_MANAGERINFO WHERE MANAGER_ID = REQ_USER_ID ) AS REQ_USER_NM
+							  , SUBSTR(TO_CHAR(RECV_DT,'yyyy-MM-dd'),0,10) AS RECV_DT
+							  , RECV_USER_NM
+							  , MOD_REQ_USER_NM
+							  , SUBSTR(TO_CHAR(MOD_REQ_DT,'yyyy-MM-dd'),0,10) AS MOD_REQ_DT
+							  , SUBSTR(TO_CHAR(MOD_AFTER_REQ_DT,'yyyy-MM-dd'),0,10) AS MOD_AFTER_REQ_DT
+							  , PRGRS_USER_NM
+							  , SUBSTR(TO_CHAR(PRGRS_DT,'yyyy-MM-dd'),0,10) AS PRGRS_DT
+							  , WORK_USER_NM
+							  , SUBSTR(TO_CHAR(WORK_COMPLETE_DT,'yyyy-MM-dd'),0,10) AS WORK_COMPLETE_DT
+							  , SUBSTR(TO_CHAR(RE_REQ_DT,'yyyy-MM-dd'),0,10) AS RE_REQ_DT
+							  , SUBSTR(TO_CHAR(COMPLETE_DT,'yyyy-MM-dd'),0,10) AS COMPLETE_DT
+				  		   FROM SRV_DT_REQ_BOARD
+				  		  <if test="sort != null and order != null">
+					  		ORDER BY ${sort} ${order}
+				  		  </if>
+				  		  <if test="sort == null or order == null">
+							ORDER BY REQ_DESC
+				  		  </if>
+				  		) a
+				  WHERE 1=1
+				  <if test="REQ_DIV_CD != null and REQ_DIV_CD">
+				    AND REQ_DIV_CD = #{REQ_DIV_CD}
+				  </if>
+				  
+				  <if test="REQ_PRGRS_STATS_CD != null">
+				    AND REQ_PRGRS_STATS_CD = #{REQ_PRGRS_STATS_CD}
+				  </if>
+				  
+		  		  <if test="REQ_STARTDATE != null">
+					AND REQ_DT >= #{REQ_STARTDATE}
+				  </if>
+				  
+				  <if test="REQ_ENDDATE != null">
+				    AND #{REQ_ENDDATE} >= REQ_DT 
+				  </if>
+				  
+				  <if test="searchWordType != null and searchWord != null and searchWord != ''">
+				  	<if test="searchWordType == 'REQ_USER_NM'">
+				  		AND REQ_USER_NM LIKE '%'|| #{searchWord} ||'%'
+				  	</if>
+				  	<if test="searchWordType == 'REQ_TITLE'">
+				  		AND REQ_TITLE LIKE '%'|| #{searchWord} ||'%'
+				  	</if>
+				  	<if test="searchWordType == 'REQ_CONTENT'">
+				  		AND REQ_CONTENT LIKE '%'|| #{searchWord} ||'%'
+				  	</if>
+				  </if>
+		  		)
+		<if test="EXCEL_YN == null or EXCEL_YN == ''">
+		 WHERE RNUM <![CDATA[>=]]> #{START_INDEX} AND RNUM <![CDATA[<=]]> #{END_INDEX}
+		</if>
+	</select>
+	
+	<!-- 요청게시판 목록 개수 -->
+	<select id="searchReqBoardCount" parameterType="Map" resultType="int">
+		SELECT NVL( COUNT ( REQ_SEQ ) , 0 ) AS CNT
+		  FROM (
+				SELECT ROWNUM AS RNUM, a.*
+				  FROM (
+				  		 SELECT REQ_SEQ
+				  		 	  , REQ_DIV_CD
+				  		 	  , ( SELECT S_CLASS_CD_NM FROM CMM_CD_COMCD WHERE S_CLASS_CD = REQ_DIV_CD AND B_CLASS_CD = 'COM038' ) AS REQ_DIV_CD_NM
+				  		 	  , REQ_PRGRS_STATS_CD
+				  		 	  , ( SELECT S_CLASS_CD_NM FROM CMM_CD_COMCD WHERE S_CLASS_CD = REQ_PRGRS_STATS_CD AND B_CLASS_CD = 'COM039' ) REQ_PRGRS_STATS_CD_NM
+				  		 	  , REQ_TITLE
+				  		 	  , ( SELECT MANAGER_NM FROM MNG_DT_MANAGERINFO WHERE MANAGER_ID = REQ_USER_ID ) AS REQ_USER_NM
+				  		 	  , SUBSTR(TO_CHAR(REQ_DT,'yyyy-MM-dd'),0,10) AS REQ_DT
+				  		   FROM SRV_DT_REQ_BOARD
+				  		) a
+				  WHERE 1=1
+				  <if test="REQ_DIV_CD != null and REQ_DIV_CD">
+				    AND REQ_DIV_CD = #{REQ_DIV_CD}
+				  </if>
+				  
+				  <if test="REQ_PRGRS_STATS_CD != null">
+				    AND REQ_PRGRS_STATS_CD = #{REQ_PRGRS_STATS_CD}
+				  </if>
+				  
+		  		  <if test="REQ_STARTDATE != null">
+					AND REQ_DT >= #{REQ_STARTDATE}
+				  </if>
+				  
+				  <if test="REQ_ENDDATE != null">
+				    AND #{REQ_ENDDATE} >= REQ_DT 
+				  </if>
+				  
+				  <if test="searchWordType != null and searchWord != null and searchWord != ''">
+				  	<if test="searchWordType == 'REQ_USER_NM'">
+				  		AND REQ_USER_NM LIKE '%'|| #{searchWord} ||'%'
+				  	</if>
+				  	<if test="searchWordType == 'REQ_TITLE'">
+				  		AND REQ_TITLE LIKE '%'|| #{searchWord} ||'%'
+				  	</if>
+				  	<if test="searchWordType == 'REQ_CONTENT'">
+				  		AND REQ_CONTENT LIKE '%'|| #{searchWord} ||'%'
+				  	</if>
+				  </if>
+		  		)
+	</select>
+	
+	<insert id="addReqBoard" parameterType="Map">
+		<selectKey keyProperty="REQ_SEQ" resultType="int" order="BEFORE">
+			SELECT NVL(MAX(REQ_SEQ),0)+1 FROM SRV_DT_REQ_BOARD
+		</selectKey>
+		INSERT INTO SRV_DT_REQ_BOARD
+		( 
+			REQ_SEQ
+		  , REQ_DIV_CD
+		  , REQ_PRGRS_STATS_CD
+		  , REQ_USER_ID
+		  , REQ_TITLE
+		  , REQ_CONTENT
+		  , REQ_DT
+		) VALUES (
+			#{REQ_SEQ}
+		  , #{REQ_DIV_CD}
+		  , '01'
+		  , #{REQ_USER_ID}
+		  , #{REQ_TITLE}
+		  , #{REQ_CONTENT}
+		  , SYSDATE
+		)
+	</insert>
+	
+	<update id="updateReqBoard" parameterType="Map">
+		UPDATE SRV_DT_REQ_BOARD
+		   SET REQ_PRGRS_STATS_CD = #{REQ_PRGRS_STATS_CD}
+		   	 <if test="REQ_PRGRS_STATS_CD == NULL or REQ_PRGRS_STATS_CD == '01'">
+		   	 , REQ_DIV_CD  = #{REQ_DIV_CD}
+			 , REQ_USER_ID = #{REQ_USER_ID}
+			 , REQ_TITLE   = #{REQ_TITLE}
+			 , REQ_CONTENT = #{REQ_CONTENT}
+		   	 </if>
+		   	 <if test="REQ_PRGRS_STATS_CD == '04'">
+		   	 <![CDATA[
+		   	 , MOD_AFTER_REQ_CONTENT = MOD_AFTER_REQ_CONTENT||#{MOD_AFTER_REQ_CONTENT}||' ( '||SUBSTR(TO_CHAR(SYSDATE,'YYYY-MM-DD HH:MM'),0,16)||' )\n'
+			 , MOD_AFTER_REQ_DT		 = SYSDATE
+			 ]]>
+		   	 </if>
+		   	 <if test="REQ_PRGRS_STATS_CD == '07'">
+		   	 <![CDATA[
+		   	 , RE_REQ_CONTENT = RE_REQ_CONTENT||#{RE_REQ_CONTENT}||' ( '||SUBSTR(TO_CHAR(SYSDATE,'YYYY-MM-DD HH:MM'),0,16)||' )\n'
+			 , RE_REQ_DT	  = SYSDATE
+			 ]]>
+		   	 </if>
+		   	 <if test="REQ_PRGRS_STATS_CD == '08' or REQ_PRGRS_STATS_CD == '09' or REQ_PRGRS_STATS_CD == '10'">
+		   	 , COMPLETE_DT = SYSDATE
+		   	 </if>
+		 WHERE REQ_SEQ = #{REQ_SEQ}
+	</update>
+	
+	<update id="updateFile" parameterType="Map">
+		UPDATE SRV_DT_REQ_BOARD
+		   SET FILE_PATH         = #{FILE_PATH}
+			 , FILE_NM           = #{FILE_NM}
+			 , FILE_SAVE_NM      = #{FILE_SAVE_NM}
+			 , FILE_EXTN         = #{FILE_EXTN}
+			 , FILE_CONTENT_TYPE = #{FILE_CONTENT_TYPE}
+		 WHERE REQ_SEQ = #{REQ_SEQ}
+	</update>
+	
+	<select id="getReqBoard" parameterType="String" resultType="Map">
+		SELECT REQ_SEQ
+			 , REQ_DIV_CD
+			 , ( SELECT S_CLASS_CD_NM FROM CMM_CD_COMCD WHERE S_CLASS_CD = REQ_DIV_CD AND B_CLASS_CD = 'COM038' ) AS REQ_DIV_CD_NM
+  		 	 , REQ_PRGRS_STATS_CD
+  		 	 , ( SELECT S_CLASS_CD_NM FROM CMM_CD_COMCD WHERE S_CLASS_CD = REQ_PRGRS_STATS_CD AND B_CLASS_CD = 'COM039' ) REQ_PRGRS_STATS_CD_NM
+			 , REQ_USER_ID
+  		 	 , ( SELECT MANAGER_NM FROM MNG_DT_MANAGERINFO WHERE MANAGER_ID = REQ_USER_ID ) AS REQ_USER_NM
+			 
+			 , REQ_TITLE
+			 , REQ_CONTENT
+			 , SUBSTR(TO_CHAR(REQ_DT,'yyyy-MM-dd'),0,10) AS REQ_DT
+			 
+			 , SUBSTR(TO_CHAR(RECV_DT,'yyyy-MM-dd'),0,10) AS RECV_DT
+			 , RECV_USER_NM
+			 
+			 , FILE_PATH
+			 , FILE_NM
+			 , FILE_SAVE_NM
+			 , FILE_EXTN
+			 , FILE_CONTENT_TYPE
+			 
+			 , MOD_REQ_CONTENT
+			 , MOD_REQ_USER_NM
+			 , SUBSTR(TO_CHAR(MOD_REQ_DT,'yyyy-MM-dd'),0,10) AS MOD_REQ_DT
+			 
+			 , MOD_AFTER_REQ_CONTENT
+			 , SUBSTR(TO_CHAR(MOD_AFTER_REQ_DT,'yyyy-MM-dd'),0,10) AS MOD_AFTER_REQ_DT
+			 
+			 , PRGRS_USER_NM
+			 , SUBSTR(TO_CHAR(PRGRS_DT,'yyyy-MM-dd'),0,10) AS PRGRS_DT
+			 
+			 , WORK_CONTENT
+			 , WORK_USER_NM
+			 , SUBSTR(TO_CHAR(WORK_COMPLETE_DT,'yyyy-MM-dd'),0,10) AS WORK_COMPLETE_DT
+			 
+			 , RE_REQ_CONTENT
+			 , SUBSTR(TO_CHAR(RE_REQ_DT,'yyyy-MM-dd'),0,10) AS RE_REQ_DT
+			 
+			 , SUBSTR(TO_CHAR(COMPLETE_DT,'yyyy-MM-dd'),0,10) AS COMPLETE_DT
+		  FROM SRV_DT_REQ_BOARD
+		 WHERE REQ_SEQ = #{REQ_SEQ}
+	</select>
+	
+	<delete id="deleteReqBoard">
+		DELETE FROM SRV_DT_REQ_BOARD WHERE REQ_SEQ IN
+		<foreach item="item" collection="array" open="(" separator=","
+			close=")">
+			#{item}
+		</foreach>
+	</delete>
+	
+	<select id="getLineChartData" parameterType="String" resultType="Map">
+		 SELECT NVL(A.CNT,0) AS CNT
+			  , NVL(B.CNT,0) AS CNT2
+			  , A.YYYY
+			  , A.MM
+		   FROM (
+				  SELECT COUNT(*) AS CNT
+					   , SUBSTR(TO_CHAR(REQ_DT,'YYYY'),0,4) AS YYYY
+					   , SUBSTR(TO_CHAR(REQ_DT,'MM'),0,2) AS MM
+					FROM SRV_DT_REQ_BOARD
+				   GROUP BY SUBSTR(TO_CHAR(REQ_DT,'YYYY'),0,4), SUBSTR(TO_CHAR(REQ_DT,'MM'),0,2)
+				) A,
+				(
+				  SELECT COUNT(*) AS CNT
+					   , SUBSTR(TO_CHAR(REQ_DT,'YYYY'),0,4) AS YYYY
+					   , SUBSTR(TO_CHAR(REQ_DT,'MM'),0,2) AS MM
+				  FROM SRV_DT_REQ_BOARD  
+				 WHERE REQ_PRGRS_STATS_CD = '10'
+				 GROUP BY SUBSTR(TO_CHAR(REQ_DT,'YYYY'),0,4), SUBSTR(TO_CHAR(REQ_DT,'MM'),0,2)
+				) B
+		 WHERE A.YYYY = B.YYYY(+)
+		   AND A.MM = B.MM(+)
+		   AND A.YYYY = #{searchYear}
+	</select>
+	
+	<select id="getPieChartData" parameterType="String" resultType="Map">
+		SELECT S_CLASS_CD_NM, NVL(CNT,0) AS CNT
+		  FROM (
+				 SELECT S_CLASS_CD, S_CLASS_CD_NM
+				   FROM CMM_CD_COMCD
+				  WHERE B_CLASS_CD = 'COM038'
+			   ) A,
+			   (
+				SELECT REQ_DIV_CD, COUNT(*) AS CNT
+				  FROM SRV_DT_REQ_BOARD
+				 WHERE SUBSTR(TO_CHAR(REQ_DT,'YYYY'),0,4) = #{searchYear}
+				 GROUP BY REQ_DIV_CD
+			   ) B
+		 WHERE A.S_CLASS_CD = B.REQ_DIV_CD(+)
+	</select>
+	
+</mapper>

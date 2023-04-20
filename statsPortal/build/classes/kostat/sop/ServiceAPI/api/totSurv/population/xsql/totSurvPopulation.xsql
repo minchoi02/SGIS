@@ -1,0 +1,770 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="totSurvPopulation">
+
+	<!-- 인구총조사 세계정보조회 - 2020.08.06	juKwak	신규 -->
+	<select id="getPopulationWorld" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_NM
+			, RANK
+			<!-- 2020-10-13 [곽제욱] 증감률 변경 START -->
+			, ROUND(IRDSRATE, 2) IRDSRATE
+			<!-- , CASE
+				<![CDATA[WHEN IRDSRATE > 0 and IRDSRATE < 1 then '0'||round(IRDSRATE,2) 
+				WHEN IRDSRATE < 0 and IRDSRATE > -1 then '-0'||replace(round(IRDSRATE,2) , '-', '')]]>
+				ELSE NVL(round(IRDSRATE,2), 0)
+			END IRDSRATE -->
+			<!-- 2020-10-13 [곽제욱] 증감률 변경 END -->
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		   AND c2 = '3005'
+		   <if test='year != null and year != "" '>					/* 지표년도 */
+		   AND SURV_YEAR = #{year}
+		   </if>
+		   AND SURV_ID = 'IS0001'	/* IS0001 대륙별 인구(아시아, 아메리카, 유럽, 아프리카, 오세아니아) */
+	</select>
+
+	<select id="getPopulationWorldMaxRank" parameterType="hashmap" resultType="string">
+		select MAX(TO_NUMBER(RANK)) as MAXRANK  from SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE SURV_ID = 'IS0001'
+		<if test='year != null and year != "" '>					/* 지표년도 */
+		   AND SURV_YEAR = #{year}
+	    </if>
+		GROUP BY SURV_YEAR;
+	</select>
+
+	<!-- 인구총조사 총인구 조회 - 2020.08.06	juKwak	신규 -->
+	<select id="getTotPopulation" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_CD
+			, SURV_ID
+			, REGION_NM
+			, DT
+			, ITM_CD
+			, ITM_NM
+			, C1
+			, C1_NM
+			, UNIT_NM
+			, RANK
+			<!-- 2020-10-13 [곽제욱] 증감률 변경 START -->
+			, ROUND(IRDSRATE, 2) IRDSRATE
+			<!-- , CASE
+				<![CDATA[WHEN IRDSRATE > 0 and IRDSRATE < 1 then '0'||round(IRDSRATE,2) 
+				WHEN IRDSRATE < 0 and IRDSRATE > -1 then '-0'||replace(round(IRDSRATE,2) , '-', '')]]>
+				ELSE NVL(round(IRDSRATE,2), 0)
+			END IRDSRATE -->
+			<!-- 2020-10-13 [곽제욱] 증감률 변경 END -->
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		 	<if test='region_cd == "99" or region_cd == "00"'>
+		 		AND region_cd = '00'
+		 	</if>
+		 	<if test='region_cd != "99" and region_cd != "00"'>
+		 		AND region_cd = #{region_cd}
+		 	</if>
+		 	<if test='year != null and year != "" '>					/* 지표년도 */
+		 		AND SURV_YEAR = #{year}
+		 	</if>
+		 	AND ITM_CD = 'T100' /* 총인구(명) */
+		 	AND SURV_ID = 'PH0001' /* PH0001 : 인구, 가구 및 주택 - 읍면동(2015), 시군구(2016~) */
+	</select>
+
+	<!-- 인구총조사 총인구 조회 - 2020.08.06	juKwak	신규 -->
+	<select id="getTotLocalPopulation" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_CD
+			, SURV_ID
+			, REGION_NM
+			, DT
+			, ITM_CD
+			, ITM_NM
+			, C1
+			, C1_NM
+			, UNIT_NM
+			, RANK
+			<!-- 2020-10-13 [곽제욱] 증감률 변경 START -->
+			, ROUND(IRDSRATE, 2) IRDSRATE
+			<!-- , CASE
+				<![CDATA[WHEN IRDSRATE > 0 and IRDSRATE < 1 then '0'||round(IRDSRATE,2) 
+				WHEN IRDSRATE < 0 and IRDSRATE > -1 then '-0'||replace(round(IRDSRATE,2) , '-', '')]]>
+				ELSE NVL(round(IRDSRATE,2), 0)
+			END IRDSRATE -->
+			<!-- 2020-10-13 [곽제욱] 증감률 변경 END -->
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		 	<!-- 2020-11-23 [곽제욱] 속도개선을 위한 쿼리 튜닝 START -->
+		 	AND SURV_ID = 'PH0001' /* PH0001 : 인구, 가구 및 주택 - 읍면동(2015), 시군구(2016~) */
+		 	<if test='region_cd == "99" or region_cd == "00"'>
+		 		AND region_cd = '00'
+		 	</if>
+		 	<if test='region_cd != "99" and region_cd != "00"'>
+		 		AND region_cd = #{region_cd}
+		 	</if>
+		 	<if test='year != null and year != "" '>					
+		 		AND SURV_YEAR = #{year}
+		 	</if>
+		 	AND ITM_CD IN ('T131', 'T132') /* 내국인 */
+		 	<!-- 2020-11-23 [곽제욱] 속도개선을 위한 쿼리 튜닝 END -->
+	</select>
+
+	<!-- 인구총조사 총인구 조회 - 2020.08.06	juKwak	신규 -->
+	<select id="getTotForeignPopulation" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_CD
+			, SURV_ID
+			, REGION_NM
+			, DT
+			, ITM_CD
+			, ITM_NM
+			, C1
+			, C1_NM
+			, UNIT_NM
+			, RANK
+			<!-- 2020-10-13 [곽제욱] 증감률 변경 START -->
+			, ROUND(IRDSRATE, 2) IRDSRATE
+			<!-- , CASE
+				<![CDATA[WHEN IRDSRATE > 0 and IRDSRATE < 1 then '0'||round(IRDSRATE,2) 
+				WHEN IRDSRATE < 0 and IRDSRATE > -1 then '-0'||replace(round(IRDSRATE,2) , '-', '')]]>
+				ELSE NVL(round(IRDSRATE,2), 0)
+			END IRDSRATE -->
+			<!-- 2020-10-13 [곽제욱] 증감률 변경 END -->
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		 	<!-- 2020-11-23 [곽제욱] 속도개선을 위한 쿼리 튜닝 START -->
+		 	AND SURV_ID = 'PH0001' /* PH0001 : 인구, 가구 및 주택 - 읍면동(2015), 시군구(2016~) */
+		 	<if test='region_cd == "99" or region_cd == "00"'>
+		 		AND region_cd = '00'
+		 	</if>
+		 	<if test='region_cd != "99" and region_cd != "00"'>
+		 		AND region_cd = #{region_cd}
+		 	</if>
+		 	<if test='year != null and year != "" '>					/* 지표년도 */
+		 		AND SURV_YEAR = #{year}
+		 	</if>
+		 	AND ITM_CD IN ('T141', 'T142') /* 외국인 */
+		 	<!-- 2020-11-23 [곽제욱] 속도개선을 위한 쿼리 튜닝 END -->
+	</select>
+
+	<!-- 인구총조사 총인구 조회 - 2020.08.06	juKwak	신규 -->
+	<select id="getTotForeignRt" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_CD
+			, SURV_ID
+			, REGION_NM
+			, DT
+			, ITM_CD
+			, ITM_NM
+			, C1
+			, C1_NM
+			, UNIT_NM
+			, RANK
+			<!-- 2020-10-13 [곽제욱] 증감률 변경 START -->
+			, ROUND(IRDSRATE, 2) IRDSRATE
+			<!-- , CASE
+				<![CDATA[WHEN IRDSRATE > 0 and IRDSRATE < 1 then '0'||round(IRDSRATE,2) 
+				WHEN IRDSRATE < 0 and IRDSRATE > -1 then '-0'||replace(round(IRDSRATE,2) , '-', '')]]>
+				ELSE NVL(round(IRDSRATE,2), 0)
+			END IRDSRATE -->
+			<!-- 2020-10-13 [곽제욱] 증감률 변경 END -->
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		 	<!-- 2020-11-23 [곽제욱] 속도개선을 위한 쿼리 튜닝 START -->
+		 	AND SURV_ID = 'PH0001' /* PH0001 : 인구, 가구 및 주택 - 읍면동(2015), 시군구(2016~) */
+		 	<if test='region_cd == "99" or region_cd == "00"'>
+		 		AND region_cd = '00'
+		 	</if>
+		 	<if test='region_cd != "99" and region_cd != "00"'>
+		 		AND region_cd = #{region_cd}
+		 	</if>
+		 	<if test='year != null and year != "" '>					/* 지표년도 */
+		 		AND SURV_YEAR = #{year}
+		 	</if>
+		 	AND ITM_CD = 'T140' /* 외국인 계 */
+		 	<!-- 2020-11-23 [곽제욱] 속도개선을 위한 쿼리 튜닝 END -->
+	</select>
+
+	<!-- 인구총조사 연령별 조회 - 2020.08.06	juKwak	신규 -->
+	<select id="getAgePopulation" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_NM
+			, SURV_ID
+			, REGION_CD
+			<if test='regionLength == "2"'>
+			,	round(DT / 1000, 0) DT
+			, 	DT AS ORIGIN_DT
+			</if>
+			<if test='regionLength != "2"'>
+			,	DT
+			, 	DT AS ORIGIN_DT
+			</if>
+			, ITM_CD
+			, ITM_NM
+			, C1
+			, C1_NM
+			, UNIT_NM
+			, RANK
+			<!-- 2020-10-13 [곽제욱] 증감률 변경 START -->
+			, ROUND(IRDSRATE, 2) IRDSRATE
+			<!-- , CASE
+				<![CDATA[WHEN IRDSRATE > 0 and IRDSRATE < 1 then '0'||round(IRDSRATE,2) 
+				WHEN IRDSRATE < 0 and IRDSRATE > -1 then '-0'||replace(round(IRDSRATE,2) , '-', '')]]>
+				ELSE NVL(round(IRDSRATE,2), 0)
+			END IRDSRATE -->
+			<!-- 2020-10-13 [곽제욱] 증감률 변경 END -->
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		 	<!-- 2020-11-23 [곽제욱] 속도개선을 위한 쿼리 튜닝 START -->
+		    AND SURV_ID = 'PH0002' /* PH0002 : 연령 및 성별 인구 - 읍면동(2015), 시군구(2016~) */
+		 	<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+		    	AND region_cd = '00'
+		    </if>
+		    <if test="region_cd != null and region_cd != '99'">
+		    	AND region_cd = ${region_cd}
+		    </if>
+		    <if test='year != null and year != "" '>					/* 지표년도 */
+		    AND SURV_YEAR = #{year}
+		    </if>
+		    <!-- 2020-11-23 [곽제욱] 속도개선을 위한 쿼리 튜닝 START -->
+		    AND ITM_CD = 'T00' /* 전체 */
+		    AND length(C1) = 3
+          	AND C1 NOT IN ('126', '127', '000', '090', '095', '100', '101', '102', '104', '103') /* c1: 평균연령, 중위연령, 전체 제외 */
+        	order by c1
+	</select>
+
+	<!-- 타일맵을 위한 인구총조사 지역별 조회 - 2020.08.09	juKwak	신규 -->
+	<select id="getAreaPopulation"  parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_CD
+			, REGION_NM
+			, TO_NUMBER(DT) AS DT
+			<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+			, '00' as PARENT
+			</if>
+			<if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+			, #{region_cd} as PARENT
+			</if>
+			<!-- 비자치구 -->
+			<if test="region_cd != null and region_cd != '99' and region_cd != '00' and regionLength == '5'">
+			, #{region_cd} as PARENT
+			</if>
+			, ITM_CD
+			, ITM_NM
+			, C1
+			, C1_NM
+			, UNIT_NM
+			, RANK
+			, NVL(IRDSRATE, 0) IRDSRATE
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+		<if test='level=="sido"'>
+			AND length(region_cd) = length(#{region_cd})
+		</if>
+		<if test='level == "sgg"'>
+			<if test='regionLength == "2"'>
+				AND	REGION_CD LIKE #{region_cd}||'%'
+				AND REGION_CD NOT IN (SELECT REGION_CD FROM SRV_DT_TOT_SURV_NON_ATDRC WHERE DEL_YN = 'N' AND BASE_YEAR = #{year} AND UPPER_REGION_CD IS NOT NULL)
+			</if>
+			<!-- 비자치구 -->
+			<if test='regionLength == "5"'>
+				AND	REGION_CD LIKE lpad(#{region_cd},4) || '%'
+				AND	REGION_CD != #{region_cd}
+			</if>
+			AND length(REGION_CD) = 5
+		</if>
+		<if test='year != null and year != "" '>					/* 지표년도 */
+		   AND SURV_YEAR = #{year}
+		</if>
+		<if test='surv_id == "PH0001"'>
+			AND SURV_ID = 'PH0001' /* PH0001 : 인구, 가구 및 주택 - 읍면동(2015), 시군구(2016~) */
+			<if test='itm_cd == null or itm_cd == ""'>
+				AND ITM_CD = 'T100' /* 총인구일 경우 T100 만 조회 */
+			</if>
+			<if test='itm_cd != null and itm_cd != ""'>
+				AND ITM_CD = #{itm_cd}
+			</if>
+		</if>
+		<if test='surv_id != null and surv_id != "" and surv_id != "PH0001"'>
+			AND SURV_ID = #{surv_id}
+			<if test='itm_cd != null and itm_cd != ""'>
+				AND ITM_CD = #{itm_cd}
+			</if>
+			<if test='surv_id == "PH0002"'>
+				AND C1 = '000'
+			</if>
+		</if>
+		<if test='c1 != null and c1 != ""'>
+			AND C1 = #{c1}
+		</if>
+		AND REGION_CD != '00' /* 전국 제외 */
+
+		UNION ALL
+		SELECT
+			<if test="region_cd == null or region_cd == '99' or region_cd == '00'" >
+			'00' as REGION_CD
+			</if>
+			<if test="region_cd != null and region_cd != '99' and region_cd != '00'">
+			#{region_cd} as REGION_CD
+			</if>
+			<!-- 비자치구 -->
+			<if test="region_cd != null and region_cd != '99' and region_cd != '00' and regionLength == '5'">
+			, #{region_cd} as PARENT
+			</if>
+			, '' as REGION_NM
+			, '0' as DT <!-- 2020-10-13 [곽제욱] NaN 오류처리를 위해 부모 DT에 0 세팅 -->
+			, '' as PARENT
+			, '' as ITM_CD
+			, '' as ITM_NM
+			, '' as C1
+			, '' as C1_NM
+			, '' as UNIT_NM
+			, '' as RANK
+			, '' as IRDSRATE
+		FROM DUAL
+		ORDER BY DT DESC
+	</select>
+
+	<!-- 인구총조사 거주지이동 조회 - 2020.08.23 	juKwak	신규 -->
+	<select id="getMoveHomeChange" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_CD
+			, SURV_ID
+			, REGION_NM
+			, DT
+			, C1
+			, C1_NM
+			, C2
+			, C2_NM
+			, ITM_CD
+			, ITM_NM
+			, UNIT_NM
+			, RANK
+			, SURV_ID
+			, C1
+			, NVL(IRDSRATE, 0) IRDSRATE
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		 	<!-- 2020-11-23 [곽제욱] 속도개선을 위한 쿼리 튜닝 START -->
+		 	AND SURV_ID = 'PH0011' /* PH0011 : 현 거주지 성, 연령 및 1년 전 거주지 유형별 인구(1세이상) - 시군구 */
+		 	<if test='region_cd == "99" or region_cd == "00"'>
+		 		AND region_cd = '00'
+		 	</if>
+		 	<if test='region_cd != "99" and region_cd != "00"'>
+		 		AND region_cd = #{region_cd}
+		 	</if>
+		 	<if test='year != null and year != "" '>					/* 지표년도 */
+		 		AND SURV_YEAR = #{year}
+		 	</if>
+		 	<!-- 2020-11-23 [곽제욱] 속도개선을 위한 쿼리 튜닝 START -->
+		 	AND C1 = '0'
+		 	AND C2 = '000'
+		 	AND ITM_CD IN ('T10', 'T20', 'T31', 'T32', 'T40')
+	</select>
+
+	<!-- 인구총조사 총조사인구 시계열 조회 구현(2015년 미만 데이터 조회) - 2020.09.09	esPark	수정  -->
+	<select id="getPopulationForTime" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_CD
+			, SURV_YEAR
+			, REGION_NM
+			, DT
+			, ITM_CD
+			, ITM_NM
+			, UNIT_NM
+			, RANK
+			, SURV_ID
+			, C1
+			, C1_NM
+			, NVL(IRDSRATE, 0) IRDSRATE
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		 	<!-- 2020-11-23 [곽제욱] 속도개선을 위한 쿼리 튜닝 START -->
+		 	AND SURV_ID = 'PH0298' /* 전국 총인구 변화 정보  DATA*/
+		 	<if test='region_cd == "99" or region_cd == "00"'>
+		 		AND REGION_CD = '00'
+		 	</if>
+		 	<if test='region_cd != "99" and region_cd != "00"'>
+		 		AND REGION_CD = #{region_cd}
+		 	</if>
+		 	AND SURV_YEAR != '1935' /* 전국 총인구만 존재하고 지역 인구는 X 임시로 제외*/
+		 	AND ITM_CD = 'T10'
+		 	<!-- 2020-11-23 [곽제욱] 속도개선을 위한 쿼리 튜닝 END -->
+		 	AND C1 = '00'
+		 	ORDER BY SURV_YEAR
+	</select>
+
+	<!-- 인구총조사 슬라이드 Rank 조회 - 2020.09.08 	esPark	신규 -->
+	<select id="getTotPopulationRank" parameterType="hashmap" resultType="hashmap">
+		SELECT *
+			FROM (
+				SELECT
+						*
+						, ROWNUM AS RANK
+					FROM (
+						SELECT
+								a.REGION_CD
+								, a.REGION_NM
+								, a.DT
+								, a.SURV_ID
+								, a.C1
+								, a.ITM_CD
+							FROM SRV_DT_ST_CHART_DET_ITM_RANK a
+						    WHERE 1=1
+						    <!-- 2020-11-23 [곽제욱] 속도개선을 위한 쿼리 튜닝 START -->
+							<if test="type != null and type != '' and type == 'total'"><!-- 총인구 -->
+								AND a.SURV_ID = 'PH0001'
+								AND a.ITM_CD = 'T100'
+							</if>
+							<if test="type != null and type != '' and type == 'gender'"><!-- 남녀성비 -->
+								AND a.SURV_ID = 'PH0002'
+								AND a.ITM_CD = 'T03'
+								AND a.C1 = '000'
+							</if>
+							<if test="type != null and type != '' and type == 'foreign'"><!-- 외국인수 -->
+								AND a.SURV_ID = 'PH0001'
+								AND a.ITM_CD = 'T140'
+							</if>
+							<if test="year != null and year != ''">
+								AND a.SURV_YEAR = #{year}
+							</if>
+							<!-- 2020-11-23 [곽제욱] 속도개선을 위한 쿼리 튜닝 END -->
+							<if test="level != null and level != '' and level == 'sido'"><!-- 광역시도 -->
+								AND LENGTH(a.REGION_CD) = 2
+								AND a.REGION_CD &lt;&gt; '00'
+							</if>
+							<if test="level != null and level != '' and level == 'sgg'"><!-- 시군구 -->
+								AND LENGTH(a.REGION_CD) = 5
+								AND a.REGION_CD NOT IN (SELECT REGION_CD FROM SRV_DT_TOT_SURV_NON_ATDRC WHERE DEL_YN = 'N' AND BASE_YEAR = #{year} AND UPPER_REGION_CD IS NOT NULL)
+							</if>
+							<if test='level != null and level != "" and level == "atdrc"'>
+								AND a.REGION_CD IN (SELECT REGION_CD FROM SRV_DT_TOT_SURV_NON_ATDRC WHERE BASE_YEAR = #{year}
+								<!--<if test="up_regionCd != null and up_regionCd != ''">
+									AND UPPER_REGION_CD = #{up_regionCd}
+								</if>-->
+								 AND REGION_CD NOT LIKE '%0'
+								 AND DEL_YN = 'N')
+							</if>
+							ORDER BY a.RANK
+						)
+					)
+					WHERE 1=1
+					<if test="rank != null and rank != ''">
+						AND RANK = #{rank}
+					</if>
+					<if test="regionCd != null and regionCd != ''">
+						AND REGION_CD = #{regionCd}
+					</if>
+	</select>
+
+	<!-- 총인구 다문화 가구 조회 - 2020.09.10 	esPark	신규 -->
+	<select id="getPopulationMulticul" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				REGION_CD
+				, SURV_ID
+				, DT
+				, C1
+				, C1_NM
+				, ITM_CD
+				, RANK
+				, ITM_NM
+				, REGION_NM
+				, SURV_ID
+				, ITM_CD
+				, C1
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		   WHERE 1=1
+		   <!-- 2020-11-23 [곽제욱] 속도개선을 위한 쿼리 튜닝 START -->
+			AND SURV_ID = 'PH0205'
+			<if test="year != null and year != null">
+				AND SURV_YEAR = #{year}
+			</if>
+			<if test="region_cd != null and region_cd != ''">
+				AND REGION_CD = #{region_cd}
+			</if>
+			<!-- 2020-11-23 [곽제욱] 속도개선을 위한 쿼리 튜닝 END -->
+			AND ITM_CD = 'T10'
+			AND C1 IN ('10', '11', '12', '13', '14', '15')
+	</select>
+	<!-- 지역코드로 지역랭크 조회 - 2020.09.11 	esPark	신규 -->
+	<select id="getTotPopulationRegionRank" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				REGION_CD
+				, REGION_NM
+				, RANK
+				, DT
+				, SURV_ID
+				, C1
+				, ITM_CD
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		   WHERE 1=1
+		   <!-- 2020-11-23 [곽제욱] 속도개선을 위한 쿼리 튜닝 START -->
+		   AND SURV_ID = 'PH0001'
+		   <if test="year != '' and year != null">
+		   		AND SURV_YEAR = #{year}
+		   </if>
+		   <if test="regionCd != '' and regionCd != null">
+		   		AND REGION_CD = #{regionCd}
+		   </if>
+		   <!-- 2020-11-23 [곽제욱] 속도개선을 위한 쿼리 튜닝 END -->
+		   AND ITM_CD = 'T100'
+	</select>
+
+	<!-- Max Rank 값 조회 - 2020.09.14 	esPark	신규 -->
+	<select id="getMaxRank" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				COUNT(*) AS CNT
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		   WHERE 1=1
+		   		<if test='surv_id == "PH0001"'>
+					AND SURV_ID = 'PH0001' /* PH0001 : 인구, 가구 및 주택 - 읍면동(2015), 시군구(2016~) */
+					<if test='itm_cd == null or itm_cd == ""'>
+						AND ITM_CD = 'T100' /* 총인구일 경우 T100 만 조회 */
+					</if>
+					<if test='itm_cd != null and itm_cd != ""'>
+						AND ITM_CD = #{itm_cd}
+					</if>
+				</if>
+				<if test='surv_id != null and surv_id != "" and surv_id != "PH0001"'>
+					AND SURV_ID = #{surv_id}
+					<if test='itm_cd != null and itm_cd != ""'>
+						AND ITM_CD = #{itm_cd}
+					</if>
+					<if test='surv_id == "PH0002"'>
+						AND C1 = '000'
+					</if>
+				</if>
+				<if test='c1 != null and c1 != ""'>
+					AND C1 = #{c1}
+				</if>
+				<if test="year != null and year != ''">
+					AND SURV_YEAR = #{year}
+				</if>
+				AND LENGTH(REGION_CD) = 2 <!-- 광역시도 -->
+				AND REGION_CD &lt;&gt; '00'
+				
+
+			UNION ALL
+
+		SELECT
+				COUNT(*) AS CNT
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		   WHERE 1=1
+		   		<if test='surv_id == "PH0001"'>
+					AND SURV_ID = 'PH0001' /* PH0001 : 인구, 가구 및 주택 - 읍면동(2015), 시군구(2016~) */
+					<if test='itm_cd == null or itm_cd == ""'>
+						AND ITM_CD = 'T100' /* 총인구일 경우 T100 만 조회 */
+					</if>
+					<if test='itm_cd != null and itm_cd != ""'>
+						AND ITM_CD = #{itm_cd}
+					</if>
+				</if>
+				<if test='surv_id != null and surv_id != "" and surv_id != "PH0001"'>
+					AND SURV_ID = #{surv_id}
+					<if test='itm_cd != null and itm_cd != ""'>
+						AND ITM_CD = #{itm_cd}
+					</if>
+					<if test='surv_id == "PH0002"'>
+						AND C1 = '000'
+					</if>
+				</if>
+				<if test='c1 != null and c1 != ""'>
+					AND C1 = #{c1}
+				</if>
+				<if test="year != null and year != ''">
+					AND SURV_YEAR =  #{year}
+				</if>
+				AND LENGTH(REGION_CD) = 5 <!-- 시군구 -->
+				AND REGION_CD NOT IN (SELECT REGION_CD FROM SRV_DT_TOT_SURV_NON_ATDRC WHERE BASE_YEAR = #{year} AND DEL_YN = 'N' AND UPPER_REGION_CD IS NOT NULL)
+				
+
+			UNION ALL
+
+		SELECT
+				COUNT(*) AS CNT
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		   WHERE 1=1
+		   		<if test='surv_id == "PH0001"'>
+					AND SURV_ID = 'PH0001' /* PH0001 : 인구, 가구 및 주택 - 읍면동(2015), 시군구(2016~) */
+					<if test='itm_cd == null or itm_cd == ""'>
+						AND ITM_CD = 'T100' /* 총인구일 경우 T100 만 조회 */
+					</if>
+					<if test='itm_cd != null and itm_cd != ""'>
+						AND ITM_CD = #{itm_cd}
+					</if>
+				</if>
+				<if test='surv_id != null and surv_id != "" and surv_id != "PH0001"'>
+					AND SURV_ID = #{surv_id}
+					<if test='itm_cd != null and itm_cd != ""'>
+						AND ITM_CD = #{itm_cd}
+					</if>
+					<if test='surv_id == "PH0002"'>
+						AND C1 = '000'
+					</if>
+				</if>
+				<if test='c1 != null and c1 != ""'>
+					AND C1 = #{c1}
+				</if>			
+				<if test="year != null and year != ''">
+					AND SURV_YEAR = #{year}
+				</if>
+				<!-- 비자치구를 포함한 행정시 섵객 -->
+				AND REGION_CD IN (SELECT REGION_CD FROM SRV_DT_TOT_SURV_NON_ATDRC WHERE BASE_YEAR = #{year} AND UPPER_REGION_CD IS NOT NULL  AND DEL_YN = 'N')
+				
+	</select>
+
+	<!-- Max Rank 값 조회 - 2020.09.14 	esPark	신규 -->
+	<select id="getUpperRegionCheck" parameterType="hashmap" resultType="hashmap">
+		SELECT COUNT(*) AS CNT
+			FROM (
+				SELECT
+						REGION_CD
+						, REGION_NM
+						, DT
+						, SURV_ID
+						, C1
+						, ITM_CD
+					FROM SRV_DT_ST_CHART_DET_ITM_RANK
+				   WHERE 1=1
+				    <!-- 2020-11-23 [곽제욱] 속도개선을 위한 쿼리 튜닝 START -->
+					AND SURV_ID = 'PH0001'
+					AND SURV_YEAR = #{year}
+				    <!-- 2020-11-23 [곽제욱] 속도개선을 위한 쿼리 튜닝 END -->
+					AND ITM_CD = 'T100'
+					AND REGION_CD IN (SELECT REGION_CD FROM SRV_DT_TOT_SURV_NON_ATDRC WHERE BASE_YEAR = #{year} AND UPPER_REGION_CD = #{upperRegCd} AND DEL_YN = 'N')
+					)
+				WHERE 1=1
+					AND REGION_CD = #{regionCd}
+	</select>
+	
+	
+	<!-- 각 조사별 맵데이터 호출 - 2020.08.12	juKwak	신규 -->
+	<select id="getTmsCombineData" parameterType="hashmap" resultType="hashmap">	
+		SELECT 
+			A.dt AS start_year, 
+			B.dt as end_year , 
+			A.dt - B.dt as calculat, 
+			round(((A.dt-B.dt)/B.dt * 100) ,2) as rt,
+			A.SURV_ID, 	
+			A.ADM_CD, 	
+			A.REGION_NM, 	
+			A.ITM_NM, A.UNIT_NM,
+			A.surv_year as s_year,
+			B.surv_year as e_year
+		FROM
+		( 
+			SELECT surv_year, 
+				dt,
+				SURV_ID, 	
+				REGION_CD as ADM_CD, 
+				REGION_NM, 	
+				ITM_NM, 
+				UNIT_NM 
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK 
+			WHERE 1=1
+			AND SURV_ID = #{surv_id}
+			AND SURV_YEAR = #{start_year}
+			<if test='sido_cd == null or sido_cd == ""'>
+				AND length(REGION_CD) = 2
+				AND region_cd != '00'
+			</if>
+			<if test='sido_cd != null and sido_cd != ""'>
+				<if test='sgg_cd != null and sgg_cd != "" and isAtdrc == "false"'>
+					AND length(REGION_CD) = 5
+					AND REGION_CD like #{sido_cd}||'%'
+				</if>
+				<if test='sgg_cd != null and sgg_cd != "" and isAtdrc == "true"'>
+					AND length(REGION_CD) = 5
+					AND	REGION_CD LIKE #{sido_cd}||lpad(#{sgg_cd},2) || '%'
+					AND	REGION_CD != #{sido_cd}||#{sgg_cd}
+				</if>
+				<if test='sgg_cd == null or sgg_cd == ""'>
+					AND length(REGION_CD) =	2
+					AND region_cd != '00'
+				</if>
+			</if> 
+			<if test='surv_id == "PH0001"'>
+				<if test='itm_cd == "" or itm_cd == null'>
+					AND ITM_CD = 'T100'
+				</if>
+			</if>
+			<if test='itm_cd != "" and itm_cd != null'>
+				AND ITM_CD = #{itm_cd}
+			</if>
+		) A , 
+		( 
+			select surv_year, 
+				dt,
+				SURV_ID, 	
+				REGION_CD as ADM_CD
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK 
+			WHERE 1=1
+			AND SURV_ID = #{surv_id}
+			AND SURV_YEAR = #{end_year}
+			<if test='sido_cd == null or sido_cd == ""'>
+				AND length(REGION_CD) = 2
+			</if>
+			<if test='sido_cd != null and sido_cd != ""'>
+				<if test='sgg_cd != null and sgg_cd != "" and isAtdrc == "false"'>
+					AND length(REGION_CD) = 5
+					AND REGION_CD like #{sido_cd}||'%'
+				</if>
+				<if test='sgg_cd != null and sgg_cd != "" and isAtdrc == "true"'>
+					AND length(REGION_CD) = 5
+					AND	REGION_CD LIKE #{sido_cd}||lpad(#{sgg_cd},2) || '%'
+					AND	REGION_CD != #{sido_cd}||#{sgg_cd}
+				</if>
+				<if test='sgg_cd == null or sgg_cd == ""'>
+					AND length(REGION_CD) =	2
+				</if>
+			</if> 
+			<if test='surv_id == "PH0001"'>
+				<if test='itm_cd == "" or itm_cd == null'>
+					AND ITM_CD = 'T100'
+				</if>
+			</if>
+			<if test='itm_cd != "" and itm_cd != null'>
+				AND ITM_CD = #{itm_cd}
+			</if>
+		) B
+		WHERE A.adm_cd = B.adm_cd
+	</select>
+
+	<select id="getPopulationWorldAllData" parameterType="hashmap" resultType="string">
+		SELECT SUM(TO_NUMBER(DT)) as YEAR  from SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE SURV_ID = 'IS0001'
+		<if test='beforeGb == "Y"'>
+			AND SURV_YEAR = TO_NUMBER(#{year}-1)
+		</if>
+		<if test='beforeGb != "Y"'>
+			AND SURV_YEAR = #{year}
+		</if>
+		GROUP BY SURV_YEAR
+	</select>
+
+	<!-- 인구총조사 성비 조회 - 2020.10.13	juKwak	신규 START -->
+	<select id="getTotGenderPopulation" parameterType="hashmap" resultType="hashmap">
+		SELECT
+            SURV_YEAR
+            , DT  
+            , REGION_NM
+            , REGION_CD
+            , RANK
+            , ITM_NM
+            , ITM_CD
+            , IRDSRATE
+         FROM SRV_DT_ST_CHART_DET_ITM_RANK
+         WHERE 1=1
+         <!-- 2020-11-23 [곽제욱] 속도개선을 위한 쿼리 튜닝 START -->
+         AND SURV_ID = 'PH0002'
+         AND SURV_YEAR = #{year}
+         <if test='region_cd == "99" or region_cd == "00"'>
+	 		AND region_cd = '00'
+	 	 </if>
+	 	 <if test='region_cd != "99" and region_cd != "00"'>
+	 		AND region_cd = #{region_cd}
+	 	 </if>
+         <!-- 2020-11-23 [곽제욱] 속도개선을 위한 쿼리 튜닝 START -->
+         AND ITM_CD = 'T03'
+         AND C1 = '000'
+	</select>
+	<!-- 인구총조사 성비 조회 - 2020.10.13	juKwak	신규 END -->	
+</mapper>

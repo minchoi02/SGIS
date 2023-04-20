@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ststistics"> 
+
+	<select id="getStstisticsUSLifeCycleMng"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		/** getStstisticsUSLifeCycleMng start ... **/
+		<include refid="ststisticsCmmn.pageHeader" />
+			SELECT
+				ROW_NUMBER() OVER(ORDER BY DISP_RANK ASC) AS RNUM 
+				, USE_YN	
+				, DECODE(USE_YN , 'Y' , '활성' ,'비활성')  AS USE_YN_VALUE
+				, DISP_RANK 	
+				, LFE_CYCLE_NM
+				, LFE_CYCLE_ID
+				, ICON_EXP
+				, CONCAT(PATH_NM, SAVE_FILE_NM) AS ICON_URL
+				, ORI_FILE_NM AS TEMP_URL
+				, (SELECT COUNT(T1.STAT_DISTANCE_ID) FROM SRV_DT_CTLG_CYCLE_DISTANCE T1 WHERE T1.LFE_CYCLE_ID = T2.LFE_CYCLE_ID) AS STAT_CNT
+			FROM 
+				SRV_DT_CTLG_LFE_CYCLE_LIST T2
+			<include refid="lifecommonWhere"/>
+			ORDER BY DISP_RANK
+		<include refid="ststisticsCmmn.pageFotter" />
+	</select>
+	
+	<select id="getStstisticsUSLifeCycleMngTotal"  parameterType="java.util.HashMap" resultType="int">
+		/** getStstisticsUSLifeCycleMngTotal start ... **/
+		SELECT 	COUNT(LFE_CYCLE_ID) 
+		FROM	SRV_DT_CTLG_LFE_CYCLE_LIST
+		<include refid="lifecommonWhere"/>
+	</select>
+	
+	<select id="getStstisticsUSLifeCycleIsExists"  parameterType="java.util.HashMap" resultType="int">
+		/** getStstisticsUSLifeCycleIsExists start ... **/
+		SELECT 	COUNT(LFE_CYCLE_ID) 
+		FROM	SRV_DT_CTLG_LFE_CYCLE_LIST
+		WHERE	LFE_CYCLE_ID = #{lfeCycleId}
+	</select>
+	
+	<update id="registerStstisticsUSLifeCycleMng" parameterType="java.util.HashMap">
+		/** registerStstisticsUSLifeCycleMng start ... **/
+		INSERT INTO SRV_DT_CTLG_LFE_CYCLE_LIST (
+        	LFE_CYCLE_ID
+        	, LFE_CYCLE_NM
+        	, DISP_RANK
+        	, USE_YN
+        	, ICON_EXP
+			, PATH_NM
+			, SAVE_FILE_NM
+			, ORI_FILE_NM
+        	, REG_TS
+        	, MOD_TS
+        	, REG_MANAGER_ID
+        	, MOD_MANAGER_ID
+        ) VALUES (
+        	#{lfeCycleId}
+        	, #{lfeCycleNm}
+        	, #{dispRank}
+        	, #{useYn}
+        	, #{iconExp}
+			, #{pathNm}
+			, #{saveFileNm}
+			, #{oriFileNm}
+        	, SYSDATE
+        	, SYSDATE
+        	, #{regManagerId}
+        	, #{modManagerId}
+        )
+	</update>
+	
+	<update id="editStstisticsUSLifeCycleMng" parameterType="java.util.HashMap">
+		/** editStstisticsUSLifeCycleMng start ... **/
+	 	UPDATE 	
+	 			SRV_DT_CTLG_LFE_CYCLE_LIST 
+	 	SET 	
+	 			 MOD_TS = SYSDATE
+				, MOD_MANAGER_ID = #{modManagerId} 
+	 			<if test="iconExp != null and iconExp !=''">
+	           		,ICON_EXP = #{iconExp}
+           		</if>
+				<if test="pathNm != null and pathNm !=''">
+	           		, PATH_NM = #{pathNm}
+           		</if>
+           		<if test="saveFileNm != null and saveFileNm !=''">
+	           		, SAVE_FILE_NM = #{saveFileNm}
+           		</if>
+           		<if test="oriFileNm != null and oriFileNm !=''">
+	           		, ORI_FILE_NM = #{oriFileNm}
+           		</if>
+				, LFE_CYCLE_NM = #{lfeCycleNm}
+				, DISP_RANK = #{dispRank}
+				, USE_YN = #{useYn}
+		WHERE 	LFE_CYCLE_ID = #{lfeCycleId}
+	</update>
+	
+	<select id="getStstisticsUSLifeCycleRecmdkwrd" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT 
+			RECMD_KWRD_1
+			, RECMD_KWRD_2
+			, RECMD_KWRD_3
+			, RECMD_KWRD_4
+			, RECMD_KWRD_5
+		FROM SRV_DT_CTLG_CYCLE_RECMD_KWRD
+		WHERE LFE_CYCLE_ID = #{lfeCycleId}
+		AND	  STAT_DISTANCE_ID	= #{statDistanceId}
+	</select>
+	
+	<update id="registerStstisticsUSLifeCycleRecmdkwrd" parameterType="java.util.HashMap">
+		INSERT INTO SRV_DT_CTLG_CYCLE_RECMD_KWRD (
+			CTLG_RECMD_KWRD_SERIAL
+			,LFE_CYCLE_ID
+			, RECMD_KWRD_1
+			, RECMD_KWRD_2
+			, RECMD_KWRD_3
+			, RECMD_KWRD_4
+			, RECMD_KWRD_5
+			, REG_TS
+        	, MOD_TS
+        	, STAT_DISTANCE_ID
+        	, REG_MANAGER_ID
+        	, MOD_MANAGER_ID
+		) VALUES (
+			(SELECT NVL(MAX(CTLG_RECMD_KWRD_SERIAL),0)+1 FROM SRV_DT_CTLG_CYCLE_RECMD_KWRD)
+			,#{lfeCycleId}
+			, #{recmdKwrd1}
+			, #{recmdKwrd2}
+			, #{recmdKwrd3}
+			, #{recmdKwrd4}
+			, #{recmdKwrd5}
+			, SYSDATE
+        	, SYSDATE
+        	, #{statDistanceId}
+        	, #{regManagerId}
+        	, #{modManagerId}
+		)
+	</update>
+	
+	<select id="getStstisticsUSLifeCycleRecmdkwrdIsExists"  parameterType="java.util.HashMap" resultType="int">
+		/** getStstisticsUSLifeCycleIsExists start ... **/
+		SELECT 	COUNT(LFE_CYCLE_ID) 
+		FROM	SRV_DT_CTLG_CYCLE_RECMD_KWRD
+		WHERE	LFE_CYCLE_ID = #{lfeCycleId}
+		AND	  STAT_DISTANCE_ID	= #{statDistanceId}
+	</select>
+	
+	<update id="editStstisticsUSLifeCycleRecmdkwrd" parameterType="java.util.HashMap">
+		UPDATE 	
+	 			SRV_DT_CTLG_CYCLE_RECMD_KWRD 
+	 	SET 
+	 			MOD_TS = SYSDATE
+				, MOD_MANAGER_ID = #{modManagerId} 
+				<if test="recmdKwrd1 != null and recmdKwrd1 !=''">
+	           		, RECMD_KWRD_1 = #{recmdKwrd1}
+           		</if>
+				<if test="recmdKwrd2 != null and recmdKwrd2 !=''">
+	           		, RECMD_KWRD_2 = #{recmdKwrd2}
+           		</if>
+           		<if test="recmdKwrd3 != null and recmdKwrd3 !=''">
+	           		, RECMD_KWRD_3 = #{recmdKwrd3}
+           		</if>
+           		<if test="recmdKwrd4 != null and recmdKwrd4 !=''">
+	           		, RECMD_KWRD_4 = #{recmdKwrd4}
+           		</if>
+           		<if test="recmdKwrd5 != null and recmdKwrd5 !=''">
+	           		, RECMD_KWRD_5 = #{recmdKwrd5}
+           		</if>
+		WHERE 	LFE_CYCLE_ID = #{lfeCycleId}
+		AND	  STAT_DISTANCE_ID	= #{statDistanceId}
+	</update>
+	
+	<select id="idcheckStstisticsUSLifeCycleMng"  parameterType="java.util.HashMap" resultType="int">
+		SELECT 	COUNT(*) 
+		FROM 	SRV_DT_CTLG_LFE_CYCLE_LIST
+		WHERE 	LFE_CYCLE_ID = #{lfeCycleId}
+	</select>
+	
+	<update id="excelUploadLifeCycle" parameterType="java.util.HashMap">
+		INSERT INTO SRV_DT_CTLG_LFE_CYCLE_LIST (
+        	LFE_CYCLE_ID
+        	, LFE_CYCLE_NM
+        	, DISP_RANK
+        	, USE_YN
+        	, ICON_EXP
+        	, REG_TS
+        	, MOD_TS
+        	, REG_MANAGER_ID
+        	, MOD_MANAGER_ID
+        	<if test="pathNm != null and pathNm !=''">
+        	, PATH_NM
+        	</if>
+        	<if test="saveFileNm != null and saveFileNm != ''">
+			, SAVE_FILE_NM
+			</if>
+			<if test="oriFileNm != null and oriFileNm !=''">
+			, ORI_FILE_NM
+			</if>
+        ) VALUES (
+        	#{column0}
+        	, #{column3}
+        	, #{column2}
+        	, #{column1}
+        	, #{column4}
+        	, SYSDATE
+        	, SYSDATE
+        	, #{regManagerId}
+        	, #{modManagerId}
+        	<if test="pathNm != null and pathNm !=''">
+        	, #{pathNm}
+        	</if>
+        	<if test="saveFileNm != null and saveFileNm != ''">
+			, #{saveFileNm}
+			</if>
+			<if test="oriFileNm != null and oriFileNm !=''">
+			, #{oriFileNm}
+			</if>
+		)
+	</update>
+	
+	<sql id="lifecommonWhere">
+		<where>
+			<if test="word != null and word != ''">
+				AND INSTR(LFE_CYCLE_NM, #{word}) <![CDATA[>]]> 0 
+			</if>
+			<if test="useYn != null and useYn != ''">
+				AND USE_YN = #{useYn}
+			</if>
+		</where>
+	</sql>
+	
+	<!-- 2020년 SGIS고도화 3차 시작 -->
+	<delete id="removeLfeCycleData" parameterType="java.util.HashMap" >
+		DELETE 
+		FROM SRV_DT_CTLG_LFE_CYCLE_LIST
+		WHERE LFE_CYCLE_ID = #{lfeCycleId}
+	</delete>
+	<delete id="removeLfeCycleDataMapping" parameterType="java.util.HashMap" >
+		DELETE 
+		FROM SRV_DT_CTLG_DISTANCE_DATA
+		WHERE LFE_CYCLE_ID = #{lfeCycleId}
+	</delete>
+	<!-- 2020년 SGIS고도화 3차 끝 -->
+</mapper>

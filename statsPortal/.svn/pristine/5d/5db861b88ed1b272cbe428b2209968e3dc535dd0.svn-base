@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SbrStatsXsql">
+
+	<!-- 산업분류에 포함되는 모든 대분류 테마코드 정보를 조회한다, 전국사업체조사의 테마업종 및 interactiveMapBtn의 createPOIBtn 메서드에서 사용된다. -->
+	<select id = "selectCensusBigThemeInfo" resultType="hashmap">
+		SELECT 
+			B_THEME_CD
+			, MIN(B_THEME_CD_NM) AS B_THEME_CD_NM
+		FROM 
+			CMM_CD_THEME
+		WHERE 
+			/*B_THEME_CD != ''*/
+			LENGTH(B_THEME_CD) = '1'
+			AND B_THEME_CD != '99'
+		GROUP 
+			BY B_THEME_CD
+		ORDER BY 
+			B_THEME_CD
+	</select>
+	
+	<!-- 특정 산업분류의 대분류에 속하는 소분류 테마코드 정보를 조회한다, 전국사업체조사의 테마업종 및 interactiveMapBtn의 createPOIBtn 메서드에서 사용된다. -->
+	<select id="selectCensusSmallThemeInfo" resultType="hashmap">
+		SELECT 
+			THEME_CD
+			, S_THEME_CD_NM
+			, ORDER_NO
+		FROM 
+			CMM_CD_THEME
+		WHERE 
+			/*B_THEME_CD != '' 
+			AND B_THEME_CD != '99'*/
+			LENGTH(B_THEME_CD) = '1'
+			AND THEME_CD != #{b_theme_cd}||'000'
+			AND B_THEME_CD = #{b_theme_cd}
+		ORDER BY
+			ORDER_NO
+	</select>
+	
+	
+	<!-- 코드리스트  -->
+	<select id="selectCodeList" resultType="hashmap">
+		SELECT 
+			THEME_CD
+			,ORDER_NO
+		FROM 
+			CMM_CD_THEME
+		WHERE 
+			LENGTH(B_THEME_CD) = '1'
+			AND THEME_CD like  #{b_theme_cd}||'%'
+		ORDER BY
+			ORDER_NO
+	</select>
+	
+	<!-- 테스트 -->
+	<select id="selectBizeCodeList" resultType="hashmap">
+		select ksic_2_cd , ksic_3_cd , ksic_2_nm , ksic_3_nm 
+		  from cmm_cd_corpclass
+		  where ksic_2_cd  != '00'
+		  group by ksic_2_cd, ksic_3_cd , ksic_2_nm , ksic_3_nm
+		  order by ksic_2_cd asc 
+	</select>
+	
+	
+	<!-- 테스트 -->
+	<select id="selectTestData" resultType="String">
+		select count(*) as data1
+		from CMM_CD_THEME 
+	</select>
+	
+	<!-- 종합분석 시계열 데이터  -->
+	<select id="selectCompanyCount" resultType="map">
+		SELECT company_cnt
+		FROM sbr_test
+		ORDER BY base_year ASC
+	</select>
+
+	<!-- 종합분석 전체기업수 및 기업규모 형태 개업폐업 대표자 차트  -->
+	<select id="selectSbrCompanyInfoList" resultType="map">
+	  select *
+	  from(
+		select a.base_year,a.ENT_CO ,a.OPBIZ_CO ,a.CLSBIZ_CO 
+		       ,b.ltrs_co , b.mident_co ,b.smlpz_co , b.smltrdids_co 
+		from srv_dt_sbr_bord_biz_detcnd_sm_test a
+		join srv_dt_sbr_bord_biz_sm_test b 
+		     on a.base_year = b.base_year and a.bord_type = b.bord_type  and a.bord_cd = b.bord_cd
+		     and a.biz_cd = b.biz_cd
+		where a.base_year <![CDATA[<=]]> #{year}
+		and a.bord_type like '%'||#{bord_type}||'%'
+		and a.bord_cd  = #{adm_cd}
+		and a.biz_cd = #{biz_cd}
+		and a.cnd_cd = #{cnd_cd}
+		order by a.base_year desc
+		limit 5
+	  )a
+	  order by base_year asc
+	</select>	
+	
+	
+
+	<!-- 종합분석 활동현황 데이터 -->
+	<select id="activeCompanyCount" resultType="map">
+		select a.ACT_CO, a.NACT_CO, a.ENT_CO, a.OPBIZ_CO, a.CLSBIZ_CO , b.ENT_CO as TOL_ENT_CO, b.OPBIZ_CO as TOL_OPBIZ_CO , b.CLSBIZ_CO as TOL_CLSBIZ_CO
+		  from srv_dt_sbr_bord_biz_detcnd_sm_test a
+		  join srv_dt_sbr_bord_biz_detcnd_sm_test b 
+			   on a.base_year = b.base_year and a.bord_type = b.bord_type and a.bord_cd = b.bord_cd
+	           and b.biz_cd = '999' and b.cnd_cd ='999'
+		  where a.base_year = #{year}
+			and a.bord_type like '%'||#{bord_type}||'%'
+			and a.bord_cd = #{adm_cd}
+			and a.biz_cd  = #{biz_cd}
+			and a.cnd_cd  = #{cnd_cd}
+	</select>	
+	
+	<!-- 종합분석 업종분석 개폐업현황 데이터 -->
+	<select id="opneCloseCompanyCount" resultType="map">
+		select biz_cd, opbiz_co, clsbiz_co 
+			from srv_dt_sbr_bord_biz_detcnd_sm_test 
+			where (biz_cd = '999' OR biz_cd = '11') and cnd_cd = '999'
+			and base_year = '2020' and bord_type = '12' and bord_cd = '11210'
+			order by biz_cd desc;
+	</select>
+	
+	<!-- 성장기업분포도 -->
+	<select id="selectSbrGrowthList" resultType="map">
+		select base_year, cnd_cd, act_co, ent_co
+		from srv_dt_sbr_bord_biz_detcnd_sm_test
+		where base_year = #{year}
+		and bord_type like '%'||#{bord_type}||'%'
+		and bord_cd  = #{adm_cd}
+		and biz_cd = #{biz_cd}
+		and cnd_cd in ('GR_10PLT','GR_10P_20PLT','GR_20P_','GR_HIGH','GR_ETC')
+	</select>
+	
+	<!-- 평균매출액 , 평균영업기간 -->
+	<select id="selectSbrAvgData" resultType="map">
+		select  a.base_year
+			   ,round(avg(b.sls_amt),0) as avg_sls_amt
+			   ,max(b.sls_amt) as max_sls_amt
+			   ,min(b.sls_amt) as min_sls_amt
+		       ,round(avg(b.avg_bsn_prid),0) as avg_bsn_prid
+		       ,max(b.avg_bsn_prid) as max_avg_bsn_prid
+			   ,min(b.avg_bsn_prid) as min_avg_bsn_prid
+		from srv_dt_sbr_bord_biz_detcnd_sm_test a
+		join srv_dt_sbr_bord_biz_sm_test b  
+		     on a.base_year  = b.base_year  and a.bord_type  = b.bord_type  and a.bord_cd = b.bord_cd 
+		     and a.biz_cd = b.biz_cd 
+		where a.base_year = #{year}
+		and a.bord_type like '%'||#{bord_type}||'%'
+		and a.bord_cd  = #{adm_cd}
+		and a.cnd_cd = #{cnd_cd}
+		and a.biz_cd != '999'
+		group by a.base_year
+	</select>
+	
+	<!-- 기업분석 -->
+	<select id="selectCompanyAnalysis" resultType="map">
+	
+		select a.base_year , a.ent_co ,b.sls_amt 
+		       ,b.ltrs_co , b.mident_co, b.smlpz_co, b.smltrdids_co
+		       ,(b.ltrs_enfsn_co + b.mident_enfsn_co + b.smlpz_enfsn_co  + b.smltrdids_enfsn_co ) as enfsn_co
+		       ,b.ltrs_enfsn_co, b.mident_enfsn_co, b.smlpz_enfsn_co,  b.smltrdids_enfsn_co
+		       ,b.ltrs_sls_amt , b.mident_sls_amt, b.smlpz_sls_amt, b.smltrdids_sls_amt
+		       ,ISNULL(c.base_year,0) as b_base_year , ISNULL(c.ent_co,0) as b_ent_co, ISNULL(d.sls_amt,0) as b_sls_amt
+		       ,(ISNULL(d.ltrs_enfsn_co,0) + ISNULL(d.mident_enfsn_co,0) + ISNULL(d.smlpz_enfsn_co,0)  + ISNULL(d.smltrdids_enfsn_co,0) ) as b_enfsn_co
+		from srv_dt_sbr_bord_biz_detcnd_sm_test a
+		join srv_dt_sbr_bord_biz_sm_test b  
+		     on a.base_year  = b.base_year  and a.bord_type  = b.bord_type  and a.bord_cd = b.bord_cd 
+		     and a.biz_cd = b.biz_cd
+		join srv_dt_sbr_bord_biz_detcnd_sm_test c 
+		     on c.base_year  = (a.base_year-1)  and c.bord_type  = a.bord_type  and c.bord_cd = a.bord_cd 
+		     and c.biz_cd = a.biz_cd and c.cnd_cd = a.cnd_cd
+		join srv_dt_sbr_bord_biz_sm_test d  
+		     on c.base_year  = d.base_year  and c.bord_type  = d.bord_type  and c.bord_cd = d.bord_cd 
+		     and c.biz_cd = d.biz_cd
+		where a.base_year = #{year}
+		and a.bord_type like '%'||#{bord_type}||'%'
+		and a.bord_cd  = #{adm_cd}
+		and a.cnd_cd = #{cnd_cd}
+		and a.biz_cd = #{biz_cd}
+		
+	</select>
+	
+	<!-- 주요기업  -->
+	<select id="selectCompanyMainList" resultType="map">
+		select *
+		from srv_dt_sbr_poi_test 
+		where base_year = #{year}
+		and cp_cd = #{adm_cd}
+		order by ent_sz asc, biz_cnt desc
+	</select>	
+	
+	<!-- 지도선택시 정보표시 -->
+	<select id="selectAreaInfo" resultType="map">
+	
+	select b.*
+	       ,round((b.ent_tot/b.totalEnt)*100,2) as distribution
+	from(
+		 select 
+		   a.* 
+		   ,round(((a.ent_tot - a.b_ent_tot)/a.b_ent_tot)*100,2) as growth
+		   ,(select sum(ent_tot)
+		   	   from srv_dt_sbr_bord_sm_test 
+		   	   where  base_year  = #{year}
+          		 and LENGTH(bord_cd) = LENGTH(#{adm_cd})
+          		 <if test = "adm_cd != null and adm_cd.length() != 2">
+				  and bord_cd like #{sido_cd}||'%'
+				 </if>
+            ) as totalEnt
+            from(
+            
+            	select  row_number() over (order by A.ent_tot  desc, A.ENT_OPBIZ_CO desc  ) as rankNum,
+					    A.bord_cd 
+					   ,A.ent_tot 
+					   ,A.ent_opbiz_co   
+					   ,B.ent_tot as b_ent_tot 
+					   ,B.ent_opbiz_co as b_ent_opbiz_co
+					   <if test = "adm_cd != null and adm_cd.length() == 2">
+					   ,C.sido_nm as addr
+					   ,C.x_coor
+					   ,C.y_coor
+					   </if>
+					   
+					   <if test = "adm_cd != null and (adm_cd.length() == 5 or adm_cd.length() == 7)">
+					   ,C.addr as addr
+					   ,C.x_coor
+					   ,C.y_coor
+					   </if>
+				from srv_dt_sbr_bord_sm_test A 
+				join srv_dt_sbr_bord_sm_test B on A.bord_cd = B.bord_cd and B.base_year = (#{year}-1)
+				<if test = "adm_cd != null and adm_cd.length() == 2">
+						join srv_pg_sidobord C on A.bord_cd = C.sido_cd and C.base_year = #{year}
+				</if>
+				
+				<if test = "adm_cd != null and adm_cd.length() == 5">
+					join srv_pg_sggbord C on SUBSTRING(A.bord_cd,1,2) = C.sido_cd 
+	                                     and SUBSTRING(A.bord_cd,3,3) = C.sgg_cd and C.base_year = #{year}
+				</if>
+				
+				<if test = "adm_cd != null and adm_cd.length() == 7">
+					join SRV_PG_ADMBORD C on SUBSTRING(A.bord_cd,1,2) = C.sido_cd 
+	                                     and SUBSTRING(A.bord_cd,3,3) = C.sgg_cd 
+	                                     and SUBSTRING(A.bord_cd,6,2) = C.emdong_cd
+	                                     and C.base_year = #{year}
+				</if>
+				where  A.base_year  = #{year}
+				and LENGTH(A.bord_cd) = LENGTH(#{adm_cd})
+				<if test = "adm_cd != null and adm_cd.length() != 2">
+				and A.bord_cd like #{sido_cd}||'%'
+				</if>
+				order by A.ent_tot  desc, A.ENT_OPBIZ_CO desc
+				
+            ) a
+            where bord_cd = #{adm_cd}
+	 )b   
+	</select>
+	
+	<!-- 공산분석 -->
+	<select id="selectAreaDataList" resultType="map">
+		select  a.base_year 
+		       ,a.bord_cd 
+		       , a.ent_tot 
+		       ,a.lnd_area 
+		       ,a.ppltn_tot 
+		       ,a.grid_1k_ppltn_co 
+		       ,a.ymage_co 
+		       ,a.lnd_avg_olnlp 
+		       ,a.lnd_avg_rl_dlpc 
+		       ,a.lnd_deal_co
+		       ,a.psn_1_family_co
+		       ,a.bd_30yy_mt_rt
+		       ,b.sls_amt 
+		       ,(b.ltrs_enfsn_co + b.mident_enfsn_co+ b.smlpz_enfsn_co+ b.smltrdids_enfsn_co) as enfsn_co
+		from srv_dt_sbr_bord_sm_test a
+		join srv_dt_sbr_bord_biz_sm_test b 
+		     on a.base_year = b.base_year  and a.bord_type = b.bord_type 
+		     and a.bord_cd = b.bord_cd  and b.biz_cd  = #{biz_cd} 
+		where (a.base_year <![CDATA[<=]]> #{year} and a.base_year <![CDATA[>=]]> (#{year}-5))
+		and a.bord_type like '%'||#{bord_type}||'%'
+		and a.bord_cd in (#{adm_cd},#{adm_cd2})
+		order by a.bord_cd asc, a.base_year asc
+	</select>
+	
+	<!-- 지도선택시 정보표시 -->
+	<select id="selectRankListInfo" resultType="map">
+	
+		select b.*
+	       ,round((b.ent_tot/b.totalEnt)*100,2) as distribution
+		from(
+			 select 
+			   a.* 
+			   ,round(((a.ent_tot - a.b_ent_tot)/a.b_ent_tot)*100,2) as growth
+			   ,(select sum(ent_tot)
+			   	   from srv_dt_sbr_bord_sm_test 
+			   	   where  base_year  = #{year}
+	          		 and LENGTH(bord_cd) = LENGTH(#{adm_cd})
+	          		 <if test = "adm_cd != null and adm_cd.length() != 2">
+					  and bord_cd like #{sido_cd}||'%'
+					 </if>
+	            ) as totalEnt
+	            from(
+	            
+	            	select  row_number() over (order by A.ent_tot  desc, A.ENT_OPBIZ_CO desc  ) as rankNum,
+						    A.bord_cd 
+						   ,A.ent_tot 
+						   ,A.ent_opbiz_co   
+						   ,B.ent_tot as b_ent_tot 
+						   ,B.ent_opbiz_co as b_ent_opbiz_co
+						   <if test = "adm_cd != null and adm_cd.length() == 2">
+						   ,C.sido_nm as addr
+						   ,C.x_coor
+					   	   ,C.y_coor
+						   </if>
+						   
+						   <if test = "adm_cd != null and (adm_cd.length() == 5 or adm_cd.length() == 7)">
+						   ,C.addr as addr
+						   ,C.x_coor
+					   	   ,C.y_coor
+						   </if>
+						   
+					from srv_dt_sbr_bord_sm_test A 
+					join srv_dt_sbr_bord_sm_test B on A.bord_cd = B.bord_cd and B.base_year = (#{year}-1)
+					
+					<if test = "adm_cd != null and adm_cd.length() == 2">
+						join srv_pg_sidobord C on A.bord_cd = C.sido_cd and C.base_year = #{year}
+					</if>
+					
+					<if test = "adm_cd != null and adm_cd.length() == 5">
+						join srv_pg_sggbord C on SUBSTRING(A.bord_cd,1,2) = C.sido_cd 
+		                                     and SUBSTRING(A.bord_cd,3,3) = C.sgg_cd and C.base_year = #{year}
+					</if>
+					
+					<if test = "adm_cd != null and adm_cd.length() == 7">
+						join SRV_PG_ADMBORD C on SUBSTRING(A.bord_cd,1,2) = C.sido_cd 
+		                                     and SUBSTRING(A.bord_cd,3,3) = C.sgg_cd 
+		                                     and SUBSTRING(A.bord_cd,6,2) = C.emdong_cd
+		                                     and C.base_year = #{year}
+					</if>
+					where  A.base_year  = #{year}
+					and LENGTH(A.bord_cd) = LENGTH(#{adm_cd})
+					<if test = "adm_cd != null and adm_cd.length() != 2">
+					and A.bord_cd like #{sido_cd}||'%'
+					</if>
+					order by A.ent_tot  desc, A.ENT_OPBIZ_CO desc
+					
+	            ) a
+		 )b   
+	 
+	</select>
+	
+	
+	<!-- 지도경계변경시 랭키변경 -->
+	<select id="selectSbrMapList" resultType="map">
+		select * 
+		from srv_dt_sbr_bord_sm_test
+		where base_year  = #{year}
+		and   (bord_cd like #{adm_cd}||'%'  or   LENGTH(bord_cd) = 2)
+	</select>
+	
+	
+</mapper>

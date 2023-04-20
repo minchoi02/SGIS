@@ -1,0 +1,1818 @@
+<%
+/**************************************************************************************************************************
+* Program Name  : 지역변화분석지도 JSP  
+* File Name     : statsMain.jsp
+* Comment       : 
+* History       : (주)아이티밴드, 조세진, 장시연 2022-10-17
+*
+**************************************************************************************************************************/
+%>
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<!DOCTYPE html>
+<html lang="ko" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <title>지역변화분석지도</title>
+
+  <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.js"></script>
+
+  
+  <!-- highchart local -->
+  <script src="/js/lvs/hightcharts/highcharts.js"></script>
+  <script src="/js/lvs/hightcharts/highcharts-more.js"></script>
+  <script src="/js/lvs/hightcharts/solid-gauge.js"></script>
+  <script src="/js/lvs/hightcharts/exporting.js"></script>
+  <script src="/js/lvs/hightcharts/export-data.js"></script>
+  <script src="/js/lvs/hightcharts/accessibility.js"></script>
+  <script src="/js/lvs/hightcharts/funnel.js"></script>
+  <script src="/js/lvs/hightcharts/heatmap.js"></script>
+  <script src="/js/lvs/hightcharts/treemap.js"></script>
+  
+  <script type="text/javascript" src="https://sgisapi.kostat.go.kr/OpenAPI3/auth/javascriptAuth?consumer_key=590a2718c58d41d9ae3b"></script>
+  <!-- rSlider  -->
+  <script src="/js/lvs/rSlider.min.js"></script>
+
+   <link rel="stylesheet" href="/css/lvs/reset.css">
+   <link rel="stylesheet" href="/css/lvs/rSlider.css">
+   <link rel="stylesheet" href="/css/lvs/font.css">
+   <link rel="stylesheet" href="/css/lvs/component.css">
+   <link rel="stylesheet" href="/css/lvs/extendBoard.css">
+   
+   <script src="/js/plugins/jquery-easyui-1.4/sop-src.js"></script>
+   <script src="/js/plugins/jquery.sha256.js"></script>
+   <script src="/js/plugins/durian-v2.0.js"></script>
+   
+   <script src="/js/common/sop.portal.absAPI.js"></script>   
+   <script src="/js/common/common.js"></script> 
+   <script src="/js/common/mapNavigation.js"></script>
+    
+   <script src="/js/lvs/pageContentsData.js"></script>    
+
+    <script defer="defer"  src="/js/lvs/chartConfig.js"></script>
+    <script src="/js/lvs/common.js"></script>
+
+  <script>
+     //페이지 전체변수
+    const mapInfo ={
+		    map: null,
+		    secure_mode: false,
+		    x:990196.5800601951,
+		    y:1817512.448125631,
+		    x2:997978,
+		    y2:1809645,
+            level: 4,		    
+		    
+		    options : {
+                ollehTileLayer: false,
+                scale: false, // 축척 컨트롤
+                panControl: false, // 지도 이동 컨트롤
+                zoom: false,
+                zoomSliderControl: false, //줌 컨트롤
+                measureControl: false, // 측정 컨트롤 (면적, 길이)
+                zoomAnimation: true,
+                statisticTileLayer: true,
+                attributionControl: false // 지도속성 컨트롤
+            }, 
+            
+            data:  { 
+            	population: null,  // 총조사 주요지표
+            },
+
+            dataKind:'tot_ppltn',
+            mode: 'hide',  // 데이터표시여부
+            consumer_key: '590a2718c58d41d9ae3b',
+            consumer_secret: 'ab7fe94f9fb64336abd3',
+            accessToken: null,
+            base_year: '2020',   // 경계기준년도            
+            this_year: '2020',    // 조회년도
+            last_year:'2019',     //비교년도
+            year_list: ['2000','2005','2010','2015','2016','2017','2018','2019','2020'],    //조회년도
+            sido_cd: '25',
+            sgg_cd:'030',
+            emdong_cd: '',
+            cur_item_no: 0, // 현재 선택된 아이템            
+            sido_nm: '대전광역시',
+            sgg_nm: '서구',
+            emdong_nm: '',
+            
+            region_cd: '25030',            
+            view_cd: 'sgg',  //
+            
+            legendColor: ["#f51d05"],
+            borderColor: ["#000000"],            
+
+            oriArea: null,   //현재 경계:의 오리지널 레이어
+            sopArea: null,
+            addrObj: null,  //현재주소정보
+            sidoObj: null,  //시도정보
+            sggObj: null, //시군구정보
+            intervalId: null, // 지도로딩 여부체크
+            
+		    colorPl :  ['#05A8F5','#FF5F5F','#3ECF9A','#E0E0E0','#FC821C'], //차트 칼라            
+            sido_stat_cnt:28,
+            sgg_stat_cnt:28,
+            emdong_stat_cnt:8,
+            
+            chartType: {
+            	'tot_ppltn':'donut','tot_family':'line','tot_house':'pie','tot_one_family':'map','corp_cnt':'pie',
+            	'employee_cnt':'pie','newbaby_cnt':'line','dead_cnt':'donut','newlyweds_cnt':'column',
+            	'population_in_cnt':'column','old_age_cnt':'pie','marrige_cnt':'line','divorce_cnt':'line',
+            	'old_oneman_cnt':'pie','old_oneman_rt':'donut','apart_cnt':'line','house_own_rt':'line',
+            	'employ_rt':'donut','unemploy_rt':'donut','employ_cnt':'pie','walker_accdt_cnt':'line',
+            	'traffic_accdt_cnt':'line','fire_accdt_cnt':'line','car_own_rt':'line',
+            	'green_area_rt':'line','water_supply_rt':'line','life_waste_cnt':'line' 
+            },
+            
+            // tot_ppltn: pie
+            
+            /*
+            data_kind:{
+            	sido:["tot_ppltn","tot_family","tot_house","tot_one_family","corp_cnt","employee_cnt","newbaby_cnt","dead_cnt","newlyweds_cnt","population_in_cnt","population_out_cnt","old_age_cnt","marrige_cnt","divorce_cnt","old_oneman_cnt","old_oneman_rt","apart_cnt","house_own_rt",'employ_rt','unemploy_rt','employ_cnt','walker_accdt_cnt','traffic_accdt_cnt','fire_accdt_cnt ','car_own_rt','green_area_rt','water_supply_rt','life_waste_cnt'],
+            	sgg:["tot_ppltn","tot_family","tot_house","tot_one_family","corp_cnt","employee_cnt","newbaby_cnt","dead_cnt","newlyweds_cnt","population_in_cnt","population_out_cnt", "old_age_cnt","marrige_cnt","divorce_cnt","old_oneman_cnt","old_oneman_rt","apart_cnt","house_own_rt",'employ_rt','unemploy_rt','employ_cnt','walker_accdt_cnt','traffic_accdt_cnt','fire_accdt_cnt ','car_own_rt','green_area_rt','water_supply_rt','life_waste_cnt'],
+            	emdong:["tot_ppltn","tot_family","tot_house","tot_one_family","corp_cnt","employee_cnt","old_age_cnt","divorce_cnt","old_oneman_cnt","old_oneman_rt","apart_cnt","house_own_rt",'walker_accdt_cnt']
+            },
+            */
+            data_kind:{
+            	sido:["tot_ppltn","tot_family"],
+            	sgg:["tot_ppltn","tot_family"],
+            	emdong:["tot_ppltn","tot_family"],
+            },
+            /* 			            총 인구, 1인 가구, 종사자 수 			출생아 수, 노령인구 수 			독거노인 가구 수 			취업자 수 			*/
+            data_kind2_list: " tot_ppltn, tot_one_family,  employee_cnt,  newbaby_cnt, old_age_cnt, old_oneman_cnt, employ_cnt  ",   //차트유형이 복잡한놈들
+            dummy: null
+	} ;
+     
+     
+    const mapInfoArea = {
+    		'25': null,
+    		'25030': null 
+    }
+     
+    const mapInfoData = {
+    		'25': {
+		   		     "tot_ppltn" :{  name:"총 인구",
+			             thisYear:'2022년',
+			             thisYearVal:365123,
+			             thisYearKey1:'남', 
+			             thisYearVal1:230978,
+			             thisYearKey2:'여', 
+			             thisYearVal2:205875,
+			             lastYear:'2021년', 
+			             lastYearVal:112548, 
+			             yearData:{
+			            	   year:["2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"],
+			            	   title1_data: [100,100,100,100,100,100,100,100,100,100,100,100],
+			            	   title2_data: [200,200,200,200,200,200,200,200,200,300,300,300],
+			            	   tot_data: [300, 300,300,200,300,200,200,200,400,300,300,300],
+			            	   title1: '남자',			            	   
+			            	   title2: '여자',
+			            	 },
+			              "unit": "명",	
+			              "larger": "<대전광역시 유성구 (3,100명)>,<대전광역시 서구 (2,100명)>",
+			              "larger2": "<대전광역시 유성구 (3,100명)>,<대전광역시 서구 (2,100명)>",    		    	              
+			              "smaller": "<대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)>",
+			              "smaller2": "<대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)>",    		    	              
+			              'area' : null
+		                },
+		                
+			    		"tot_family" :{  name:"총 가구",
+				             thisYear:'2022년',
+				             thisYearVal:365123,
+				             thisYearKey1:'남', 
+				             thisYearVal1:230978,
+				             thisYearKey2:'여', 
+				             thisYearVal2:205875,
+				             lastYear:'2021년', 
+				             lastYearVal:112548, 
+				             yearData:{
+				            	   year:["2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"],
+				            	   title1: '남자',
+				            	   title1_data: [100, 100,100,100,100,100,100,100,100,100,100,100],
+				            	   title2: '여자',
+				            	   title2_data: [200, 200,200,200,200,200,200,200,200,300,300,300],
+				            	   tot_data: [300, 300,300,200,300,200,200,200,400,300,300,300], 
+				            	 },
+				              "unit": "명",	
+				              "larger": "<대전광역시 유성구 (3,100명)>,<대전광역시 서구 (2,100명)>",
+				              "larger2": "<대전광역시 유성구 (3,100명)>,<대전광역시 서구 (2,100명)>",    		    	              
+				              "smaller": "<대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)> aaaaa",
+				              "smaller2": "<대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)> aaaaa",    		    	              
+			                },
+			                
+			 
+							 "gagu" :{},    		     
+							 "house" :{},
+							 "1gagu" :{},
+							 "corp" :{},
+							 "employee" :{},    		     
+    		},
+    		
+    		'25030': 
+    		   {
+    		     "tot_ppltn" :{  name:"총 인구",
+    		    	             thisYear:'2022년',
+    		    	             thisYearVal:365123,
+    		    	             thisYearKey1:'남', 
+    		    	             thisYearVal1:230978,
+    		    	             thisYearKey2:'여', 
+    		    	             thisYearVal2:205875,
+    		    	             lastYear:'2021년', 
+    		    	             lastYearVal:112548, 
+    		    	             yearData:{
+    		    	            	   year:["2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"],
+    		    	            	   title1: '남자',
+    		    	            	   title1_data: [100, 100,100,100,100,100,100,100,100,100,100,100],
+    		    	            	   title2: '여자',
+    		    	            	   title2_data: [200, 200,200,200,200,200,200,200,200,300,300,300],
+    		    	            	   tot_data: [300, 300,300,200,300,200,200,200,400,300,300,300], 
+    		    	            	 },
+    		    	              "unit": "명",	
+    		    	              "larger": "<대전광역시 유성구 (3,100명)>,<대전광역시 서구 (2,100명)>",
+    		    	              "larger2": "<대전광역시 유성구 (3.23%)>,<대전광역시 서구 (2,12%)>",    		    	              
+    		    	              "smaller": "<대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)> ",
+    		    	              "smaller2": "<대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)> ",    		    	              
+    		    	              'area' : null
+    		                    },
+    		                    
+       		     "tot_family" :{  name:"총 가구수",
+    		    	             thisYear:'2022년',
+    		    	             thisYearVal:365123,
+    		    	             thisYearKey1:'남', 
+    		    	             thisYearVal1:230978,
+    		    	             thisYearKey2:'여', 
+    		    	             thisYearVal2:205875,
+    		    	             lastYear:'2021년', 
+    		    	             lastYearVal:112548, 
+    		    	             yearData:{
+    		    	            	   year:["2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"],
+    		    	            	   title1: '남자',
+    		    	            	   title1_data: [100, 100,100,100,100,100,100,100,100,100,100,100],
+    		    	            	   title2: '여자',
+    		    	            	   title2_data: [200, 200,200,200,200,200,200,200,200,300,300,300],
+    		    	            	   tot_data: [300, 300,300,200,300,200,200,200,400,300,300,300], 
+    		    	            	 },
+    		    	              "unit": "명",	
+    		    	              "larger": "<대전광역시 유성구 (3,100명)>,<대전광역시 서구 (2,100명)>",
+    		    	              "larger2": "<대전광역시 유성구 (3,100명)>,<대전광역시 서구 (2,100명)>",    		    	              
+    		    	              "smaller": "<대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)> aaaaa",
+    		    	              "smaller2": "<대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)> aaaaa",    		    	              
+    		                    },
+    		                    
+    		     
+    		       "tot_house" :{  name:"총 가구수",
+        		    	             thisYear:'2022년',
+        		    	             thisYearVal:365123,
+        		    	             thisYearKey1:'남', 
+        		    	             thisYearVal1:230978,
+        		    	             thisYearKey2:'여', 
+        		    	             thisYearVal2:205875,
+        		    	             lastYear:'2021년', 
+        		    	             lastYearVal:112548, 
+        		    	             yearData:{
+        		    	            	   year:["2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"],
+        		    	            	   title1: '남자',
+        		    	            	   title1_data: [100, 100,100,100,100,100,100,100,100,100,100,100],
+        		    	            	   title2: '여자',
+        		    	            	   title2_data: [200, 200,200,200,200,200,200,200,200,300,300,300],
+        		    	            	   tot_data: [300, 300,300,200,300,200,200,200,400,300,300,300], 
+        		    	            	 },
+        		    	              "unit": "명",	
+        		    	              "larger": "<대전광역시 유성구 (3,100명)>,<대전광역시 서구 (2,100명)>",
+        		    	              "larger2": "<대전광역시 유성구 (3,100명)>,<대전광역시 서구 (2,100명)>",    		    	              
+        		    	              "smaller": "<대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)> aaaaa",
+        		    	              "smaller2": "<대전광역시 동구 (-3,433명), 대전광역시 중구 (-2,674명)> aaaaa",    		    	              
+        		                    },
+    		     "house" :{},
+    		     "1gagu" :{},
+    		     "corp" :{},
+    		     "employee" :{},    		     
+    		   },
+    } ;
+    
+    
+    const mapLocationInfo = {
+    		25030:{x:997978,y:1809645,x2:997978,y2:1809645,level:6},    		
+    }  ;
+    
+     
+    $(document).ready(function () {
+    	fn_init_event_config();
+    	fn_hichart_option();
+    	fn_init_map();
+     });
+    
+    
+    function fn_test(){
+        var center = mapInfo.map.getCenter();
+        var level = mapInfo.map.getZoom();
+        var temp = mapInfo.region_cd+":{x2:"+center.x+",y2:"+center.y+",level:"+level+"},";
+        $("#locationInfo").html(temp);
+    }
+    
+    
+    //
+    function fn_curArea(){
+		$.ajax({
+              url : "https://sgisapi.kostat.go.kr/OpenAPI3/boundary/hadmarea.geojson?accessToken="+mapInfo.accessToken+"&year="+mapInfo.base_year+"&adm_cd="+ mapInfo.region_cd,
+              type : "get",
+				success: function (res, status) {
+					// layer add 
+					if (res.errMsg !="Success") {
+						alert('  경계 데이터 조회 실패입니다. 잠시후에 시도해주세요');
+						return ;
+					}
+					mapInfoArea[mapInfo.region_cd] = res ;
+					mapInfo.oriArea = res;						
+                	mapInfo.sopArea = sop.geoJson(res).addTo(mapInfo.map);
+				},
+				complete : function(){
+					fn_getStatistic(0);   //색지도는 데이터를 가지고 온다음.    //
+			    },
+			});
+    }
+    
+    function fn_fullData(){
+		map_area_clear();  //데이터를 다시 불러오는 경계에만 경계를 지운다.
+		
+    	
+    	let infoDiv_cd = (mapInfo.view_cd=='sido')?'2':'3' ;
+    	const obj = {
+    			       baseYear: mapInfo.base_year
+	    			,  thisYear: mapInfo.this_year
+	    			, lastYear: mapInfo.last_year
+	    			, viewCd: mapInfo.view_cd
+	    			, regionCd: mapInfo.region_cd
+	    			, sidoCd: mapInfo.sido_cd
+	    			, sggCd: mapInfo.sgg_cd
+	    			, emdongCd: mapInfo.emdong_cd	    		
+	    			, infoDiv: infoDiv_cd 
+	    			, list : mapInfo.data_kind[mapInfo.view_cd]
+    				, yearList : mapInfo.year_list
+    			} ;
+
+    	
+    	$.ajax({
+            url : "/view/lvs/dataList" ,
+            data: JSON.stringify(obj),
+            dataType: "json",
+            contentType: "application/json; charset=UTF-8",            
+            type : "POST",
+				success: function (res, status) {
+					if (res[0].errMsg !="Success") {
+						alert(' 통계 데이터 조회 실패입니다. 잠시후에 시도해주세요');
+						return ;
+					}
+					
+					//console.log(res[0][mapInfo.region_cd]);
+					mapInfoData[mapInfo.region_cd] = res[0][mapInfo.region_cd];
+					
+			   		//mapInfo.map.setView(sop.utmk(mapInfo.x2, mapInfo.y2), mapInfo.level);
+				},
+				complete : function(){
+					fn_curArea();   //걍계부터 그리자
+			    },
+			});
+    	
+    	
+    }    
+    
+    function fn_init_map(){
+    	$.ajax({
+            url : "https://sgisapi.kostat.go.kr/OpenAPI3/auth/authentication.json" +
+            		"?consumer_key="+mapInfo.consumer_key+"&consumer_secret="+mapInfo.consumer_secret,
+            type : "get",
+				success: function (res, status) {
+					mapInfo.accessToken = res.result.accessToken;//토큰을 가져온다.
+					fn_init_map2();  
+				},
+				complete : function(){
+			    },
+			});
+    }
+    
+    function fn_init_slider(){
+    	$('.slick_slider').slick({
+    	    dots: true,
+    	    speed: 300,
+    	    prevArrow:".arrows > .prev_arrow",
+    	    nextArrow:".arrows > .next_arrow",
+    	    autoplay: false,
+    	    autoplaySpeed: 3000
+
+    	  });
+    	
+    	 
+    }
+    
+    function fn_data_display(){
+       	if( mapInfo.mode == 'show'){
+               $(this).removeClass("active");
+               mapInfo.mode = 'hide';              
+       	} else {
+               $(this).addClass("active");
+               mapInfo.mode = 'show';              
+       	}
+        fn_reDrawArea();  //경계만 다시 그리기
+    }
+    
+    
+    function fn_init_event_config() {
+        $('.location_more').click(function () {
+          if (!$(this).hasClass("active")) {
+            $(this).addClass("active");
+
+          } else {
+            $(this).removeClass("active");
+          }
+          //$('.location_more_box').toggle();
+
+          $('.location_more_box').show();
+          $('.location_more_box').removeClass("active");
+          
+        
+        });
+
+        $('#btn_close').click(function () {
+          $('.location_more_box').hide();
+          $('.location_more').removeClass("active");
+        });
+  	
+  	
+      // 팝업 레이어 닫기
+      
+      $(".layer_close").click(function (e) {
+          $(e.target).closest('.popup_layer').hide();
+      }) ;
+      
+
+      $(".tabCommon li a").click(function () {
+          let activeTab = $(this).attr("rel");
+          let tabName = $(this).data('tabname')
+          $(this).parent().siblings("li").removeClass("active");
+          $(this).parent().addClass("active"); 
+          
+          if(tabName == "tab2")  $(".tab_container2").children('.tab_content2').hide();  // 우리동네 상황판 차트, 테이블
+          else if (tabName == "tab3") $(this).closest('.tab_container').siblings('.tab_content3').hide(); // 추천지표보기, 모든지표 보기
+          else if (tabName == "tab4") $(this).closest('.tab_container4').children('.tab4').hide(); // 추천지표 (변화그래프, 지역내 순위, 변화지도, 타 지자체 비교)
+          else if (tabName == "tab5") $(this).closest('.tab_container5').children('.tab_content5').hide(); // 소지역보기 팝업 (집계구보기, 변화지도, 변화그래프)
+          else if (tabName == "tab6") $(this).closest('.result_box').children('.step_box').hide();
+          else if (tabName == "tab8" || tabName == "tab9") $(this).closest('.tabCommon').siblings('.tabContent').children('li').hide();
+          
+          if(!activeTab) {
+              activeTab = $(this).data('tab') ;
+              $(this).closest('.tabCommon').siblings('.tabContent').children('li').each(function(i,item) {
+                  $(item).removeClass('active')
+                  $(item).hide()
+                  if(activeTab == $(item).data('link')) {
+                      $(item).show();
+                      $(item).addClass('active')
+                  }
+              })
+          } else {
+              $("#" + activeTab).fadeIn(10);
+          }
+          
+          if(activeTab == "tab4_1")  $('#tab4_chart1').highcharts().reflow() // 추천지표 변화그래프
+          else if(activeTab == "tab4_3") $('#tab4_chart3').highcharts().reflow()  // 추천지표 지역내 순위
+          else if(activeTab == "tab4_4") {                                         // 추천지표 타 지자체 비교
+              $('#vrsChart1').highcharts().reflow()
+              $('#vrsChart2').highcharts().reflow()
+          } else if (activeTab == "tab5_3") $("#popupChart1").highcharts().reflow() // 소지역보기 변화그래프
+
+      });
+      
+      //슬라이더 이벤트      
+      $('.extend_data_01 .slider_item').click(function (event) {
+      	let num =  parseInt($(event.target).closest('.slider_item').find('span.num').text())-1 ;
+      	mapInfo.cur_item_no = num;
+      	fn_slider_click(num);
+     });
+      
+    }
+    
+    function fn_slider_click(num){
+    	fn_getStatistic(num);
+    	let key = mapInfo.data_kind[mapInfo.view_cd][num];
+    	obj = mapInfoData[mapInfo.region_cd][key] ;
+    	//if(!obj) return ;
+    	$("#curStat").html(obj.name);
+    	$('.slick_slider').slick('goTo', Math.ceil((parseInt(num)+1)/6)-1);    	
+      	return true ;    	
+    }
+    
+    function openPopup (type, param) { 
+        if (type == 'type1') { // 메인페이지 이동
+            $(".popup_layer.type1").show();
+        } else if (type == "type2") {  // 소지역 보기 팝업
+
+            let mapStatus = true // 맵 상태가 소지역일때 false, 소지역 이상일때 true 
+
+            if (!mapStatus) {
+                $(".popup_layer.failed").show()
+                return false;
+            }
+
+            $(".popup_layer.type2.success").show() // 소지역 보기 팝업 오픈 
+
+            // chart render 
+            let title = "임시타이틀"
+            let dummyData = { "title": title, "category": [], "data": [] } // 변화그래프 탭 차트
+            let count = makeRandomData(5, 12);
+            for (i = 0; i < count; i++) {
+                dummyData.category.push(2010 + i);
+                dummyData.data.push(makeRandomData(100, 500))
+            }
+
+            combiLineColumn('popupChart1', dummyData);
+        }
+    }
+
+		    
+	 function fn_init_map2(){
+		let url = window.location.href+"" ;
+		if (url.indexOf('localhost')>=0 || url.indexOf('https')>=0)
+			mapInfo.secure_mode = true ;
+		
+	   	 if (mapInfo.secure_mode && navigator.geolocation) {
+	   	      navigator.geolocation.getCurrentPosition(function (position) {
+		   	      var utmkXY = new sop.LatLng (position.coords.latitude, position.coords.longitude);
+		   	  	  mapInfo.x = utmkXY.x;
+		   	  	  mapInfo.y = utmkXY.y ;
+		   	  	  mapInfo.x2 = parseFloat(parseFloat(mapInfo.x) )  ;
+		   	  	  mapInfo.y2 = parseFloat(parseFloat(mapInfo.y) )  ;		   	  	  
+		   	  	  
+		   	   	  mapInfo.map = sop.map("map",mapInfo.options);
+		   		  mapInfo.map.setView(sop.utmk(mapInfo.x2, mapInfo.y2), mapInfo.level);
+		   		  getReverseGeo();
+	   	      });
+	   	  } else {
+	   	   	  mapInfo.map = sop.map("map",mapInfo.options);
+	   		  mapInfo.map.setView(sop.utmk(mapInfo.x, mapInfo.y), mapInfo.level);
+	   		  mapInfo.map.dragging.enable();
+	   		  getReverseGeo();
+	   	  }
+   	  }
+	 
+	 function fn_make_slick_sliderContent(){
+		 let cnt = mapInfo.data_kind[mapInfo.view_cd].length ;
+		 let pageCnt =  Math.ceil(cnt/6) ;
+		 let result = "" ;		 
+		 for (let i=0; i<pageCnt; i++){
+			 var slick_sliderContent = slick_sliderContent_temp + "" ;
+			 let id = "sliderContent" + i  ;
+			 slick_sliderContent = slick_sliderContent.replaceAll('#sliderContentId#', id) ;
+			 slick_sliderContent = slick_sliderContent.replaceAll('#slick_sliderContent_item#', fn_make_slick_sliderContent_item(i)) ;			 
+			 result = result + slick_sliderContent ;
+		 }
+		 return result ;
+	 }
+	 
+	 function fn_make_slick_sliderContent_item(pageNo){
+		 //if (mapInfoData[mapInfo.sgg_cd] == undefined ||   mapInfoData[mapInfo.sgg_cd].cnt == null  )
+		 //	 return ;
+		 //let cnt = mapInfoData[mapInfo.sgg_cd].cnt		 ;
+		 let obj = mapInfo.data_kind[mapInfo.view_cd] ;
+		 let code = mapInfo.region_cd ;
+		 
+		 let cnt = obj.length ;
+		 let result = "" ;
+		 
+		 
+		 for (let i=0; i<6; i++){
+			 var num = parseInt(pageNo*6 +i+1) ;
+			 if (num>cnt) break;
+			 let key = obj[num-1];
+			 let mode = (mapInfo.data_kind2_list.indexOf(key)>0)?"kind2":"kind1" ;
+				 
+			 
+			 let item = mapInfoData[code][key];			 
+			 var id = "chartId" + num ;
+			 
+			 var slick_sliderContent_item  =   (mapInfo.data_kind2_list.indexOf(key)>0)?slick_sliderContent_item_temp:slick_sliderContent_item_temp2 + "" ;
+			 //var slick_sliderContent_item  =  slick_sliderContent_item_temp ;
+			 slick_sliderContent_item = fn_temp_replaceAll(slick_sliderContent_item, item) ;
+			 slick_sliderContent_item = slick_sliderContent_item.replaceAll("#sliderContent_item_chartId#",id);			 
+			 slick_sliderContent_item = slick_sliderContent_item.replaceAll("#num#",num);  
+			 result = result + slick_sliderContent_item ;
+		 }
+		 	 
+		 return result ;
+	 }
+	 
+	 function fn_tabContent2_slider_chart(statData){
+		 var dataKindObj = mapInfo["data_kind"][mapInfo.view_cd];
+
+        for(let i=0; i<dataKindObj.length; i++){
+        	let id = "chartId" + parseInt(i+1);
+        	let type = mapInfo.chartType[dataKindObj[i]] ;
+        	let item = statData[dataKindObj[i]] ;
+        	
+            if      (type == 'donut')  fn_layerDonut(id, item );
+            else if (type == 'column') fn_layerColumn(id, item);
+            else if (type == 'map')    fn_layerMap(id, item);
+            else if (type == 'pie')    fn_layerPie(id, item);
+            else if (type == 'line')   fn_layerLine(id, item);
+            else console.log("nothing");
+        }
+
+	        // 차트 그리기
+	        /*
+	        const sliderData = [
+		            [
+			            { "id": "ar1_", "type": "donut", "title": "총인구", "unit": "(단위:명)", "lastYearData": 471258, "nowYearData": 469426, "lastYearName": "2021년", "nowYearName": "2022년", "graphDataName1": "남자", "graphDataName2": "여자", "graphData1": 230978, "graphData2": 205875 },
+			            { "id": "ar1_", "type": "line", "title": "사망자수", "unit": "(단위:명)", "category": [2018, 2019, 2020, 2021, 2022], "dataName": "사망자수", "dataCount": [456, 789, 999, 555, 666], "lastYearData": 471258, "nowYearData": 469426, "lastYearName": "2021년", "nowYearName": "2022년" },
+			            { "id": "ar1_", "type": "column", "title": "1인가구", "unit": "(단위:명)", "category": [2018, 2019, 2020, 2021, 2022], "dataName": "1인가구", "dataCount": [123, 456, 789, 999, 1023], "lastYearData": 471258, "nowYearData": 469426, "lastYearName": "2021년", "nowYearName": "2022년" },
+			            { "id": "ar1_", "type": "map", "title": "사업체 수", "unit": "(단위:개)", "lastYearData": 425775, "nowYearData": 413547, "lastYearName": "2021년", "nowYearName": "2022년", "dataSeries": [{ "name": "A", "value": 10, "colorValue": 1 }, { "name": "A", "value": 20, "colorValue": 2 }, { "name": "A", "value": 30, "colorValue": 3 }, { "name": "A", "value": 40, "colorValue": 4 }] },
+			            { "id": "ar1_", "type": "pie", "title": "신혼부부 수", "unit": "(단위:명)", "lastYearData": 471258, "nowYearData": 469426, "lastYearName": "2021년", "nowYearName": "2022년", "graphDataName1": "2021년", "graphDataName2": "2022년", "graphData1": 230978, "graphData2": 205875 },
+			            { "id": "ar1_", "type": "donut", "title": "총인구", "unit": "(단위:명)", "lastYearData": 425775, "nowYearData": 413547, "lastYearName": "2021년", "nowYearName": "2022년", "graphDataName1": "남자", "graphDataName2": "여자", "graphData1": 267785, "graphData2": 244755 }
+		            ],
+		            
+		            
+	            ] ;
+	         */
+		   
+	        
+            /*
+		    for(let i=0; i<4; i++){
+		        for(let j=0; j<sliderData[i].length; j++){
+		        	var item = sliderData[i][j];
+		        	var id = "chartId" + parseInt(i*6+j+1);
+		        	
+		            if (item.type == 'donut') fn_layerDonut(id, item);
+		            else if (item.type == 'column') fn_layerColumn(id, item);
+		            else if (item.type == 'map') fn_layerMap(id, item);
+		            else if (item.type == 'pie') fn_layerPie(id, item);
+		            else if (item.type == 'line') fn_layerLine(id, item);
+		            else console.log("nothing");
+		        }
+		    }
+            */
+		 
+	 }
+	 
+	 
+     //일괄변환함수하나 만들자
+     //숫자|| 문자##
+     
+     function fn_temp_replaceAll(temp,data){
+    	 let result = temp + "" ;
+    	 for(key in data) {
+    		 if (typeof(data[key])=="object") continue ; 
+ 		    let tag = "#"+key+"#";
+		    let tag2 = "||"+key+"||";
+		    
+		    result = result.replaceAll(tag, data[key]);
+		    result = result.replaceAll(tag2, numberFormat(data[key]));		    
+
+
+    	 }
+    	 return result;
+     }
+     
+	 function fn_init_board(statData, dataKey){
+		 let extend_data_01 = extend_data_01_temp +""  ;
+	     let extend_data_01_main_sec01 = extend_data_01_main_sec01_temp +"" ;
+	     let extend_data_01_main_sec02 = extend_data_01_main_sec02_temp +"" ;
+	     let extend_data_01_main_sec01_type2  = extend_data_01_main_sec01_type2_temp +"" ;	     
+	     
+	     extend_data_01_main_sec01 =  fn_temp_replaceAll(extend_data_01_main_sec01,statData[dataKey]) ;	     
+	     extend_data_01_main_sec02 =  fn_temp_replaceAll(extend_data_01_main_sec02,statData[dataKey]) ;
+		 let mode = (mapInfo.data_kind2_list.indexOf(dataKey)>0)?"kind2":"kind1" ;
+		 
+		 if (mode == "kind2"){
+			 extend_data_01_main_sec01_type2  =  fn_temp_replaceAll(extend_data_01_main_sec01_type2,statData[dataKey]) ;			 
+		 } else {
+			 extend_data_01_main_sec01_type2 ="" ;
+		 }
+		 
+		 extend_data_01_main_sec01 =  extend_data_01_main_sec01.replaceAll('#extend_data_01_main_sec01_type2#', extend_data_01_main_sec01_type2) ;   //두개짜리 처리
+		 
+	     extend_data_01  = extend_data_01.replaceAll('#extend_data_01_main_sec01#', extend_data_01_main_sec01) ; 
+	     extend_data_01 = extend_data_01.replaceAll('#extend_data_01_main_sec02#', extend_data_01_main_sec02) ;
+	     extend_data_01 = extend_data_01.replaceAll('#slick_sliderContent#', fn_make_slick_sliderContent()) ;
+	     
+	     $("#data-large-body").empty();
+		 $("#data-large-body").html(extend_data_01);
+		 
+		 let statName = mapInfo.data_kind[mapInfo.view_cd][0] ;
+		 
+		 fn_tabContent2_chart(statData[statName]['yearData']);
+		 fn_tabContent2_slider_chart(statData);
+		 fn_init_event_config();
+	 }
+	 
+
+	 function changeLocation(){
+		 getSggInfo($("#sido_select option:selected").val(), 2);
+	 }
+	 
+	 function selectViewMode(mode){
+		 var obj = null ;
+		 var seekCode = "" ;
+		 
+		 $('.subCounty').hide();		 
+		 
+		 if(mode==1) {
+			 //if(mapInfo.view_cd=="sido") return ;
+			 $('.province').addClass('active');
+			 $('.county').removeClass('active');
+			 $('.subCounty').removeClass('active');
+			 obj = mapInfo.sidoObj;
+			 mapInfo.view_cd = "sido";
+			 mapInfo.region_cd = mapInfo.sido_cd ;			 
+			 mapInfo.sgg_cd = "";
+			 mapInfo.emdong_cd = "" ;			 
+			 $("#sgg_select option:eq(0)").prop("selected", true); //첫번째 option 선택
+		 } else if (mode==2) {
+			 $('.province').removeClass('active');
+			 $('.county').addClass('active');			 
+			 $('.subCounty').removeClass('active');
+			 mapInfo.view_cd = 'sgg';
+			 obj = mapInfo.sggObj;		
+			 mapInfo.region_cd = mapInfo.sido_cd +mapInfo.sgg_cd ;
+			 mapInfo.emdong_cd = "";
+			 
+		 } else if (mode==3) {
+			 $('.province').removeClass('active');
+			 $('.county').removeClass('active');			 
+			 $('.subCounty').addClass('active');
+			 $('.subCounty').show();
+			 mapInfo.view_cd = 'emdong';			 
+			 obj = mapInfo.sggObj;		
+			 mapInfo.region_cd = mapInfo.sgg_cd ;
+		 }
+		 
+		 for(let i=0; i< obj.length; i++){
+			 if (obj[i].cd == mapInfo.region_cd ){
+				 mapInfo.x =  obj[i].x_coor ;
+				 mapInfo.y =  obj[i].y_coor ;
+	 	  	     mapInfo.x2 = parseFloat(parseFloat(mapInfo.x) )  ;
+	  	  	     mapInfo.y2 = parseFloat(parseFloat(mapInfo.y) )  ;
+	  	  	     // dokadoka todo
+			 }
+		 }
+		 
+		   //일단경계를 지운다.
+	     fn_setFixedMapView(mapLocationInfo[mapInfo.region_cd]);   // 맵의크기 위치값을 보정한다		 
+
+		 fn_fullData(); // 경계 다시 그리기
+	 }
+	 
+	 
+	 function redrawMap(){
+		 //선택된 시도/시군구 여부에 따라 x, y좌표를 알아온다.
+		 mapInfo.sido_cd = $("#sido_select option:selected").val() ;
+		 mapInfo.sgg_cd = $("#sgg_select option:selected").val().substr(-3) ;
+		 mapInfo.sido_nm = $("#sido_select option:checked").text() ; 
+		 mapInfo.sgg_nm = $("#sgg_select option:checked").text() ;
+		 let mode = (mapInfo.sgg_cd=="0")?1:2;
+		 //map_area_clear();		 
+		 selectViewMode(mode);		 
+		 $("#curSido").html(mapInfo.sido_nm);
+		 $('#btn_close').trigger("click");
+	 }
+	 
+	 
+	 function getToken(){
+		 //https://sgisapi.kostat.go.kr
+		 //openApiPath
+
+			$.ajax({
+	              url : "https://sgisapi.kostat.go.kr/OpenAPI3/auth/authentication.json" +
+	              		"?consumer_key="+mapInfo.consumer_key+"&consumer_secret="+mapInfo.consumer_secret,
+	              type : "get",
+					success: function (res, status) {
+						mapInfo.accessToken = res.result.accessToken;
+
+					},
+					complete : function(){
+						getReverseGeo();
+				    },
+					
+				});
+	 }
+
+	 
+	 
+	 function getReverseGeo(){
+		 var url_str = "https://sgisapi.kostat.go.kr/OpenAPI3/addr/rgeocode.json?accessToken="+mapInfo.accessToken+"&x_coor="+mapInfo.x+"&y_coor="+mapInfo.y+"&addr_type=20" ;
+	 
+			$.ajax({
+  	              url : url_str ,	              				
+	              type : "get",
+					success: function (res, status) {
+						if (res.errMsg !="Success") {
+							alert('주소데이터 조회 실패입니다. 잠시후에 시도해주세요');
+							return ;
+						}
+						mapInfo.addrObj = res.result[0] ;
+						mapInfo.sido_cd = mapInfo.addrObj.sido_cd ;
+						mapInfo.sido_nm = mapInfo.addrObj.sido_nm ;
+						mapInfo.region_cd  = mapInfo.sido_cd ;
+						$("#curSido").html(mapInfo.sido_nm);						
+						
+						mapInfo.sgg_cd  = mapInfo.addrObj.sgg_cd ;
+						mapInfo.emdong_cd  = "" ;						
+						mapInfo.emdong_nm  = "" ;						
+						
+						if (mapInfo.view_cd=="sido"){
+							mapInfo.sgg_cd  = "";
+							mapInfo.sgg_nm    = "" ; 
+							$("#curSgg").html("전체");							
+						}  
+						
+						if (mapInfo.view_cd=="sgg"){
+							$("#curSgg").html(mapInfo.sgg_nm);
+							mapInfo.region_cd  = mapInfo.addrObj.sido_cd + mapInfo.addrObj.sgg_cd ;							
+						}
+						
+						fn_setFixedMapView(mapLocationInfo[mapInfo.region_cd]);   // 맵의크기 위치값을 보정한다 
+				   		//상태바그리기
+				   		
+				   		
+						//displayAddrInfo();   //선택콤보  dokadokainfo
+						getSidoInfo();   // dokadoka todo
+						
+						//getArea();  //지도그리기
+						fn_fullData();   //전체데이터가져오기						
+ 
+					},
+					complete : function(){
+				    },
+				});
+	 }
+	 
+	 function fn_setFixedMapView(objXY){
+		 let x2,y2,level ;
+		 if (objXY != undefined) {
+			 x = objXY['x2'];
+			 y = objXY['y2'];
+			 mapInfo.level = objXY['level']; 
+		 } else {
+			 //좌우크기를 감안, 해상도를 감안해서  위치 및 레벨을 조정한다.
+			 x =  mapInfo.x ;
+			 y =  mapInfo.y ;
+			 
+			 if (mapInfo.view_cd=="sido")
+				 mapInfo.level = 4 ;
+			 else 
+				 mapInfo.level = 5 ;
+		 }
+		 
+	     mapInfo.map.setView(sop.utmk(x, y), mapInfo.level);		 
+	 }
+	 
+	 function displayAddrInfo(){
+			if (mapInfo.view_cd =="sido") { 
+				fn_makeSelect("sgg_select", mapInfo.sggObj, "0", "<option selected='selected' value='0'>시/군/구</option>" );
+			} else if(mapInfo.view_cd =="sgg") {
+				$("#myFullAddr").html(mapInfo.addrObj.sido_nm + " " + mapInfo.addrObj.sgg_nm);
+				fn_makeSelect("sgg_select", mapInfo.sggObj, mapInfo.region_cd, "<option selected='selected' value='0'>시/군/구</option>" );				
+			}
+			else if(mapInfo.view_cd =="emdong")  $("#myFullAddr").html(mapInfo.addrObj.full_addr);
+
+	 }
+	 
+	 function getSidoInfo(){
+			$.ajax({
+	              url : "https://sgisapi.kostat.go.kr/OpenAPI3/addr/stage.json?accessToken="+mapInfo.accessToken,	              				
+	              type : "get",
+					success: function (res, status) {
+						if (res.errMsg !="Success") {
+							alert('시도 정보 데이터 조회 실패입니다. 잠시후에 시도해주세요');
+							return ;
+						}
+						
+						mapInfo.sidoObj = res.result ;
+						getSggInfo(mapInfo.addrObj.sido_cd,1);						
+					},
+					complete : function(){
+				    },
+				});
+	 }
+	 
+	 function getSggInfo(cd,mode){
+			$.ajax({
+	              url :  "https://sgisapi.kostat.go.kr/OpenAPI3/addr/stage.json?accessToken="+mapInfo.accessToken+"&cd="+cd,	              				
+	              type : "get",
+					success: function (res, status) {
+						if (res.errMsg !="Success") {
+							alert('시군구 정보 데이터 조회 실패입니다. 잠시후에 시도해주세요');
+							return ;
+						}
+						
+						mapInfo.sggObj = res.result ;
+						displayAddrCombo(mode);
+					},
+					complete : function(){
+				    },
+				});
+	 }
+	 
+ 
+	 function displayAddrCombo(mode){
+		  if (mode==1) {
+			fn_makeSelect("sido_select",mapInfo.sidoObj, mapInfo.addrObj.sido_cd, "<option selected='selected' disabled >시/도</option>" );
+			fn_makeSelect("sgg_select", mapInfo.sggObj, mapInfo.sgg_cd, "<option selected='selected' value='0'>시/군/구</option>" );
+		  } else if(mode==2) {
+				fn_makeSelect("sgg_select", mapInfo.sggObj, '', "<option selected='selected' value='0'>시/군/구</option>" );			  
+		  }
+	 }
+	 
+	 function fn_makeSelect(id,obj,curValue,preOption){
+		 $("#"+id).empty();
+	     $("#"+id).append(preOption);
+         for (var i=0; i<obj.length; i++ ) {
+        	 let selected = "" ;
+        	 if (obj[i].cd == curValue) selected = " selected " ;
+	         $("#"+id).append("<option value='"+obj[i].cd+"' "+selected+">" + obj[i].addr_name+"</option>");
+	      }			
+	 }
+	 
+	 
+	 //현재 영역선택
+	 function fn_selectDong(cd, nm) {
+		 
+ 		 if   (mapInfo.view_cd=="sido") {
+			 mapInfo.sgg_cd = cd.substr(-3) ;
+			 $("#curSgg").html(nm);			 
+			 selectViewMode(2);
+		 } else  {
+			 mapInfo.view_cd="emdong";
+			 mapInfo.emdong_cd = cd ;
+			 $("#curEmd").html(nm);
+			 fn_dongReDisplay();
+		 } 
+	 }
+	 
+	 function fn_dongReDisplay(){
+		 $('.province').removeClass('active');
+		 $('.county').removeClass('active');			 
+		 $('.subCounty').addClass('active');
+		 $('.subCounty').show();
+		 mapInfo.view_cd = 'sgg';			 
+		 obj = mapInfo.sggObj;		
+		 fn_resetArea();  //경계만 다시그리기
+		 fn_getStatistic(mapInfo.cur_item_no) ;
+	 }
+	 
+	 
+	 function fn_resetArea(){
+		    mapInfo.sopArea.remove();		 
+        	mapInfo.sopArea = sop.geoJson(mapInfo.oriArea).addTo(mapInfo.map);
+	 }
+	 
+
+	 //경계만 다시그리기
+	 function fn_reDrawArea(){
+		   if (!mapInfo.sopArea) return ;
+		    mapInfo.sopArea.remove();
+           	mapInfo.sopArea = sop.geoJson(mapInfo.oriArea).addTo(mapInfo.map);
+			fn_setDataForLayer(mapInfo.dataKind);
+	 }
+
+	 
+	 
+	 function fn_getStatistic(num){
+			let dataKind= mapInfo.data_kind[mapInfo.view_cd][num] ;						
+			
+			fn_setDataForLayer(dataKind);
+			
+			if (mapInfoData[mapInfo.region_cd]==undefined) {
+				alert("조회된 데이터가 존재하지 않습니다.");
+				return ;
+			}
+			
+		    fn_init_board(mapInfoData[mapInfo.region_cd], dataKind);  
+		    //fn_init_slider(mapInfoData[mapInfo.region_cd], dataKind);
+		    //if (num==0) fn_init_slider();
+		    fn_init_slider();
+	 }
+	 
+	 
+	 function fn_number_format(str){
+		 return str.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+	 }
+	 
+	 function fn_setDataForLayer(dataKind){
+			let target = mapInfoData[mapInfo.region_cd]["censusIndex"] ;
+			let conComplite = {} ;
+			let key, value, strToolTip;
+			let dataKindNm = mapInfoData[mapInfo.region_cd][dataKind]["name"] ;
+
+			for (var idx=0; idx<target.length; idx++) {
+				conComplite[target[idx].region_cd] = target[idx];     
+			}
+			
+			var objectList = new Array();
+			
+			mapInfo.sopArea.eachLayer(function (layer) {
+				key = layer.feature.properties.adm_cd;
+				value = conComplite[key];
+
+				if (!value) { return; }
+
+				strToolTip = "<p>지역(구)명 : " + value.adm_nm + "</p>";
+				strToolTip += "<p>"+ dataKindNm + " : " + fn_number_format(value[dataKind]) + "</p>";
+				
+				//strToolTip += "<p>ADM : " + key + "</p>";
+
+				layer.bindToolTip(strToolTip);
+				
+				const dong_cd = key + "" ;
+				const dong_nm = value.adm_nm + "" ;				
+				
+				layer.on("click",function(e){fn_selectDong(dong_cd, dong_nm);});
+				
+				//console.log(mapInfo.mode) ;
+				//let rNum = (getNum/1).toFixed(0).replace('.', ',');
+				let  rNUm =  fn_number_format(value[dataKind]) ;
+				
+				if (mapInfo.mode=="show") 
+					layer.setCaption({title:rNUm, color:"black"});
+				
+				var object = new Object();
+				object.value = value[dataKind];
+				object.admCd = key;
+				objectList.push(object);
+			});
+			
+			//var legend = calculateLegend(objectList);
+			var legend = fn_calLegend(objectList);						
+			fn_areaFillColor(objectList,legend);					 
+		 
+	 }
+	 
+	 
+	 
+	function fn_calLegend(objectList){
+		var minVal = -999;
+		var maxVal = -999;
+		var arithmeticVal = 0.00 ;
+		var arData = [] ;
+		
+		if(objectList == null || objectList.length == 0){
+			return arData;
+		}
+		
+		for(var i=0; i<objectList.length; i++){
+			if (minVal== -999 || objectList[i].value < minVal)
+			    minVal  = parseFloat(parseFloat(objectList[i].value).toFixed(2));				
+			
+			if (maxVal== -999 || objectList[i].value >= maxVal)
+			    maxVal  = parseFloat(parseFloat(objectList[i].value).toFixed(2));
+		}
+		
+		arithmeticVal = parseFloat(parseFloat((maxVal + minVal)/7).toFixed(2));
+		
+		arData[0] = minVal ;
+		arData[6] = maxVal ;
+		
+		for(var i=1; i<=5; i++){
+			arData[i] = parseFloat(parseFloat(i*arithmeticVal+minVal).toFixed(2));
+		}
+		return arData ;
+	}
+	 
+		
+	function fn_areaFillColor(objectList,legend){
+			
+			mapInfo.sopArea.eachLayer(function (layer) {
+				var admCd = layer.feature.properties.adm_cd;
+				
+				for(var i =0; i < objectList.length; i++){
+					if(objectList[i].admCd == admCd){
+						var pos = -1 ;
+						
+						if(objectList[i].value <=legend[0]){
+							pos = 0 ;
+						} 
+						
+						if(objectList[i].value >=legend[legend.length-1]){
+							pos = legend.length-1 ;
+						} 
+						
+						for(var j=0; j<legend.length-1; j++){
+							if(objectList[i].value  < legend[j+1] ){
+								pos = j ;
+								break;
+							}
+						}
+						
+						var  weight_val = 1 ;
+						if (admCd == mapInfo.emdong_cd) weight_val = 5 ;
+ 
+						let opactiy = (1+pos)* 0.125 ;
+						layer.setStyle({
+							weight : weight_val,
+							color : mapInfo.borderColor[mapInfo.borderColor.length-1],
+							fillColor : mapInfo.legendColor[mapInfo.legendColor.length-1],
+							fillOpacity : opactiy,    //투명도
+						});
+					}
+				}
+			});
+		}
+		
+	 function map_area_clear(){
+		if (mapInfo.sopArea) {
+			mapInfo.sopArea.remove();
+		}
+		
+	 }
+	 
+	 // dokadoka
+	 function  fn_hichart_option(){
+		    Highcharts.setOptions({
+
+		        chart: {style: {fontFamily: 'Pretendard'}},
+		        title: {text: ''},
+		        subtitle: {text: ''},
+		        yAxis: {
+		            title: {text: ''},
+		            labels: {enabled : false},
+		        },
+		        credits: {enabled: false},
+		        exporting : {enabled : false},
+		        xAxis: {
+		            labels: {
+		                style: {
+		                    color: '#666',
+		                    fontSize:'10px',
+		                    fontWeight: '400',
+		                    letterSpacing: '-1px',
+		                }
+		            },
+		            categories: ["",""]
+		        },
+		        legend: {
+		            layout: "horizontal",
+		            verticalAlign: "bottom",
+		            align: "center",
+		            // itemWidth: 200,
+		            symbolWidth: 8,
+		            symbolHight: 8,
+		            floating: false,
+		            borderWidth: 0,
+		            backgroundColor: "#FFFFFF",
+		            shadow: false,
+		            itemStyle: {
+		                color: "#333",
+		                align: "center"
+		            }
+		        },
+		        plotOptions: {
+		            series: {
+		                marker: {
+		                    enabled: true, //마커 보이기 / 안보이기 [true : 보이기, false : 안보이기]
+		                },
+		                dataLabels: {
+		                    enabled: true, //데이터레이블 보이기/안보이기 [true : 보이기, false : 안보이기]
+		                    allowOverlap: true //데이터레이블 겹치기/안겹치기 (안겹치기시 겹치는 데이터레이블 안보임) [true : 겹치다, false : 안겹치다]
+		                }
+		            }
+		        }
+		    }) ;
+	 }
+	 
+	 function  fn_tabContent2_chart(statData){
+		 Highcharts.chart('tab_content2_chart', {
+			    chart : {
+			        height : '175px',
+			        marginTop: 10,
+			        marginBottom:25
+			    },
+			    legend: {enabled:false},
+			    plotOptions: {series: {dataLabels: {enabled:false}}},
+			    xAxis:{
+			            categories:statData['year'] 
+			    },
+			    yAxis:{visible:false},
+			    
+			    series: [{
+			                type:'column',
+			                name: statData['title1'],
+			                data: statData['title1_data'],
+			                color: mapInfo.colorPl[0]  },
+			            {
+			                type:'column',
+			                name: statData['title2'],
+			                data: statData['title2_data'],
+			                color: mapInfo.colorPl[1]},
+			            {
+			                type: 'spline',
+			                name: '합계',
+			                data: statData['tot_data'],
+			                color: mapInfo.colorPl[2],
+			                marker: {
+			                    lineWidth: 2,
+			                    lineColor: mapInfo.colorPl[2],
+			                    fillColor: 'white'
+			                }
+			            }
+			        ]
+			});
+	   }
+	 
+	 function  fn_tabContent2_single_chart(statData){
+		 Highcharts.chart('tab_content2_chart', {
+			    chart : {
+			        height : '175px',
+			        marginTop: 10,
+			        marginBottom:25
+			    },
+			    legend: {enabled:false},
+			    plotOptions: {series: {dataLabels: {enabled:false}}},
+			    xAxis:{
+			            categories:statData['year'] 
+			    },
+			    yAxis:{visible:false},
+			    
+			    series: [
+			    	
+			            {
+			                type: 'spline',
+			                name: '합계',
+			                data: statData['tot_data'],
+			                color: mapInfo.colorPl[2],
+			                marker: {
+			                    lineWidth: 2,
+			                    lineColor: mapInfo.colorPl[2],
+			                    fillColor: 'white'
+			                }
+			            }
+			        ]
+			});
+	   }
+	 
+	 
+
+  </script>
+</head>
+
+    <!-- 임시 지도 영역 시작 -->
+    <div class="mapWrapper" id="map" style="z-index:0">지도영역</div>
+    <!-- 임시 지도 영역 끝 -->
+
+    <!-- 좌측 메뉴 모음 시작 -->
+    <div class="header">
+
+        <!-- 좌측 상단 로고 박스 시작 -->
+        <div class="logo_box">
+            <a rel="" href="#popup01" class="layerOpen logo">
+                <img src="/images/lvs/img/logo.png" alt="">
+            </a>
+            <h1 onclick="openPopup('type1')">지역변화 분석지도</h1>
+        </div>
+        <!-- 좌측 상단 로고 박스 끝 -->
+
+        <!-- 메뉴 버튼 영역 시작 -->
+        <div class="menu">
+            <button type="button" name="button" class="btn_extend active" id="btn_extend"
+                onclick="boardController(this,'type1')" data-type="type1" data-link="board1">
+                <p>우리동네 상황판</p>
+            </button>
+            <ul class="gnb" id="tabIndicator">
+                <li onclick="boardController(this,'type2','tab1')" data-link="tab1"><a href="javascript:void(0)">
+                        <div class="round_box1"></div><span>인구·가구</span>
+                    </a></li>
+                <li onclick="boardController(this,'type2','tab2')" data-link="tab2"><a href="javascript:void(0)">
+                        <div class="round_box2"></div><span>주거·교통</span>
+                    </a></li>
+                <li onclick="boardController(this,'type2','tab3')" data-link="tab3"><a href="javascript:void(0)">
+                        <div class="round_box3"></div><span>복지·문화</span>
+                    </a></li>
+                <li onclick="boardController(this,'type2','tab4')" data-link="tab4"><a href="javascript:void(0)">
+                        <div class="round_box4"></div><span>노동·경제</span>
+                    </a></li>
+                <li onclick="boardController(this,'type2','tab5')" data-link="tab5"><a href="javascript:void(0)">
+                        <div class="round_box5"></div><span>안전·환경</span>
+                    </a></li>
+            </ul>
+        </div>
+        <!-- 메뉴 버튼 영역 끝 -->
+
+        <!-- 추천지표 보기, 모든지표 보기 영역 시작-->
+        <div class="tab_container">
+            <div class="tabs">
+                <ul id="tabIndicatorSub" class="tabCommon">
+                    <li><a href="javascript:void(0)" rel="sub1" data-tabname="tab3"
+                            onclick="boardController(this,'type3')" data-link="sub1">추천 지표 보기</a></li>
+                    <li><a href="javascript:void(0)" rel="sub2" data-tabname="tab3"
+                            onclick="boardController(this,'type3')" data-link="sub2">모든 지표 보기</a></li>
+                </ul>
+            </div>
+        </div>
+        <!-- 추천지표 보기 모든지표 보기 영역 끝 -->
+
+        <!-- 모든 지표 보기 영역 시작 -->
+        <div id="sub2" class="tab_content3">
+
+            <!-- 모든지표보기 - 인구가구 시작 -->
+            <div class="resultAcc" data-link="tab1">
+                <button class="btn_top active" type="button" name="button"
+                    onclick="accordian(this)">인구주택총조사(인구조건/가구조건)</button>
+                <div class="result_box accContent">
+                    <div class="cate_menu tabCommon">
+                        <ul>
+                            <li class="active"><a href="#" rel="step01" data-tabname="tab6">인구조건</a></li>
+                            <li><a href="#" rel="step02" data-tabname="tab6">가구조건</a></li>
+                        </ul>
+                    </div>
+                    <div id="step01" class="step_box tab_content6" style="display: block;">
+                        <form class="">
+                            <div class="select_box">
+                                <p>조사년도</p>
+                                <div>
+                                    <select name="year">
+                                        <option value="none" selected>선택</option>
+                                        <option value="2019">2019</option>
+                                        <option value="2020">2020</option>
+                                        <option value="2021">2021</option>
+                                        <option value="2022">2022</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="select_box">
+                                <p>성별</p>
+                                <div>
+                                    <input id="all" type="radio" name="pol" value="">
+                                    <label for="all">전체</label>
+                                    <input id="male" type="radio" name="pol" value="">
+                                    <label for="male">남자</label>
+                                    <input id="female" type="radio" name="pol" value="">
+                                    <label for="female">여자</label>
+                                </div>
+                            </div>
+
+                            <div class="select_box rxRanger">
+                                <p>연령</p>
+                                <ul class="tab tabCommon">
+                                    <li><input id="ab1" type="radio" name="ab" value="" checked><label for="ab1"
+                                            onclick="themeInnerTab('theme1AgeRanger')">구간선택</label></li>
+                                    <li><input id="ab2" type="radio" name="ab" value=""><label for="ab2"
+                                            onclick="themeInnerTab('theme1AgeList')">목록선택</label></li>
+                                </ul>
+
+                                <div class="rxSlider option_box tabBox show" data-tabName="theme1AgeRanger"
+                                    style="display: block">
+                                    <div class="optionText">
+                                        <div class="select_area">
+                                            <select name="year">
+                                                <option value="none">10세</option>
+                                                <option value="2019">20세</option>
+                                                <option value="2020">30세</option>
+                                            </select>
+                                            <span>이상~</span>
+                                            <select name="year">
+                                                <option value="none">90세</option>
+                                                <option value="2019">100세</option>
+                                                <option value="2019">100+</option>
+                                            </select>
+                                            <span>미만</span>
+                                        </div>
+                                    </div>
+                                    <div class="rangeWrap">
+                                        <input type="text" id="ageRangeSlider" />
+                                    </div>
+
+                                </div>
+                                <div class="option_box tabBox" data-tabName="theme1AgeList">
+                                    <div class="step_family">
+                                        <div class="checkbox_list">
+                                            <div class="list_text"><input type="checkbox" name="" id="step_family01"
+                                                    value=""><label for="step_family01">0세~7세미만</label></div>
+                                            <div class="tooltip" data-title="ss"></div>
+                                        </div>
+                                        <div class="checkbox_list">
+                                            <div class="list_text"><input type="checkbox" name="" id="step_family02"
+                                                    value=""><label for="step_family02">7세 ~ 13세 미만</label></div>
+                                            <div class="tooltip"></div>
+                                        </div>
+                                        <div class="checkbox_list">
+                                            <div class="list_text"><input type="checkbox" name="" id="step_family03"
+                                                    value=""><label for="step_family03">13세 ~ 16세 미만</label></div>
+                                            <div class="tooltip"></div>
+                                        </div>
+                                        <div class="checkbox_list">
+                                            <div class="list_text"><input type="checkbox" name="" id="step_family04"
+                                                    value=""><label for="step_family04">16세 ~ 19세 미만</label></div>
+                                            <div class="tooltip"></div>
+                                        </div>
+                                    </div>
+                                    <div class="step_family">
+                                        <div class="checkbox_list">
+                                            <div class="list_text"><input type="checkbox" name="" id="step_family05"
+                                                    value=""><label for="step_family05">0세 ~ 15세 미만</label></div>
+                                            <div class="tooltip"></div>
+                                        </div>
+
+                                        <div class="checkbox_list">
+                                            <div class="list_text"><input type="checkbox" name="" id="step_family06"
+                                                    value=""><label for="step_family06">15세 ~ 65세 미만</label></div>
+                                            <div class="tooltip"></div>
+                                        </div>
+
+                                        <div class="checkbox_list">
+                                            <div class="list_text"><input type="checkbox" name="" id="step_family07"
+                                                    value=""><label for="step_family07">65세 이상</label></div>
+                                            <div class="tooltip"></div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="btn_botton">
+                                <button class="btn_botton" type="button" name="button">인구조건 검색</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div id="step02" class="step_box tab_content6">
+                        <form class="">
+                            <p>세대구성(다중선택 가능)</p>
+                            <div class="option_box">
+                                <div class="step_family">
+                                    <div class="checkbox_list">
+                                        <div class="list_text"><input type="checkbox" name="" id="step_kind01"
+                                                value=""><label for="step_kind01">1세대 가구</label></div>
+                                        <div class="tooltip"></div>
+                                    </div>
+                                    <div class="checkbox_list">
+                                        <div class="list_text"><input type="checkbox" name="" id="step_kind02"
+                                                value=""><label for="step_kind02">2세대 가구</label></div>
+                                        <div class="tooltip"></div>
+                                    </div>
+                                    <div class="checkbox_list">
+                                        <div class="list_text"><input type="checkbox" name="" id="step_kind03"
+                                                value=""><label for="step_kind03">3세대 가구</label></div>
+                                        <div class="tooltip"></div>
+                                    </div>
+                                    <div class="checkbox_list">
+                                        <div class="list_text"><input type="checkbox" name="" id="step_kind04"
+                                                value=""><label for="step_kind04">4세대 이상 가구</label></div>
+                                        <div class="tooltip"></div>
+                                    </div>
+                                </div>
+
+                                <div class="step_family">
+                                    <div class="checkbox_list">
+                                        <div class="list_text"><input type="checkbox" name="" id="step_kind05"
+                                                value=""><label for="step_kind05">1인가구</label></div>
+                                        <div class="tooltip"></div>
+                                    </div>
+                                    <div class="checkbox_list">
+                                        <div class="list_text"><input type="checkbox" name="" id="step_kind06"
+                                                value=""><label for="step_kind06">비친족가구</label></div>
+                                        <div class="tooltip"></div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="btn_botton">
+                                <button class="btn_botton" type="button" name="button">가구조건 검색</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- 모든지표보기 인구가구 끝 -->
+
+            <!-- 모든지표보기 주거 교통 시작 -->
+            <div class="resultAcc" data-link="tab2">
+                <button class="btn_top active" type="button" name="button"
+                    onclick="accordian(this)">인구주택총조사(주택조건)</button>
+                <div class="result_box accContent" data-link="tab2">
+                    <div id="step03" class="step_box tab_content6">
+                        <form class="">
+                            <div class="select_box">
+                                <p>조사년도</p>
+                                <select name="year">
+                                    <option value="none" selected>선택</option>
+                                    <option value="2019">2019</option>
+                                    <option value="2020">2020</option>
+                                    <option value="2021">2021</option>
+                                    <option value="2022">2022</option>
+                                </select>
+                            </div>
+
+                            <div class="select_box acc">
+                                <p onclick="accordian(this)">주택유형(다중선택 가능)</p>
+                                <div class="option_box accContent">
+                                    <div class="checkbox_list">
+                                        <div class="list_text"><input type="checkbox" name="stkind" id="st3kine1"
+                                                value=""><label for="st3kine1">단독주택</label></div>
+                                        <div class="tooltip"></div>
+                                    </div>
+                                    <div class="checkbox_list">
+                                        <div class="list_text"><input type="checkbox" name="stkind" id="st3kine2"
+                                                value=""><label for="st3kine2">아파트</label></div>
+                                        <div class="tooltip"></div>
+                                    </div>
+                                    <div class="checkbox_list">
+                                        <div class="list_text"><input type="checkbox" name="stkind" id="st3kine3"
+                                                value=""><label for="st3kine3">연립주택</label></div>
+                                        <div class="tooltip"></div>
+                                    </div>
+                                    <div class="checkbox_list">
+                                        <div class="list_text"><input type="checkbox" name="stkind" id="st3kine4"
+                                                value=""><label for="st3kine4">다세대주택</label></div>
+                                        <div class="tooltip"></div>
+                                    </div>
+                                    <div class="checkbox_list">
+                                        <div class="list_text"><input type="checkbox" name="stkind" id="st3kine5"
+                                                value=""><label for="st3kine5">비주거용건물</label></div>
+                                        <div class="tooltip"></div>
+                                    </div>
+                                    <div class="checkbox_list">
+                                        <div class="list_text"><input type="checkbox" name="stkind" id="st3kine6"
+                                                value=""><label for="st3kine6">주택이외의 거처</label></div>
+                                        <div class="tooltip"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="select_box">
+                                <p>건축년도</p>
+                                <select name="year">
+                                    <option value="none" selected>선택</option>
+                                    <option value="2019">2019</option>
+                                    <option value="2020">2020</option>
+                                    <option value="2021">2021</option>
+                                    <option value="2022">2022</option>
+                                </select>
+                            </div>
+
+                            <div class="select_box acc">
+                                <p onclick="accordian(this)">연면적</p>
+                                <div class="option_box accContent">
+                                    <div class="optionText">
+                                        <div class="select_area">
+                                            <select name="year">
+                                                <option value="">0</option>
+                                                <option value="">20</option>
+                                                <option value="">30</option>
+                                            </select>
+                                            <span>초과~</span>
+                                            <select name="year">
+                                                <option value="">90</option>
+                                                <option value="">100</option>
+                                                <option value="">100</option>
+                                            </select>
+                                            <span>이하</span>
+                                        </div>
+                                    </div>
+                                    <input type="text" id="theme2SizeSlider">
+
+                                </div>
+                            </div>
+                            <div class="btn_botton">
+                                <button class="btn_botton" type="button" name="button">주택 조건 검색</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- 모든지표보기 주거 교통 끝 -->
+
+            <!-- 모든지표보기 일반 타입 시작 -->
+            <div class="checkbox_listWrap">
+                <div class="checkbox_list">
+                    <div class="list_text">
+                        <input type="radio" name="ex3Type" id="extype1" value="">
+                        <label for="extype1" onclick="excuteIndicator('aType')">A 타입</label>
+                    </div>
+                    <div class="tooltip" data-title="A 타입" data-desc="지표 설명" data-level="시도" data-year="2015~2021">
+                    </div>
+                </div>
+                <div class="checkbox_list">
+                    <div class="list_text">
+                        <input type="radio" name="ex3Type" id="extype2" value="">
+                        <label for="extype2" onclick="excuteIndicator('bType')">B 타입</label>
+                    </div>
+                    <div class="tooltip" data-title="B 타입" data-desc="지표 설명" data-level="시도" data-year="2015~2021">
+                    </div>
+                </div>
+                <div class="checkbox_list">
+                    <div class="list_text">
+                        <input type="radio" name="ex3Type" id="extype3" value="">
+                        <label for="extype3" onclick="excuteIndicator('cType')">C 타입</label>
+                    </div>
+                    <div class="tooltip" data-title="C 타입" data-desc="지표 설명" data-level="시도" data-year="2015~2021">
+                    </div>
+                </div>
+                <div class="checkbox_list">
+                    <div class="list_text">
+                        <input type="radio" name="ex3Type" id="extype4" value="">
+                        <label for="extype4" onclick="excuteIndicator('dType')">D 타입</label>
+                    </div>
+                    <div class="tooltip" data-title="D 타입" data-desc="지표 설명" data-level="시도" data-year="2015~2021">
+                    </div>
+                </div>
+            </div>
+            <!-- 모든지표보기 일반 타입 끝 -->
+
+            <!-- 체크박스 단순 반복 스크립트 -->
+            <script>
+                // 단순 반복 checkbox Append
+                for (i = 0; i < 5; i++) {
+                    let html = "";
+                    html += '<div class="checkbox_list">'
+                    html += '<div class="list_text">'
+                    html += '<input type="radio" name="ex3Type" id="radioDummy' + i + '" value="">'
+                    html += '<label for="radioDummy' + i + '">다문화가구 현황</label>'
+                    html += '</div>'
+                    html += '<div class="tooltip"></div>'
+                    html += '</div>'
+
+                    $(".checkbox_listWrap").append(html)
+
+                }
+            </script>
+            <!-- 체크박스 단순반복 스크립트 끝 -->
+
+        </div>
+        <!-- 모든지표보기 영역 끝 -->
+
+    </div>
+    <!-- 좌측 메뉴 모음 끝 -->
+
+
+    <!-- 상단 위치 표시 영역 시작 -->
+    <div class="control_top">
+        <div class="localinfo">
+           <div class="province ">
+            <!-- <img src="" alt=""> -->
+            <span id="curSido" onclick="selectViewMode(1)">대전광역시</span>
+          </div>
+          <div class="county active">
+            <span id="curSgg" onclick="selectViewMode(2)">서구</span>
+          </div>
+          
+          <div class="subCounty" style='display:none'>
+            <span id="curEmd" onclick="selectViewMode(3)">가장동</span>
+          </div>
+
+          <div class="selected_data">
+            <span id="curStat">총인구</span>
+          </div>
+        </div>
+    </div>
+    
+
+    <!-- 상단 위치 표시 영역 끝 -->
+
+    <!-- 데이터보드 버튼 시작 -->
+    <button class="btn_data_open" type="button" name="button" onclick="toggleBoard()">데이터보드</button>
+    <!-- 데이터보드 버튼 끝 -->
+
+    <!-- 데이터보드 영역 시작 -->
+    <div class="extend_data_wrap active exBoard" id="extendBoard">
+
+        <!-- 데이터보드 상단 헤더 시작 -->
+        <div class="extend_data_header" data-attr="header">
+            <h2 id="exBoardTitle">우리동네 상황판</h2>
+            <div class="extend_panel">
+                <button class="data_player" type="button" name="button" data-status="play"
+                    onclick="sliderControl(this)">
+                    <i class="icon controller"></i>
+                </button>
+                <button class="data_player" type="button" name="button" data-status="pause"
+                    onclick="sliderControl(this)">
+                    <i class="icon controller"></i>
+                </button>
+                <a href="#" class="location_more">다른 지역 선택</a>
+                <span></span>
+                <a href="#">이용가이드</a>
+                <button class="btn_download" type="button" name="button">
+                    <img src="/images/lvs/icon/icon-import.png" alt="">
+                </button>
+                <button class="btn_data_close" type="button" name="button" onclick="toggleBoard()">
+                    <img src="/images/lvs/icon/icon-close.png" alt="">
+                </button>
+                <div class="location_more_box">
+                    <div class="heading">
+                        <span>다른지역 선택하기</span>
+                        <button id="btn_close" type="button" name="button"></button>
+                    </div>
+                    <div class="content">
+                        <strong>내위치</strong>
+                	    <span id="myFullAddr">대전광역시 서구 대덕대로 242번길 15</span>                        
+                        <div>
+                            <form>
+                    		    <select name="location_select" id="sido_select" onchange="changeLocation();">                                
+                                    <option value="" selected="selected">시/도</option>
+                                    <option value="충청북도">세종특별자치도</option>
+                                    <option value="대전광역시">대전광역시</option>
+                                </select>
+                    		  <select name="location_select" id="sgg_select">                                
+                                    <option value="" selected="selected">시/군/구</option>
+                                    <option value="청주시">세종특별자치시</option>
+                                    <option value="서구">서구</option>
+                                </select>
+                            </form>
+                  		    <button type="button" name="button" onclick="redrawMap();">검색</button>                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 데이터보드 상단 헤더 끝 -->
+        <!-- 우리동네 상황판 콘텐츠 시작 -->
+        <div id="data-large-body">
+        </div>        
+        
+        <!-- 우리동네 상황판 콘텐츠 끝 -->
+
+    </div>
+    <!-- 데이터보드 영역 끝 -->
+    <div class="control_foot extend">
+        <button class="map_data_display" type="button" name="button" onclick="fn_data_display();">데이터</button>
+        
+        <div class="control_btn_wrap">
+          <button class="pl" type="button" name="button" onclick="mapInfo.map.zoomIn()">
+            <img src="/images/lvs/icon/icon-zoom-in.png" alt="지도축소">
+          </button>
+          
+          <button class="dot" type="button" name="button" onclick="mapInfo.map.setView(sop.utmk(mapInfo.x2, mapInfo.y2), mapInfo.level)">
+            <img src="/images/lvs/icon/dot.png" alt="초기화">
+            <!-- 시군구 -->
+          </button>
+          <button class="mi" type="button" name="button" onclick="mapInfo.map.zoomOut()">
+            <img src="/images/lvs/icon/icon-zoom-out.png" alt="지도확대">
+          </button>
+        </div>
+      </div>
+
+
+
+
+    <script>
+        // 차트 데이터보드 공통 탭 기능
+        $(".tabCommon li a").click(function () {
+            let activeTab = $(this).attr("rel");
+            let tabName = $(this).data('tabname')
+            $(this).parent().siblings("li").removeClass("active");
+            $(this).parent().addClass("active");
+
+            if (tabName == "tab2") $(".tab_container2").children('.tab_content2').hide();  // 우리동네 상황판 차트, 테이블
+            else if (tabName == "tab3") $(this).closest('.tab_container').siblings('.tab_content3').hide(); // 추천지표보기, 모든지표 보기
+            else if (tabName == "tab4") $(this).closest('.tab_container4').children('.tab4').hide(); // 추천지표 (변화그래프, 지역내 순위, 변화지도, 타 지자체 비교)
+            else if (tabName == "tab5") $(this).closest('.tab_container5').children('.tab_content5').hide(); // 소지역보기 팝업 (집계구보기, 변화지도, 변화그래프)
+            else if (tabName == "tab6") $(this).closest('.result_box').children('.step_box').hide();
+            else if (tabName == "tab8" || tabName == "tab9") $(this).closest('.tabCommon').siblings('.tabContent').children('li').hide();
+
+            if (!activeTab) {
+                activeTab = $(this).data('tab')
+                $(this).closest('.tabCommon').siblings('.tabContent').children('li').each((i, item) => {
+                    $(item).removeClass('active')
+                    $(item).hide()
+                    if (activeTab == $(item).data('link')) {
+                        $(item).show();
+                        $(item).addClass('active')
+                    }
+                })
+            } else {
+                $("#" + activeTab).fadeIn(10);
+            }
+
+
+
+            if (activeTab == "tab4_1") $('#tab4_chart1').highcharts().reflow() // 추천지표 변화그래프
+            else if (activeTab == "tab4_3") $('#tab4_chart3').highcharts().reflow()  // 추천지표 지역내 순위
+            else if (activeTab == "tab4_4") {                                         // 추천지표 타 지자체 비교
+                $('#vrsChart1').highcharts().reflow()
+                $('#vrsChart2').highcharts().reflow()
+            } else if (activeTab == "tab5_3") $("#popupChart1").highcharts().reflow() // 소지역보기 변화그래프
+
+        });
+        // 슬라이더 구현
+        let target = $('.slick_slider') ;
+        let sts = target.hasClass('slick-initialized') ; // true 렌더 상태
+        let options = {
+            dots: true,
+            speed: 300,
+            prevArrow: ".arrows > .prev_arrow",
+            nextArrow: ".arrows > .next_a rrow",
+        } ;
+        if (!sts) target.slick(options) ;
+
+        // 차트 임시 데이터
+        
+    </script>
+
+
+</body>
+
+</script>
+</html>

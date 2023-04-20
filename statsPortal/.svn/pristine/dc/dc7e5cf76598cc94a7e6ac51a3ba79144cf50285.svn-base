@@ -1,0 +1,807 @@
+package kostat.sop.ServiceAPI.sbr.service.Impl;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.apache.ibatis.exceptions.PersistenceException;
+import org.springframework.security.core.authority.mapping.MappableAttributesRetriever;
+import org.springframework.stereotype.Service;
+
+import com.neighborsystem.durian.exception.NotSupportFormatException;
+
+import egovframework.rte.fdl.cmmn.EgovAbstractServiceImpl;
+import kostat.sop.ServiceAPI.api.catchmentArea.ServiceAreaBSCA;
+import kostat.sop.ServiceAPI.common.controller.Properties;
+import kostat.sop.ServiceAPI.common.util.StringUtil;
+import kostat.sop.ServiceAPI.exception.ApiException;
+import kostat.sop.ServiceAPI.exception.DurianSQLException;
+import kostat.sop.ServiceAPI.exception.NoResultException;
+import kostat.sop.ServiceAPI.exception.ApiException.COMM_ERR_CODE;
+import kostat.sop.ServiceAPI.sbr.mapper.SbrStatsMapper;
+import kostat.sop.ServiceAPI.sbr.service.SbrStatsService;
+import kostat.sop.ServiceAPI.sbr.vo.SbrVo;
+
+@Service("sbrStatsService")
+public class SbrStatsServiceImpl  extends EgovAbstractServiceImpl implements SbrStatsService {
+	
+	@Resource( name = "SbrStatsMapper" )
+	private SbrStatsMapper sbrStatsMapper;
+
+	@Override
+	public List<Map<String, Object>> selectAllCensusThemeInfo() throws Exception {
+		List<Map<String, Object>> bigList = selectCensusBigThemeInfo();
+		
+		for(int i = 0 ; i < bigList.size() ; i++) {
+			//System.out.println(bigList.get(i));
+			Map<String, Object> param = bigList.get(i);
+			List<Map<String, Object>> smallList = selectCensusSmallThemeInfo((String)param.get("b_theme_cd"));
+			bigList.get(i).put("s_theme_list", smallList);
+		}
+		
+		return bigList;
+	}
+	
+	
+	public List<Map<String, Object>> selectCensusBigThemeInfo() {
+		return sbrStatsMapper.selectCensusBigThemeInfo();
+	}
+	
+	public List<Map<String, Object>> selectCensusSmallThemeInfo(String b_theme_cd) {
+		return sbrStatsMapper.selectCensusSmallThemeInfo(b_theme_cd);
+	}
+
+
+	@Override
+	public String getDdata() throws Exception {
+		return sbrStatsMapper.selectTestData();
+	}
+
+	@Override
+	public List<Map<String, Object>> getCodeList(SbrVo sbrVo) throws Exception {
+		return sbrStatsMapper.selectCodeList(sbrVo);
+	}
+	
+	
+
+	@Override
+	public Map<String, Object> getActiveCompanyCount(SbrVo sbrVo) throws Exception {
+		sbrVo = checkData(sbrVo);
+		return sbrStatsMapper.selectActiveCompanyCount(sbrVo);
+	}
+
+	// 종합분석 - 업종분석 - 계폐업현황
+	@Override
+	public List<Map<String, String>> getOpenCloseCompanyCount() throws Exception {
+		// TODO Auto-generated method stub
+		
+		return sbrStatsMapper.selectOpenCloseCompanyCount();
+	}
+
+
+	@Override
+	public List getBizCodeList() throws Exception {
+		return sbrStatsMapper.selectBizCodeList();
+	}
+
+	
+	@Override
+	public List getSbrRankListInfo(SbrVo sbrVo) throws Exception {
+		
+		
+		sbrVo = checkData(sbrVo);
+		sbrVo = getBordCd(sbrVo);
+		
+		List data = null;
+		
+		int b_year = Integer.parseInt(sbrVo.getYear())-1;
+		sbrVo.setB_year(b_year+"");
+		
+		
+		if(sbrVo.getBord_type().equals("11") || sbrVo.getBord_type().equals("12") || sbrVo.getBord_type().equals("13") ) {
+			if(sbrVo.getCategory().equals("2")) {
+				sbrVo.setBord_type("12");
+			}
+			data = sbrStatsMapper.selectRanklistInfo(sbrVo);
+		}else {
+			data = sbrStatsMapper.selectRanklistInfo2(sbrVo);
+		}
+		//data = sbrStatsMapper.selectRanklistInfo(sbrVo);
+		
+		return data;
+	}
+	
+	
+	private SbrVo getBordCd(SbrVo sbrVo) {
+		String bordCd = sbrVo.getAdm_cd();
+		if(bordCd.length() >= 2) sbrVo.setSido_cd(bordCd.substring(0,2));
+		if(bordCd.length()>2) sbrVo.setSigungu_cd(bordCd.substring(2,5));
+		if(bordCd.length()>5) {
+				if(bordCd.length() == 7)            sbrVo.setDong_cd(bordCd.substring(5,7));
+				else if(bordCd.length() == 8)       sbrVo.setDong_cd(bordCd.substring(5,8));
+		}
+			
+		return sbrVo;
+	}
+	
+	private SbrVo checkData(SbrVo sbrVo) {
+		if( sbrVo.getBiz_cd() == null || sbrVo.getBiz_cd().equals(""))sbrVo.setBiz_cd("999"); 
+		
+		if( sbrVo.getKisc_cd_1() == null || sbrVo.getKisc_cd_1().equals(""))sbrVo.setKisc_cd_1("0");
+		if( sbrVo.getKisc_cd_2() == null || sbrVo.getKisc_cd_2().equals(""))sbrVo.setKisc_cd_2("00");
+		
+		
+		if(sbrVo.getBord_type() != null && sbrVo.getBord_type().equals("1")) {
+		  int zoom  = Integer.parseInt(sbrVo.getZoom());
+			
+		  if(zoom < 4) {
+			  sbrVo.setBord_type(sbrVo.getBord_type()+"1");
+		  }else if(zoom < 7){
+			  sbrVo.setBord_type(sbrVo.getBord_type()+"2");
+		  }else{
+			  sbrVo.setBord_type(sbrVo.getBord_type()+"3");
+		  }
+		}else{
+			sbrVo.setBord_type(sbrVo.getBord_type()+"0");
+		}
+		
+		if(sbrVo.getOptionList() != null && sbrVo.getOptionList().size() >0 ) {
+			
+			String optionValue = "";
+			
+			for(int i=0; i< sbrVo.getOptionList().size();i++) {
+				optionValue = optionValue + "'"+(String) sbrVo.getOptionList().get(i)+"'"+",";
+			}
+			optionValue = optionValue.substring(0,optionValue.length()-1);
+			sbrVo.setCnd_cd(optionValue);
+		}else {
+		   sbrVo.setCnd_cd("999");
+		   List list = new ArrayList<String>();
+		   list.add("999");
+		   sbrVo.setOptionList(list);
+		   //sbrVo.getOptionList().addAll(0, "999");
+		}
+		
+		//if( sbrVo.getCnd_cd() == null || sbrVo.getCnd_cd().equals(""))sbrVo.setCnd_cd("999");
+		
+		return sbrVo;
+	}
+	
+
+
+
+	@Override
+	public List<?> getSbrCompanyInfoList(SbrVo sbrVo) throws Exception {
+
+		
+		sbrVo = checkData(sbrVo);
+		
+		int year = Integer.parseInt(sbrVo.getYear());
+		
+		List<String> list = new ArrayList<String>();
+		
+		boolean flag1 = true;
+		boolean flag2 = true;
+		
+			
+		for(int i = (year-4) ;i <= year ; i++) {
+			
+			if(i <= 2005 && flag1 == true) {
+				list.add("2005");
+				flag1 = false;
+			}else if(i <= 2010 && flag2 == true) {
+				list.add("2010");
+				flag2 = false;
+			}else {
+				list.add(i+"");
+			}
+		}
+			
+		
+		System.out.println(list.toString());
+		if(list.size() <=0) list.add(year+"");
+		
+		sbrVo.setYear_list(list);
+		
+		return sbrStatsMapper.selectSbrCompanyInfoList(sbrVo);
+	}
+
+
+	@Override
+	public List<Map<String, String>> getGrowthChart(SbrVo sbrVo) throws Exception {
+		
+		if( sbrVo.getBiz_cd() == null || sbrVo.getBiz_cd().equals(""))sbrVo.setBiz_cd("1");
+		sbrVo = checkData(sbrVo);
+		
+		return sbrStatsMapper.selectSbrGrowthList(sbrVo);
+	}
+
+
+	@Override
+	public Map<String, String> getAvgData(SbrVo sbrVo) throws Exception {
+		
+		sbrVo = checkData(sbrVo);
+		return sbrStatsMapper.selectSbrAvgData(sbrVo);
+	}
+
+
+	@Override
+	public Map<String, String> getCompanyAnalysis(SbrVo sbrVo) throws Exception {
+		sbrVo = checkData(sbrVo);
+		
+		int b_year = Integer.parseInt(sbrVo.getYear())-1;
+		sbrVo.setB_year(b_year+"");
+		
+		return sbrStatsMapper.selectCompanyAnalysis(sbrVo);
+	}
+
+
+	@Override
+	public List<Map<String, String>> getCompanyMain(SbrVo sbrVo) throws Exception {
+		sbrVo = getBordCd(sbrVo);
+		return sbrStatsMapper.selectCompanyMainList(sbrVo);
+	}
+
+
+	@Override
+	public List<Map<String, String>> getAreaDataList(SbrVo sbrVo) throws Exception {
+		sbrVo = checkData(sbrVo);
+		return sbrStatsMapper.selectAreaDataList(sbrVo);
+	}
+
+	@Override
+	public List innersearchpopulationForBorough(SbrVo sbrVo) throws Exception {
+		
+		sbrVo = getBordCd(sbrVo);
+		
+		int year = Integer.parseInt(sbrVo.getYear());
+		
+		List<String> list = new ArrayList<String>();
+		
+		boolean flag1 = true;
+		boolean flag2 = true;
+		
+		if(sbrVo.getIsOne().equals("Y")) {
+			
+			for(int i = (year-4) ;i <= year ; i++) {
+				
+				if(i <= 2005 && flag1 == true) {
+					list.add("2005");
+					flag1 = false;
+				}else if(i <= 2010 && flag2 == true) {
+					list.add("2010");
+					flag2 = false;
+				}else {
+					list.add(i+"");
+				}
+			}
+			
+		}else {
+			list.add(year+"");
+		}
+		
+		System.out.println(sbrVo.getIsOne());
+		System.out.println(list.toString());
+		
+		if(list.size() <=0) list.add(year+"");
+		
+		sbrVo.setYear_list(list);
+		if(sbrVo.getAdm_cd().length()<7)return sbrStatsMapper.innersearchpopulationForBorough(sbrVo);
+		else                            return sbrStatsMapper.innersearchpopulationForBoroughEmd(sbrVo);
+	}
+
+	@Override
+	public List getRegionSignalDataList( SbrVo sbrVo) throws Exception {
+		sbrVo = checkData(sbrVo);
+		return sbrStatsMapper.selectRegionSignalDataList(sbrVo);
+	}
+
+
+	@Override
+	public List getSbrAreaData(SbrVo sbrVo) throws Exception {
+		
+		sbrVo = checkData(sbrVo);
+		sbrVo = getBordCd(sbrVo);
+		List  result  = sbrStatsMapper.selectSbrAreaData(sbrVo);
+		return result;
+	}
+
+
+	@Override
+	public Map getRegionSignalDataChartData(SbrVo sbrVo) throws Exception {
+		
+		sbrVo = checkData(sbrVo);
+		
+		int year = Integer.parseInt(sbrVo.getYear());
+		
+		List<String> list = new ArrayList<String>();
+		
+		boolean flag1 = true;
+		boolean flag2 = true;
+		
+		for(int i = (year-5) ;i <= year ; i++) {
+			
+			if(i <= 2005 && flag1 == true) {
+				list.add("2005");
+				flag1 = false;
+			}else if(i <= 2010 && flag2 == true) {
+				list.add("2010");
+				flag2 = false;
+			}else {
+				list.add(i+"");
+			}
+		}
+		
+		sbrVo.setYear_list(list);
+		
+		List<Map<String, String>> dataList =  sbrStatsMapper.selectRegionSignalDataChartData(sbrVo);
+		
+		HashMap<String, Map<?, ?>> dumpMap = new HashMap<>();
+		
+		for (Map<String, String> map : dataList) {
+			
+			
+			List<HashMap<?, ?>> dumList = new ArrayList<>();
+			
+			String key ="";
+			key = map.get("col");
+			map.remove("col");
+			
+			dumpMap.put(key, map);
+		
+		}
+		
+		return dumpMap;
+	}
+
+
+	@Override
+	public Map getRegionSignalDataChartDataCompany(SbrVo sbrVo) throws Exception {
+
+		sbrVo = checkData(sbrVo);
+		
+		int year = Integer.parseInt(sbrVo.getYear());
+		
+		List<String> list = new ArrayList<String>();
+		
+		boolean flag1 = true;
+		boolean flag2 = true;
+		
+		for(int i = (year-5) ;i <= year ; i++) {
+			
+			if(i <= 2005 && flag1 == true) {
+				list.add("2005");
+				flag1 = false;
+			}else if(i <= 2010 && flag2 == true) {
+				list.add("2010");
+				flag2 = false;
+			}else {
+				list.add(i+"");
+			}
+		}
+		
+		sbrVo.setYear_list(list);
+		
+		List<Map<String, String>> dataList =  sbrStatsMapper.selectRegionSignalDataChartDataCompany(sbrVo);
+		
+		HashMap<String, Map<?, ?>> dumpMap = new HashMap<>();
+		
+		for (Map<String, String> map : dataList) {
+			
+			
+			List<HashMap<?, ?>> dumList = new ArrayList<>();
+			
+			String key ="";
+			key = map.get("col");
+			map.remove("col");
+			
+			dumpMap.put(key, map);
+		
+		}
+		
+		return dumpMap;
+	}
+
+
+	@Override
+	public Map getRegionSignalDataChartDataCompanyPeople(SbrVo sbrVo) throws Exception {
+		sbrVo = checkData(sbrVo);
+		return sbrStatsMapper.selectRegionSignalDataChartDataCompanyPeople(sbrVo);
+	}
+
+
+	@Override
+	public Map getRegionSignalDataChartDataArea(SbrVo sbrVo) throws Exception {
+		// TODO Auto-generated method stub
+		sbrVo = checkData(sbrVo);
+		
+		int year = Integer.parseInt(sbrVo.getYear());
+		
+		List<String> list = new ArrayList<String>();
+		
+		boolean flag1 = true;
+		boolean flag2 = true;
+		
+		for(int i = (year-5) ;i <= year ; i++) {
+			
+			if(i <= 2005 && flag1 == true) {
+				list.add("2005");
+				flag1 = false;
+			}else if(i <= 2010 && flag2 == true) {
+				list.add("2010");
+				flag2 = false;
+			}else {
+				list.add(i+"");
+			}
+		}
+		
+		sbrVo.setYear_list(list);
+		
+		List<Map<String, String>> dataList =  sbrStatsMapper.selectRegionSignalDataChartDataArea(sbrVo);
+		
+		HashMap<String, Map<?, ?>> dumpMap = new HashMap<>();
+		
+		for (Map<String, String> map : dataList) {
+			
+			
+			List<HashMap<?, ?>> dumList = new ArrayList<>();
+			
+			String key ="";
+			key = map.get("col");
+			map.remove("col");
+			
+			dumpMap.put(key, map);
+		
+		}
+		
+		return dumpMap;
+	}
+
+
+	@Override
+	public List getsbrComPanyInfoList(SbrVo sbrVo) throws Exception {
+		// TODO Auto-generated method stub
+		return sbrStatsMapper.selectComPanyInfoList(sbrVo);
+	}
+
+
+	@Override
+	public List household(SbrVo sbrVo) throws Exception {
+		// TODO Auto-generated method stub
+		
+		sbrVo = getBordCd(sbrVo);
+		
+		int year = Integer.parseInt(sbrVo.getYear());
+		
+		List<String> list = new ArrayList<String>();
+		
+		boolean flag1 = true;
+		boolean flag2 = true;
+		if(sbrVo.getIsOne().equals("Y")) {
+			for(int i = (year-5) ;i <= year ; i++) {
+				
+				if(i <= 2005 && flag1 == true) {
+					list.add("2005");
+					flag1 = false;
+				}else if(i <= 2014 && flag2 == true) {
+					list.add("2010");
+					flag2 = false;
+				}else if(i >= 2015) {
+					list.add(i+"");
+				}
+			}
+		}else {
+			list.add(year+"");
+		}
+		
+		System.out.println(list.toString());
+		sbrVo.setYear_list(list);
+		
+		if(sbrVo.getAdm_cd().length()<7) return sbrStatsMapper.selecthousehold(sbrVo);
+		else                             return sbrStatsMapper.selecthouseholdEmd(sbrVo);
+	}
+
+
+	@Override
+	public List house(SbrVo sbrVo) throws Exception {
+		// TODO Auto-generated method stub
+		
+		sbrVo = getBordCd(sbrVo);
+		
+		int year = Integer.parseInt(sbrVo.getYear());
+		
+		List<String> list = new ArrayList<String>();
+		
+		boolean flag1 = true;
+		boolean flag2 = true;
+		
+		if(sbrVo.getIsOne().equals("Y")) {
+			for(int i = (year-5) ;i <= year ; i++) {
+				
+				if(i <= 2005 && flag1 == true) {
+					list.add("2005");
+					flag1 = false;
+				}else if(i <= 2010 && flag2 == true) {
+					list.add("2010");
+					flag2 = false;
+				}else {
+					list.add(i+"");
+				}
+			}
+		}else {
+			list.add(year+"");
+		}
+		
+		sbrVo.setYear_list(list);
+		
+		if(sbrVo.getAdm_cd().length()<7)return sbrStatsMapper.seleHouse(sbrVo);
+		else                            return sbrStatsMapper.seleHouseEmd(sbrVo);
+		
+	}
+
+
+	@Override
+	public List farmhousehold(SbrVo sbrVo) throws Exception {
+		// TODO Auto-generated method stub
+		sbrVo = getBordCd(sbrVo);
+		
+		int year = Integer.parseInt(sbrVo.getYear());
+		
+		List<String> list = new ArrayList<String>();
+
+		int startYear = year-20;
+		if(startYear < 2000) startYear = 2000;
+		
+		if(sbrVo.getIsOne().equals("Y")) {
+			for(int i = startYear ;i <= year ; i= i+5) {
+					list.add(i+"");
+			}
+		}else {
+			list.add(year+"");
+		}
+		
+		sbrVo.setYear_list(list);
+		System.out.println(sbrVo.getOther_type());
+		
+		if(sbrVo.getOther_type().equals("1")) {
+			return sbrStatsMapper.selectFarmhousehold(sbrVo);	
+		}if(sbrVo.getOther_type().equals("2")) {
+			System.out.println("22");
+			return sbrStatsMapper.selectForestryhousehold(sbrVo);
+			
+		}else if(sbrVo.getOther_type().equals("3") || sbrVo.getOther_type().equals("4")){
+			System.out.println("3344");
+			return sbrStatsMapper.selectFisheryhousehold(sbrVo);
+		}else{
+			
+			return sbrStatsMapper.selectFarmhousehold(sbrVo);
+		}
+		
+		
+	}
+
+
+	@Override
+	public List getsbrjobList(SbrVo sbrVo) throws Exception {
+		// TODO Auto-generated method stub
+		sbrVo = getBordCd(sbrVo);
+		
+		if(Integer.parseInt(sbrVo.getPageNumber())>0) {
+			sbrVo.setStartNumber(sbrVo.getPageNumber());
+			sbrVo.setEndNumber((Integer.parseInt(sbrVo.getPageNumber())+50)+"");
+			//sbrVo.setEndNumber((Integer.parseInt(sbrVo.getPageNumber())+10)+"");
+		}else {
+			sbrVo.setStartNumber("0");
+			sbrVo.setEndNumber("50");
+		}
+		
+		if(!sbrVo.getBord_type().equals("1")) {
+			Map<String, String> jobArearKey =  sbrStatsMapper.selectSbrAreaAdmCode(sbrVo);
+			sbrVo.setBord_point(jobArearKey.get("arearpoint"));
+		}
+		
+		return sbrStatsMapper.selectjobList(sbrVo);
+	}
+
+
+	@Override
+	public Map getSbrAreaMax(SbrVo sbrVo) throws Exception {
+		sbrVo = checkData(sbrVo);
+		sbrVo = getBordCd(sbrVo);
+		return sbrStatsMapper.selectSbrAreaMax(sbrVo);
+	}
+
+
+	@Override
+	public List<?> getSbrCompanyInfoListAll(SbrVo sbrVo) throws Exception {
+
+		sbrVo = checkData(sbrVo);
+		
+		int year = Integer.parseInt(sbrVo.getYear());
+		
+		List<String> list = new ArrayList<String>();
+		
+		boolean flag1 = true;
+		boolean flag2 = true;
+		
+			
+		for(int i = (year-4) ;i <= year ; i++) {
+			
+			if(i <= 2005 && flag1 == true) {
+				list.add("2005");
+				flag1 = false;
+			}else if(i <= 2010 && flag2 == true) {
+				list.add("2010");
+				flag2 = false;
+			}else {
+				list.add(i+"");
+			}
+		}
+			
+		
+		System.out.println(list.toString());
+		if(list.size() <=0) list.add(year+"");
+		
+		sbrVo.setYear_list(list);
+		
+		return sbrStatsMapper.selectSbrCompanyInfoListAll(sbrVo);
+	}
+
+	@Override
+	public Map getSbrYouthCountSignal(SbrVo sbrVo) throws Exception {
+		sbrVo = checkData(sbrVo);
+		
+		int year = Integer.parseInt(sbrVo.getYear());
+		List<String> list = new ArrayList<String>();
+		
+		final int MIN_YEAR = 4;
+
+		for(int i = year;i > (year - MIN_YEAR); i--) {
+			// year : 2014 ~ 2020
+			list.add(String.valueOf(i));
+		}
+		
+		Map<String, Object> map = new HashMap<>();
+		sbrVo.setYear_list(list);
+		//토지공사
+		sbrVo.setSelectColumn("lnd");
+		List<?> dataList = sbrStatsMapper.selectSbrYouthCount(sbrVo);
+		map.put("lnd", dataList);
+		
+		//청장년
+		sbrVo.setSelectColumn("ymage");
+		List<?> dataList2 = sbrStatsMapper.selectSbrYouthCount(sbrVo);
+		map.put("ymage", dataList2);
+		
+		
+		
+	
+		return map;
+	}
+
+
+	@Override
+	public Map getleftDateTemp(SbrVo sbrVo) throws Exception {
+		// TODO Auto-generated method stub
+		
+		
+		Map temp = new HashMap<String,Object>();
+		
+		return temp;
+	}
+	
+	
+	private List<?> getLndAvgOlnlp(SbrVo sbrVo) throws Exception {
+		
+	    //List<?> list = sbrStatsMapper.selectLndAvgOlnlp(sbrVo);
+		
+		
+		
+		return null;
+	}
+
+
+	@Override
+	public List getSbrCompayRankList(SbrVo sbrVo) throws Exception {
+		// TODO Auto-generated method stub
+		
+		sbrVo = checkData(sbrVo);
+		int b_year = Integer.parseInt(sbrVo.getYear())-1;
+		sbrVo.setB_year(b_year+"");
+		
+		return sbrStatsMapper.selectCompayRankList(sbrVo);
+	}
+
+
+	@Override
+	public List getSbrArearDataInfo(SbrVo sbrVo) throws Exception {
+		
+		List cdList = sbrVo.getAdmCdList();
+		List<String> cdList2 = new ArrayList<String>();
+		
+		for(int i=0; i < cdList.size();i++) {
+			
+			if(cdList.get(i).toString().length() < 8) {
+				cdList2.add(cdList.get(i).toString()+"0");
+			}else {
+				cdList2.add(cdList.get(i).toString());
+			}
+			
+		}
+		
+		sbrVo.setAdmCdList(cdList2);
+		
+		return sbrStatsMapper.selectArearDataInfo(sbrVo);
+	}
+
+	private void setSignalVo(SbrVo sbrVo) {
+		// 1. base year 을 받아 -3 까지 year_list 추
+		int baseYear = Integer.parseInt(sbrVo.getYear());
+		List<String> yearList = new ArrayList<String>();
+		for(int i = baseYear; i>= baseYear-3 ; i--) {
+			yearList.add(String.valueOf(i));
+		}
+		sbrVo.setYear_list(yearList);
+		
+		if(yearList.size() > 3) {
+			sbrVo.setB_year(yearList.get(1)); 
+			sbrVo.setC_year(yearList.get(2));
+			sbrVo.setD_year(yearList.get(3));
+		}
+		
+		// 2. cnd_cd 는 무조건 999
+		sbrVo.setCnd_cd("999");
+		
+		// 3. sido cd 에 따라서 bord_type 결정
+		String bordCd = sbrVo.getAdm_cd();
+		String bordType = sbrVo.getBord_type();
+		
+		System.out.println("bord_type, adm_cd : " + sbrVo.getBord_type() + sbrVo.getAdm_cd());	
+		
+		if(sbrVo.getBord_type().equals("1")) {
+			if(bordCd.length() == 2) {
+				bordType += "1";
+			} else if(bordCd.length() == 5) {
+				bordType += "2";
+			} else if(bordCd.length() >= 7) {
+				bordType += "3";
+			} else {
+				bordType += "0";
+			}
+			sbrVo.setBord_type(bordType);
+		}
+		
+		
+	}
+	
+	@Override
+	public Map<String, Object> getSbrSignalTrendBiz(SbrVo sbrVo) throws Exception {
+//		List<String> getYearList = new ArrayList<String>();
+//		sbrVo.setYear_list(getYearList);
+		
+		setSignalVo(sbrVo);
+		System.out.println("SbrStatsServiceImpl -> getSbrSignalTrendBiz -> bord_type : " + sbrVo.getBord_type());
+		System.out.println("SbrStatsServiceImpl -> getSbrSignalTrendBiz -> adm_cd : " + sbrVo.getAdm_cd());
+		System.out.println("SbrStatsServiceImpl -> getSbrSignalTrendBiz -> cnd_cd : " + sbrVo.getCnd_cd());
+//		System.out.println("SbrStatsServiceImpl -> getSbrSignalTrendBiz -> d_year : " + sbrVo.getD_year());
+		
+		List<Map<String, Object>> trendBizList =  sbrStatsMapper.selectSignalTrendBiz(sbrVo);
+		Map<String,Object> resultMap = new HashMap<String, Object>();
+		
+		if(trendBizList.size() > 0) {
+			resultMap =  trendBizList.get(0);
+		}
+		
+		return resultMap;
+	}
+	
+	@Override
+	public List getSbrBizDataList(SbrVo sbrVo) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+}

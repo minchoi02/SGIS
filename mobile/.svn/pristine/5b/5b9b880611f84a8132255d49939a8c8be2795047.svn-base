@@ -1,0 +1,391 @@
+/*@charset "euc-kr";*/
+/*font*/
+@import url("https://fonts.googleapis.com/earlyaccess/notosanskr.css");
+
+
+.mb10 {margin-bottom: 10px;}
+/* 지역현안소통지도 redesign */
+
+/*이중스크롤 때문에 height:calc(10% - 334px);  제거함*/
+.ContArea.Community_intro {position:relative; left:0;padding:10px; width:100%; box-sizing:border-box; overflow:auto; height:auto;/*화면 전체가 스크롤 되어 100% -> 90% height 축소  20200702 박은식*/}
+.CommunityList .List {padding:0;/*리스트 하단부분 마진제거 20200702 박은식*/}
+
+.ListSearch_cm { position:fixed; bottom:0; right:0; height:35px; background:none; padding:0; text-align:right; overflow:hidden; width:100px; display:inline-block; left:auto;}
+.ListSearch_cm button {background:url(../../images/common/icon_search1.png) no-repeat left center; background-size:20px; text-align:left; padding-left:23px; height:35px; width:80px; border:none; top:0;}
+.ListSearch_cm input[type=text] { width:calc(100% - 110px); position:absolute; left:10px; top:5px; height:25px;}
+.ListSearch_cm.Open { width:100%;}
+.ListSearch_cm #community-search {height:35px; width:100%;}
+.ListSearch_cm.Open #community-search {}
+.ListSearch_cm.Open button.SearchBtn_fst { height:0; width:0; /* overflow:hidden; box-sizing:border-box; line-height:0; padding:0; */}
+
+.ListSearch_cm.Open form button { width:45px; right:45px;}
+.ListSearch_cm.Open .SearchClose {display: block; width: 35px; height: 35px; text-indent: -1000px; background: #000 url(../../images/common/btn_close.png) no-repeat center center; position: absolute; top: 0; right: 0; overflow: hidden; background-size: 18px;}
+.ListSearch_cm .SearchClose { width:0; height:0; line-height:0;padding:0; font-size:0;}
+
+.CommunityList .List dl .NoData {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    left: 0;
+    margin-top: 25px;
+}
+
+/* 상세 */
+.Community_cont {
+	background: #fff;
+	padding: 10px;
+	border-bottom: #ddd solid 1px;
+	/* margin-top: 15px; */
+}
+
+.MapInfo {
+	padding: 0;
+	background: #fff;
+}
+
+.MaptitArea {
+	width: 100%; 
+	font-family: inherit;
+	font-size: 13px;
+	color: #fff; 
+	position:absolute;
+	z-index:600;
+	width:100%;
+	margin-top:-11px;
+	left:0px;
+}
+
+.MaptitArea .Maintit {
+	width: 100%;
+    position: relative;
+    overflow: hidden;
+    padding: 5px 10px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction:row;
+    align-items:center;
+    background-color: #f7f7f7;
+    border-bottom: 1px solid #757678;
+    color:#4f4f4f;
+}
+
+.Maintit > h4 {
+	white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 45%;
+    box-sizing:border-box; padding:5px 10px;
+}
+
+.writeName {
+	color: rgba(255,255,255,0.8);
+} 
+
+.titInfo {
+	display: flex;
+    margin-left: auto;
+    align-items: center;
+}
+
+.titInfo > p {
+	margin: 0 5px ;
+	white-space: nowrap;
+}
+
+.personCount {}
+
+.personCount:before {
+	content: '';
+    height: 12px;
+    width: 18px;
+    display: inline-block;
+    position: relative;
+    left: 0;
+    background: url(../../images/sub/Maintit_icon00.png) no-repeat;
+    box-sizing: border-box;
+    margin-right: 6px;
+    margin-top: -3px;
+    vertical-align: middle;
+    background-size: 18px;
+}
+
+.DateCount {}
+
+.DateCount:before {
+	    content: '';
+    height: 15px;
+    width: 15px;
+    display: inline-block;
+    position: relative;
+    left: 0;
+    background: url(../../images/sub/Maintit_icon01.png) no-repeat;
+    box-sizing: border-box;
+    margin-right: 6px;
+    margin-top: -3px;
+    vertical-align: middle;
+    background-size: 14px;
+}
+
+.MaptitArea .Subtit {
+	background-color: rgba(0,0,0,0.5);
+	padding: 9px 16px;
+	font-size: 14px;
+	font-weight: 500;
+	display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.MaptitArea .Subtit > h4 {
+	white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 70%;
+}
+
+.Subtit .Social {
+	margin-left: auto;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+
+.Subtit .Social a { 
+    width: 25px;
+    height: 25px; 
+    margin: 0 7px; 
+    background-size: 100% 100%;  
+}
+
+/*2020.09.11[신예리] 웹접근성 문제로 인한 a태그 button으로 변경 START*/
+.Subtit .Social button.sns_tw { 
+	width: 25px;
+	height: 25px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-left: 10px;
+	
+}
+
+.Subtit .Social button.sns_tw img {
+	width: 100%;
+	height: auto;
+}
+
+.Subtit .Social button.sns_fb {
+	align-items: center;
+	justify-content: center;
+	width: 25px;
+	height: 25px;  
+}
+
+.Subtit .Social button.sns_fb img {
+	width: 100%;
+	height: auto;
+}
+
+/*2020.09.11[신예리] 웹접근성 문제로 인한 a태그 button으로 변경 END*/
+
+/*등록자료목록*/
+.communityListTop {
+	display: flex;
+    flex-direction: row;
+    justify-content:space-between;
+    align-items: center;
+    box-sizing:border-box;
+    padding: 10px;
+}
+
+.communityListTop>.tit {
+	color: #353B48;
+	font-size: 1.3em;
+	font-weight: 700;
+	width:100%; text-align:center;
+}
+
+/* 2020.09.10[한광희] 로그아웃버튼 위치 조정으로 인한 수정 START */
+.communityListTop > .btn_register {
+	background-color: #2277F2;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-weight: 700;
+    border: 1px solid #2277F2;
+}
+/* 2020.09.10[한광희] 로그아웃버튼 위치 조정으로 인한 수정 END */
+
+.all-poi-count {
+	margin-left: 2px;
+} 
+ 
+
+/* width 초과되는 텍스트 숨김 20200706 박은식*/
+.MapInfo div h4	 {height:24px; /* display:inline; */ color:#fff;}
+.MapInfo div p  {height:24px; display:inline}
+.MapInfo div h3 span{position:absolute; right:15px; top:5px; width:24px; height:24px;}
+.MapInfo div h3 span:after { display:block; width:12px; height:12px; border:#fff solid 1px; border-top:none; border-left:none; transform:rotate(45deg); position:absolute; right:6px; top:2px;}
+/* .MapInfo h3 {width:100%; padding:9px 0 9px 16px; font-family: "NanumSquareB"; font-size: 13px; color:#fff; background:#457bc3;}
+.MapInfo h3 span{position:absolute; right:15px; top:5px; width:24px; height:24px;}
+.MapInfo h3 span:after { display:block; width:12px; height:12px; border:#fff solid 1px; border-top:none; border-left:none; transform:rotate(45deg); position:absolute; right:6px; top:2px;}
+.MapInfo .MapInfo_Detail {background:#f4f4f4; border:#ddd solid 1px; padding:10px; padding-left:140px; box-sizing:border-box; position:relative;min-height:142px; margin-bottom:30px; } */
+.MapInfo .subtitle { box-sizing:border-box;  font-size:14px; }
+.MapInfo .Image { width:115px; height:87px; border-radius:0; float:left; left:10px; top:10px; border:none; }
+.MapInfo .Image:after { content:'';  width:100%; height:100%; box-sizing:border-box; border:#000 solid 1px; opacity:0.15; position:absolute; left:0; top:0;}
+ 
+.MapInfo .MapInfo_Detail .detail { position:absolute; bottom:-30px; width:100%; left:0; text-align:center; }
+#opinionRegistArea{padding:10px; box-shadow:0 1px 3px rgba(0,0,0,0.4);}
+.MapInfo .Social { left:10px; top:100px; width:115px; text-align:center; display:block;} 
+.MapInfo .Social a { float:none; width:25px; height:25px; background-size:100% 100%; background-position:center center;}
+
+.Community_map { /* border-top:#ddd solid 1px; */ }
+
+.CommunityList h4 a {display:block; height:35px; box-sizing:border-box; border-bottom:#ddd solid 1px; position:relative; font-size:14px; line-height:35px; padding-left:15px; letter-spacing:-1px;}
+.CommunityList h4 a span {margin-left:10px; color:#457bc3;}
+.CommunityList h4 a:after { content:''; display:block; width:12px; height:12px; border:#555 solid 1px; border-top:none; border-left:none; transform:rotate(-135deg); position:absolute; right:15px; top:13px;}
+/*.CommunityList h4 a.M_on:after { transform:rotate(45deg); top:4px;}*/
+
+.CommunityList .OpenArea { 
+    box-sizing: border-box;
+    height: 0;
+    position: absolute;
+    overflow: hidden;
+}
+
+.CommunityList .OpenArea .List {
+	background: #fff;
+    box-sizing: border-box; 
+    margin-bottom: 0;
+}
+
+.CommunityList .OpenArea.Open {
+	/* padding: 10px 0; */
+    height: auto; 
+    position: relative;
+}
+
+.CommunityList .List ul li {
+	border: 1px solid #ddd;
+    border-radius: 5px;
+    margin: 7px 0;
+}
+
+
+.CommunityList .List ul a {
+	padding-left: 15px;
+}
+
+.CommunityList .List ul {
+	margin-bottom: 0;
+}
+
+
+.CommunityList .Pasing {
+	margin-bottom: 0 !important;
+}
+
+.CommunityList .Pasing a, .CommunityList .Pasing span {
+	background: #fff;
+}
+
+.CommunityList .OpenArea .Pasing {
+	text-align: left;
+}
+
+.CommunityList .OpenArea .Pasing a, .CommunityList .OpenArea .Pasing span
+	{
+	text-align: center;
+}
+
+.CommunityList .OpenArea .ListSearch {
+	padding: 0;
+	background: none;
+	width: calc(100% - 205px);
+	position: absolute;
+	right: 10px;
+	margin-top: -28px;
+	height: 28px;
+}
+
+.CommunityList .OpenArea .ListSearch input {
+	box-sizing: border-box;
+	border: #ddd solid 1px;
+	height: 28px;
+}
+
+.CommunityList .OpenArea .ListSearch button {
+	width: 26px;
+	height: 26px;
+	background: #666 url(../../images/common/icon_search1.png) no-repeat
+		center center;
+	background-size: 70%;
+	right: 1px;
+	top: 1px;
+	border: none;
+	text-indent: -1000px;
+	overflow: hidden;
+}
+
+.swiper-wrapper.Tab-wrapper {
+	margin-bottom: 5px;
+	align-items: flex-start;
+	transition-property: transform, height;
+	position: relative;
+	width: 100%;
+	height: 40px;
+	z-index: 1;
+	display: flex;
+	transform: translate3d(0px, 0, 0);
+	transition-property: transform;
+	box-sizing: content-box;
+}
+
+.search-icon {
+	width: 30px;
+	height: 30px;
+	background: url('../../images/main/search_rnb.png') no-repeat center;
+}
+
+/*2020.09.02 [신예리] 목록보기 버튼 추가*/
+.communityListWrap {
+	width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.communityListWrap > a.communityListBtn {
+	color: #2DC2DA;
+    background: url(../../images/sub/backlist.png) no-repeat;
+    font-size: 13px;
+    margin-bottom: 10px;
+    padding: 6px 25px 6px 40px;
+    border-radius: 50px;
+    background-size: 16px;
+    border: 1px solid #2DC2DA;
+    background-position: 20px 10px;
+    
+}
+
+.communityListWrap > a.communitylogoutBtn {
+	color: #808e90; 
+    font-size: 13px;
+    margin-bottom: 10px;
+    padding: 6px 25px;
+    border-radius: 50px; 
+    border: 1px solid #808e90; 
+    margin-left: 10px;
+}
+
+/* 2020.09.10[한광희] 로그아웃 버튼 css 추가 START */
+a.communitylogoutBtn {
+	color: #808e90;
+    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 50px;
+    border: 1px solid #808e90;
+    margin-left: auto;
+}
+/* 2020.09.10[한광희] 로그아웃 버튼 css 추가 END */
+
+#all-community { background-color:#fff; box-sizing:border-box; padding:0 10px; overflow:hidden;}

@@ -1,0 +1,636 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="startupbiz2020">
+	
+	<!-- 시군구 사업체,종사자 음식점,도소매,서비스,숙박업 상세보기  박상언 수정, API_0626 -->
+	<select id="sggTypeOfLifeDetail" parameterType="hashmap" resultType="hashmap">
+		SELECT 	
+				SGG.SIDO_CD,
+				SGG.SGG_CD,
+				SGG.THEME_CD,
+				SGG.CORP_CNT,
+				SGG.BIZ_WORKER_CNT AS WORKER_CNT, 
+				THEME.S_THEME_CD_NM AS NAME,
+				ROUND(1.*(SGG.CORP_CNT /#{corp_total}) * 100 , 1) AS CORP_PER,
+				ROUND(1.*(SGG.BIZ_WORKER_CNT /#{worker_total}) * 100 , 1) AS WORKER_PER      
+		FROM  
+			SRV_DT_BIZCATEGORYMAP_SGG SGG 
+		INNER JOIN 
+		(
+			<include refid="themeCdCommon.filteredThemeInfo" />
+			and B_THEME_CD = #{b_theme_cd}
+		) THEME
+		ON  
+			SGG.THEME_CD = THEME.THEME_CD AND SGG.BASE_YEAR=(SELECT TOP 1 BASE_YEAR FROM SRV_DT_BIZCATEGORYMAP_SGG ORDER BY BASE_YEAR DESC)
+		WHERE SIDO_CD=#{sido_cd} AND SGG_CD=#{sgg_cd} ORDER BY SGG.CORP_CNT DESC
+	</select>	
+	
+	
+	<select id="totalCorpCnt" parameterType="hashmap" resultType="String">
+		SELECT SUM(CORP_CNT) AS TOTAL_CORP_CNT FROM SRV_DT_BIZCATEGORYMAP_SGG WHERE SIDO_CD=#{sido_cd} AND SGG_CD=#{sgg_cd}
+		AND BASE_YEAR=(SELECT TOP 1 BASE_YEAR FROM SRV_DT_BIZCATEGORYMAP_SGG ORDER BY BASE_YEAR DESC)
+		AND THEME_CD IN (
+		 	<include refid="themeCdCommon.filteredThemeCd" />
+		 	and B_THEME_CD = #{b_theme_cd}
+		)
+	</select>
+	
+	
+	
+	<select id="totalWorkerCnt" parameterType="hashmap" resultType="String">
+		SELECT SUM(BIZ_WORKER_CNT) AS TOTAL_WORKER_CNT FROM SRV_DT_BIZCATEGORYMAP_SGG WHERE SIDO_CD=#{sido_cd} AND SGG_CD=#{sgg_cd}
+		AND BASE_YEAR=(SELECT TOP 1 BASE_YEAR FROM SRV_DT_BIZCATEGORYMAP_SGG ORDER BY BASE_YEAR DESC)
+		AND THEME_CD IN (
+			<include refid="themeCdCommon.filteredThemeCd" />
+		 	and B_THEME_CD = #{b_theme_cd}
+		)
+	</select>
+	
+	
+	<!-- 시군구 사업체,종사자 수 및 백분율 속성  박상언 수정, API_0624 -->
+	<select id="sggTypeOfBusinessWorker" parameterType="hashmap" resultType="hashmap">
+		select 
+			sum(case when b_theme_cd = 'D' then corp_cnt end) as D_CORP_CNT,		
+			sum(case when b_theme_cd = 'C' then corp_cnt end) as C_CORP_CNT,	
+			sum(case when b_theme_cd = 'G' then corp_cnt end) as G_CORP_CNT,	
+			sum(case when b_theme_cd = 'H' then corp_cnt end) as H_CORP_CNT,	
+			sum(case when b_theme_cd = 'F' then corp_cnt end) as F_CORP_CNT,	
+			sum(case when b_theme_cd = 'I' then corp_cnt end) as I_CORP_CNT,		
+			sum(case when b_theme_cd = 'J' then corp_cnt end) as J_CORP_CNT,	
+			sum(case when b_theme_cd = 'K' then corp_cnt end) as K_CORP_CNT,	
+			
+			sum(case when b_theme_cd = 'D' then biz_worker_cnt end) as D_WORKER_CNT,
+			sum(case when b_theme_cd = 'C' then biz_worker_cnt end) as C_WORKER_CNT,
+			sum(case when b_theme_cd = 'G' then biz_worker_cnt end) as G_WORKER_CNT,
+			sum(case when b_theme_cd = 'H' then biz_worker_cnt end) as H_WORKER_CNT,
+			sum(case when b_theme_cd = 'F' then biz_worker_cnt end) as F_WORKER_CNT,	
+			sum(case when b_theme_cd = 'I' then biz_worker_cnt end) as I_WORKER_CNT,		
+			sum(case when b_theme_cd = 'J' then biz_worker_cnt end) as J_WORKER_CNT,	
+			sum(case when b_theme_cd = 'K' then biz_worker_cnt end) as K_WORKER_CNT,	
+		
+			round(1. * sum(case when b_theme_cd = 'D' then corp_cnt end) /(sum(case when b_theme_cd = 'D' then corp_cnt end)+sum(case when b_theme_cd = 'C' then corp_cnt end)+sum(case when b_theme_cd = 'G' then corp_cnt end)+sum(case when b_theme_cd = 'H' then corp_cnt end)+sum(case when b_theme_cd = 'F' then corp_cnt end)+sum(case when b_theme_cd = 'I' then corp_cnt end)+sum(case when b_theme_cd = 'J' then corp_cnt end)+sum(case when b_theme_cd = 'K' then corp_cnt end))*100,1) as D_PER,
+			round(1. * sum(case when b_theme_cd = 'C' then corp_cnt end) /(sum(case when b_theme_cd = 'D' then corp_cnt end)+sum(case when b_theme_cd = 'C' then corp_cnt end)+sum(case when b_theme_cd = 'G' then corp_cnt end)+sum(case when b_theme_cd = 'H' then corp_cnt end)+sum(case when b_theme_cd = 'F' then corp_cnt end)+sum(case when b_theme_cd = 'I' then corp_cnt end)+sum(case when b_theme_cd = 'J' then corp_cnt end)+sum(case when b_theme_cd = 'K' then corp_cnt end))*100,1) as C_PER,
+			round(1. * sum(case when b_theme_cd = 'G' then corp_cnt end) /(sum(case when b_theme_cd = 'D' then corp_cnt end)+sum(case when b_theme_cd = 'C' then corp_cnt end)+sum(case when b_theme_cd = 'G' then corp_cnt end)+sum(case when b_theme_cd = 'H' then corp_cnt end)+sum(case when b_theme_cd = 'F' then corp_cnt end)+sum(case when b_theme_cd = 'I' then corp_cnt end)+sum(case when b_theme_cd = 'J' then corp_cnt end)+sum(case when b_theme_cd = 'K' then corp_cnt end))*100,1) as G_PER,
+			round(1. * sum(case when b_theme_cd = 'H' then corp_cnt end) /(sum(case when b_theme_cd = 'D' then corp_cnt end)+sum(case when b_theme_cd = 'C' then corp_cnt end)+sum(case when b_theme_cd = 'G' then corp_cnt end)+sum(case when b_theme_cd = 'H' then corp_cnt end)+sum(case when b_theme_cd = 'F' then corp_cnt end)+sum(case when b_theme_cd = 'I' then corp_cnt end)+sum(case when b_theme_cd = 'J' then corp_cnt end)+sum(case when b_theme_cd = 'K' then corp_cnt end))*100,1) as H_PER,
+			round(1. * sum(case when b_theme_cd = 'F' then corp_cnt end) /(sum(case when b_theme_cd = 'D' then corp_cnt end)+sum(case when b_theme_cd = 'C' then corp_cnt end)+sum(case when b_theme_cd = 'G' then corp_cnt end)+sum(case when b_theme_cd = 'H' then corp_cnt end)+sum(case when b_theme_cd = 'F' then corp_cnt end)+sum(case when b_theme_cd = 'I' then corp_cnt end)+sum(case when b_theme_cd = 'J' then corp_cnt end)+sum(case when b_theme_cd = 'K' then corp_cnt end))*100,1) as F_PER,
+			round(1. * sum(case when b_theme_cd = 'I' then corp_cnt end) /(sum(case when b_theme_cd = 'D' then corp_cnt end)+sum(case when b_theme_cd = 'C' then corp_cnt end)+sum(case when b_theme_cd = 'G' then corp_cnt end)+sum(case when b_theme_cd = 'H' then corp_cnt end)+sum(case when b_theme_cd = 'F' then corp_cnt end)+sum(case when b_theme_cd = 'I' then corp_cnt end)+sum(case when b_theme_cd = 'J' then corp_cnt end)+sum(case when b_theme_cd = 'K' then corp_cnt end))*100,1) as I_PER,
+			round(1. * sum(case when b_theme_cd = 'J' then corp_cnt end) /(sum(case when b_theme_cd = 'D' then corp_cnt end)+sum(case when b_theme_cd = 'C' then corp_cnt end)+sum(case when b_theme_cd = 'G' then corp_cnt end)+sum(case when b_theme_cd = 'H' then corp_cnt end)+sum(case when b_theme_cd = 'F' then corp_cnt end)+sum(case when b_theme_cd = 'I' then corp_cnt end)+sum(case when b_theme_cd = 'J' then corp_cnt end)+sum(case when b_theme_cd = 'K' then corp_cnt end))*100,1) as J_PER,
+			round(1. * sum(case when b_theme_cd = 'K' then corp_cnt end) /(sum(case when b_theme_cd = 'D' then corp_cnt end)+sum(case when b_theme_cd = 'C' then corp_cnt end)+sum(case when b_theme_cd = 'G' then corp_cnt end)+sum(case when b_theme_cd = 'H' then corp_cnt end)+sum(case when b_theme_cd = 'F' then corp_cnt end)+sum(case when b_theme_cd = 'I' then corp_cnt end)+sum(case when b_theme_cd = 'J' then corp_cnt end)+sum(case when b_theme_cd = 'K' then corp_cnt end))*100,1) as K_PER,
+			
+			round(1. * sum(case when b_theme_cd = 'D' then biz_worker_cnt end) /(sum(case when b_theme_cd = 'D' then biz_worker_cnt end)+sum(case when b_theme_cd = 'C' then biz_worker_cnt end)+sum(case when b_theme_cd = 'G' then biz_worker_cnt end)+sum(case when b_theme_cd = 'H' then biz_worker_cnt end)+sum(case when b_theme_cd = 'F' then biz_worker_cnt end)+sum(case when b_theme_cd = 'I' then biz_worker_cnt end)+sum(case when b_theme_cd = 'J' then biz_worker_cnt end)+sum(case when b_theme_cd = 'K' then biz_worker_cnt end))*100,1)as D_WORKER_PER,
+			round(1. * sum(case when b_theme_cd = 'C' then biz_worker_cnt end) /(sum(case when b_theme_cd = 'D' then biz_worker_cnt end)+sum(case when b_theme_cd = 'C' then biz_worker_cnt end)+sum(case when b_theme_cd = 'G' then biz_worker_cnt end)+sum(case when b_theme_cd = 'H' then biz_worker_cnt end)+sum(case when b_theme_cd = 'F' then biz_worker_cnt end)+sum(case when b_theme_cd = 'I' then biz_worker_cnt end)+sum(case when b_theme_cd = 'J' then biz_worker_cnt end)+sum(case when b_theme_cd = 'K' then biz_worker_cnt end))*100,1)as C_WORKER_PER,
+			round(1. * sum(case when b_theme_cd = 'G' then biz_worker_cnt end) /(sum(case when b_theme_cd = 'D' then biz_worker_cnt end)+sum(case when b_theme_cd = 'C' then biz_worker_cnt end)+sum(case when b_theme_cd = 'G' then biz_worker_cnt end)+sum(case when b_theme_cd = 'H' then biz_worker_cnt end)+sum(case when b_theme_cd = 'F' then biz_worker_cnt end)+sum(case when b_theme_cd = 'I' then biz_worker_cnt end)+sum(case when b_theme_cd = 'J' then biz_worker_cnt end)+sum(case when b_theme_cd = 'K' then biz_worker_cnt end))*100,1)as G_WORKER_PER,
+			round(1. * sum(case when b_theme_cd = 'H' then biz_worker_cnt end) /(sum(case when b_theme_cd = 'D' then biz_worker_cnt end)+sum(case when b_theme_cd = 'C' then biz_worker_cnt end)+sum(case when b_theme_cd = 'G' then biz_worker_cnt end)+sum(case when b_theme_cd = 'H' then biz_worker_cnt end)+sum(case when b_theme_cd = 'F' then biz_worker_cnt end)+sum(case when b_theme_cd = 'I' then biz_worker_cnt end)+sum(case when b_theme_cd = 'J' then biz_worker_cnt end)+sum(case when b_theme_cd = 'K' then biz_worker_cnt end))*100,1)as H_WORKER_PER,
+			round(1. * sum(case when b_theme_cd = 'F' then biz_worker_cnt end) /(sum(case when b_theme_cd = 'D' then biz_worker_cnt end)+sum(case when b_theme_cd = 'C' then biz_worker_cnt end)+sum(case when b_theme_cd = 'G' then biz_worker_cnt end)+sum(case when b_theme_cd = 'H' then biz_worker_cnt end)+sum(case when b_theme_cd = 'F' then biz_worker_cnt end)+sum(case when b_theme_cd = 'I' then biz_worker_cnt end)+sum(case when b_theme_cd = 'J' then biz_worker_cnt end)+sum(case when b_theme_cd = 'K' then biz_worker_cnt end))*100,1)as F_WORKER_PER,
+			round(1. * sum(case when b_theme_cd = 'I' then biz_worker_cnt end) /(sum(case when b_theme_cd = 'D' then biz_worker_cnt end)+sum(case when b_theme_cd = 'C' then biz_worker_cnt end)+sum(case when b_theme_cd = 'G' then biz_worker_cnt end)+sum(case when b_theme_cd = 'H' then biz_worker_cnt end)+sum(case when b_theme_cd = 'F' then biz_worker_cnt end)+sum(case when b_theme_cd = 'I' then biz_worker_cnt end)+sum(case when b_theme_cd = 'J' then biz_worker_cnt end)+sum(case when b_theme_cd = 'K' then biz_worker_cnt end))*100,1)as I_WORKER_PER,
+			round(1. * sum(case when b_theme_cd = 'J' then biz_worker_cnt end) /(sum(case when b_theme_cd = 'D' then biz_worker_cnt end)+sum(case when b_theme_cd = 'C' then biz_worker_cnt end)+sum(case when b_theme_cd = 'G' then biz_worker_cnt end)+sum(case when b_theme_cd = 'H' then biz_worker_cnt end)+sum(case when b_theme_cd = 'F' then biz_worker_cnt end)+sum(case when b_theme_cd = 'I' then biz_worker_cnt end)+sum(case when b_theme_cd = 'J' then biz_worker_cnt end)+sum(case when b_theme_cd = 'K' then biz_worker_cnt end))*100,1)as J_WORKER_PER,
+			round(1. * sum(case when b_theme_cd = 'K' then biz_worker_cnt end) /(sum(case when b_theme_cd = 'D' then biz_worker_cnt end)+sum(case when b_theme_cd = 'C' then biz_worker_cnt end)+sum(case when b_theme_cd = 'G' then biz_worker_cnt end)+sum(case when b_theme_cd = 'H' then biz_worker_cnt end)+sum(case when b_theme_cd = 'F' then biz_worker_cnt end)+sum(case when b_theme_cd = 'I' then biz_worker_cnt end)+sum(case when b_theme_cd = 'J' then biz_worker_cnt end)+sum(case when b_theme_cd = 'K' then biz_worker_cnt end))*100,1)as K_WORKER_PER
+		from 
+			(select * from SRV_DT_BIZCATEGORYMAP_SGG where sido_cd=#{sido_cd} and sgg_cd=#{sgg_cd}
+				and BASE_YEAR=(SELECT TOP 1 BASE_YEAR FROM SRV_DT_BIZCATEGORYMAP_SGG ORDER BY BASE_YEAR DESC)) SDBS 
+		inner join
+			(select theme_cd,b_theme_cd from CMM_CD_THEME where lifebiz_yn = 'Y' ) THEME
+		on	
+			SDBS.theme_cd = THEME.theme_cd
+	</select>
+	
+	
+	<!-- 시군구 사업체,종사자 음식점,도소매,서비스,숙박업 평균보기  박길섭 추가, API_0625 -->
+	<select id="sggTypeOfAverage" parameterType="hashmap" resultType="hashmap">
+		SELECT 	CORP.THEME_CD,
+				CORP.CORP_CNT,
+				WORKER.WORKER_CNT, 
+				THEME.S_THEME_CD_NM AS NAME,
+				ROUND((CORP.CORP_CNT / #{corp_total}) * 100 , 1) AS CORP_PER,
+				ROUND((WORKER.WORKER_CNT /#{worker_total} ) * 100 , 1) AS WORKER_PER 
+		FROM SRV_DT_SIDOLIFEBIZ_CORP_2020 CORP 
+		INNER JOIN SRV_DT_SIDOLIFEBIZ_WORKER_2020 worker on CORP.SIDO_CD=WORKER.SIDO_CD and CORP.THEME_CD=WORKER.THEME_CD
+		INNER JOIN (
+			SELECT
+					THEME_CD
+					, B_THEME_CD_NM
+					, S_THEME_CD_NM
+			FROM
+					CMM_CD_THEME
+			WHERE
+					lifebiz_yn = 'Y'
+					and B_THEME_CD = #{b_theme_cd}
+		) THEME
+				ON  WORKER.THEME_CD = THEME.THEME_CD
+		WHERE WORKER.SIDO_CD = #{sido_cd}
+				AND CORP.BASE_YEAR=(SELECT TOP 1 BASE_YEAR FROM SRV_DT_SIDOLIFEBIZ_CORP_2020 ORDER BY BASE_YEAR DESC)
+				AND WORKER.BASE_YEAR=(SELECT TOP 1 BASE_YEAR FROM SRV_DT_SIDOLIFEBIZ_WORKER_2020 ORDER BY BASE_YEAR DESC)
+		ORDER BY CORP.CORP_CNT DESC 
+	</select>
+	
+	
+	
+	<!-- 테마코드와 시코드로 사업체수 조회 -->
+	<select id="corpCountByThemeCode" parameterType="hashmap" resultType="String">
+		SELECT SUM(CORP_CNT)
+		from SRV_DT_SIDOLIFEBIZ_CORP_2020
+		WHERE 
+			SIDO_CD = #{sido_cd} 
+			AND THEME_CD IN (
+				<include refid="themeCdCommon.filteredThemeCd" />
+				AND b_theme_cd = #{b_theme_cd} 
+			)
+	</select>
+	
+	
+	
+	<!-- 테마코드와 시코드로 종사자수 조회 박길섭추가 -->
+	<select id="workerCountByThemeCode" parameterType="hashmap" resultType="String">
+		SELECT SUM(WORKER_CNT)
+		from SRV_DT_SIDOLIFEBIZ_WORKER_2020
+		WHERE 
+			SIDO_CD = #{sido_cd} 
+			AND THEME_CD IN (
+				<include refid="themeCdCommon.filteredThemeCd" />
+				AND b_theme_cd = #{b_theme_cd} 
+			)
+	</select>
+	
+	
+	
+	<!-- 베이스테마코드로 베이스테마코드명 조회 -->
+	<select id="baseThemeNameBybaseThemeCode" parameterType="hashmap" resultType="hashmap">
+		select top 1 
+			b_theme_cd_nm
+		from 
+			cmm_cd_theme 
+		where 
+			lifebiz_yn = 'Y'
+			and b_theme_cd = #{b_theme_cd} 
+	</select>
+	
+	
+	
+	<!-- 시도코드로 시도명 조회 -->
+	<select id="sidoNameBySidoCode" parameterType="hashmap" resultType="hashmap">
+		<choose>
+			<when test='sido_cd == "00"'>
+				SELECT 
+						'00' AS SIDO_CD
+						, '전국' AS SIDO_NM
+				FROM
+						dual
+			</when>
+			<otherwise>
+				select TOP 1
+						SIDO_CD
+						<!-- 2016. 03. 24 j.h.Seok modify -->
+						, TRIM(SIDO_NM) as SIDO_NM
+				FROM
+						SRV_PG_SIDOBORD
+				WHERE
+						SIDO_CD = #{sido_cd}
+				ORDER BY 
+						BASE_YEAR DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	
+	<!-- 임시쿼리 작성  -->
+	<!-- 시도별 생활업종 정보:맵에 파이차트를 그리기위한 쿼리, API_0619 -->
+	<select id="sidoTypeOfBusinessChartInfo" resultType="hashmap">
+		SELECT
+	        INTRO.SIDO_CD             AS SIDO_CD
+	        , SIDO.SIDO_NM            AS SIDO_NM
+	        , INTRO.RSTRT_PER         AS H_PER
+	        , INTRO.RSTRT_CORP_CNT    AS H_CORP_CNT
+	        , INTRO.SRV_PER           AS D_PER
+	        , INTRO.SRV_CORP_CNT      AS D_CORP_CNT
+	        , INTRO.RTLSAL_PER      AS C_PER          
+	        , INTRO.RTLSAL_CORP_CNT AS C_CORP_CNT      
+	        , INTRO.LODGEBIZ_PER      AS G_PER
+	        , INTRO.LODGEBIZ_CORP_CNT AS G_CORP_CNT
+	        , INTRO.LSR_PER             AS F_PER
+	        , INTRO.LSR_CORP_CNT        AS F_CORP_CNT
+	        , INTRO.EDU_PER             AS I_PER
+	        , INTRO.EDU_CORP_CNT        AS I_CORP_CNT
+	        , INTRO.MDLCNST_PER         AS J_PER
+	        , INTRO.MDLCNST_CORP_CNT    AS J_CORP_CNT
+	        , INTRO.PUB_PER             AS K_PER
+	        , INTRO.PUB_CORP_CNT        AS K_CORP_CNT
+	        , INTRO.RSTRT_CORP_CNT + INTRO.SRV_CORP_CNT + INTRO.RTLSAL_CORP_CNT + INTRO.LODGEBIZ_CORP_CNT 
+	                    + INTRO.LSR_CORP_CNT + INTRO.EDU_CORP_CNT + INTRO.MDLCNST_CORP_CNT + INTRO.PUB_CORP_CNT AS TOTAL_CNT
+	    FROM
+	        SRV_DT_SIDOLIFEBIZ_INTRO_2020 INTRO
+	    INNER JOIN 
+	        SRV_PG_SIDOBORD SIDO
+	    ON 		INTRO.SIDO_CD = SIDO.SIDO_CD
+	    WHERE	SIDO.BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+			    AND INTRO.BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_DT_SIDOLIFEBIZ_INTRO_2020 ORDER BY BASE_YEAR DESC)
+	</select>
+	
+	
+	<!-- 임시쿼리 작성 -->
+	<!-- 시도별 생활업종 종사자정보:맵에 파이차트를 그리기위한 쿼리, API_0620 -->
+	<select id="sidoTypeOfWorkerInfo" resultType="hashmap">
+		SELECT
+	        INTRO.SIDO_CD                   AS SIDO_CD
+	        , SIDO.SIDO_NM                  AS SIDO_NM
+	        , INTRO.RSTRT_WORKER_PER        AS H_WORKER_PER
+	        , INTRO.RSTRT_WORKER_CNT        AS H_WORKER_CNT
+	        , INTRO.SRV_WORKER_PER 	        AS D_WORKER_PER
+	        , INTRO.SRV_WORKER_CNT          AS D_WORKER_CNT
+	        , INTRO.RTLSAL_WORKER_PER     AS C_WORKER_PER     /* 1. INTRO.WHRTLSAL ==> INTRO.RTLSAL */
+	        , INTRO.RTLSAL_WORKER_CNT     AS C_WORKER_CNT     /* 1. INTRO.WHRTLSAL ==> INTRO.RTLSAL */
+	        , INTRO.LODGEBIZ_WORKER_PER     AS G_WORKER_PER
+	        , INTRO.LODGEBIZ_WORKER_CNT     AS G_WORKER_CNT
+	        , INTRO.LSR_WORKER_PER          AS F_WORKER_PER
+	        , INTRO.LSR_WORKER_CNT          AS F_WORKER_CNT
+	        , INTRO.EDU_WORKER_PER          AS I_WORKER_PER
+	        , INTRO.EDU_WORKER_CNT          AS I_WORKER_CNT
+	        , INTRO.MDLCNST_WORKER_PER      AS J_WORKER_PER
+	        , INTRO.MDLCNST_WORKER_CNT      AS J_WORKER_CNT
+	        , INTRO.PUB_WORKER_PER          AS K_WORKER_PER
+	        , INTRO.PUB_WORKER_CNT          AS K_WORKER_CNT
+	        , INTRO.RSTRT_WORKER_CNT + INTRO.SRV_WORKER_CNT + INTRO.RTLSAL_WORKER_CNT + INTRO.LODGEBIZ_WORKER_CNT 
+	                    + INTRO.LSR_WORKER_CNT + INTRO.EDU_WORKER_CNT + INTRO.MDLCNST_WORKER_CNT + INTRO.PUB_WORKER_CNT AS TOTAL_WORKER_CNT
+	    FROM
+	        SRV_DT_SIDOLIFEBIZ_INTRO_2020 INTRO      /* 4. SRV_DT_SIDOLIFEBIZ_INTRO ==> SRV_DT_SIDOLIFEBIZ_INTRO_2020 */
+	    INNER JOIN 
+	        SRV_PG_SIDOBORD SIDO
+	    ON 		INTRO.SIDO_CD = SIDO.SIDO_CD
+	    WHERE	SIDO.BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+	        AND INTRO.BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_DT_SIDOLIFEBIZ_INTRO_2020 ORDER BY BASE_YEAR DESC)
+	</select>
+	
+	
+	<!-- 시도 생활업종 종사자 그룹별 속성 박길섭 추가, API_0621 -->
+	<select id="sidoTypeOfWorkerGroup" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				WORKER      . THEME_CD
+				, WORKER     . WORKER_CNT_RANK
+				, WORKER     . WORKER_CNT
+				, WORKERRATE . WORKER_PER_RANK
+                ,ROUND((WORKER. WORKER_CNT / #{worker_total}) * 100 , 1) AS WORKER_PER
+				<!--, WORKERRATE . WORKER_PER  -->
+				, THEME    . S_THEME_CD_NM
+		FROM
+				SRV_DT_SIDOLIFEBIZ_WORKER_2020 WORKER
+		INNER JOIN
+					SRV_DT_SIDOLIFEBIZ_WORKERRATE_2020 WORKERRATE
+				ON  WORKER.SIDO_CD = WORKERRATE.SIDO_CD AND WORKER.THEME_CD = WORKERRATE.THEME_CD
+		INNER JOIN (
+			SELECT
+					THEME_CD
+					, B_THEME_CD_NM
+					, S_THEME_CD_NM
+			FROM
+					CMM_CD_THEME
+			WHERE
+					lifebiz_yn = 'Y'
+					and B_THEME_CD = #{b_theme_cd}
+		) THEME
+				ON  WORKER.THEME_CD = THEME.THEME_CD
+		WHERE WORKER.SIDO_CD = #{sido_cd} AND WORKER.BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_DT_SIDOLIFEBIZ_WORKER_2020 ORDER BY BASE_YEAR DESC)
+		AND WORKERRATE.BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_DT_SIDOLIFEBIZ_WORKERRATE_2020 ORDER BY BASE_YEAR DESC)
+	</select>
+	
+	<!-- 임시쿼리 작성 -->
+	<!-- 시도별 생활업종 정보, API_0611 박길섭 수정-->
+	<select id="sidoTypeOfBusinessInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT
+	        INTRO.SIDO_CD             AS SIDO_CD
+	        <if test='sido_cd == "00"'>
+	        , '전국'                  AS SIDO_NM
+	        </if>
+	        <if test='sido_cd != "00"'>
+	        , SIDO.SIDO_NM            AS SIDO_NM
+	        </if>
+	        , INTRO.RSTRT_PER               AS H_PER
+	        , INTRO.RSTRT_CORP_CNT          AS H_CORP_CNT
+	        , INTRO.SRV_PER                 AS D_PER
+	        , INTRO.SRV_CORP_CNT            AS D_CORP_CNT
+	        , INTRO.RTLSAL_PER            AS C_PER              
+	        , INTRO.RTLSAL_CORP_CNT       AS C_CORP_CNT         
+	        , INTRO.LODGEBIZ_PER            AS G_PER
+	        , INTRO.LODGEBIZ_CORP_CNT       AS G_CORP_CNT
+	        , INTRO.RSTRT_WORKER_PER        AS H_WORKER_PER
+	        , INTRO.RSTRT_WORKER_CNT        AS H_WORKER_CNT
+	        , INTRO.SRV_WORKER_PER 	        AS D_WORKER_PER
+	        , INTRO.SRV_WORKER_CNT          AS D_WORKER_CNT
+	        , INTRO.RTLSAL_WORKER_PER     AS C_WORKER_PER   
+	        , INTRO.RTLSAL_WORKER_CNT     AS C_WORKER_CNT    
+	        , INTRO.LODGEBIZ_WORKER_PER     AS G_WORKER_PER
+	        , INTRO.LODGEBIZ_WORKER_CNT     AS G_WORKER_CNT
+	        , INTRO.LSR_PER                 AS F_PER
+	        , INTRO.LSR_CORP_CNT            AS F_CORP_CNT
+	        , INTRO.EDU_PER                 AS I_PER
+	        , INTRO.EDU_CORP_CNT            AS I_CORP_CNT
+	        , INTRO.MDLCNST_PER             AS J_PER
+	        , INTRO.MDLCNST_CORP_CNT        AS J_CORP_CNT
+	        , INTRO.PUB_PER                 AS K_PER
+	        , INTRO.PUB_CORP_CNT            AS K_CORP_CNT
+	        , INTRO.LSR_WORKER_PER          AS F_WORKER_PER
+	        , INTRO.LSR_WORKER_CNT          AS F_WORKER_CNT
+	        , INTRO.EDU_WORKER_PER          AS I_WORKER_PER
+	        , INTRO.EDU_WORKER_CNT          AS I_WORKER_CNT
+	        , INTRO.MDLCNST_WORKER_PER      AS J_WORKER_PER
+	        , INTRO.MDLCNST_WORKER_CNT      AS J_WORKER_CNT
+	        , INTRO.PUB_WORKER_PER          AS K_WORKER_PER
+	        , INTRO.PUB_WORKER_CNT          AS K_WORKER_CNT
+	        , INTRO.RSTRT_CORP_CNT + INTRO.SRV_CORP_CNT + INTRO.RTLSAL_CORP_CNT + INTRO.LODGEBIZ_CORP_CNT 
+	                    + INTRO.LSR_CORP_CNT + INTRO.EDU_CORP_CNT + INTRO.MDLCNST_CORP_CNT + INTRO.PUB_CORP_CNT AS TOTAL_CNT
+	    FROM
+	            SRV_DT_SIDOLIFEBIZ_INTRO_2020 INTRO                 
+	    <if test='sido_cd != "00"'>
+	    INNER JOIN 
+	        SRV_PG_SIDOBORD SIDO
+	        ON INTRO.SIDO_CD = SIDO.SIDO_CD
+	    </if>
+	    WHERE
+	        INTRO.SIDO_CD = #{sido_cd}
+	        <if test='sido_cd != "00"'>
+	        AND SIDO.BASE_YEAR = (SELECT TOP 1 BASE_YEAR FROM SRV_PG_SIDOBORD ORDER BY BASE_YEAR DESC)
+	        </if>
+	</select>
+	
+	<!-- 시도 생활업종 순위, API_0612 -->
+	<select id="sidoTypeOfBusinessRank" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				CORP           . THEME_CD         AS THEME_CD
+				, THEME        . S_THEME_CD_NM    AS THEME_NM
+				, CORP         . CORP_CNT_RANK    AS CORP_CNT_RANK
+				, CORP         . CORP_CNT         AS CORP_CNT
+				, CORPRATE     . CORP_PER_RANK    AS CORP_PER_RANK
+				<if test = 'theme_cd != null'>
+					,ROUND((CORP. CORP_CNT / #{corp_total}) * 100 , 1) AS CORP_PER
+				</if>
+				<if test = 'theme_cd == null'>
+					, CORPRATE     . CORP_PER         AS CORP_PER
+				</if>
+				, CORPCHANGE   . CORP_IRDS_RANK   AS CORP_IRDS_RANK
+				, CORPCHANGE   . CORP_IRDSRATE    AS CORP_IRDSRATE
+				, WORKER       . WORKER_CNT_RANK  AS WORKER_CNT_RANK
+				, WORKER       . WORKER_CNT       AS WORKER_CNT
+				, WORKERRATE   . WORKER_PER_RANK  AS WORKER_PER_RANK
+				, WORKERRATE   . WORKER_PER       AS WORKER_PER
+				, WORKERCHANGE . WORKER_IRDS_RANK AS WORKER_IRDS_RANK
+				, WORKERCHANGE . WORKER_IRDSRATE  AS WORKER_IRDSRATE
+
+		FROM
+				SRV_DT_SIDOLIFEBIZ_CORP_2020 CORP
+		INNER JOIN
+					SRV_DT_SIDOLIFEBIZ_CORPRATE_2020 CORPRATE
+				ON  CORP.SIDO_CD = CORPRATE.SIDO_CD AND CORP.THEME_CD = CORPRATE.THEME_CD
+		INNER JOIN
+					SRV_DT_SIDOLIFEBIZ_CORPCHANGE_2020 CORPCHANGE
+				ON  CORP.SIDO_CD = CORPCHANGE.SIDO_CD AND CORP.THEME_CD = CORPCHANGE.THEME_CD
+		INNER JOIN
+					SRV_DT_SIDOLIFEBIZ_WORKER_2020 WORKER
+				ON  CORP.SIDO_CD = WORKER.SIDO_CD AND CORP.THEME_CD = WORKER.THEME_CD
+		INNER JOIN
+					SRV_DT_SIDOLIFEBIZ_WORKERRATE_2020 WORKERRATE
+				ON  CORP.SIDO_CD = WORKERRATE.SIDO_CD AND CORP.THEME_CD = WORKERRATE.THEME_CD
+		INNER JOIN
+					SRV_DT_SIDOLIFEBIZ_WORKERCHANGE_2020 WORKERCHANGE
+				ON  CORP.SIDO_CD = WORKERCHANGE.SIDO_CD AND CORP.THEME_CD = WORKERCHANGE.THEME_CD
+		INNER JOIN
+					CMM_CD_THEME THEME
+				ON  CORP.THEME_CD = THEME.THEME_CD
+		WHERE
+				CORP.SIDO_CD = #{sido_cd}
+	</select>
+	
+	
+	
+	<!-- 시도 생활업종 그룹별 속성, API_0613 -->
+	<select id="sidoTypeOfBusinessGroup" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				CORP       . THEME_CD
+				, CORP     . CORP_CNT_RANK
+				, CORP     . CORP_CNT
+				, CORPRATE . CORP_PER_RANK
+                ,ROUND((CORP. CORP_CNT / #{corp_total}) * 100 , 1) AS CORP_PER
+				<!--, CORPRATE . CORP_PER  -->
+				, THEME    . S_THEME_CD_NM
+		FROM
+				SRV_DT_SIDOLIFEBIZ_CORP_2020 CORP
+		INNER JOIN
+					SRV_DT_SIDOLIFEBIZ_CORPRATE_2020 CORPRATE
+				ON  CORP.SIDO_CD = CORPRATE.SIDO_CD AND CORP.THEME_CD = CORPRATE.THEME_CD
+		INNER JOIN (
+			SELECT
+					THEME_CD
+					, B_THEME_CD_NM
+					, S_THEME_CD_NM
+			FROM
+					CMM_CD_THEME
+			WHERE
+					lifebiz_yn = 'Y'
+					and B_THEME_CD = #{b_theme_cd}
+		) THEME
+				ON  CORP.THEME_CD = THEME.THEME_CD
+		WHERE CORP.SIDO_CD = #{sido_cd}
+	</select>
+	
+	<!--업종별 입지계수 지도 - 전국대비 시도 입지계수  박길섭 추가, API_0627 -->
+	<select id = "lqMapTypeOfCountrySidoLq" parameterType="hashmap" resultType="hashmap">
+		SELECT 		
+			SIDO.SIDO_NM,
+			LQ.SIDO_CD,
+			(	
+				case when SUBSTR(LQ.THEME_CD,2,3) = '000'  then SUBSTR(LQ.THEME_CD,1,1)
+				else LQ.THEME_CD 
+			END ) as theme_cd,
+			LQ.COUNTRY_COMP_CORP_LQ CORP_LQ,
+			LQ.COUNTRY_COMP_WORKER_LQ WORKER_LQ,
+			LQ.CORP_CNT,
+			LQ.CORP_PER,
+			LQ.WORKER_CNT,
+			LQ.WORKER_PER
+		FROM 
+			SRV_DT_LIFEBIZ_LQ_REGIONTOTAL LQ,(SELECT SIDO_NM,SIDO_CD FROM SRV_PG_SIDOBORD WHERE BASE_YEAR=#{year}) SIDO 
+		WHERE 
+			LQ.BASE_YEAR=#{census_year} 
+	 	AND 
+			LQ.THEME_CD=#{theme_cd}
+	  	AND 
+	  		LQ.SGG_CD='000' 
+	  	AND 
+			LQ.SIDO_CD=SIDO.SIDO_CD
+		ORDER BY
+	  		LQ.SIDO_CD ASC
+	</select>
+	
+	
+	
+	<!--연도별 입지계수 차트  박길섭 추가, API_0630 -->
+	<select id = "lqChartOfYear" resultType="hashmap">
+		SELECT 
+				decode(BASE_YEAR, '9016' ,'2016', base_year ) as BASE_YEAR,
+				COUNTRY_COMP_CORP_LQ,
+				COUNTRY_COMP_WORKER_LQ,
+				SIDO_COMP_CORP_LQ,
+				SIDO_COMP_WORKER_LQ,
+				SIDO_CD 
+		FROM 
+			SRV_DT_LIFEBIZ_LQ_REGIONTOTAL 
+		WHERE 
+			SIDO_CD=#{sido_cd} AND SGG_CD=#{sgg_cd} AND THEME_CD=#{theme_cd}
+		<if test="censusCheck.equals('censusNine')">		 
+			AND BASE_YEAR BETWEEN '2006' AND '2016'
+		</if>	
+		<if test="censusCheck.equals('censusTen')">		
+			AND BASE_YEAR IN('9016', '2017', '2018')
+		</if>	
+		<if test="censusCheck.equals('censusNine')">		
+		ORDER BY TO_NUMBER(BASE_YEAR) ASC
+		</if>
+		<if test="censusCheck.equals('censusTen')">		
+		ORDER BY BASE_YEAR asc
+		</if>
+	</select>
+	
+	
+	<!--업종별 입지계수 지도 - 전국 및 시도 대비 시군구 입지계수  박길섭 추가, API_0628 -->
+	<select id = "lqMapTypeOfCountrySidoSggLq" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			SGG.SGG_NM
+			,SGG.SIDO_CD
+			,SGG.SGG_CD
+			,LQ.CORP_CNT
+			,LQ.CORP_PER
+			,LQ.WORKER_CNT
+			,LQ.WORKER_PER
+		<if test="region.equals('country')"> 
+			,LQ.COUNTRY_COMP_CORP_LQ AS CORP_LQ
+			,LQ.COUNTRY_COMP_WORKER_LQ AS WORKER_LQ
+		</if>
+		<if test="region.equals('sido')">
+			,LQ.SIDO_COMP_CORP_LQ AS CORP_LQ
+			,LQ.SIDO_COMP_WORKER_LQ AS WORKER_LQ
+		</if>
+			,(	
+				case when SUBSTR(LQ.THEME_CD,2,3) = '000'  then SUBSTR(LQ.THEME_CD,1,1)
+				else LQ.THEME_CD 
+			END ) as THEME_CD
+		FROM 
+			SRV_DT_LIFEBIZ_LQ_REGIONTOTAL LQ,(SELECT SGG_NM, SIDO_CD, SGG_CD FROM SRV_PG_SGGBORD WHERE SIDO_CD=#{sido_cd} AND BASE_YEAR=#{year})SGG
+		WHERE 
+			LQ.SIDO_CD=#{sido_cd} 
+		AND 
+			LQ.THEME_CD=#{theme_cd}
+		AND
+			LQ.BASE_YEAR=#{census_year}
+		AND	
+			LQ.SIDO_CD=SGG.SIDO_CD 
+		AND 
+			LQ.SGG_CD=SGG.SGG_CD 
+		ORDER BY 
+			LQ.SGG_CD ASC
+	</select>
+	
+	
+	
+	
+	
+	
+	<!-- 창업지원 사업체분포, API_0607 -->
+	<!-- NaJaeWoong 20160727 corp_cd조건 추가 -->
+	<select id="corpdistsummary" parameterType="hashmap" resultMap="corpdistsummaryMap">
+		<if test='adm.length() == 2 '>
+			select to_char(#{adm_cd}) adm
+				, to_char(#{year}) year
+				, to_char(#{adm}) adm_cd
+				, length(#{adm}) adm_length
+				, length(#{adm_cd}) adm_cd_length
+				, to_char(#{corp_cd}) corp_cd
+				, bord.sido_nm adm_nm
+			from srv_pg_sidobord bord
+			where bord.base_year = #{year}
+			and bord.sido_cd=substr(#{adm},0,2)
+		</if>
+		<if test='adm.length() == 5 '>
+			select to_char(#{adm_cd}) adm
+				, to_char(#{year}) year
+				, to_char(#{adm}) adm_cd
+				, length(#{adm}) adm_length
+				, length(#{adm_cd}) adm_cd_length
+				, to_char(#{corp_cd}) corp_cd
+				, bord.sgg_nm adm_nm
+			from srv_pg_sggbord bord
+			where bord.base_year = #{year}
+			and bord.sido_cd=substr(#{adm},0,2)
+			and bord.sgg_cd = substr(#{adm},3,3)
+		</if>
+		<if test='adm.length() == 7 '>
+			select to_char(#{adm_cd}) adm
+				, to_char(#{year}) year
+				, to_char(#{adm}) adm_cd
+				, length(#{adm}) adm_length
+				, length(#{adm_cd}) adm_cd_length
+				, to_char(#{corp_cd}) corp_cd
+				, bord.emdong_nm adm_nm
+			from srv_pg_admbord bord
+			where bord.base_year = #{year}
+			and bord.sido_cd=substr(#{adm},0,2)
+			and bord.sgg_cd = substr(#{adm},3,3)
+			and bord.emdong_cd=substr(#{adm},6,2)
+		</if>
+	</select>
+	
+	<resultMap id="corpdistsummaryMap" type="kostat.sop.ServiceAPI.api.bizStats.dto.CorpdistsummaryMap">
+		<result property="adm_cd" column="adm_cd" />
+		<result property="adm_nm" column="adm_nm" />
+		<collection property="b_theme_list" 
+			column="{year=year,adm=adm,adm_cd=adm_cd,adm_length=adm_length,adm_cd_length=adm_cd_length,corp_cd=corp_cd}"
+			ofType="string" javaType="ArrayList" select="themeCdCommon.selectBigThemeCdList">
+		</collection>
+		<collection property="theme_list"
+			column="{year=year,adm=adm,adm_cd=adm_cd,adm_length=adm_length,adm_cd_length=adm_cd_length,corp_cd=corp_cd}"
+			ofType="hashmap" javaType="ArrayList" select="corpdistsummaryinfo">
+		</collection>
+	</resultMap>
+	
+	<select id="corpdistsummaryinfo" parameterType="hashmap" resultType="hashmap">
+		select THEME.b_theme_cd, THEME.theme_cd, nvl(DIST.dist_per,0) dist_per, THEME.s_theme_cd_nm
+		from (
+			select b_theme_cd, theme_cd, s_theme_cd_nm
+			from cmm_cd_theme 
+			where 
+			<if test='corp_cd == null '>			
+				lifebiz_yn = 'Y'
+			</if>
+			<if test='corp_cd != null '>
+				theme_cd like #{corp_cd}||'%' /* corp_cd 는 업종통계지도에서는 사용되는 곳을 찾지 못했다. 굳이 건들지 않겠다. */
+			</if>
+			)THEME
+			LEFT OUTER JOIN (
+							select theme_cd, b_theme_cd_nm, s_theme_cd_nm, sido_cd, sgg_cd, emdong_cd, dist_per
+							from(
+								select A.theme_cd, A.b_theme_cd_nm, A.s_theme_cd_nm, corp.sido_cd, corp.sgg_cd, corp.emdong_cd, corp.dist_per
+								from
+									(select theme_cd, b_theme_cd_nm, s_theme_cd_nm
+									from cmm_cd_theme
+									) A 
+										LEFT OUTER JOIN srv_dt_sumcorpdist corp 
+										ON A.theme_cd = corp.theme_cd 
+								)	
+								where 
+								<if test='adm_length == "2" '>
+									sido_cd = substr(#{adm_cd},0,2)
+									and sgg_cd = '000'
+									and emdong_cd = '00'
+								</if>
+								<if test='adm_length == "5" '>
+									sido_cd=substr(#{adm_cd},0,2)
+									and sgg_cd = substr(#{adm_cd},3,3)
+									and emdong_cd='00'
+								</if>
+								<if test='adm_length == "7" '>
+									sido_cd=substr(#{adm_cd},0,2)
+									and sgg_cd = substr(#{adm_cd},3,3)
+									and emdong_cd=substr(#{adm_cd},6,2)
+								</if>
+			) DIST
+			ON THEME.theme_cd = DIST.theme_cd
+	</select>
+	
+	
+</mapper>

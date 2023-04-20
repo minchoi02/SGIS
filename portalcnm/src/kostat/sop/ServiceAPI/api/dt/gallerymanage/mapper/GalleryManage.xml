@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="GalleryManage"> 
+	<select id="searchGallery"  parameterType="Map" resultType="Map">
+		SELECT * FROM 
+		(
+			SELECT ROWNUM R, A.SUPPORT_TYPE, A.DATA_ID, A.TITLE, A.HITS, A.WRITER, A.SRV_TYPE, NVL(A.EXCELLENT_CASE_SLCTN_YN,'N') AS EXCELLENT_CASE_SLCTN_YN,
+				SUBSTR(TO_CHAR(A.REG_DT,'yyyy-MM-dd'),0,10) as REG_DT FROM 
+			( 
+				SELECT *
+				FROM SRV_DT_GALLERYLIST
+				WHERE 
+
+				<if test='DISP_YN == "ALL"'>
+					SRV_TYPE IN ('1','2', '3', '4')
+				</if>
+				<if test='DISP_YN == "Y"'>
+					SRV_TYPE IN ('1','2')
+				</if>
+				<if test='DISP_YN == "N"'>
+					SRV_TYPE IN ('3', '4')
+				</if>
+				<if test="SRV_TYPE != null  and SRV_TYPE != 'ALL' ">
+				    AND SRV_TYPE = #{SRV_TYPE}
+				</if>
+				<if test="SEARCH_WORD != null  and  SEARCH == 'TITLE' ">
+				    and TITLE like  #{SEARCH_WORD} 
+				</if>
+				<if test="SEARCH_WORD != null  and  SEARCH == 'WRITER' ">
+				    and WRITER like  #{SEARCH_WORD} 
+				</if>
+				<if test="SEARCH_WORD != null  and  SEARCH == 'CONTENT' ">
+				    and CONTENT like  #{SEARCH_WORD} 
+				</if>
+				<if test="SUPPORT_TYPE != null and SUPPORT_TYPE != 'ALL'">
+					and SUPPORT_TYPE like #{SUPPORT_TYPE}
+				</if>
+				<if test="EXCELLENT_CASE_SLCTN_YN  != null and  EXCELLENT_CASE_SLCTN_YN  != 'ALL' ">
+					and NVL(EXCELLENT_CASE_SLCTN_YN, 'N') = #{EXCELLENT_CASE_SLCTN_YN}
+				</if>
+				ORDER BY REG_DT DESC
+			) A
+			WHERE ROWNUM <![CDATA[<=]]> #{END_INDEX}
+		)
+		WHERE R <![CDATA[>=]]> #{START_INDEX}
+	</select>
+	<select id="searchGalleryCount"  parameterType="hashmap" resultType="int">
+			SELECT COUNT(TITLE) AS CNT
+			FROM SRV_DT_GALLERYLIST
+			WHERE 
+			<if test='DISP_YN == "ALL"'>
+				SRV_TYPE IN ('1','2', '3', '4')
+			</if>
+			<if test='DISP_YN == "Y"'>
+				SRV_TYPE IN ('1','2')
+			</if>
+			<if test='DISP_YN == "N"'>
+				SRV_TYPE IN ('3', '4')
+			</if>
+			<if test="SRV_TYPE != null  and SRV_TYPE != 'ALL' ">
+			    AND SRV_TYPE = #{SRV_TYPE}
+			</if>
+			<if test="SEARCH_WORD != null  and  SEARCH == 'TITLE' ">
+			    and TITLE like  #{SEARCH_WORD} 
+			</if>
+			<if test="SEARCH_WORD != null  and  SEARCH == 'WRITER' ">
+			    and WRITER like  #{SEARCH_WORD} 
+			</if>
+			<if test="SEARCH_WORD != null  and  SEARCH == 'CONTENT' ">
+			    and CONTENT like  #{SEARCH_WORD} 
+			</if>
+			<if test="SUPPORT_TYPE != null and SUPPORT_TYPE != 'ALL'">
+				and SUPPORT_TYPE = #{SUPPORT_TYPE}
+			</if>
+			<if test="EXCELLENT_CASE_SLCTN_YN  != null and  EXCELLENT_CASE_SLCTN_YN  != 'ALL' ">
+				and  NVL(EXCELLENT_CASE_SLCTN_YN, 'N') = #{EXCELLENT_CASE_SLCTN_YN }
+			</if>
+	</select>
+	
+	<update id="exclncGallery" parameterType="hashmap">
+		UPDATE SRV_DT_GALLERYLIST SET 
+			EXCELLENT_CASE_SLCTN_YN = #{EXCELLENT_CASE_SLCTN_YN}
+		WHERE DATA_ID = #{DATA_ID}
+	</update>
+	
+	<update id="dispYnGallery" parameterType="hashmap">
+		UPDATE SRV_DT_GALLERYLIST SET 
+			SRV_TYPE = #{SRV_TYPE}
+		WHERE DATA_ID = #{DATA_ID}
+	</update>
+	
+	<!-- 갤러리 상세조회 -->
+	<select id="getGallery" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			a.DATA_ID
+			, a.TITLE
+			, a.CONTENT
+			, a.WRITER
+			, a.SUPPORT_TYPE
+			, NVL(a.EXCELLENT_CASE_SLCTN_YN, 'N') AS EXCELLENT_CASE_SLCTN_YN
+			, ( SELECT FN_GET_MEMBERNM( a.WRITER ) FROM DUAL ) AS MEMBER_NM
+			, TO_CHAR(a.REG_DT, 'YYYY.MM.DD') AS REG_DT
+			, TO_CHAR(a.SURVEY_SURV_START_DT, 'YYYY.MM.DD') AS SURVEY_SURV_START_DT
+			, TO_CHAR(a.SURVEY_SURV_END_DT, 'YYYY.MM.DD') AS SURVEY_SURV_END_DT
+			, a.TAG
+			, a.HITS
+			, a.SRV_TYPE 
+			, (SELECT COUNT(*) FROM SRV_DT_GALLERYLIKEINFO s WHERE s.DATA_ID = a.DATA_ID) AS LIKE_CNT
+			, (SELECT COUNT(*) FROM SRV_DT_GALLERYREPLY s WHERE s.DATA_ID = a.DATA_ID) AS REPLY_CNT
+			, (SELECT COUNT(*) FROM SRV_DT_GALLERYIMGLIST s WHERE s.DATA_ID = a.DATA_ID) AS IMG_CNT
+		FROM  SRV_DT_GALLERYLIST a 
+		WHERE a.DATA_ID = #{DATA_ID}
+	</select>
+	
+	<select id="selectGalleryImg" parameterType="hashmap" resultType="hashmap">
+		SELECT DATA_ID, IMG_ID, API_CALL_URL, PARAM_INFO
+		FROM SRV_DT_GALLERYIMGLIST
+		WHERE DATA_ID = #{DATA_ID}
+		<!-- ORDER BY IMG_ID DESC --> <!-- 2017.04.03 갤러리 등록 순서 수정 -->
+	</select>
+	
+	<!-- imgIcon 조회 -->
+	 <select id="selectGalleryImgIcon" parameterType="hashmap" resultType="hashmap">
+	 	SELECT DATA_ID, IMG_ID, ICON_ID, ICON_TYPE, EXP, X_COOR, Y_COOR, HTML_SRC, ICON_NM 
+	 	FROM SRV_DT_GALLERYIMGICONLIST
+	 	WHERE DATA_ID = #{DATA_ID}
+	 		AND IMG_ID = #{IMG_ID}
+	 	ORDER BY IMG_ID
+	 </select>
+	
+	<!-- 설문조사 상세조회	 -->
+	<select id="getGalleryPoll" parameterType="hashmap" resultType="hashmap">
+			SELECT 	a.DATA_ID
+						, a.SURVEY_SURV_ID
+						, a.SURVEY_TITLE
+						, a.SURVEY_TYPE
+						, b.ANS_SERIAL
+						, b.ANS_CONTENT
+						, (SELECT TO_CHAR(s.SURVEY_SURV_END_DT, 'YYYY"년 "MM"월 "DD"일"') FROM SRV_DT_GALLERYLIST s WHERE  s.DATA_ID = a.DATA_ID) AS SURVEY_SURV_END_DT
+						, DECODE(b.ANS_SERIAL, null, 0, (	SELECT COUNT(*) 
+														 FROM SRV_DT_GALLERYPOLLVOTEINFO s 
+														WHERE s.DATA_ID = a.DATA_ID
+														   AND s.SURVEY_SURV_ID = a.SURVEY_SURV_ID
+														   AND s.ANS_SERIAL = b.ANS_SERIAL
+													  )
+							) AS VOTE_CNT  <!-- 설문자수 -->
+						, DECODE(b.ANS_SERIAL, null, 'N', (SELECT DECODE(COUNT(*), 0, 'N', 'Y') 
+																 FROM SRV_DT_GALLERYPOLLVOTEINFO s 
+																WHERE s.DATA_ID = a.DATA_ID
+																   AND s.SURVEY_SURV_ID = a.SURVEY_SURV_ID
+																   AND s.ANS_SERIAL = b.ANS_SERIAL 
+																   AND s.MEMBER_ID = #{member_id}
+																 )
+									) AS VOTE_YN   <!-- 설문여부 -->
+			FROM SRV_DT_GALLERYPOLL a 
+					LEFT JOIN SRV_DT_GALLERYPOLLDETAIL b ON a.DATA_ID = b.DATA_ID AND a.SURVEY_SURV_ID = b.SURVEY_SURV_ID
+			WHERE a.DATA_ID= #{DATA_ID}
+	</select>
+	
+	<!-- 갤러리 댓글 조회 -->
+	<select id="selectGalleryReplyList" parameterType="hashmap" resultType="hashmap">
+		SELECT	DATA_ID
+					, REPLY_ORDER
+					, REPLY_CONTENT
+					, REPLY_WRITER
+					, ( SELECT FN_GET_MEMBERNM( REPLY_WRITER ) FROM DUAL ) AS MEMBER_NM
+					, REPLY_REG_DT 
+		FROM		SRV_DT_GALLERYREPLY
+		WHERE	DATA_ID = #{DATA_ID}
+		ORDER BY	REPLY_ORDER
+	</select>
+</mapper>

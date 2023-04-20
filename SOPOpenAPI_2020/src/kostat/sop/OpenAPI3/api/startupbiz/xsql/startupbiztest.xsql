@@ -1,0 +1,495 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="startupbiztest">
+	<!-- 606 - 1588 -->
+	<select id = "startupbiz-test" parameterType="hashmap" resultType="hashmap">
+		<choose>
+			<when test='ppl_age_type_list != null'>
+				SELECT
+						age.SIDO_CD
+						, age.SGG_CD
+						<if test='adm_cd_length == "5"'>
+							, age.emdong_cd
+						</if>
+						, 0 AS FIRST_VAL
+						, 0 AS SECOND_VAL
+						, 0 AS THIRD_VAL
+						, 0 AS FOURTH_VAL
+						, 0 AS FIFTH_VAL
+						, 0 AS SIXTH_VAL
+						, 0 AS SEVENTH_VAL
+						, 0 AS EIGHTH_VAL
+						, 0 AS NINTH_VAL
+						, (age.FIRST_VAL
+						+ age.SECOND_VAL
+						+ age.THIRD_VAL
+						+ age.FOURTH_VAL
+						+ age.FIFTH_VAL
+						+ age.SIXTH_VAL
+						+ age.SEVENTH_VAL
+						+ age.EIGHTH_VAL
+						) AS TENTH_VAL
+						, 0 AS ELEVENTH_VAL
+				FROM (
+					<!-- [START] foreach -->
+					<foreach collection="ppl_age_type_list" item="ppl_age_type" separator="UNION ALL">
+						SELECT
+							SIDO_CD
+							, SGG_CD
+							<if test='adm_cd_length == "5"'>
+								, EMDONG_CD
+							</if>
+							<!-- 10대미만 -->
+							<choose>
+								<when test='ppl_age_type == "1"'>
+									<choose>
+										<when test='ppl_age_val == "1"'>
+											, AGEGP_10_LT0_PPLTN_PCT AS FIRST_VAL
+										</when>
+										<when test='ppl_age_val == "2"'>
+											, -abs(AGEGP_10_LT0_PPLTN_PCT - 50) AS FIRST_VAL
+										</when>
+										<when test='ppl_age_val == "3"'>
+											, (100 - AGEGP_10_LT0_PPLTN_PCT) AS FIRST_VAL
+										</when>
+										<otherwise>
+											, 0 AS FIRST_VAL
+										</otherwise>
+									</choose>
+								</when>
+								<otherwise>
+									, 0 AS FIRST_VAL
+								</otherwise>
+							</choose>
+
+							<!-- 10대 -->
+							<choose>
+								<when test='ppl_age_type == "2"'>
+									<choose>
+										<when test='ppl_age_val == "1"'>
+											, AGEGP_10_PPLTN_PCT AS SECOND_VAL
+										</when>
+										<when test='ppl_age_val == "2"'>
+											, -abs(AGEGP_10_PPLTN_PCT - 50) AS SECOND_VAL
+										</when>
+										<when test='ppl_age_val == "3"'>
+											, (100 - AGEGP_10_PPLTN_PCT) AS SECOND_VAL
+										</when>
+										<otherwise>
+											, 0 AS SECOND_VAL
+										</otherwise>
+									</choose>
+								</when>
+								<otherwise>
+									, 0 AS SECOND_VAL
+								</otherwise>
+							</choose>
+
+							<!-- 20대 -->
+							<choose>
+								<when test='ppl_age_type == "3"'>
+									<choose>
+										<when test='ppl_age_val == "1"'>
+											, AGEGP_20_PPLTN_PCT AS THIRD_VAL
+										</when>
+										<when test='ppl_age_val == "2"'>
+											, -abs(AGEGP_20_PPLTN_PCT - 50) AS THIRD_VAL
+										</when>
+										<when test='ppl_age_val == "3"'>
+											, (100 - AGEGP_20_PPLTN_PCT) AS THIRD_VAL
+										</when>
+										<otherwise>
+											, 0 AS THIRD_VAL
+										</otherwise>
+									</choose>
+								</when>
+								<otherwise>
+									, 0 AS THIRD_VAL
+								</otherwise>
+							</choose>
+
+							<!-- 30대 -->
+							<choose>
+								<when test='ppl_age_type == "4"'>
+									<choose>
+										<when test='ppl_age_val == "1"'>
+											, AGEGP_30_PPLTN_PCT AS FOURTH_VAL
+										</when>
+										<when test='ppl_age_val == "2"'>
+											, -abs(AGEGP_30_PPLTN_PCT - 50) AS FOURTH_VAL
+										</when>
+										<when test='ppl_age_val == "3"'>
+											, (100 - AGEGP_30_PPLTN_PCT) AS FOURTH_VAL
+										</when>
+										<otherwise>
+											, 0 AS FOURTH_VAL
+										</otherwise>
+									</choose>
+								</when>
+								<otherwise>
+									, 0 AS FOURTH_VAL
+								</otherwise>
+							</choose>
+
+							<!-- 40대 -->
+							<choose>
+								<when test='ppl_age_type == "5"'>
+									<choose>
+										<when test='ppl_age_val == "1"'>
+											, AGEGP_40_PPLTN_PCT AS FIFTH_VAL
+										</when>
+										<when test='ppl_age_val == "2"'>
+											, -abs(AGEGP_40_PPLTN_PCT - 50) AS FIFTH_VAL
+										</when>
+										<when test='ppl_age_val == "3"'>
+											, (100 - AGEGP_40_PPLTN_PCT) AS FIFTH_VAL
+										</when>
+										<otherwise>
+											, 0 AS FIFTH_VAL
+										</otherwise>
+									</choose>
+								</when>
+								<otherwise>
+									, 0 AS FIFTH_VAL
+								</otherwise>
+							</choose>
+
+							<!-- 50대 -->
+							<choose>
+								<when test='ppl_age_type == "6"'>
+									<choose>
+										<when test='ppl_age_val == "1"'>
+											, AGEGP_50_PPLTN_PCT AS SIXTH_VAL
+										</when>
+										<when test='ppl_age_val == "2"'>
+											, -abs(AGEGP_50_PPLTN_PCT - 50) AS SIXTH_VAL
+										</when>
+										<when test='ppl_age_val == "3"'>
+											, (100 - AGEGP_50_PPLTN_PCT) AS SIXTH_VAL
+										</when>
+										<otherwise>
+											, 0 AS SIXTH_VAL
+										</otherwise>
+									</choose>
+								</when>
+								<otherwise>
+									, 0 AS SIXTH_VAL
+								</otherwise>
+							</choose>
+
+							<!-- 60대 -->
+							<choose>
+								<when test='ppl_age_type == "7"'>
+									<choose>
+										<when test='ppl_age_val == "1"'>
+											, AGEGP_60_PPLTN_PCT AS SEVENTH_VAL
+										</when>
+										<when test='ppl_age_val == "2"'>
+											, -abs(AGEGP_60_PPLTN_PCT - 50) AS SEVENTH_VAL
+										</when>
+										<when test='ppl_age_val == "3"'>
+											, (100 - AGEGP_60_PPLTN_PCT) AS SEVENTH_VAL
+										</when>
+										<otherwise>
+											, 0 AS SEVENTH_VAL
+										</otherwise>
+									</choose>
+								</when>
+								<otherwise>
+									, 0 AS SEVENTH_VAL
+								</otherwise>
+							</choose>
+
+							<!-- 70대 이상 -->
+							<choose>
+								<when test='ppl_age_type == "8"'>
+									<choose>
+										<when test='ppl_age_val == "1"'>
+											, AGEGP_70_MT1_PPLTN_PCT AS EIGHTH_VAL
+										</when>
+										<when test='ppl_age_val == "2"'>
+											, -abs(AGEGP_70_MT1_PPLTN_PCT - 50) AS EIGHTH_VAL
+										</when>
+										<when test='ppl_age_val == "3"'>
+											, (100 - AGEGP_70_MT1_PPLTN_PCT) AS EIGHTH_VAL
+										</when>
+										<otherwise>
+											, 0 AS EIGHTH_VAL
+										</otherwise>
+									</choose>
+								</when>
+								<otherwise>
+									, 0 AS EIGHTH_VAL
+								</otherwise>
+							</choose>
+						FROM
+							<choose>
+								<when test='adm_cd_length == "2"'>
+									SRV_DT_REGIONPPLTN_SGG
+								</when>
+								<when test='adm_cd_length == "5"'>
+									SRV_DT_REGIONPPLTN_ADM
+								</when>
+								<otherwise>
+									SRV_DT_REGIONPPLTN_SGG
+								</otherwise>
+							</choose>
+						<where>
+							<choose>
+								<when test='adm_cd_length == "2"'>
+									AND SIDO_CD = #{adm_cd}
+								</when>
+								<when test='adm_cd_length == "5"'>
+									AND SIDO_CD = SUBSTR(#{adm_cd}, 1, 2)
+									AND SGG_CD = SUBSTR(#{adm_cd}, 3, 3)
+								</when>
+							</choose>
+						</where>
+					</foreach>
+					<!-- [END] foreach -->
+				) age
+			</when>
+			<otherwise>
+				SELECT
+						age.SIDO_CD
+						, age.SGG_CD
+						<if test='adm_cd_length == "5"'>
+							, age.emdong_cd
+						</if>
+						, 0 AS FIRST_VAL
+						, 0 AS SECOND_VAL
+						, 0 AS THIRD_VAL
+						, 0 AS FOURTH_VAL
+						, 0 AS FIFTH_VAL
+						, 0 AS SIXTH_VAL
+						, 0 AS SEVENTH_VAL
+						, 0 AS EIGHTH_VAL
+						, 0 AS NINTH_VAL
+						, (age.FIRST_VAL
+						+ age.SECOND_VAL
+						+ age.THIRD_VAL
+						+ age.FOURTH_VAL
+						+ age.FIFTH_VAL
+						+ age.SIXTH_VAL
+						+ age.SEVENTH_VAL
+						+ age.EIGHTH_VAL
+						) AS TENTH_VAL
+						, 0 AS ELEVENTH_VAL
+				FROM (
+					SELECT
+						SIDO_CD
+						, SGG_CD
+						<if test='adm_cd_length == "5"'>
+							, EMDONG_CD
+						</if>
+						<!-- 10대미만 -->
+						<choose>
+							<when test='ppl_age_type == "1"'>
+								<choose>
+									<when test='ppl_age_val == "1"'>
+										, AGEGP_10_LT0_PPLTN_PCT AS FIRST_VAL
+									</when>
+									<when test='ppl_age_val == "2"'>
+										, -abs(AGEGP_10_LT0_PPLTN_PCT - 50) AS FIRST_VAL
+									</when>
+									<when test='ppl_age_val == "3"'>
+										, (100 - AGEGP_10_LT0_PPLTN_PCT) AS FIRST_VAL
+									</when>
+									<otherwise>
+										, 0 AS FIRST_VAL
+									</otherwise>
+								</choose>
+							</when>
+							<otherwise>
+								, 0 AS FIRST_VAL
+							</otherwise>
+						</choose>
+
+						<!-- 10대 -->
+						<choose>
+							<when test='ppl_age_type == "2"'>
+								<choose>
+									<when test='ppl_age_val == "1"'>
+										, AGEGP_10_PPLTN_PCT AS SECOND_VAL
+									</when>
+									<when test='ppl_age_val == "2"'>
+										, -abs(AGEGP_10_PPLTN_PCT - 50) AS SECOND_VAL
+									</when>
+									<when test='ppl_age_val == "3"'>
+										, (100 - AGEGP_10_PPLTN_PCT) AS SECOND_VAL
+									</when>
+									<otherwise>
+										, 0 AS SECOND_VAL
+									</otherwise>
+								</choose>
+							</when>
+							<otherwise>
+								, 0 AS SECOND_VAL
+							</otherwise>
+						</choose>
+
+						<!-- 20대 -->
+						<choose>
+							<when test='ppl_age_type == "3"'>
+								<choose>
+									<when test='ppl_age_val == "1"'>
+										, AGEGP_20_PPLTN_PCT AS THIRD_VAL
+									</when>
+									<when test='ppl_age_val == "2"'>
+										, -abs(AGEGP_20_PPLTN_PCT - 50) AS THIRD_VAL
+									</when>
+									<when test='ppl_age_val == "3"'>
+										, (100 - AGEGP_20_PPLTN_PCT) AS THIRD_VAL
+									</when>
+									<otherwise>
+										, 0 AS THIRD_VAL
+									</otherwise>
+								</choose>
+							</when>
+							<otherwise>
+								, 0 AS THIRD_VAL
+							</otherwise>
+						</choose>
+
+						<!-- 30대 -->
+						<choose>
+							<when test='ppl_age_type == "4"'>
+								<choose>
+									<when test='ppl_age_val == "1"'>
+										, AGEGP_30_PPLTN_PCT AS FOURTH_VAL
+									</when>
+									<when test='ppl_age_val == "2"'>
+										, -abs(AGEGP_30_PPLTN_PCT - 50) AS FOURTH_VAL
+									</when>
+									<when test='ppl_age_val == "3"'>
+										, (100 - AGEGP_30_PPLTN_PCT) AS FOURTH_VAL
+									</when>
+									<otherwise>
+										, 0 AS FOURTH_VAL
+									</otherwise>
+								</choose>
+							</when>
+							<otherwise>
+								, 0 AS FOURTH_VAL
+							</otherwise>
+						</choose>
+
+						<!-- 40대 -->
+						<choose>
+							<when test='ppl_age_type == "5"'>
+								<choose>
+									<when test='ppl_age_val == "1"'>
+										, AGEGP_40_PPLTN_PCT AS FIFTH_VAL
+									</when>
+									<when test='ppl_age_val == "2"'>
+										, -abs(AGEGP_40_PPLTN_PCT - 50) AS FIFTH_VAL
+									</when>
+									<when test='ppl_age_val == "3"'>
+										, (100 - AGEGP_40_PPLTN_PCT) AS FIFTH_VAL
+									</when>
+									<otherwise>
+										, 0 AS FIFTH_VAL
+									</otherwise>
+								</choose>
+							</when>
+							<otherwise>
+								, 0 AS FIFTH_VAL
+							</otherwise>
+						</choose>
+
+						<!-- 50대 -->
+						<choose>
+							<when test='ppl_age_type == "6"'>
+								<choose>
+									<when test='ppl_age_val == "1"'>
+										, AGEGP_50_PPLTN_PCT AS SIXTH_VAL
+									</when>
+									<when test='ppl_age_val == "2"'>
+										, -abs(AGEGP_50_PPLTN_PCT - 50) AS SIXTH_VAL
+									</when>
+									<when test='ppl_age_val == "3"'>
+										, (100 - AGEGP_50_PPLTN_PCT) AS SIXTH_VAL
+									</when>
+									<otherwise>
+										, 0 AS SIXTH_VAL
+									</otherwise>
+								</choose>
+							</when>
+							<otherwise>
+								, 0 AS SIXTH_VAL
+							</otherwise>
+						</choose>
+
+						<!-- 60대 -->
+						<choose>
+							<when test='ppl_age_type == "7"'>
+								<choose>
+									<when test='ppl_age_val == "1"'>
+										, AGEGP_60_PPLTN_PCT AS SEVENTH_VAL
+									</when>
+									<when test='ppl_age_val == "2"'>
+										, -abs(AGEGP_60_PPLTN_PCT - 50) AS SEVENTH_VAL
+									</when>
+									<when test='ppl_age_val == "3"'>
+										, (100 - AGEGP_60_PPLTN_PCT) AS SEVENTH_VAL
+									</when>
+									<otherwise>
+										, 0 AS SEVENTH_VAL
+									</otherwise>
+								</choose>
+							</when>
+							<otherwise>
+								, 0 AS SEVENTH_VAL
+							</otherwise>
+						</choose>
+
+						<!-- 70대 이상 -->
+						<choose>
+							<when test='ppl_age_type == "8"'>
+								<choose>
+									<when test='ppl_age_val == "1"'>
+										, AGEGP_70_MT1_PPLTN_PCT AS EIGHTH_VAL
+									</when>
+									<when test='ppl_age_val == "2"'>
+										, -abs(AGEGP_70_MT1_PPLTN_PCT - 50) AS EIGHTH_VAL
+									</when>
+									<when test='ppl_age_val == "3"'>
+										, (100 - AGEGP_70_MT1_PPLTN_PCT) AS EIGHTH_VAL
+									</when>
+									<otherwise>
+										, 0 AS EIGHTH_VAL
+									</otherwise>
+								</choose>
+							</when>
+							<otherwise>
+								, 0 AS EIGHTH_VAL
+							</otherwise>
+						</choose>
+					FROM
+						<choose>
+							<when test='adm_cd_length == "2"'>
+								SRV_DT_REGIONPPLTN_SGG
+							</when>
+							<when test='adm_cd_length == "5"'>
+								SRV_DT_REGIONPPLTN_ADM
+							</when>
+							<otherwise>
+								SRV_DT_REGIONPPLTN_SGG
+							</otherwise>
+						</choose>
+					<where>
+						<choose>
+							<when test='adm_cd_length == "2"'>
+								AND SIDO_CD = #{adm_cd}
+							</when>
+							<when test='adm_cd_length == "5"'>
+								AND SIDO_CD = SUBSTR(#{adm_cd}, 1, 2)
+								AND SGG_CD = SUBSTR(#{adm_cd}, 3, 3)
+							</when>
+						</choose>
+					</where>
+				) age
+			</otherwise>
+		</choose>
+	</select>
+</mapper>

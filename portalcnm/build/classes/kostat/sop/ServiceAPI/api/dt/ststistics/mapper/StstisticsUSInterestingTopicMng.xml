@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ststisticsInterestingTopic"> 
+
+	
+	<select id="getStstisticsUSInterestingTopicLifeCycleList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+	select 
+		lfe_cycle_id
+		,lfe_cycle_nm
+		, count
+		, case 
+			when total = 0 then 0
+			when total !=0 then trunc((count/total*100),1)
+	     end as percentage 
+	from
+	(
+		select 1 ,lfe_cycle_id,lfe_cycle_nm,count, sum(count) over(partition by 1) as total from 
+		(
+			SELECT 
+				T1.lfe_cycle_id, T1.lfe_cycle_nm, NVL(T2.total,0) as count
+			FROM 
+				SRV_DT_CTLG_LFE_CYCLE_LIST T1 
+			LEFT JOIN
+			(
+				SELECT 
+					a.lfe_cycle_1_id AS lfe_cycle_id
+					,NVL(a.cnt1,0)+NVL(b.cnt2,0) AS total
+				FROM 
+				(
+					SELECT 
+						lfe_cycle_1_id
+						,COUNT(*) AS cnt1 
+					FROM 
+						SRV_DT_CTLG_SLCTN_KWRD_LIST 
+					<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+					WHERE 
+						TO_CHAR(use_ts,'yyyy-mm-dd') >= #{startDate}
+						AND
+						TO_CHAR(use_ts,'yyyy-mm-dd') <![CDATA[<=]]> #{endDate}
+					</if>
+					GROUP BY 
+						lfe_cycle_1_id 
+					HAVING 
+						/*lfe_cycle_1_id != ''*/
+						LENGTH(lfe_cycle_1_id) > 0
+				) a 
+				LEFT JOIN 
+				(
+					SELECT 
+						lfe_cycle_2_id
+						,COUNT(*) AS cnt2 
+					FROM 
+						SRV_DT_CTLG_SLCTN_KWRD_LIST 
+					<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+					WHERE 
+						TO_CHAR(use_ts,'yyyy-mm-dd') >= #{startDate}
+						AND
+						TO_CHAR(use_ts,'yyyy-mm-dd') <![CDATA[<=]]> #{endDate}
+					</if>
+					GROUP BY 
+						lfe_cycle_2_id 
+					HAVING 
+						/*lfe_cycle_2_id != ''*/
+						LENGTH(lfe_cycle_2_id) > 0
+				) b 
+				ON 
+					a.lfe_cycle_1_id = b.lfe_cycle_2_id
+			) T2
+			ON
+				T1.lfe_cycle_id = T2.lfe_cycle_id 
+			WHERE 
+				T1.use_yn = 'Y' AND T1.lfe_cycle_id != 'lffff-test'
+			ORDER BY 
+				T1.disp_rank
+		)
+	)
+	</select>
+	
+	<select id="getStstisticsUSInterestingTopicDistanceList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+	select 
+		stat_distance_id
+		,stat_distance_nm
+		, count
+		,case 
+			when total = 0 then 0
+			when total !=0 then trunc((count/total*100),1)
+	     end as percentage 
+	from 
+	(
+		select 1,stat_distance_id,stat_distance_nm, count, sum(count) over (partition by 1) as total from (
+			select
+				T1.stat_distance_id,T1.stat_distance_nm,NVL(T2.total,0) count
+			from 
+				srv_dt_ctlg_distance_list T1
+			left join
+			(
+				select 
+					a.stat_dstnc_1_id as stat_distance_id
+					,nvl(a.cnt1,0)+nvl(b.cnt2,0) as total
+				from 
+				(
+					select 
+						stat_dstnc_1_id
+						,count(*) as cnt1 
+					from 
+						SRV_DT_CTLG_SLCTN_KWRD_LIST 
+					<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+					WHERE 
+						TO_CHAR(use_ts,'yyyy-mm-dd') >= #{startDate}
+						AND
+						TO_CHAR(use_ts,'yyyy-mm-dd') <![CDATA[<=]]> #{endDate}
+					</if>
+					group by 
+						stat_dstnc_1_id 
+					having 
+						/*stat_dstnc_1_id != ''*/
+						LENGTH(stat_dstnc_1_id) > 0
+				) a 
+				left outer join 
+				(
+					select 
+						stat_dstnc_2_id
+						,count(*) as cnt2 
+					from 
+						SRV_DT_CTLG_SLCTN_KWRD_LIST 
+					<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+					WHERE 
+						TO_CHAR(use_ts,'yyyy-mm-dd') >= #{startDate}
+						AND
+						TO_CHAR(use_ts,'yyyy-mm-dd') <![CDATA[<=]]> #{endDate}
+					</if>
+					group by 
+						stat_dstnc_2_id 
+					having 
+						/*stat_dstnc_2_id != ''*/
+						LENGTH(stat_dstnc_2_id) > 0
+				) b 
+				on 
+					a.stat_dstnc_1_id = b.stat_dstnc_2_id
+			) T2
+			on
+				T1.stat_distance_id = T2.stat_distance_id
+			where 
+				T1.use_yn = 'Y' AND T1.stat_distance_id != '감리거리'
+			ORDER BY 
+				T1.disp_rank
+				
+		)
+	)
+	</select>
+	
+	<select id="interestingTopicExcelDataDownLoad"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+	select 
+		dstnc.rn,nvl(life.lfe_cycle_nm,'') as lfe_cycle_nm, 
+		case 
+			when life.percentage is null then ''
+			else life.percentage
+		end as lfe_percentage, dstnc.stat_distance_nm, dstnc.percentage as dstnc_percentage
+	from 
+	(
+		select 
+			rownum as rn
+			, lfe_cycle_id
+			, lfe_cycle_nm
+			, count
+			, case 
+				when total = 0 then 0
+				when total !=0 then trunc((count/total*100),1)
+		     end as percentage 
+		from 
+		(
+			select 1 ,lfe_cycle_id,lfe_cycle_nm,count, sum(count) over(partition by 1) as total from 
+			(
+				SELECT 
+					T1.lfe_cycle_id, T1.lfe_cycle_nm, NVL(T2.total,0) as count
+				FROM 
+					SRV_DT_CTLG_LFE_CYCLE_LIST T1 
+				LEFT JOIN
+				(
+					SELECT 
+						a.lfe_cycle_1_id AS lfe_cycle_id
+						,NVL(a.cnt1,0)+NVL(b.cnt2,0) AS total
+					FROM 
+					(
+						SELECT 
+							lfe_cycle_1_id
+							,COUNT(*) AS cnt1 
+						FROM 
+							SRV_DT_CTLG_SLCTN_KWRD_LIST 
+						<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+						WHERE 
+							TO_CHAR(use_ts,'yyyy-mm-dd') >= #{startDate}
+							AND
+							TO_CHAR(use_ts,'yyyy-mm-dd') <![CDATA[ <= ]]> #{endDate}
+						</if>
+						GROUP BY 
+							lfe_cycle_1_id 
+						HAVING 
+							/*lfe_cycle_1_id != ''*/
+							LENGTH(lfe_cycle_1_id) > 0
+					) a 
+					LEFT JOIN 
+					(
+						SELECT 
+							lfe_cycle_2_id
+							,COUNT(*) AS cnt2 
+						FROM 
+							SRV_DT_CTLG_SLCTN_KWRD_LIST 
+						<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+						WHERE 
+							TO_CHAR(use_ts,'yyyy-mm-dd') >= #{startDate}
+							AND
+							TO_CHAR(use_ts,'yyyy-mm-dd')  <![CDATA[ <= ]]> #{endDate}
+						</if>
+						GROUP BY 
+							lfe_cycle_2_id 
+						HAVING 
+							/*lfe_cycle_2_id != ''*/
+							LENGTH(lfe_cycle_2_id) > 0
+					) b 
+					ON 
+						a.lfe_cycle_1_id = b.lfe_cycle_2_id
+				) T2
+				ON
+					T1.lfe_cycle_id = T2.lfe_cycle_id 
+				WHERE 
+					T1.use_yn = 'Y' AND T1.lfe_cycle_id != 'lffff-test'
+				ORDER BY 
+					T1.disp_rank
+			)
+		)
+	) as life
+	right join 
+	(
+		select 
+			rownum as rn
+			, stat_distance_id
+			, stat_distance_nm
+			, count,total
+			, case 
+				when total = 0 then 0
+				when total !=0 then trunc((count/total*100),1)
+		     end as percentage  
+		from 
+		(
+			select 1,stat_distance_id,stat_distance_nm, count, sum(count) over (partition by 1) as total from (
+				select
+					T1.stat_distance_id,T1.stat_distance_nm,NVL(T2.total,0) count
+				from 
+					srv_dt_ctlg_distance_list T1
+				left join
+				(
+					select 
+						a.stat_dstnc_1_id as stat_distance_id
+						,nvl(a.cnt1,0)+nvl(b.cnt2,0) as total
+					from 
+					(
+						select 
+							stat_dstnc_1_id
+							,count(*) as cnt1 
+						from 
+							SRV_DT_CTLG_SLCTN_KWRD_LIST 
+						<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+						WHERE 
+							TO_CHAR(use_ts,'yyyy-mm-dd') >= #{startDate}
+							AND
+							TO_CHAR(use_ts,'yyyy-mm-dd')  <![CDATA[ <= ]]> #{endDate}
+						</if>
+						group by 
+							stat_dstnc_1_id 
+						having 
+							/*stat_dstnc_1_id != ''*/
+							LENGTH(stat_dstnc_1_id) > 0
+					) a 
+					left outer join 
+					(
+						select 
+							stat_dstnc_2_id
+							,count(*) as cnt2 
+						from 
+							SRV_DT_CTLG_SLCTN_KWRD_LIST 
+						<if test ="(startDate != null and startDate != '') and (endDate != null and  endDate != '')">
+						WHERE 
+							TO_CHAR(use_ts,'yyyy-mm-dd') >= #{startDate}
+							AND
+							TO_CHAR(use_ts,'yyyy-mm-dd')  <![CDATA[ <= ]]> #{endDate}
+						</if>
+						group by 
+							stat_dstnc_2_id 
+						having 
+							/*stat_dstnc_2_id != ''*/
+							LENGTH(stat_dstnc_2_id) > 0
+					) b 
+					on 
+						a.stat_dstnc_1_id = b.stat_dstnc_2_id
+				) T2
+				on
+					T1.stat_distance_id = T2.stat_distance_id
+				where 
+					T1.use_yn = 'Y' AND T1.stat_distance_id != '감리거리'
+				ORDER BY 
+					T1.disp_rank
+					
+			)
+		)
+	) as dstnc
+	on 
+		dstnc.rn = life.rn
+	</select>
+</mapper>

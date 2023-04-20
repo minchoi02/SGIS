@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.sgis.m2019.workroad.service.mapper.kairos.WorkRoadMapper">
+	
+	<!-- 공통코드 조회 -->
+	<select id="selectCmmCdComcd" parameterType="hashmap" resultType="hashmap">	
+		select 
+			s_class_cd as cd 
+			,s_class_cd_nm as nm
+			,cd_exp as exp
+		from cmm_cd_comcd
+		where 1=1
+			<if test='b_class_cd != null and b_class_cd != "" '> /* 분류 코드 */
+			and b_class_cd = #{b_class_cd}
+			</if>
+			<if test='s_class_cd != null and s_class_cd != "" '> /* 분류 코드 */
+			and s_class_cd = #{s_class_cd}
+			</if>		   
+			<if test='s_class_cd_len != null and s_class_cd_len != "" '> /* 코드 길이 */
+			and len(s_class_cd) = #{s_class_cd_len}
+			</if>
+		order by
+			s_class_cd_order, s_class_cd
+	</select>
+	
+	<!-- 일자리맞춤형서비스정보 조회 -->
+	<select id="selectSrvDtJobClmserInfo" parameterType="hashmap" resultType="hashmap">	
+		select 
+			a.member_id
+			,a.lc_info_agree_yn
+			,a.sido_cd
+			,a.sgg_cd
+			,a.entrprs_class_content
+			,a.jssfc_class_content
+			,a.salary_class_content
+			,a.emplym_class_content
+			,a.acdmcr_class_content
+			,a.career_class_content
+			,a.indust_class_content
+		from srv_dt_job_clmser_info a
+		where a.member_id = #{member_id}
+	</select>
+	
+	<!-- 일자리맞춤형서비스정보 수정 -->
+	<update id="updateSrvDtJobClmserInfo" parameterType="hashmap">
+		update srv_dt_job_clmser_info
+		set
+			member_id             = #{member_id}
+			<if test='lc_info_agree_yn != null'>
+			,lc_info_agree_yn      = #{lc_info_agree_yn}
+			</if>
+			<if test='sido_cd != null'>
+			,sido_cd               = #{sido_cd}
+			</if>
+			<if test='sgg_cd != null'>
+			,sgg_cd                = #{sgg_cd}
+			</if>
+			<if test='entrprs_class_content != null'>
+			,entrprs_class_content = #{entrprs_class_content}
+			</if>
+			<if test='jssfc_class_content != null'>
+			,jssfc_class_content   = #{jssfc_class_content}
+			</if>
+			<if test='salary_class_content != null'>
+			,salary_class_content  = #{salary_class_content}
+			</if>
+			<if test='emplym_class_content != null'>
+			,emplym_class_content  = #{emplym_class_content}
+			</if>
+			<if test='acdmcr_class_content != null'>
+			,acdmcr_class_content  = #{acdmcr_class_content}
+			</if>
+			<if test='career_class_content != null'>
+			,career_class_content  = #{career_class_content}
+			</if>
+			<if test='indust_class_content != null'>
+			,indust_class_content  = #{indust_class_content}
+			</if>
+		where member_id = #{member_id}
+	</update>
+	
+	<!-- 일자리맞춤형서비스정보 등록 -->
+	<insert id="insertSrvDtJobClmserInfo" parameterType="hashmap">
+		insert into srv_dt_job_clmser_info
+		(
+			member_id
+			,lc_info_agree_yn
+			,sido_cd
+			,sgg_cd
+			,entrprs_class_content
+			,jssfc_class_content
+			,salary_class_content
+			,emplym_class_content
+			,acdmcr_class_content
+			,career_class_content
+			,indust_class_content
+		)
+		values
+		(
+			#{member_id}
+			,#{lc_info_agree_yn}
+			,#{sido_cd}
+			,#{sgg_cd}
+			,#{entrprs_class_content}
+			,#{jssfc_class_content}
+			,#{salary_class_content}
+			,#{emplym_class_content}
+			,#{acdmcr_class_content}
+			,#{career_class_content}
+			,#{indust_class_content}
+		)
+	</insert>
+	
+	<!-- 시도코드 조회 -->
+	<select id="selectSidoCd" parameterType="hashmap" resultType="hashmap">	
+		SELECT SIDO_CD
+			 , SIDO_NM
+			 , X_COOR
+			 , Y_COOR
+		  FROM SRV_PG_SIDOBORD
+		 WHERE BASE_YEAR = (SELECT MAX(BASE_YEAR)
+							  FROM SRV_PG_SIDOBORD)
+	</select>
+	
+	<!-- 시군구코드 조회 -->
+	<select id="selectSggCd" parameterType="hashmap" resultType="hashmap">	
+		SELECT SGG_CD
+			 , SGG_NM
+			 , X_COOR
+			 , Y_COOR
+		  FROM SRV_PG_SGGBORD
+		 WHERE BASE_YEAR = decode(#{bnd_year}, null, (SELECT MAX(BASE_YEAR) FROM SRV_PG_SGGBORD), #{bnd_year})
+		   AND SIDO_CD = #{sido_cd}
+		 ORDER BY SGG_NM
+	</select>
+	
+	<!-- 지역정보 조회 (시군구/시도/읍면동) -->
+	<select id="selectAdmInfo" parameterType="hashmap" resultType="hashmap">	
+		select
+			a.sido_cd
+			,a.sido_nm
+			,a.x_coor as sido_x_coor
+			,a.y_coor as sido_y_coor
+			<if test='sgg_cd != null and sgg_cd != "" and sgg_cd != "999" '>
+				,b.sgg_cd
+				,b.sgg_nm
+				,b.x_coor as sgg_x_coor
+				,b.y_coor as sgg_y_coor
+				<if test='emdong_cd != null and emdong_cd != "" and emdong_cd != "99" '>
+					,c.emdong_cd
+					,c.emdong_nm
+					,c.x_coor as emdong_x_coor
+					,c.y_coor as emdong_y_coor
+				</if>
+			</if>
+		from
+			srv_pg_sidobord a
+			inner join (select max(base_year) as base_year from srv_pg_sidobord) aby on aby.base_year = a.base_year
+			<if test='sgg_cd != null and sgg_cd != "" and sgg_cd != "999" '>
+				inner join srv_pg_sggbord b on b.sido_cd = a.sido_cd
+				inner join (select max(base_year) as base_year from srv_pg_sggbord) bby on bby.base_year = b.base_year
+				<if test='emdong_cd != null and emdong_cd != "" and emdong_cd != "99" '>
+					inner join srv_pg_admbord c on c.sido_cd = b.sido_cd and c.sgg_cd = b.sgg_cd
+					inner join (select max(base_year) as base_year from srv_pg_admbord) cby on cby.base_year = c.base_year
+				</if>
+			</if>
+		where 1=1
+			and a.sido_cd = #{sido_cd}
+			<if test='sgg_cd != null and sgg_cd != "" and sgg_cd != "999" '>
+				and b.sgg_cd = #{sgg_cd}
+				<if test='emdong_cd != null and emdong_cd != "" and emdong_cd != "99" '>
+					and c.emdong_cd = #{emdong_cd}
+				</if>
+			</if>
+	</select>
+	
+	<!-- 일자리 맵 서비스 통계 데이터 조회 - 2018.10.17	ywKim	신규 -->
+	<select id="selectJobStatData" parameterType="hashmap" resultType="hashmap">
+	<!-- 2020.04.28[한광희] 통계데이터 차트 KOSIS DATA로 변경 START -->	
+		<!-- select
+			t.type
+			, t.mode
+			, t.series_cd
+			, t.category_cd
+			, t.val
+			2019.12.03[한광희] base_year 추가
+			, t.base_year
+		from
+			srv_dt_jobstat_data t
+			2019.12.16[김남민] 소문자 => 대문자 수정
+			left join cmm_cd_comcd s on s.b_class_cd = #{type} || #{mode} || 'S' and t.series_cd = s.s_class_cd
+			left join cmm_cd_comcd c on c.b_class_cd = #{type} || #{mode} || 'C' and t.category_cd = c.s_class_cd
+		where 1=1
+			and t.type = #{type}
+			and t.base_year = #{base_year}
+			and t.mode = #{mode}
+			<if test='series_cd != null and series_cd != "" '>
+			and t.series_cd = #{series_cd}
+			</if>
+		order by
+			t.type
+			, t.mode
+			, s.s_class_cd_order
+			, c.s_class_cd_order -->
+		SELECT A.PRD_DE AS BASE_YEAR
+		<choose>
+			<when test='link_id == "D3503"'>
+				, SUBSTR(A.DT, 1, INSTR(A.DT, '.') -1) AS VAL		
+			</when>
+			<otherwise>
+				, REPLACE(A.DT, '-', '0') AS VAL
+			</otherwise>
+		</choose>
+		<if test='link_id == "D3501"'>
+	   		, A.C2 AS SERIES_CD
+	   	</if>
+	   	<if test='link_id == "D3502"'>
+	   		, B.S_CLASS_CD AS SERIES_CD
+	   	</if>
+	   	<if test='link_id == "D3503"'>
+	   		, A.C1 AS SERIES_CD
+	   	</if>
+		  FROM SRV_DT_KOSIS_DATA A
+		<if test='link_id == "D3502"'>
+			, (SELECT *
+				 FROM (SELECT C1
+				 			, REPLACE(REPLACE(REPLACE(C1_NM,' ',''),';',''),'ㆍ','') C1_NM
+						 FROM SRV_DT_KOSIS_DATA
+						WHERE LINK_ID = #{link_id}
+						  AND PRD_DE = #{base_year}
+						  AND C2 = '00'
+						  AND C1 != '000'
+					  ) XA
+					, (SELECT S_CLASS_CD
+							, REPLACE(S_CLASS_CD_NM,' ','') S_CLASS_CD_NM
+						 FROM CMM_CD_COMCD
+						WHERE B_CLASS_CD = 'INDCLA'
+						  AND LENGTH(S_CLASS_CD) = 3
+					  ) XB
+				WHERE XA.C1_NM = XB.S_CLASS_CD_NM
+				ORDER BY TO_NUMBER(XA.C1)
+			  ) B
+		</if>
+		 WHERE 1=1
+		   AND A.LINK_ID = #{link_id}
+		   AND A.PRD_DE = #{base_year}
+		   AND A.C2 != '00'
+		   <if test='link_id == "D3501"'>
+			AND A.C1 NOT IN ('000', '110', '120')
+		   	AND A.C2 = #{series_cd} || '0'
+		   </if>
+		   <if test='link_id == "D3502"'>
+		   	AND A.C1 = B.C1
+		   	AND A.C1 != '000' 
+		   	AND B.S_CLASS_CD = #{series_cd}
+		   </if>
+		   <if test='link_id == "D3503"'>
+		   	AND A.C1 != '00'
+		   	AND A.ITM_ID = #{itm_id}
+		   	AND A.C1 = #{series_cd}
+		   </if>
+		 ORDER BY LENGTH(A.C1), A.C1, LENGTH(A.C2), A.C2
+	<!-- 2020.04.28[한광희] 통계데이터 차트 KOSIS DATA로 변경 END -->
+	</select>
+	
+	<!-- 2019.12.03[한광희] 일자리 맵 서비스 통계 데이터 base_year 조회 -->
+	<select id="selectJobStatDataBaseYear" parameterType="hashmap" resultType="String">
+	<!-- 2020.04.28[한광희] 통계데이터 차트 KOSIS DATA로 변경 START -->	
+		<!-- select
+			max(base_year) as base_year
+		from
+			srv_dt_jobstat_data t
+			left join cmm_cd_comcd s on s.b_class_cd = #{type} || #{mode} || 'S' and t.series_cd = s.s_class_cd
+			left join cmm_cd_comcd c on c.b_class_cd = #{type} || #{mode} || 'C' and t.category_cd = c.s_class_cd
+		where 1=1
+			and t.type = #{type}
+			and t.mode = #{mode}
+			<if test='series_cd != null and series_cd != "" '>
+			and t.series_cd = #{series_cd}
+			</if> -->
+		SELECT MAX(PRD_DE) AS BASE_YEAR
+		  FROM SRV_DT_KOSIS_DATA
+		 WHERE LINK_ID = #{link_id}
+		 <if test='link_id == "D3503"'>
+		 	AND ITM_ID = #{itm_id}
+		 </if>
+	<!-- 2020.04.28[한광희] 통계데이터 차트 KOSIS DATA로 변경 END -->
+	</select>
+	
+	<!-- 2020.04.28[한광희] 통계데이터 차트 KOSIS DATA로 변경 START -->
+	<select id="selectJobStatDataCommonCd" parameterType="hashmap" resultType="hashmap">	
+		SELECT A.C1
+			 , A.C1_NM
+			 , A.C2 
+			 , A.C2_NM
+		  FROM SRV_DT_KOSIS_DATA A
+		<if test='link_id == "D3502"'>
+			, (SELECT *
+				 FROM (SELECT C1
+				 			, REPLACE(REPLACE(REPLACE(C1_NM,' ',''),';',''),'ㆍ','') C1_NM
+						 FROM SRV_DT_KOSIS_DATA
+						WHERE LINK_ID = #{link_id}
+						  AND PRD_DE = #{base_year}
+						  AND C2 = '00'
+						  AND C1 != '000'
+					  ) XA
+					, (SELECT S_CLASS_CD
+							, REPLACE(S_CLASS_CD_NM,' ','') S_CLASS_CD_NM
+						 FROM CMM_CD_COMCD
+						WHERE B_CLASS_CD = 'INDCLA'
+						  AND LENGTH(S_CLASS_CD) = 3
+					  ) XB
+				WHERE XA.C1_NM = XB.S_CLASS_CD_NM
+				ORDER BY TO_NUMBER(XA.C1)
+			  ) B
+		</if>
+		 WHERE 1=1
+		   AND A.LINK_ID = #{link_id}
+		   AND A.PRD_DE = #{base_year}
+		   AND A.C2 != '00'
+		   <if test='link_id == "D3501"'> 
+   			AND A.C1 NOT IN ('000', '110', '120')
+		   	AND A.C2 = #{series_cd} || '0'
+		   </if>
+		   <if test='link_id == "D3502"'>
+		   	AND A.C1 = B.C1
+		   	AND A.C1 != '000' 
+		   	AND B.S_CLASS_CD = #{series_cd}
+		   </if>
+		   <if test='link_id == "D3503"'>
+		   	AND A.C1 != '00'
+		   	AND A.C1 = #{series_cd}
+		   	AND A.ITM_ID = #{itm_id}
+		   </if>
+		 ORDER BY LENGTH(A.C1), A.C1, LENGTH(A.C2), A.C2
+	</select>
+	<!-- 2020.04.28[한광희] 통계데이터 차트 KOSIS DATA로 변경 END -->
+	
+</mapper>

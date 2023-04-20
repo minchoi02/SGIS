@@ -1,0 +1,154 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd" >
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+		<title>SGIS 관리자사이트(CNM)</title> 
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+		<link rel="stylesheet" href="./../include/css/login.css" />
+		<link rel="stylesheet" href="./../include/css/default.css" />
+		<script type="text/javascript" src="./../include/js/jquery-1.11.0.min.js"></script> 
+		<script type="text/javascript" src="./../include/js/default.js"></script>
+		<script type="text/javascript" src="../../js/common/includeHead.js"></script>
+		<script src="../../js/common/common.js"></script>
+		<link rel="stylesheet" href="../../css/jquery-ui-1.10.4.custom.css" />
+		<script type="text/javascript" src="../../js/plugins/jquery-ui-1.10.3.custom.js"></script>
+		<script type="text/javascript" src="../../js/plugins/jquery-ui-timepicker-addon.js"></script>
+		<script type="text/javascript" src="../../js/MN/APIStat.js"></script>
+	</head>
+
+	<body>
+	<!-- Js file of hightCharts need to import in body tags -->
+	<script type="text/javascript" src="../../js/plugins/highcharts/highcharts.js"></script>
+		<div class="wrapper">
+		<!-- cls:header start -->
+			<div class="header">
+				<div class="defaultbox">
+					<div class="logo"><a href="#"><img src="./../include/img/pic/pic_logo.png" alt="logo" /></a></div>
+					<div class="navi">
+					</div>
+				</div>
+				<div class="menuWrapper">
+					<div class="menuCnm">
+						<ul>
+							<li><a class="on">서비스 현황</a></li>
+							<li><a>사용자 현황</a></li>
+							<li><a>서비스 관리</a></li>
+							<li><a>정보 관리</a></li>
+							<li><a>게시판 관리</a></li>
+							<li><a>회원 관리</a></li>
+						</ul>
+					</div>
+				</div>
+				<div class="subMenuWrapper">
+					<div class="subMenu">	</div>
+				</div>
+			</div>
+			<!-- cls:header end -->
+			<div class="contents">
+			<!-- cls:left start -->
+				<div class="lefitMenuWrapper">
+					<script type="text/javascript">
+						makeLeftMenu("1", "2", "1");	//탑메뉴순서, 선택된 왼쪽 빅메뉴, 선택된 왼쪽 small메뉴
+					</script>
+				</div>
+			<!-- cls:left end -->
+				<div class="acticle">
+					<div class="location">
+						<p>
+							<a><img src="./../include/img/ico/ico_home.png" alt="home"/></a>
+							<span><img src="./../include/img/ico/ico_navi.png" alt="다음"/></span>
+							<span>서비스 현황</span>
+							<span><img src="./../include/img/ico/ico_navi.png" alt="다음"/></span>
+							<span class="fontS"> API 이용통계</span>
+						</p>
+						</div>
+						<p class="title01">API 이용통계</p>
+						<div>
+							<div class="searchWrapper">
+								&nbsp;&nbsp;
+								<select class="input_use27" id="selectType" name="selectType">
+									<option value="HOURLY">시간</option>
+									<option value="DAILY">일간</option>
+									<option value="MONTHLY">월간</option>
+								</select>								
+								&nbsp;&nbsp;
+								<div class="searchBtn02">
+									<a>
+										<input type="text" class="input_use06" id="startDate" style="width:90px; margin-right: 5px" readonly/>
+									</a>
+								</div>
+								&nbsp;~&nbsp;
+								<div class="searchBtn02">
+									<a>
+										<input type="text" class="input_use06" id="endDate" style="width:90px; margin-right: 5px" readonly/>
+									</a>
+								</div>
+								&nbsp;&nbsp;
+								<div class="searchBtn" id="searchButton"><a style="cursor: pointer"><img src="./../include/img/btn/btn_search.png" alt="검색"/></a></div>
+							</div>							
+						</div>
+						<div>							
+							<table class="apiTable" summary="openAPI호출건수">
+								<caption>openAPI호출건수.</caption>
+								<colgroup>
+									<col width="140"/>
+									<col width="231"/> 
+									<col width="140"/>
+									<col width="232"/> 
+								</colgroup>
+								<tbody>
+									<tr>
+										<th >총API호출건수</th>
+										<td class="keyBoxText" id="totalCount">0<span>건</span></td>
+										<td style="display:none" class="keyBoxText" id="totalCounts">0<span>건</span></td>
+										<th >총에러건수</th>
+										<td class="keyBoxText" id="errorCount">0<span>건</span></td>
+									</tr>
+								</tbody>
+							</table>
+							<div class="graph" id="openAPIArea" style="width:703px;height:240px"><!-- <img src="./../include/img/pic/pic_graph.png" alt="그래프"/> --></div>
+							<table id="apiStatTableRegion" class="pntTable" summary="poi 정보" style="display: none;">
+		 					<caption>데이터 표1</caption>
+			 					<colgroup>
+			 						<col width="220" />
+			 						<col width="600" />
+								</colgroup>
+			 					<tbody id="tBody">
+			 						<!-- <tr>
+										<th colspan=4>API 이용통계</th>
+									</tr> -->
+			 	 					<tr>
+			 	 						<th scope="col">일자</th>
+			 	 						<th scope="col">건수</th>		
+			 	 					</tr>
+			 	 					<tr id="api">
+			 	 					</tr>
+					 			</tbody>
+				 			</table>
+						</div>
+						<div>
+							<p class="tilte04">항목별 현황 (상위 3순위)</p>
+							<div class="graph05">
+								<div class="graphTitle">OpenApi 호출건수</div>
+								<div class="graphIimg" id="openAPIPie" style="height:160px;width:209px;overflow:auto"><!-- <img src="./../include/img/pic/pic_graph02.png" alt="그래프"/> --></div>
+								<div class="ulTop"><ul id="top3Api"></ul></div>							
+							</div>
+							<div class="graph05">
+								<div class="graphTitle">서비스 호출건수</div>
+								<div class="graphIimg" id="openAPIServicePie" style="height:160px;width:209px"><!-- <img src="./../include/img/pic/pic_graph02.png" alt="그래프"/> --></div>
+								<div class="ulTop"><ul id="top3Service"></ul></div>
+							</div>
+							<div class="graph06">
+								<div class="graphTitle">OpenApi 에러건수</div>
+								<div class="graphIimg" id="openAPIErrorPie" style="height:160px;width:220px"><!-- <img src="./../include/img/pic/pic_graph02.png" alt="그래프"/> --></div>
+								<div class="ulTop"><ul id="top3Error"></ul></div>
+							</div>
+						</div>
+						<p class="fR mt20"><a class="btn" href="#" id="apiStatReportView"><img src="./../include/img/btn/btn_report_view.png" style="ma" alt="보고서 보기"/></a></p>	
+				</div>
+			</div>
+		</div>
+		<!-- cls:footer start -->
+		<div class="footerWrapper"></div>
+	</body>
+</html>

@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="prjmng">
+	<!-- 단위업무 정렬 -->
+	<sql id="orderWorkSetSql">
+		<choose>
+			<when test="sort == '' || sort == null">
+				ORDER BY job_setup_seq DESC
+			</when>
+			<otherwise>
+				ORDER BY ${sort} ${order}
+			</otherwise>
+		</choose>
+	</sql>
+	
+	<!-- 단위업무 정보 가져오기 -->
+	<select id="getWorkSetList" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				  job_setup_seq
+				, job_setup_seq AS id
+				, ROW_NUMBER() OVER (<include refid="orderWorkSetSql" />) AS row
+				, job_nm
+				, cl_nm
+				, TO_CHAR(reg_ts,'YYYY-MM-DD') AS reg_ts
+				, COUNT(*) OVER() AS total
+		FROM prj_unit
+		<where>
+			1=1
+			<if test="searchText != null">
+				AND 
+				(
+					cl_nm LIKE '%'||#{searchText}||'%'
+					OR 
+					job_nm LIKE '%'||#{searchText}||'%'
+				)
+			</if>
+		</where>
+		<include refid="orderWorkSetSql" />
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+	
+	<!-- 단위업무 상세정보 조회 -->
+    <select id="workSetDetail" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			job_setup_seq, job_step, job_nm, cl_nm, storage_div_nm, schema_nm, 
+			tbl_nm, tgt_schema_nm, tgt_tbl_nm, qry_txt, geo_method, geo_depth, 
+			geo_key_fld, geo_fld, geo_fld_sido, geo_fld_sgg, geo_fld_emd, geo_fld_ri, 
+       		geo_fld_road, geo_fld_mn, geo_fld_sn, geo_fld_base, geo_fld_bd, geo_fld_bd_sub, 
+       		col_cd, x_fld, y_fld, coord_type, shell_cmd, reg_ts, reg_user_id
+		FROM prj_unit
+		WHERE job_setup_seq = #{job_setup_seq}
+    </select>
+    
+	<!-- 프로젝트 실행 단위업무 상세정보 조회 -->
+    <select id="prjUnitModify" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			prj_unit_exec_hst_seq, prj_master_hst_seq, job_setup_seq, job_order, 
+			job_step, job_nm, cl_nm, storage_div_nm, schema_nm, tbl_nm, tgt_schema_nm, 
+			tgt_tbl_nm, qry_txt, geo_method, geo_depth, geo_key_fld, geo_fld, 
+			geo_fld_sido, geo_fld_sgg, geo_fld_emd, geo_fld_ri, 
+       		geo_fld_road, geo_fld_mn, geo_fld_sn, geo_fld_base, geo_fld_bd, geo_fld_bd_sub, col_cd, x_fld, y_fld, coord_type, 
+			shell_cmd, job_sts, job_sts_desc, data_cnt, geo_ok_cnt, geo_ok_percent, 
+			reg_ts, reg_user_id, TO_CHAR(mod_ts,'YYYY-MM-DD HH24:MI:SS') AS mod_ts, mod_user_id, job_log,
+			(select schd_type from prj_master_hst where prj_master_hst_seq = prj_unit_exec_hst.prj_master_hst_seq limit 1) schd_type,
+			(select max(job_order) from prj_unit_exec_hst where prj_master_hst_seq = #{prj_master_hst_seq}) job_max
+	  	FROM prj_unit_exec_hst
+		WHERE prj_master_hst_seq = #{prj_master_hst_seq} AND job_order = #{job_order}
+    </select>
+    
+    <!-- 단위업무를 등록 -->
+    <insert id="workSetNew" parameterType="hashmap">
+	    INSERT INTO prj_unit(
+            job_setup_seq, job_step, job_nm, cl_nm, storage_div_nm, 
+            schema_nm, tbl_nm, tgt_schema_nm, tgt_tbl_nm, qry_txt, geo_method, geo_depth, 
+            geo_key_fld, geo_fld, geo_fld_sido, geo_fld_sgg, geo_fld_emd, geo_fld_ri, 
+       		geo_fld_road, geo_fld_mn, geo_fld_sn, geo_fld_base, geo_fld_bd, geo_fld_bd_sub, col_cd,  
+            x_fld, y_fld, coord_type, shell_cmd, reg_ts, reg_user_id
+	    ) VALUES (
+	    	nextval('prj_unit_seq'), #{job_step}, #{job_nm}, #{cl_nm}, #{storage_div_nm}, 
+	    	#{schema_nm}, #{tbl_nm}, #{tgt_schema_nm}, #{tgt_tbl_nm}, #{qry_txt}, #{geo_method}, #{geo_depth}, 
+	    	#{geo_key_fld}, #{geo_fld}, #{geo_fld_sido}, #{geo_fld_sgg}, #{geo_fld_emd}, #{geo_fld_ri}, 
+       		#{geo_fld_road}, #{geo_fld_mn}, #{geo_fld_sn}, #{geo_fld_base}, #{geo_fld_bd}, #{geo_fld_bd_sub},#{col_cd}, 
+	    	#{x_fld}, #{y_fld}, #{coord_type}, #{shell_cmd}, now(), #{user_id}
+	    )
+    </insert>
+    
+	<!-- 단위업무 삭제 -->
+    <delete id="deleteWorkSet" parameterType="hashmap">
+		DELETE 
+		FROM prj_unit
+		WHERE job_setup_seq IN
+        <foreach collection="jsonArr" item="type"  open="(" close=")" separator=",">
+            CAST(#{type.job_setup_seq} AS int)
+        </foreach>
+    </delete>
+        
+    <!-- 단위업무를 수정 -->
+    <update id="updateWorkSet" parameterType="hashmap">
+	    UPDATE prj_unit SET
+            job_step = #{job_step}, job_nm = #{job_nm}, cl_nm = #{cl_nm}, storage_div_nm = #{storage_div_nm}, 
+            schema_nm = #{schema_nm}, tbl_nm = #{tbl_nm}, tgt_schema_nm = #{tgt_schema_nm}, tgt_tbl_nm = #{tgt_tbl_nm}, 
+            qry_txt = #{qry_txt}, geo_method = #{geo_method}, geo_key_fld = #{geo_key_fld}, geo_depth = #{geo_depth}, geo_fld = #{geo_fld}, 
+            geo_fld_sido = #{geo_fld_sido}, geo_fld_sgg = #{geo_fld_sgg}, geo_fld_emd = #{geo_fld_emd}, geo_fld_ri = #{geo_fld_ri}, 
+       		geo_fld_road = #{geo_fld_road}, geo_fld_mn = #{geo_fld_mn}, geo_fld_sn = #{geo_fld_sn},
+       		geo_fld_base = #{geo_fld_base}, geo_fld_bd = #{geo_fld_bd}, geo_fld_bd_sub = #{geo_fld_bd_sub}, col_cd = #{col_cd}, 
+            x_fld = #{x_fld}, y_fld = #{y_fld}, coord_type = #{coord_type}, shell_cmd = #{shell_cmd}, mod_ts = now(), mod_user_id = #{user_id}
+	    WHERE job_setup_seq = CAST(#{job_setup_seq} AS int)
+    </update>
+    
+	<!-- 프로젝트 정렬 -->
+	<sql id="orderPrjSetSql">
+		<choose>
+			<when test="sort == '' || sort == null">
+				ORDER BY project_id DESC
+			</when>
+			<otherwise>
+				ORDER BY ${sort} ${order}
+			</otherwise>
+		</choose>
+	</sql>
+
+	<!-- 프로젝트 정보 가져오기 -->
+	<select id="getPrjSetList" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				  project_id
+				, project_id AS id
+				, ROW_NUMBER() OVER (<include refid="orderPrjSetSql" />) AS row
+				, project_nm
+				, cl_nm
+				, TO_CHAR(reg_ts,'YYYY-MM-DD') AS reg_ts
+				, COUNT(*) OVER() AS total
+		FROM prj_master
+		<where>
+			1=1
+			<if test="searchText != null">
+				AND 
+				(
+					cl_nm LIKE '%'||#{searchText}||'%'
+					OR 
+					project_nm LIKE '%'||#{searchText}||'%'
+				)
+			</if>
+		</where>
+		<include refid="orderPrjSetSql" />
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+	
+	<!-- 프로젝트 상세정보 조회 -->
+    <select id="prjSetDetail" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			project_id, project_nm, project_desc, cl_nm, project_state_cd, 
+			project_param1, project_param2, project_param3, project_param4, 
+			project_param_val1, project_param_val2, project_param_val3, project_param_val4, 
+			schd_type, schd_time,
+			reg_user_id, mod_user_id, reg_ts, mod_ts
+		FROM prj_master
+		WHERE project_id = #{project_id}
+    </select>
+    
+    <select id="prjUnitSet" parameterType="hashmap" resultType="hashmap">
+		SELECT project_set_seq, job_setup_seq, job_order, (select job_nm from prj_unit where job_setup_seq = a.job_setup_seq) as job_nm
+		FROM prj_set A
+		WHERE project_id = #{project_id} ORDER BY job_order
+    </select>
+
+    <!-- 프로젝트 아이디 조회 -->
+    <select id="prjGetId" resultType="string">
+		SELECT cast(nextval('prj_master_project_id_seq'::regclass) as character varying)
+    </select>
+    
+    <!-- 프로젝트를 등록 -->
+    <insert id="prjSetNew" parameterType="hashmap">
+	    INSERT INTO prj_master(
+           project_id, project_nm, project_desc, cl_nm, 
+	       project_param1, project_param2, project_param3, project_param4, 
+	       project_param_val1, project_param_val2, project_param_val3, project_param_val4, 
+	       reg_user_id, reg_ts
+	    ) VALUES (
+	    	cast(#{project_id} as integer), #{project_nm}, #{project_desc}, #{cl_nm}, #{project_param1}, #{project_param2}, #{project_param3}, #{project_param4}, 
+	    	#{project_param_val1}, #{project_param_val2}, #{project_param_val3}, #{project_param_val4}, 
+	        #{user_id}, now()
+	    )
+    </insert>
+    
+    <!-- 프로젝트 단위업무를 등록 -->
+    <insert id="prjSetUnitNew" parameterType="hashmap">
+	    INSERT INTO prj_set(
+           project_id, job_setup_seq, job_order, reg_user_id, reg_ts
+	    ) VALUES (
+	    	cast(#{project_id} as integer), cast(#{job_setup_seq} as integer), cast(#{job_order} as integer), #{user_id}, now()
+	    )
+    </insert>
+    
+	<!-- 프로젝트 삭제 -->
+    <delete id="deletePrjSet" parameterType="hashmap">
+		DELETE 
+		FROM prj_master
+		WHERE project_id IN
+        <foreach collection="jsonArr" item="type"  open="(" close=")" separator=",">
+            CAST(#{type.project_id} AS int)
+        </foreach>
+    </delete>
+         
+	<!-- 프로젝트 단위업무를 삭제 -->
+    <delete id="deleteUnitPrjSet" parameterType="hashmap">
+		DELETE 
+		FROM prj_set
+		WHERE project_id = CAST(#{project_id} AS int)
+    </delete>
+       
+    <!-- 프로젝트를 수정 -->
+    <update id="updatePrjSet" parameterType="hashmap">
+	    UPDATE prj_master SET
+	       project_nm = #{project_nm}, project_desc = #{project_desc}, cl_nm = #{cl_nm}, 
+	       project_param1 = #{project_param1}, project_param2 = #{project_param2}, project_param3 = #{project_param3}, project_param4 = #{project_param4}, 
+	       project_param_val1 = #{project_param_val1}, project_param_val2 = #{project_param_val2}, project_param_val3 = #{project_param_val3}, project_param_val4 = #{project_param_val4}, 
+           schd_type = #{schd_type}, schd_time = #{schd_time}, 
+           mod_ts = now(), mod_user_id = #{user_id}
+	    WHERE project_id = CAST(#{project_id} AS int)
+    </update>
+    
+    <!-- 프로젝트 단위업무를 수정 -->
+    <update id="updatePrjUnitSet" parameterType="hashmap">
+	    UPDATE prj_unit_exec_hst SET
+            job_step = #{job_step}, job_nm = #{job_nm}, cl_nm = #{cl_nm}, storage_div_nm = #{storage_div_nm}, 
+            schema_nm = #{schema_nm}, tbl_nm = #{tbl_nm}, tgt_schema_nm = #{tgt_schema_nm}, tgt_tbl_nm = #{tgt_tbl_nm}, 
+            qry_txt = #{qry_txt}, geo_method = #{geo_method}, geo_depth = #{geo_depth}, geo_key_fld = #{geo_key_fld}, geo_fld = #{geo_fld}, 
+            geo_fld_sido = #{geo_fld_sido}, geo_fld_sgg = #{geo_fld_sgg}, geo_fld_emd = #{geo_fld_emd}, geo_fld_ri = #{geo_fld_ri}, 
+       		geo_fld_road = #{geo_fld_road}, geo_fld_mn = #{geo_fld_mn}, geo_fld_sn = #{geo_fld_sn},
+       		geo_fld_bd = #{geo_fld_bd}, geo_fld_bd_sub = #{geo_fld_bd_sub}, 
+            x_fld = #{x_fld}, y_fld = #{y_fld},
+            col_cd = #{col_cd}, shell_cmd = #{shell_cmd}, mod_ts = now(), mod_user_id = #{user_id}
+	    WHERE prj_master_hst_seq = CAST(#{prj_master_hst_seq} AS int) AND job_setup_seq = CAST(#{job_setup_seq} AS int)
+    </update>
+    
+	<!-- 프로젝트 정렬 -->
+	<sql id="orderPrjHstSql">
+		<choose>
+			<when test="sort == '' || sort == null">
+				ORDER BY prj_master_hst_seq DESC
+			</when>
+			<otherwise>
+				ORDER BY ${sort} ${order}
+			</otherwise>
+		</choose>
+	</sql>
+	
+	<!-- 프로젝트 실행(이력) 정보 가져오기 -->
+	<select id="getPrjHstList" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			  prj_master_hst_seq
+			, prj_master_hst_seq AS id
+			, project_id
+			, schd_type
+			, ROW_NUMBER() OVER (<include refid="orderPrjHstSql" />) AS row
+			, project_nm
+			, cl_nm
+			, TO_CHAR(start_ts,'YYYY-MM-DD HH24:MI:SS') AS start_ts
+			, TO_CHAR(end_ts,'YYYY-MM-DD HH24:MI:SS') AS end_ts
+			, project_state_cd
+			, COUNT(*) OVER() AS total
+		FROM prj_master_hst
+		<where>
+			1=1
+			<if test="clNm != null and clNm !=''">
+				AND 
+					cl_nm = #{clNm}
+			</if>
+			<if test="searchText != null and searchText !=''">
+				AND 
+					project_nm LIKE '%'||#{searchText}||'%'
+			</if>
+			<if test="stateCd != null and stateCd !='' and stateCd !='manual'">
+				AND 
+					project_state_cd = #{stateCd}
+			</if>
+			<if test="stateCd == null or stateCd ==''">
+				AND 
+				( 
+					project_state_cd in ('running', 'standby', 'manual')
+					OR
+					schd_type = '단일'
+				)
+			</if>
+			<if test="stateCd != null and stateCd =='manual'">
+				AND 
+					schd_type = '단일'
+			</if>
+		</where>
+		<include refid="orderPrjHstSql" />
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+
+	<!-- 프로젝트 실행 구성 단위업무 가져오기 -->
+	<select id="getPrjHstUnitList" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			  prj_unit_exec_hst_seq
+			, prj_master_hst_seq
+			, job_order
+			, job_nm
+			, COALESCE(job_sts, 'standby') as job_sts
+		FROM prj_unit_exec_hst
+		WHERE
+			prj_master_hst_seq = cast(#{prj_master_hst_seq} as int)
+		ORDER BY job_order ASC
+	</select>
+	
+	<!-- 프로젝트 아이디 조회 -->
+    <select id="prjExecGetId" resultType="string">
+		SELECT cast(nextval('prj_master_hst_seq'::regclass) as character varying)
+    </select>
+        
+    <!-- 프로젝트 실행 등록 -->
+    <insert id="prjExecReg" parameterType="hashmap">
+	    INSERT INTO prj_master_hst(
+			prj_master_hst_seq, schd_type, schd_time, project_id, project_nm, 
+			cl_nm, project_state_cd, project_param1, project_param2, project_param3, 
+			project_param4, project_param_val1, project_param_val2, project_param_val3, 
+			project_param_val4, reg_user_id, reg_dt)
+		SELECT 
+			CAST(#{prj_master_hst_seq} AS int), #{schd_type}, schd_time, project_id, project_nm, 
+			cl_nm, #{project_state_cd}, project_param1, project_param2, project_param3, 
+			project_param4, project_param_val1, project_param_val2, project_param_val3, 
+			project_param_val4, #{user_id}, to_char(now(),'YYYYMMDD')
+		FROM prj_master
+		WHERE project_id = CAST(#{project_id} AS int)
+    </insert>
+                
+    <!-- 프로젝트 실행 단위 업무셋 등록 -->
+    <insert id="prjUnitExecReg" parameterType="hashmap">
+	    INSERT INTO prj_unit_exec_hst(
+			prj_unit_exec_hst_seq, prj_master_hst_seq, job_setup_seq, job_order, 
+			job_step, job_nm, cl_nm, storage_div_nm, schema_nm, tbl_nm, tgt_schema_nm, 
+			tgt_tbl_nm, qry_txt, geo_method, geo_depth, geo_key_fld, geo_fld, 
+			geo_fld_sido, geo_fld_sgg, geo_fld_emd, geo_fld_ri, 
+       		geo_fld_road, geo_fld_base, geo_fld_mn, geo_fld_sn, geo_fld_bd, geo_fld_bd_sub, col_cd, 
+			shell_cmd, job_sts, reg_ts, reg_user_id
+		) SELECT 
+			nextval('prj_unit_exec_hst_seq'), CAST(#{prj_master_hst_seq} AS int), A.job_setup_seq, job_order, 
+			job_step, job_nm, cl_nm, storage_div_nm, schema_nm, tbl_nm, tgt_schema_nm, 
+			tgt_tbl_nm, qry_txt, geo_method, geo_depth, geo_key_fld, geo_fld, 
+			geo_fld_sido, geo_fld_sgg, geo_fld_emd, geo_fld_ri, 
+       		geo_fld_road, geo_fld_base, geo_fld_mn, geo_fld_sn, geo_fld_bd, geo_fld_bd_sub, 
+       		col_cd, shell_cmd, 'standby', now(), #{user_id}
+			FROM prj_unit AS A INNER JOIN prj_set B ON A.job_setup_seq = B.job_setup_seq
+		WHERE project_id = CAST(#{project_id} AS int)
+		<if test="jobSetupSeq != null and jobSetupSeq ==''">
+			AND job_setup_seq = #{jobSetupSeq}
+		</if>
+		ORDER BY job_order
+    </insert>
+    
+    <!-- 프로젝트 실행 수정 : 상태변경 -->
+    <update id="updatePrjExec" parameterType="hashmap">
+		UPDATE prj_master_hst
+		SET 
+			<if test="schdType != null and schdType ==''">
+				schd_type = #{schdType}
+			</if>
+			<if test="stateCd != null and stateCd =='standby'">
+				start_ts=now(), project_state_cd = #{stateCd}
+			</if>
+			<if test="stateCd == null and stateCd =='success'">
+				end_ts=now(), project_state_cd = #{stateCd}
+			</if>	
+			<if test="stateCd != null and stateCd !='' and stateCd !='standby' and stateCd !='success'">
+				project_state_cd = #{stateCd}
+			</if>
+			<if test="job_setup_seq != null">
+				,job_setup_seq = CAST(#{job_setup_seq} AS int)
+			</if>
+			, mod_ts = now()
+		WHERE prj_master_hst_seq =  CAST(#{prj_master_hst_seq} AS int)
+    </update>
+    
+    <delete id="delPrjExec" parameterType="hashmap">
+	    DELETE FROM prj_master_hst
+		WHERE prj_master_hst_seq = CAST(#{prj_master_hst_seq} AS int)
+    </delete>
+        
+    <delete id="delPrjUnitExec" parameterType="hashmap">
+	    DELETE FROM prj_unit_exec_hst
+		WHERE prj_master_hst_seq = CAST(#{prj_master_hst_seq} AS int)
+    </delete>
+    
+    	
+	<!-- 통계청 데이터 목록 가져오기 -->
+	<select id="getDataList" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+		ROW_NUMBER() OVER (ORDER BY tbl_id DESC) AS row,
+		tbl_id, tbl_sch, tbl_nm table_name, tbl_nm_ko table_comment, tbl_cnt
+		, COUNT(*) OVER() AS total
+		FROM kostat_resource 
+		<where>
+			db_type = 'pg' 
+			<if test="searchText != null">
+				AND 
+				(
+					tbl_nm LIKE '%'||#{searchText}||'%'
+					OR 
+					tbl_nm_ko LIKE '%'||#{searchText}||'%'
+				)
+			</if>
+		</where>
+		ORDER BY tbl_id DESC
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+	
+	<!-- 선택형격자자료 조회 -->
+	<select id="getGridInfoList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			work_no, work_nm, data_type, base_year, grid_type, select_code, work_state
+			, to_char(start_dt, 'YYYY-MM-DD HH24:MI:SS') start_dt
+			, COUNT(*) OVER() AS total
+		FROM kostat.srv_dt_info_supply_detail_mng 
+		ORDER BY work_no DESC 		
+ 		OFFSET #{startIdx} LIMIT 10
+	</select>
+	
+	<!-- 선택형격자자료 상세 -->
+	<select id="getGridInfoDetail" parameterType="hashmap" resultType="hashmap">
+		SELECT query
+		FROM kostat.srv_dt_info_supply_detail_mng
+		WHERE work_no = #{work_no}
+	</select>
+</mapper>

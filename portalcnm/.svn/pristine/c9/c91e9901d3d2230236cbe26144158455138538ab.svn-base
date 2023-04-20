@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="APIStat">
+	<select id="getAPI" resultType="Map">
+		select DISTINCT API_ID,API_NM from SRV_DT_APIINFO
+		where 1=1 
+		<if test="API_B_CLASS_CD != null ">
+	    		and API_B_CLASS_CD =  #{API_B_CLASS_CD}
+	    </if>
+	</select>
+	<select id="getAPICD" resultType="Map">
+		select DISTINCT API_ID,API_NM from SRV_DT_APIINFO
+		where 1=1 
+		<if test="APINAME != null ">
+	    		and API_NM =  #{APINAME}
+	    </if>
+	</select>
+	<select id="getStat" parameterType="Map" resultType="Map" >
+		select 
+		SUBSTR(CALL_HOURLY,0,
+		<if test="TIMETYPE == 'HOURLY'">10</if>
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		) as CALL_HOURLY,
+		NVL(SUM(SUCC_CNT),0) as SUCC_CNT,
+		NVL(SUM(HOURLY_CALL_CNT),0) as CALL_CNT,
+		SUM(FAIL_CNT) as FAIL_CNT
+		FROM 
+		SRV_DT_APIHOURLYSTAT
+		where 
+		CALL_HOURLY <![CDATA[>=]]> #{STARTDATE2} and
+		CALL_HOURLY <![CDATA[<]]> #{ENDDATE2} || '999999'
+		group by 
+		SUBSTR(CALL_HOURLY,0,
+		<if test="TIMETYPE == 'HOURLY'">10</if>
+		<if test="TIMETYPE == 'DAILY'">8</if>
+		<if test="TIMETYPE == 'MONTHLY'">6</if>
+		)
+		order by CALL_HOURLY 
+	</select>
+	<select id="getTOP3API" parameterType="Map" resultType="Map" >
+		<!-- mng_s 20210419 이진호, , 관리자페이지 - 서비스현황 - API이용통계 검색 쿼리 수정 -->
+		<!--select * from--> 
+		<!--(-->
+			<!--select--> 
+			<!--a.API_ID,-->
+			<!--b.API_NM,-->
+			<!--NVL(SUM(a.HOURLY_CALL_CNT),0) as HOURLY_CALL_CNT-->
+			<!--from -->
+			<!--SRV_DT_APIHOURLYSTAT a-->
+			<!--left join SRV_DT_APIINFO b-->
+			<!--on a.API_ID = b.API_ID-->
+			<!--where-->
+			<!--CALL_HOURLY <![CDATA[>=]]> #{STARTDATE2} and-->
+			<!--CALL_HOURLY <![CDATA[<=]]> #{ENDDATE2} || '999999'-->
+			<!--group by a.API_ID,b.API_NM-->
+			<!--order by HOURLY_CALL_CNT DESC-->
+		<!--) where HOURLY_CALL_CNT != 0 and  ROWNUM <![CDATA[<]]> 4-->
+		
+		select top 3 a.*, (select b.api_nm from srv_dt_apiinfo with (nolock) b where  b.api_id = a.api_id) as api_nm from (
+		select api_id,NVL(SUM(HOURLY_CALL_CNT),0) as HOURLY_CALL_CNT 
+		from srv_dt_apihourlystat with (nolock)
+		where call_hourly <![CDATA[>=]]> #{STARTDATE2}||'00' and call_hourly <![CDATA[<=]]> #{ENDDATE2} ||'24' and HOURLY_CALL_CNT != 0
+		group by api_id 
+		) a order by a.hourly_call_cnt desc
+		<!-- mng_e 20210419 이진호 -->
+		
+	</select>
+	<select id="getTOP3SERVICE" parameterType="Map" resultType="Map" >
+		
+		
+		select * from
+		(
+			select 
+			NVL(b.SRV_NM,0) as SRV_NM
+			,NVL(SUM(a.HOURLY_CALL_CNT),0) as HOURLY_CALL_CNT
+			from 
+			( select SRV_ID, NVL(SUM(HOURLY_CALL_CNT),0) as HOURLY_CALL_CNT from SRV_DT_APIHOURLYSTAT where 	CALL_HOURLY  <![CDATA[>=]]> '20190601' and	CALL_HOURLY  <![CDATA[<]]>  '20190606'  || '999999' group by SRV_ID) a
+			left join (select srv_id, srv_nm from SRV_DT_USESRVINFO where SRV_NM is not null)b
+			on  a.SRV_ID=b.SRV_ID 
+			where 
+			b.SRV_NM is not null
+			group by a.SRV_ID,b.SRV_NM
+			order by HOURLY_CALL_CNT DESC
+		)  where HOURLY_CALL_CNT != 0 and ROWNUM <![CDATA[<]]> 4
+		
+		
+		
+		
+		
+	</select>
+	<select id="getTOP3ERROR" parameterType="Map" resultType="Map" >
+		
+		<!-- mng_s 20210419 이진호, 관리자페이지 - 서비스현황 - API이용통계 검색 쿼리 수정 -->
+		<!-- select * from -->
+		<!--(-->
+			<!--select -->
+			<!--NVL(b.API_NM,0) as API_NM,-->
+			<!--NVL(SUM(a.FAIL_CNT),0) as FAIL_CNT -->
+			<!--from--> 
+			<!--SRV_DT_APIHOURLYSTAT a-->
+			<!--left join SRV_DT_APIINFO b-->
+			<!--on a.API_ID = b.API_ID--> 
+			<!--where--> 
+			<!--CALL_HOURLY <![CDATA[>=]]> #{STARTDATE2} and-->
+			<!--CALL_HOURLY <![CDATA[<]]> #{ENDDATE2} || '999999'-->
+			<!--group by a.API_ID,b.API_NM-->
+			<!--order by FAIL_CNT DESC-->
+		<!--)-->  
+		<!--where FAIL_CNT != 0 and ROWNUM <![CDATA[<]]> 4-->
+		
+		select top 3 a.*, (select b.api_nm from srv_dt_apiinfo with (nolock) b where  b.api_id = a.api_id) as api_nm from (
+		select api_id,NVL(SUM(fail_cnt),0) as fail_cnt from srv_dt_apihourlystat with (nolock)
+		where call_hourly <![CDATA[>=]]> #{STARTDATE2} ||'00' and call_hourly <![CDATA[<]]> #{ENDDATE2}||'24' and fail_cnt != 0
+		group by api_id 
+		) a order by a.fail_cnt desc
+		<!-- mng_e 20210419 이진호 -->
+		
+	</select>
+	
+	<!-- Search API -->
+	<select id="searchAPIList"  parameterType="Map" resultType="Map">
+	select * from 
+	(
+		select   
+		 		ROWNUM r,
+				SRV_ATTR,
+				API_CONTENT_TYPE,
+				API_B_CLASS_CD,
+				API_ID,
+				API_METHOD_TYPE,
+				SRV_YN,
+				SRV_TYPE,
+				API_NM,
+				API_M_CLASS_CD,
+				API_EXP,
+				API_CALL_URL,
+				TO_CHAR(REG_TS, 'YYYY-MM-DD') as REG_TS
+		 from 
+		 (
+		 	 select SRV_ATTR,API_CONTENT_TYPE,API_B_CLASS_CD,API_ID,API_METHOD_TYPE,SRV_YN,SRV_TYPE,API_NM,API_M_CLASS_CD,API_EXP,API_CALL_URL,REG_TS
+		 	 from SRV_DT_APIINFO
+		 	 where
+				 API_B_CLASS_CD = #{API_B_CLASS_CD} and
+				 SRV_TYPE = #{SRV_TYPE} and
+				 SRV_ATTR = #{SRV_ATTR} and
+				 API_NM like '%' || #{NM} || '%'
+		 ) 
+		 where ROWNUM <![CDATA[<=]]> #{END_INDEX}
+	 )
+	 where r <![CDATA[>=]]> #{START_INDEX}
+	</select>
+	<select id="searchAPICount"  parameterType="Map" resultType="int">
+		 select  NVL(C(*),0)
+		 from SRV_DT_APIINFO
+		 where
+		 API_B_CLASS_CD = #{API_B_CLASS_CD} and
+		 SRV_TYPE = #{SRV_TYPE} and
+		 SRV_ATTR = #{SRV_ATTR} and
+		 API_NM like '%' || #{NM} || '%'
+	</select>
+	
+	<!-- API DETAIL -->
+	<select id="getSeriesData" parameterType="Map"  resultType="Map">
+		select 
+			b.api_id, 
+			SUBSTR(CALL_HOURLY,0,
+			<if test="TIMETYPE == 'HOURLY'">10</if>
+		    <if test="TIMETYPE == 'DAILY'">8</if>
+		    <if test="TIMETYPE == 'MONTHLY'">6</if>
+			) as CALL_HOURLY,
+			NVL(SUM(a.HOURLY_CALL_CNT),0) as CALL_CNT,
+			b.API_NM
+		FROM 
+			SRV_DT_APIHOURLYSTAT a INNER JOIN SRV_DT_APIINFO b ON a.API_ID = b.API_ID 
+		where
+		<!-- 
+	  		a.API_ID = #{API_ID} and
+		 --> 
+			a.CALL_HOURLY <![CDATA[>=]]> #{STARTDATE2} and
+			a.CALL_HOURLY <![CDATA[<]]> #{ENDDATE2} || '999999'
+			<if test="SRV_ID_YN != null ">
+	    		<if test="SRV_ID_YN == 'IN' ">
+		    		and SRV_ID =  '590a2718c58d41d9ae3b'
+		   		</if>
+		   		<if test="SRV_ID_YN == 'OUT' ">
+		    		and SRV_ID !=  '590a2718c58d41d9ae3b'
+		   		</if>
+	   		</if>
+		group by 
+			b.api_id, 
+			SUBSTR(CALL_HOURLY,0,
+			<if test="TIMETYPE == 'HOURLY'">10</if>
+		    <if test="TIMETYPE == 'DAILY'">8</if>
+		    <if test="TIMETYPE == 'MONTHLY'">6</if>
+			),b.API_NM
+		order by b.api_id, CALL_HOURLY 
+	</select>
+	
+</mapper>

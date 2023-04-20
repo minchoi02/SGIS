@@ -1,0 +1,261 @@
+package kostat.sop.OpenAPI3.search.address;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import kostat.sop.OpenAPI3.search.index.IndexFieldDefineEnum;
+
+import com.neighborsystem.durian.regex.AbsRegex;
+
+
+public class AddressDivision extends AbsRegex {
+	
+	private static String strSido = "";
+	private static String strSigungu = "";
+	private static String strDong = "";
+	private static String strGilRo = "";
+	private static String strRi = "";
+	private static String strGibun = "";
+	private static String strBuldNm = "";
+	//private static Map hashaddress = new HashMap<String, String>;
+	private static Map<String, String> hashaddress;// = new HashMap<String, String>();
+
+	/**
+	 * @param args
+	 */
+	public AddressDivision(String strAddress){
+
+		hashaddress = new HashMap<String, String>();
+		
+		String strRegex = getRegexStr();
+		String[] FindResult = getFind(strAddress);
+		
+		System.out.println("size="+FindResult.length);
+		
+		hashaddress.put(IndexFieldDefineEnum.sido_syn.name(), FindResult[0]);			// 시도유의어 검색용
+		hashaddress.put(IndexFieldDefineEnum.sgg_syn.name(), FindResult[1]);							// 시군구 유의어 검색용
+		hashaddress.put(IndexFieldDefineEnum.emdong_syn.name(), (FindResult[2]+FindResult[3]).replace("null", ""));
+		
+		
+		if(FindResult[2] != null){
+			hashaddress.put(IndexFieldDefineEnum.ri_syn.name(), (""+FindResult[4]).replace("null", ""));
+			hashaddress.put(IndexFieldDefineEnum.pcl.name(), (""+FindResult[5]+(FindResult[6] == null?"":"-"+FindResult[6])).replace("null", ""));
+			//hashaddress.put(AddressKind.jibun_bu.toString(), (""+FindResult[6]).replace("null", ""));
+		}else{
+			
+			hashaddress.put(IndexFieldDefineEnum.road_nm_main_no.name(), (""+FindResult[5]).replace("null", ""));
+			hashaddress.put(IndexFieldDefineEnum.road_nm_sub_no.name(), (""+FindResult[6]).replace("null", ""));
+			// 빌딩 메인 네임에는 리가 들어올 수도 있음
+			//hashaddress.put(IndexFieldDefineEnum.bd_main_nm_syn.name(), (""+FindResult[4]+" " +FindResult[7]).replace("null", "").trim());			
+			//hashaddress.put(IndexFieldDefineEnum.bd_sub_nm.name(), (""+FindResult[8]).replace("null", ""));
+
+			
+			String strParse = hashaddress.get(IndexFieldDefineEnum.emdong_syn.name()) + "\\s?" 
+							+ hashaddress.get(IndexFieldDefineEnum.road_nm_main_no.name()) + "\\-?"  
+							+ hashaddress.get(IndexFieldDefineEnum.road_nm_sub_no.name());
+			
+			String[] strTemp = strAddress.split( strParse, 0);
+			String strBDNM = strTemp[1] == null? "": strTemp[1].trim();
+			
+			hashaddress.put(IndexFieldDefineEnum.bd_main_nm_syn.name(), strBDNM.replace(" ", ""));
+			System.out.println("bd_main_nm_syn=" + hashaddress.get(IndexFieldDefineEnum.bd_main_nm_syn.name()));
+			/*
+			if(hashaddress.get(IndexFieldDefineEnum.road_nm_main_no.name()).equals("") &&
+			   strBDNM != null && strBDNM.split("\\s").length >= 3){
+				
+				String[] arrBDName = strBDNM.split("\\s");
+				String strBDMainNm = "";
+				String strBDSubNm = "";
+				for(int ix = 0; ix < arrBDName.length -1; ix++) strBDMainNm += arrBDName[ix];
+								
+				//hashaddress.put(IndexFieldDefineEnum.bd_main_nm_syn.name(), strBDMainNm);			
+				hashaddress.put(IndexFieldDefineEnum.bd_main_nm_syn.name(), strBDNM.replace(" ", ""));
+				//hashaddress.put(IndexFieldDefineEnum.bd_sub_nm.name(), arrBDName[arrBDName.length-1]);
+			}else{
+				hashaddress.put(IndexFieldDefineEnum.bd_main_nm_syn.name(), (""+FindResult[4]+" " +FindResult[7]).replace("null", "").trim());			
+				hashaddress.put(IndexFieldDefineEnum.bd_sub_nm.name(), (""+FindResult[8]).replace("null", ""));
+			}
+			*/
+		}
+
+		/*
+		hashaddress.put(IndexFieldDefineEnum.sido_syn.name(), FindResult[0].replace("null", ""));			// 시도유의어 검색용
+		hashaddress.put(IndexFieldDefineEnum.sgg_syn.name(), FindResult[1].replace("null", ""));							// 시군구 유의어 검색용
+		hashaddress.put(IndexFieldDefineEnum.emdong_syn.name(), (FindResult[4]+FindResult[9]).replace("null", ""));
+		
+		hashaddress.put(IndexFieldDefineEnum.ri_syn.name(), (""+FindResult[5]).replace("null", ""));
+		hashaddress.put(IndexFieldDefineEnum.pcl.name(), (""+FindResult[6]+(FindResult[7] == null?"":"-"+FindResult[6])).replace("null", ""));
+		//hashaddress.put(AddressKind.jibun_bu.toString(), (""+FindResult[6]).replace("null", ""));
+		hashaddress.put(IndexFieldDefineEnum.road_nm_main_no.name(), (""+FindResult[10]).replace("null", ""));
+		hashaddress.put(IndexFieldDefineEnum.road_nm_sub_no.name(), (""+FindResult[11]).replace("null", ""));
+		// 빌딩 메인 네임에는 리가 들어올 수도 있음			
+		hashaddress.put(IndexFieldDefineEnum.bd_main_nm_syn.name(), (""+FindResult[12]+" " +FindResult[7]).replace("null", "").trim());			
+		hashaddress.put(IndexFieldDefineEnum.bd_sub_nm.name(), (""+FindResult[13]).replace("null", ""));
+		*/
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see com.neighborsystem.durian.regex.IRegex#getRegexStr()
+	 */
+	public String getRegexStr() {
+		// TODO Auto-generated method stub
+/*
+		String RegexStr = "^([경강경전충][기원상라청]?[남북]?도?|[인울부광][천산주]광?역?시?|서울특?별?시?|세종특?별?자?치?시?|제주특별자치도|제주도)?\\s?"
+			      		+ "([가-힣]?+\\s?.+[시구군])?\\s?"                		  
+			      		+ "(\\S+[읍면동])?"				//읍면동
+			      		+ "\\s?(.+[길로])?\\s?"			//길로
+			      		//+ "([가-힣0-9]+[리])?\\s?"		//ri
+			      		+ "([가-힣]+)?\\s?"		//ri
+			      		//+ "([0-9]{1,5})?\\-?"				//건물 본번, 지번 본번
+			      		//+ "([0-9]{1,3})?\\s?"				//건물 부번, 지번 부번
+			      		+ "(\\d{1,5})?\\-?"				//건물 본번, 지번 본번
+			      		+ "([0-9]{1,3})?\\s?"				//건물 부번, 지번 부번
+			      		//[0-9]+[0-9\\-]*[\\s]*(번지)*$|[0-9]+[0-9\\-]*|산[0-9]+[0-9\\-]
+			      		//+ "(\\S+)?\\s?"					//건물명
+			      		+ "(\\S[가-힣^\\s]+)?\\s?"					//건물명
+			      		+ "([0-9가-힣]+)?\\s?"					//건물부명
+						+ "";		
+		*/
+		
+
+		String RegexStr = "^([경강경전충][기원상라청]?[남북]?도?|[인울부광][천산주]광?역?시?|서울특?별?시?|세종특?별?자?치?시?|제주특별자치도|제주도)?\\s?"
+		      	  		//+ "([가-힣]?+\\s?.+[시구군])?\\s?"                		  
+		      	  		//+ "([가-힣]+\\s\\S+[시구군]|\\S+[시구군]?)?\\s?"
+				      	+ "((?![가-힣]+아파트|빌라)[가-힣]+\\s?\\S+[시군구])?\\s?"			// 2 시군구 
+		      	  		+ "(\\S[가-힣]+[0-9]{0,4}?[읍면동가])?\\s?"							//읍면동
+		      	  		+ "([가-힣]+로\\s?[0-9]+.길|^?[가-힣]{1,15}로)?\\s?"				//길로
+		      	  		+ "(\\S[가-힣]+리)?\\s?"											//리는 한글만 존재
+		      	  		//+ "([가-힣]+(?:로\\s?[0-9]+.길|로))?\\s?"						//길로
+		      	  		+ "(산?[0-9]{0,5}번?지?)?\\-?\\s?"								//건물 본번, 지번 본번
+		      	  		+ "([0-9]{1,4}번?지?)?\\s?"										//건물 부번, 지번 부번
+		      	  		+ "(\\S[가-힣0-9]+)?\\s?"											//건물명
+		      	  		+ "(\\S[0-9가-힣]*동?)?"										// 10 건물부명
+				      	+ "(\\-?[0-9]{0,4}?)?\\s?"										//건물부명
+		      	  		+ "";
+		
+		return RegexStr;
+	}
+	
+	public String getResultValue(String strKey){
+		return hashaddress.get(strKey);
+	}
+	
+	public Map<String, String> getResult() {
+		// TODO Auto-generated method stub
+		return hashaddress;
+	}
+	
+
+	public static void main(String[] args) {
+		
+		String strtestPatSido = "*도|*시|경남|경상|경북|서울|세종|전남|전라|전북|충남|충북|충청|제주";
+		
+		String str = "서울특별시 종로 종각 자하문로36길 청운벽산빌리지 3381-141";
+
+		String[] strAddress= {"서울특별시 종로구 자하문로36길 111-11",
+		                       "수원 팔달구 자하동",
+		                       "세종특별자치시 수원시 팔달구 자하동",
+		                       "수원시 팔달구 자하동",
+		                       "수원 팔달구 자하동",
+		                       "경기 수원 팔달구 자하동",
+		                       "경남 수원 팔달구 자하동 1532-86",
+		                       "서울 종로구 자하문로 36번길",
+		                       "경기 수원 팔달구 자하1동",
+		                       "서울특별시 종로구 자하문로36길 111-11",
+		                       "서울특별시 종로구 자하문로36길 3381",
+		                       "서울특별시 자하문로36동 3381",
+		                       "서울특별시 자하문로36길 3381 청운벽산빌리지 9동",
+		                       "수원시 자하동 풍호",
+		                       "서울특별시 종로구 자하문로36길 3381-141 청운벽산빌리지 9동",
+		                       "서울시 송파구 오금로 294-1 영성빌딩",
+		                       "서울시 송파구 오금로 294 영성빌딩",
+				               "서울특별시 강서구 양천로 656 삼성관음아파트 101동",
+				               "서울특별시 강서구 양천로 삼성관음아파트 101-101",
+			                   "종로구 자하문로 36길 111-11",
+			                   "강원도 강릉시 강동면 모전리 393-2",
+				               "서울시 양천로",
+				               "삼성관음아파트 101동",
+				               "삼성관음 아파트 101동",
+				               "삼성관음아파트 101-201",
+				               "서울특별시 종로구 종로 113",
+				               "서울특별시 태평로 113",
+		                       "서울시송파구오금로",
+				               "서울특별시 강서구 양천로 삼성관음 아파트 101-101",
+		                       "서울시 광진구 구의동",
+		                       "서울시 종로구 종로1가 대형아파트 111-11",
+		                       "서울시 종로구 종로1가 대형아파트 111 11",
+		                       "서울시 종로구 종로1가 대형아파트 111",
+		                       "서울시 종로구 종로1가 111 대형아파트 ",
+		                       //"서울시 종로구 삼일대로30길 BIZ-WELL 종로 오피스텔",
+		                       "서울시 종로구 삼일대로30길 BIZ-WELL 종로 오피스텔",
+		                       "서울시 가가 종로구 자하문로 36길 111-11 삼성관음아파트 101-111"
+		};
+
+		String RegexStr = "^([경강경전충][기원상라청]?[남북]?도?|[인울부광][천산주]광?역?시?|서울특?별?시?|세종특?별?자?치?시?|제주특별자치도|제주도)?\\s?" // 1 시도
+						//+ "([가-힣]?+\\s?.+[시구군])?\\s?"                		  
+				      	//+ "([가-힣]+\\s\\S+[시구군]|\\S+[시구군]?)?\\s?"
+				      	+ "((?![가-힣]+아파트|빌라)[가-힣]+\\s?\\S+[시군구])?\\s?"			// 2 시군구 
+				      	+ "(\\S[가-힣][0-9]{0,4}[읍면동가])?\\s?"							// 3 읍면동
+				      	+ "([가-힣]+로\\s?[0-9]+.길|^?[가-힣]{1,15}로)?\\s?"				// 4 길로
+				      	+ "(\\S[가-힣]+리)?\\s?"											// 5 리는 한글만 존재
+				      	//+ "([가-힣]+(?:로\\s?[0-9]+.길|로))?\\s?"							// 6 길로
+				      	+ "(산?[0-9]{0,5}번?지?)?\\-?\\s?"									// 7 건물 본번, 지번 본번
+				      	+ "([0-9]{1,3}번?지?)?\\s?"											// 8 건물 부번, 지번 부번
+				      	//+ "(([가-힣0-9]+)?\\s?"											// 9 건물명
+				      	//+ "(\\S[0-9가-힣]*동?)?)?\\s?"									// 10 건물부명
+				      	+ "((.+?)?"														// 9 건물명
+				      	//+ "(\\S[0-9가-힣]*동?)?)?\\s?"									// 10 건물부명
+				      	+ "(\\s?\\-?[0-9]{1,4}호?)?\\s?$)?"
+						+ "$";
+
+		Pattern pattern = Pattern.compile(RegexStr);
+	
+		for(int i = 0; i < strAddress.length; i++) {
+			System.out.println("Full address ="+strAddress[i]);
+			Matcher matcher = pattern.matcher(strAddress[i]);
+			if(matcher.find()) {
+				System.out.println("Index     = "+ (i));	// 
+				System.out.println("시도      = "+ matcher.group(1));	// 1. 시도
+				System.out.println("시군구    = "+ matcher.group(2));	// 2. 시군구                                               
+				System.out.println("읍면동    = "+ matcher.group(3));	// 3. 읍면동                               
+				System.out.println("길로      = "+ matcher.group(4));	// 4 길로                                                 
+				System.out.println("리        = "+ matcher.group(5));		// 5 리는 한글만 존재                     
+				System.out.println("건물 본번 = "+ matcher.group(6));	// 6 건물 본번, 지번 본번         
+				System.out.println("건물 부번 = "+ matcher.group(7));	// 7 건물 부번, 지번 부번 
+				//System.out.println("물        = "+ matcher.group(8));	// 8 건물명               
+				System.out.println("건물명    = "+ matcher.group(8));	// 9 건물명            
+				System.out.println("건물부명  = "+ matcher.group(9));	// 9 건물부명         
+				System.out.println("건물부명  = "+ matcher.group(10));	// 9 건물부명           
+				//System.out.println("건물부명  = "+ matcher.group(11));	// 9 건물부명
+				System.out.println();
+
+				
+ /*		
+				System.out.println("Index = "+ (i+1));
+
+				//for(int ix = 1; ix <= matcher.group().length(); ix++){
+				for(int ix = 0; ix <= matcher.groupCount(); ix++){
+					System.out.println("group"+ix+"="+matcher.group(ix));
+					
+				}
+
+				System.out.println();
+*/
+			}
+		}
+		
+
+		String aa = "삼성관음 아파트 101-101";
+		String bb = "101-101";
+		String[] strTest = aa.split("\\-[0-9]{0,4}$", 0);
+
+		if(aa.matches("\\-[0,5]$")) System.out.println("ssss");
+		for(int x=0; x < strTest.length; x++) System.out.println(x+"="+strTest[x]);
+		
+		//aa.substring(beginIndex, endIndex);
+		
+	}
+}

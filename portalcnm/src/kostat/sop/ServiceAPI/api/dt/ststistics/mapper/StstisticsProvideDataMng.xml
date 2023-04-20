@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ststistics">
+
+	<select id="duplicateUSProvideDataMng"  parameterType="java.util.HashMap" resultType="int">
+		SELECT 
+			COUNT(*)
+		FROM 
+			SRV_DT_INFO_SUPPLY_MNG 
+		WHERE TO_DATE(RESERV_INFO, 'yyyymmddhh24') 
+			between TO_DATE(#{scheduleDate}, 'yyyymmddhh24') - interval '5' hour 
+			and TO_DATE(#{scheduleDate}, 'yyyymmddhh24') + interval '5' hour
+			<if test="workNo != null and workNo != ''">
+				AND work_no != #{workNo}
+			</if>
+	</select>
+	
+	<select id="getStstisticsUSProvideDataMng"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT * FROM 
+		(		
+			SELECT
+				ROW_NUMBER() OVER(ORDER BY WORK_NO desc) AS RNUM
+				,WORK_NO
+				,WORK_NM
+				,DECODE(WORK_INFO,'mart','마트구축',DECODE(WORK_INFO,'file','파일생성','일괄실행')) as WORK_INFO
+				,WORK_STATE 
+				,TO_CHAR(START_DT,'YYYY-MM-DD HH24:MI') as START_DT
+				,TO_CHAR(END_DT,'YYYY-MM-DD HH24:MI') as END_DT
+				,RESERV_INFO
+				,QU_INFO
+				,DATA_DISTINCT
+				,DATA_TYPE
+				,START_YEAR
+				,END_YEAR
+				,ERR_MSG
+			FROM 
+				SRV_DT_INFO_SUPPLY_MNG
+			<where>
+				<if test="word != null and word != ''">
+					AND INSTR(WORK_NM, #{word}) <![CDATA[>]]> 0 
+				</if>
+			</where>
+			ORDER BY WORK_NO DESC
+		)
+		WHERE RNUM BETWEEN #{paging.startRows} AND #{paging.endRows}
+	</select>
+	
+	<select id="getStstisticsUSProvideDataMngTotal"  parameterType="java.util.HashMap" resultType="int">
+		SELECT 	COUNT(WORK_NO) 
+		FROM 	SRV_DT_INFO_SUPPLY_MNG
+		<where>
+			<if test="word != null and word != ''">
+				AND INSTR(WORK_NM, #{word}) <![CDATA[>]]> 0 
+			</if>
+		</where>
+	</select>
+	
+	<select id="getStstisticsUSProvideDataIsExists"  parameterType="java.util.HashMap" resultType="int">
+		SELECT 	COUNT(WORK_NO) 
+		FROM	SRV_DT_INFO_SUPPLY_MNG
+		WHERE	WORK_NO = #{workNo}
+	</select>
+	
+	<insert id="registerStstisticsUSProvideDataMng" parameterType="java.util.HashMap">
+		INSERT INTO SRV_DT_INFO_SUPPLY_MNG(
+			WORK_NO
+			, WORK_NM
+			, QU_INFO
+			, WORK_INFO
+			, DATA_DISTINCT
+			<if test="scheduleDate != null and scheduleDate !=''">
+			, RESERV_INFO
+			</if>
+			, WORK_STATE
+			<if test="dataDistinct == 'grid'">
+			, DATA_TYPE
+			, START_YEAR
+			, END_YEAR
+			</if>
+		) 
+		SELECT 
+			DECODE(MAX(WORK_NO),NULL,0,MAX(WORK_NO)) + 1
+			, #{workNm}
+			, #{quInfo}
+			, #{workInfo}
+			, #{dataDistinct}
+			<choose>
+				<when test="scheduleDate != null and scheduleDate !=''">
+				, #{scheduleDate}
+				, '예약'
+				</when>
+				<otherwise>
+				, '등록'
+				</otherwise>
+			</choose>
+			<if test="dataDistinct == 'grid'">
+			, #{dataType}
+			, #{startYear}
+			, #{endYear}
+			</if>
+		FROM SRV_DT_INFO_SUPPLY_MNG
+		
+	</insert>
+	
+	<update id="editStstisticsUSProvideDataMng" parameterType="java.util.HashMap">
+	 	UPDATE 	
+	 		SRV_DT_INFO_SUPPLY_MNG 
+	 	SET 	
+			WORK_NM = #{workNm}
+			, QU_INFO = #{quInfo}
+			, WORK_INFO = #{workInfo}
+			, DATA_DISTINCT = #{dataDistinct}
+			<if test="scheduleDate != null and scheduleDate !=''">
+			, RESERV_INFO = #{scheduleDate}
+			, WORK_STATE = '예약'
+			</if>
+			<if test="dataDistinct == 'grid'">
+			, DATA_TYPE = #{dataType}
+			, START_YEAR = #{startYear}
+			, END_YEAR = #{endYear}
+			</if>
+		WHERE WORK_NO = #{workNo}
+	</update>
+	
+	<update id="updateStopDt">
+		UPDATE 
+			SRV_DT_INFO_SUPPLY_MNG 
+		SET 
+			STOP_DT = SYSDATE
+			,WORK_STATE = '정지'
+		WHERE 
+			WORK_NO = #{workNo}
+	</update>
+	
+	<update id="updateExcuteNow">
+		UPDATE
+			SRV_DT_INFO_SUPPLY_MNG
+		SET 
+			RESERV_INFO = TO_CHAR(SYSDATE, 'YYYYMMDDHH24')
+			,WORK_STATE = '예약'
+		WHERE WORK_NO = #{workNo}
+	</update>	
+	
+	<delete id="removeProvideData" parameterType="java.util.HashMap" >
+		DELETE 
+		FROM SRV_DT_INFO_SUPPLY_MNG
+		WHERE WORK_NO = #{workNo}
+	</delete>
+	
+	
+</mapper>

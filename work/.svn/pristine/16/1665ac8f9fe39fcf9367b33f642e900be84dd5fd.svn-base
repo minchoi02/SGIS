@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="faq">
+	
+	<!-- FAQ 정보 가져오기 -->
+	<sql id="orderSql">
+		<choose>
+			<when test="sort == '' || sort == null">
+				ORDER BY row DESC
+			</when>
+			<otherwise>
+				ORDER BY ${sort} ${order}
+			</otherwise>
+		</choose>
+	</sql>
+	
+	<select id="getFaqList" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				  post_no
+				, ROW_NUMBER() OVER (ORDER BY order_no ASC) AS row
+			    , title
+			    , content
+			    , user_id
+			    , (SELECT user_nm FROM member WHERE user_id = A.user_id) AS user_nm
+			    , TO_CHAR(reg_ts,'YYYY-MM-DD') AS reg_ts
+			    , order_no
+			    , COUNT(*) OVER() AS total
+		FROM FAQ A
+		<where>
+			1=1
+			<if test="type != null">
+				<if test="type == 'title'">
+					AND A.title LIKE '%'||#{searchText}||'%'
+				</if>
+				<if test="type == 'content'">
+					AND A.content LIKE '%'||#{searchText}||'%'
+				</if>
+				<if test="type == 'total'">
+					AND ((A.title LIKE '%'|| #{searchText}||'%') OR (A.content LIKE '%'||#{searchText}||'%'))
+				</if>
+			</if>
+		</where>
+		<include refid="orderSql" />
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+	
+	<!-- FAQ 게시물 상세 조회 -->
+    <select id="getFaqDetailInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				  post_no 
+			 	, title 
+			 	, (SELECT user_nm FROM member WHERE user_id = A.user_id) AS user_nm
+			 	, TO_CHAR(reg_ts,'YYYY-MM-DD') AS reg_ts
+			 	, content
+		FROM FAQ A
+		WHERE post_no = #{post_no}
+    </select>
+	
+</mapper>

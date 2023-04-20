@@ -1,0 +1,890 @@
+
+<!-- 
+* 검색창에 입력한 단어와 연관되는 데이터를 보여주는 HTML입니다.
+* 
+* history : 네이버시스템(주), 1.0, 2014/08/29  초기 작성
+* author : 김성현
+* version : 1.0
+* see : 
+*
+//-->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>보고서</title>
+	
+	<link href="/css/jquery-ui-1.10.4.custom.css" rel="stylesheet" type="text/css" />
+	<link rel="stylesheet"  href="/js/plugins/jquery-easyui-1.4/sop.css" />
+	<link href="/css/reportForm.css" rel="stylesheet" type="text/css" />
+	<link rel="stylesheet" type="text/css" href="/css/common.css">
+	<link href="/css/wheelcolorpicker.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript" src="/js/plugins/jquery-1.11.1.min.js"></script>
+	<script src="/js/plugins/btoa.js"></script>
+	<script type="text/javascript" src="/js/plugins/highcharts/highcharts.js"></script>
+	<script type="text/javascript" src="/js/plugins/jsPDF/jspdf.min.js"></script>
+	<script type="text/javascript" src="/js/plugins/imageCapture/rgbcolor.js"></script>
+	<script type="text/javascript" src="/js/plugins/imageCapture/canvg.js"></script> <!-- 2017.03.13 pdf저장 이슈  -->
+    <script type="text/javascript" src="/js/plugins/imageCapture/html2canvas.js"></script>
+	<script src="/js/plugins/highcharts/modules/exporting.js"></script>
+	<script type="text/javascript" src="/js/plugins/jquery-easyui-1.4/sop-src.js"></script>
+	<script type="text/javascript" src="/js/plugins/jquery.sha256.js"></script>
+	<script type="text/javascript" src="/js/plugins/durian-v2.0.js"></script>
+	<script type="text/javascript" src="/js/common/sop.portal.absAPI.js"></script>
+	<script type="text/javascript" src="/js/common/common.js"></script>	    
+	<script type="text/javascript" src="/js/common/map.js"></script>
+	<script type="text/javascript" src="/js/common/mapInfo/legendInfo.js"></script>
+	<script type="text/javascript" src="/js/catchmentArea/report/reportForm.js"></script>
+	<script type="text/javascript" src="/js/catchmentArea/report/reportFormEvent.js"></script>
+	<style type="text/css" media="print">@page{size:auto;margin:10mm;}body{margin:0;}</style> 
+	
+	<style type="text/css">
+		#AlertMessage {
+			width : 400px;
+			overflow : hidden;
+			border : 3px solid #656972;
+			barder-radius : 5px;
+			padding : 20px 20px 20px 70px;
+			font-size : 20px;
+			color : #333333;
+			box-shadow : 1px 1px 3px #cccccc;
+			word-break : break-all;
+			position : absolute;
+			top : 45%;
+			left : 20%;
+		}
+		
+		html, body {min-width: 100%;}
+		div.printArea {margin: 0px 16.5px;}
+	</style>
+	
+	<script>
+            var beforePrint = function() {
+                console.log("1");
+            };
+            var afterPrint = function() {
+                console.log("2");
+            };
+
+            if (window.matchMedia) {
+                var mediaQueryList = window.matchMedia('print');
+                mediaQueryList.addListener(function(mql) {
+                    if (mql.matches) {
+                        beforePrint();
+                    } else {
+                        afterPrint();
+                    }
+                });
+            }
+
+            window.onbeforeprint = beforePrint;
+            window.onafterprint = afterPrint;
+        </script>
+	
+</head>
+<body>
+
+	<div id="mask" style="background:#ffffff;z-index:10000;width:100%;height:100%;">
+		<div id="AlertMessage">보고서 생성중입니다. 잠시만 기다려주세요.</div>
+	</div>
+
+	<div id="wrap" style="display:none;width:800px;">
+				<!-- 타이틀 -->
+				<div class="pntPage">
+			 		<h1 class="pntHeader"><img src="/img/common/logoPlus.png" alt="SGIS 오픈플랫폼"></h1>	 
+			 		<div class="pntBtn">
+			 		<!--  <a href="javascript:$reportFormEvent.UI.reportPdfDown();" id="pdfdown">PDF</a>--><a href="javascript:$reportFormEvent.UI.reportPrint();">인쇄</a><a href="javascript:$reportFormEvent.UI.reportClose();">닫기</a></div>
+			 		<p class="pntURI">통계지리정보서비스 (https://sgis.kostat.go.kr)</p> 
+	 
+			 		<div class="pntNewCenter" style="margin-top:10px;"><h3>보고서명</h3><div style="width:676px;float:left;"><textarea cols="60" rows="1" id="reportTitle" style="font-size:15px;height:18px"></textarea></div></div>
+			 		<div class="pntNewCenter"><h3>선택지점</h3><div id="statLocation" class="pntNewRight" style="width:664px;"></div></div>
+			 		<div class="pntNewCenter"><h3>선택범위</h3><div id="statRange" class="pntNewRight" style="width:664px;"></div></div>
+			 		<div class="pntNewCenter"><h3>선택년도</h3><div id="statYear" class="pntNewRight" style="width:664px;"></div></div>
+			 		<div class="pntNewCenter"><h3>작성일자</h3><div id="date" class="pntNewRight" style="width:664px;"></div></div>
+			 		
+			 		<!-- 지도 -->
+			 		<div id="mainMapDiv_show" class="pntShowBtn"><a href="javascript:$reportForm.ui.onOffDiv('mainMapDiv');"><img src='/img/im/btn_plus.png' alt='보이기' /></a></div>
+			 		<div id="mainMapDiv" class="pntCenter" style="margin-bottom:10px;">
+				 		<div class="pntNewCenterTitle"><h3>지도 시각화 화면</h3></div>
+				 		<!--  <div class="pntCloseBtn"><a href="javascript:$reportForm.ui.onOffDiv('mainMapDiv');"><img src='/img/um/btn_closel01.png' alt='숨기기' /></a></div>-->
+				 		<div style="width:798px;height:603px;float:right;">
+				 			<div class="pntMap" style="height:603px;">
+				 				<div id="reportMapDiv"></div>
+				 			</div>
+				 		</div>
+			 		</div>
+			 	</div>	
+	
+			<!-- 영향권 보고서 -->
+			<div id="srvAreaDiv">
+				<!-- index : 1 -->
+				<div class="pntPage" id="show01" style="display:none;">
+		 		<div id="statData01_show" class="pntShowBtn"><a href="javascript:$reportForm.ui.onOffDiv('statData01');"><img src='/img/im/btn_plus.png' alt='보이기' /></a></div>
+		 		<div class="srvAreaPntData">
+		 			<div class="pntDataBox fc" id="statData01" style="position:relative;">
+		 			<!--  <div class="pntCloseBtn" style="top:2px;"><a href="javascript:$reportForm.ui.onOffDiv('statData01');"><img src='/img/um/btn_closel01.png' alt='숨기기' /></a></div>-->
+		 				<h3 id="statDataTitle01"></h3>
+		 				<h4 style="margin-top: 2px;margin-left:15px;"> - 면적</h4>
+		 				<table class="srvAreapntTable_01" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>면적</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_area_sa01">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(km<sup>2</sup>)</th>
+		 	 					</tr>
+		 	 					<tr>
+		 	 						<td>총 면적</td>
+			 						<td id="areaSize_01" style="text-align:right;"></td>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		
+				 		<div class="srvAreaDataType"><!-- 나이 start -->
+				 		<p style="text-align:right">* 항목별 부분 합계값과 전체 합계값은 기초자료를 기반으로 비밀보호기법을 적용하여 제공하고 있습니다.<br>따라서, 부분 합계의 총합이 전체 합계값과 일치하지 않을 수 있습니다.</p>
+				 		<h4 style="margin-left:15px;"> - 인구(나이)</h4>
+				 		<div class="srvAreaChat">
+							<div id='sa01_pntChart01' class="srvAreaChart"><div id='sa01_pieChartDiv01'></div></div>
+						</div>
+						<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>인구-나이</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_age_sa01">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(명)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 나이 end -->
+				 		
+				 		<div class="srvAreaDataType"><!-- 성별 start -->
+				 		<h4 style="margin-left:15px;"> - 인구(성별)</h4>
+				 		<div class="srvAreaChat">
+							<div id='sa01_pntChart02' class="srvAreaChart"><div id='sa01_pieChartDiv02'></div></div>
+						</div>
+						<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>인구-성별</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_gender_sa01">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(명)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 성별 end -->
+				 		
+				 		<div class="srvAreaDataType"><!-- 가구 start -->
+				 		<h4 style="margin-left:15px;"> - 가구</h4>
+				 		<div class="srvAreaChat">
+				 			<div id='sa01_pntChart03' class="srvAreaChart"><div id='sa01_pieChartDiv03'></div></div>
+				 		</div>
+				 		<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>가구</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_family_sa01">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(가구)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 가구 end -->
+				 		
+				 		<div class="srvAreaDataType"><!-- 주택 start -->
+				 		<h4 style="margin-left:15px;"> - 주택</h4>
+				 		<div class="srvAreaChat">
+							<div id='sa01_pntChart04' class="srvAreaChart"><div id='sa01_pieChartDiv04'></div></div>
+						</div>
+						<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>주택</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_house_sa01">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(호)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 주택 end -->
+				 		
+				 		<div class="srvAreaDataType"><!-- 사업체 start -->
+				 		<h4 style="margin-left:15px;"> - 사업체</h4>
+				 		<div class="srvAreaChat">
+							<div id='sa01_pntChart05' class="srvAreaChart"><div id='sa01_pieChartDiv05'></div></div>
+						</div>
+						<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>사업체</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_corp_sa01">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(개)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 사업체 end -->
+				 		<div class="srvAreaDataType"><!-- 종사자 start -->
+				 			<h4 style="margin-left:15px;"> - 종사자</h4>
+				 		<div class="srvAreaChat">
+				 			<div id='sa01_pntChart06' class="srvAreaChart"><div id='sa01_pieChartDiv06'></div></div>
+				 		</div>
+				 		<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>종사자</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_worker_sa01">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(명)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 종사자 end -->
+				 	</div>
+				 </div>
+				</div>
+				<!-- index : 1 end-->
+				<!-- index : 2 -->
+				<div class="pntPage" id="show02" style="display:none;">
+		 		<div id="statData02_show" class="pntShowBtn"><a href="javascript:$reportForm.ui.onOffDiv('statData02');"><img src='/img/im/btn_plus.png' alt='보이기' /></a></div>
+		 		<div class="srvAreaPntData">
+		 			<div class="pntDataBox fc" id="statData02" style="position:relative;">
+		 			<!-- <div class="pntCloseBtn" style="top:2px;"><a href="javascript:$reportForm.ui.onOffDiv('statData02');"><img src='/img/um/btn_closel01.png' alt='숨기기' /></a></div> -->
+		 				<h3 id="statDataTitle02"></h3>
+		 				<h4 style="margin-top: 2px;margin-left:15px;"> - 면적</h4>
+		 				<table class="srvAreapntTable_01" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>면적</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_area_sa02">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(km<sup>2</sup>)</th>
+		 	 					</tr>
+		 	 					<tr>
+		 	 						<td>총 면적</td>
+			 						<td id="areaSize_02" style="text-align:right;"></td>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		
+				 		<div class="srvAreaDataType"><!-- 나이 start -->
+				 		<p style="text-align:right">* 항목별 부분 합계값과 전체 합계값은 기초자료를 기반으로 비밀보호기법을 적용하여 제공하고 있습니다.<br>따라서, 부분 합계의 총합이 전체 합계값과 일치하지 않을 수 있습니다.</p>
+				 		<h4 style="margin-left:15px;"> - 인구(나이)</h4>
+				 		<div class="srvAreaChat">
+							<div id='sa02_pntChart01' class="srvAreaChart"><div id='sa02_pieChartDiv01'></div></div>
+						</div>
+						<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>인구-나이</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_age_sa02">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(명)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 나이 end -->
+				 		
+				 		<div class="srvAreaDataType"><!-- 성별 start -->
+				 		<h4 style="margin-left:15px;"> - 인구(성별)</h4>
+				 		<div class="srvAreaChat">
+							<div id='sa02_pntChart02' class="srvAreaChart"><div id='sa02_pieChartDiv02'></div></div>
+						</div>
+						<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>인구-성별</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_gender_sa02">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(명)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 성별 end -->
+				 		
+				 		<div class="srvAreaDataType"><!-- 가구 start -->
+				 		<h4 style="margin-left:15px;"> - 가구</h4>
+				 		<div class="srvAreaChat">
+				 			<div id='sa02_pntChart03' class="srvAreaChart"><div id='sa02_pieChartDiv03'></div></div>
+				 		</div>
+				 		<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>가구</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_family_sa02">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(가구)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 가구 end -->
+				 		
+				 		<div class="srvAreaDataType"><!-- 주택 start -->
+				 		<h4 style="margin-left:15px;"> - 주택</h4>
+				 		<div class="srvAreaChat">
+							<div id='sa02_pntChart04' class="srvAreaChart"><div id='sa02_pieChartDiv04'></div></div>
+						</div>
+						<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>주택</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_house_sa02">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(호)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 주택 end -->
+				 		
+				 		<div class="srvAreaDataType"><!-- 사업체 start -->
+				 		<h4 style="margin-left:15px;"> - 사업체</h4>
+				 		<div class="srvAreaChat">
+							<div id='sa02_pntChart05' class="srvAreaChart"><div id='sa02_pieChartDiv05'></div></div>
+						</div>
+						<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>사업체</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_corp_sa02">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(개)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 사업체 end -->
+				 		<div class="srvAreaDataType"><!-- 종사자 start -->
+				 			<h4 style="margin-left:15px;"> - 종사자</h4>
+				 		<div class="srvAreaChat">
+				 			<div id='sa02_pntChart06' class="srvAreaChart"><div id='sa02_pieChartDiv06'></div></div>
+				 		</div>
+				 		<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>종사자</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_worker_sa02">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(명)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 종사자 end -->
+				 	</div>
+				 </div>
+				</div>
+				<!-- index : 2 end -->
+				<!-- index : 3 -->
+				<div class="pntPage" id="show03" style="display:none;">
+		 		<div id="statData03_show" class="pntShowBtn"><a href="javascript:$reportForm.ui.onOffDiv('statData03');"><img src='/img/im/btn_plus.png' alt='보이기' /></a></div>
+		 		<div class="srvAreaPntData">
+		 			<div class="pntDataBox fc" id="statData01" style="position:relative;">
+		 			<!-- <div class="pntCloseBtn" style="top:2px;"><a href="javascript:$reportForm.ui.onOffDiv('statData03');"><img src='/img/um/btn_closel01.png' alt='숨기기' /></a></div> -->
+		 				<h3 id="statDataTitle03"></h3>
+		 				<h4 style="margin-top: 2px;margin-left:15px;"> - 면적</h4>
+		 				<table class="srvAreapntTable_01" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>면적</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_area_sa03">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(km<sup>2</sup>)</th>
+		 	 					</tr>
+		 	 					<tr>
+		 	 						<td>총 면적</td>
+			 						<td id="areaSize_03" style="text-align:right;"></td>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		
+				 		<div class="srvAreaDataType"><!-- 나이 start -->
+				 		<p style="text-align:right">* 항목별 부분 합계값과 전체 합계값은 기초자료를 기반으로 비밀보호기법을 적용하여 제공하고 있습니다.<br>따라서, 부분 합계의 총합이 전체 합계값과 일치하지 않을 수 있습니다.</p>
+				 		<h4 style="margin-left:15px;"> - 인구(나이)</h4>
+				 		<div class="srvAreaChat">
+							<div id='sa03_pntChart01' class="srvAreaChart"><div id='sa03_pieChartDiv01'></div></div>
+						</div>
+						<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>인구-나이</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_age_sa03">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(명)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 나이 end -->
+				 		
+				 		<div class="srvAreaDataType"><!-- 성별 start -->
+				 		<h4 style="margin-left:15px;"> - 인구(성별)</h4>
+				 		<div class="srvAreaChat">
+							<div id='sa03_pntChart02' class="srvAreaChart"><div id='sa03_pieChartDiv02'></div></div>
+						</div>
+						<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>인구-성별</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_gender_sa03">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(명)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 성별 end -->
+				 		
+				 		<div class="srvAreaDataType"><!-- 가구 start -->
+				 		<h4 style="margin-left:15px;"> - 가구</h4>
+				 		<div class="srvAreaChat">
+				 			<div id='sa03_pntChart03' class="srvAreaChart"><div id='sa03_pieChartDiv03'></div></div>
+				 		</div>
+				 		<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>가구</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_family_sa03">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(가구)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 가구 end -->
+				 		
+				 		<div class="srvAreaDataType"><!-- 주택 start -->
+				 		<h4 style="margin-left:15px;"> - 주택</h4>
+				 		<div class="srvAreaChat">
+							<div id='sa03_pntChart04' class="srvAreaChart"><div id='sa03_pieChartDiv04'></div></div>
+						</div>
+						<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>주택</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_house_sa03">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(호)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 주택 end -->
+				 		
+				 		<div class="srvAreaDataType"><!-- 사업체 start -->
+				 		<h4 style="margin-left:15px;"> - 사업체</h4>
+				 		<div class="srvAreaChat">
+							<div id='sa03_pntChart05' class="srvAreaChart"><div id='sa03_pieChartDiv05'></div></div>
+						</div>
+						<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>사업체</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_corp_sa03">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(개)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 사업체 end -->
+				 		<div class="srvAreaDataType"><!-- 종사자 start -->
+				 			<h4 style="margin-left:15px;"> - 종사자</h4>
+				 		<div class="srvAreaChat">
+				 			<div id='sa03_pntChart06' class="srvAreaChart"><div id='sa03_pieChartDiv06'></div></div>
+				 		</div>
+				 		<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>종사자</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_worker_sa03">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(명)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 종사자 end -->
+				 	</div>
+				 </div>
+				</div>
+				<!-- index : 3 end-->
+				<!-- index : 4 -->
+				<div class="pntPage" id="show04" style="display:none;">
+		 		<div id="statData04_show" class="pntShowBtn"><a href="javascript:$reportForm.ui.onOffDiv('statData04');"><img src='/img/im/btn_plus.png' alt='보이기' /></a></div>
+		 		<div class="srvAreaPntData">
+		 			<div class="pntDataBox fc" id="statData01" style="position:relative;">
+		 			<!--  <div class="pntCloseBtn" style="top:2px;"><a href="javascript:$reportForm.ui.onOffDiv('statData04');"><img src='/img/um/btn_closel01.png' alt='숨기기' /></a></div>-->
+		 				<h3 id="statDataTitle04"></h3>
+		 				<h4 style="margin-top: 2px;margin-left:15px;"> - 면적</h4>
+		 				<table class="srvAreapntTable_01" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>면적</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_area_sa04">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(km<sup>2</sup>)</th>
+		 	 					</tr>
+		 	 					<tr>
+		 	 						<td>총 면적</td>
+			 						<td id="areaSize_04" style="text-align:right;"></td>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		
+				 		<div class="srvAreaDataType"><!-- 나이 start -->
+				 		<p style="text-align:right">* 항목별 부분 합계값과 전체 합계값은 기초자료를 기반으로 비밀보호기법을 적용하여 제공하고 있습니다.<br>따라서, 부분 합계의 총합이 전체 합계값과 일치하지 않을 수 있습니다.</p>
+				 		<h4 style="margin-left:15px;"> - 인구(나이)</h4>
+				 		<div class="srvAreaChat">
+							<div id='sa04_pntChart01' class="srvAreaChart"><div id='sa04_pieChartDiv01'></div></div>
+						</div>
+						<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>인구-나이</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_age_sa04">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(명)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 나이 end -->
+				 		
+				 		<div class="srvAreaDataType"><!-- 성별 start -->
+				 		<h4 style="margin-left:15px;"> - 인구(성별)</h4>
+				 		<div class="srvAreaChat">
+							<div id='sa04_pntChart02' class="srvAreaChart"><div id='sa04_pieChartDiv02'></div></div>
+						</div>
+						<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>인구-성별</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_gender_sa04">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(명)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 성별 end -->
+				 		
+				 		<div class="srvAreaDataType"><!-- 가구 start -->
+				 		<h4 style="margin-left:15px;"> - 가구</h4>
+				 		<div class="srvAreaChat">
+				 			<div id='sa04_pntChart03' class="srvAreaChart"><div id='sa04_pieChartDiv03'></div></div>
+				 		</div>
+				 		<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>가구</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_family_sa04">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(가구)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 가구 end -->
+				 		
+				 		<div class="srvAreaDataType"><!-- 주택 start -->
+				 		<h4 style="margin-left:15px;"> - 주택</h4>
+				 		<div class="srvAreaChat">
+							<div id='sa04_pntChart04' class="srvAreaChart"><div id='sa04_pieChartDiv04'></div></div>
+						</div>
+						<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>주택</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_house_sa04">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(호)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 주택 end -->
+				 		
+				 		<div class="srvAreaDataType"><!-- 사업체 start -->
+				 		<h4 style="margin-left:15px;"> - 사업체</h4>
+				 		<div class="srvAreaChat">
+							<div id='sa04_pntChart05' class="srvAreaChart"><div id='sa04_pieChartDiv05'></div></div>
+						</div>
+						<div>
+				 		<table class="srvAreapntTable_02" summary="항목,순위,값(명), 비율(%)">
+		 					<caption>사업체</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_corp_sa04">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(개)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 사업체 end -->
+				 		<div class="srvAreaDataType"><!-- 종사자 start -->
+				 			<h4 style="margin-left:15px;"> - 종사자</h4>
+				 		<div class="srvAreaChat">
+				 			<div id='sa04_pntChart06' class="srvAreaChart"><div id='sa04_pieChartDiv06'></div></div>
+				 		</div>
+				 		<div>
+				 		<table class="srvAreapntTable_02" summary="항목,값(명), 비율(%)">
+		 					<caption>종사자</caption>
+		 					<colgroup>
+		 						<col width="33%" />
+		 						<col width="33%" />
+		 						<col width="33%" />
+							</colgroup>
+		 					<tbody id="tBody_worker_sa04">
+		 	 					<tr>
+		 	 						<th scope="col">구분</th>
+		 	 						<th scope="col">값(명)</th>
+		 	 						<th scope="col">백분율(%)</th>
+		 	 					</tr>
+				 			</tbody>
+				 		</table>
+				 		</div>
+				 		</div><!-- 종사자 end -->
+				 	</div>
+				 </div>
+				</div>
+				<!-- index : 4 end-->
+			</div><!-- svrAreaDiv end -->
+			
+			<!-- 격자통계 보고서 -->
+			<div id="gridAreaDiv">
+				<!-- 통계정보 -->
+			 	<div id="gridStatData_show" class="pntShowBtn"><a href="javascript:$reportForm.ui.onOffDiv('gridStatData');"><img src='/img/im/btn_plus.png' alt='보이기' /></a></div>
+			 		<div id="gridStatData" class="pntCenter" style="position:relative;">
+				 		<div class="pntNewCenterTitle"><h3>영역 전체 격자 및 통계정보</h3></div>
+				 	<!--  <div class="pntCloseBtn"><a href="javascript:$reportForm.ui.onOffDiv('gridStatData');"><img src='/img/um/btn_closel01.png' alt='숨기기' /></a></div>-->
+				 			<table class="srvAreapntTable_03">
+				 				<tbody id="tbody_grid_stat"></tbody>
+				 			</table>
+				 	</div>
+				<!-- 차트  -->
+				<div id="gridChart_show" class="pntShowBtn"><a href="javascript:$reportForm.ui.onOffDiv('gridChart');"><img src='/img/im/btn_plus.png' alt='보이기' /></a></div>
+			 		<div id="gridChart" class="pntCenter" style="position:relative;">
+				 		<div class="pntNewCenterTitle"><h3>차트</h3></div>
+				 		<!--  <div class="pntCloseBtn"><a href="javascript:$reportForm.ui.onOffDiv('gridChart');"><img src='/img/um/btn_closel01.png' alt='숨기기' /></a></div>-->
+				 		<div id="gridPntChartHeader" style="position: relative;text-align: center;">
+				 			<p id="headerText01" style="font-size: 18px;"></p>
+				 			<p id="headerText02"></p>
+				 		</div>
+				 		<div id="gridPntChart" style="float:left;"><div id="barChart" class="pntCenter"></div></div>
+			 			<table class="srvAreapntTable_05">
+				 				<colgroup>
+		 							<col width="30%" />
+		 							<col width="70%" />
+								</colgroup>
+				 				<tbody id="tbody_grid_chart">
+				 					<tr>
+				 						<th class="ac">년도</th>
+				 						<th class="ac">값</th>
+				 					</tr>
+				 				</tbody>
+				 		</table>
+			 		</div>
+			 	<!-- 격자정보
+			 	<div id="gridStatInfo_show" class="pntShowBtn"><a href="javascript:$reportForm.ui.onOffDiv('gridStatInfo');"><img src='/img/im/btn_plus.png' alt='보이기' /></a></div>
+			 		<div id="gridStatInfo" class="pntCenter" style="position:relative;">
+				 		<div class="pntNewCenterTitle"><h3>격자정보</h3></div>
+				  <div class="pntCloseBtn"><a href="javascript:$reportForm.ui.onOffDiv('gridStatInfo');"><img src='/img/um/btn_closel01.png' alt='숨기기' /></a></div>
+				 			<table class="srvAreapntTable_03">
+				 				<colgroup>
+		 							<col width="50%" />
+		 							<col width="50%" />
+								</colgroup>
+				 				<tbody id="tbody_grid_info"></tbody>
+				 			</table>
+				 	</div>
+				 -->
+				<!-- 범례정보 -->
+				<div id="gridLegend_show" class="pntShowBtn"><a href="javascript:$reportForm.ui.onOffDiv('gridLegend');"><img src='/img/im/btn_plus.png' alt='보이기' /></a></div>
+			 		<div id="gridLegend" class="pntCenter" style="position:relative;">
+				 		<div class="pntNewCenterTitle"><h3>범례정보 및 선택한 격자 정보</h3></div>
+				 	<!--  <div class="pntCloseBtn"><a href="javascript:$reportForm.ui.onOffDiv('gridLegend');"><img src='/img/um/btn_closel01.png' alt='숨기기' /></a></div>-->
+				 		<div style="float: left; width:50%; margin-bottom:9px;">
+				 			<img id="legendDiv" src="">
+				 		</div>
+				 		<div style="float: left; width:50%; margin-bottom:9px;">
+				 			<img id="legendDiv2" src="">
+				 		</div>
+				 		<div style="float: left; width:50%">
+				 			<table class="srvAreapntTable_04">
+				 				<colgroup>
+		 							<col width="50%" />
+		 							<col width="50%" />
+								</colgroup>
+				 				<tbody id="tbody_grid_legend"></tbody>
+				 			</table>
+				 		</div>
+				 	</div>
+			</div>
+			<!-- 격자통계 end -->
+		</div>
+		<div id="hiddenReport"></div>
+</body>
+</html>

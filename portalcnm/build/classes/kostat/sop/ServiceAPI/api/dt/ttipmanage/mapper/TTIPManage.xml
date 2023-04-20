@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="TTIPManage">
+	<select id="getSearchREL" parameterType="Map" resultType="Map">
+		select * from
+		(
+		select mng_dt_tooltipdiv.menu_class_cd,
+		mng_dt_tooltipdiv.menu_nm,
+		mng_dt_tooltipexp.ttip_id, mng_dt_tooltipexp.ttip_nm,
+		mng_dt_tooltipexp.ttip_exp, ROWNUM R
+		from mng_dt_tooltipdiv
+		LEFT OUTER JOIN mng_dt_tooltipexp
+		on mng_dt_tooltipdiv.menu_class_cd =
+		mng_dt_tooltipexp.menu_class_cd
+		where 1=1
+		and ROWNUM <![CDATA[<=]]>
+		#{END_INDEX}
+		and mng_dt_tooltipexp.ttip_nm is not null
+		<if test="SEARCH_TYPE == 'MENU'">
+			<if test="SEARCH_WORD != null">
+				and mng_dt_tooltipdiv.menu_nm like #{SEARCH_WORD}
+			</if>
+		</if>
+		<if test="SEARCH_TYPE == 'TTIP'">
+			<if test="SEARCH_WORD != null">
+				and mng_dt_tooltipexp.ttip_nm like #{SEARCH_WORD}
+			</if>
+		</if>
+		)where R <![CDATA[>=]]>
+		#{START_INDEX}
+		order by menu_class_cd, ttip_nm
+
+	</select>
+	<select id="checkTTIP" parameterType="Map" resultType="int">
+		select
+		NVL(COUNT(TTIP_ID),0) as CNT from MNG_DT_TOOLTIPEXP
+		where TTIP_ID = #{CHECK_WORD} and menu_class_cd = #{CHECK_CD}
+	</select>
+	<select id="getSearchRELCount" parameterType="hashmap"
+		resultType="int">
+
+		select count(*) as cnt
+		from mng_dt_tooltipdiv a,
+		mng_dt_tooltipexp b
+		where 1=1 and a.menu_nm is not null
+		and a.menu_class_cd = b.menu_class_cd
+		<if test="SEARCH_TYPE == 'MENU'">
+			<if test="SEARCH_WORD != null">
+				and a.menu_nm like #{SEARCH_WORD}
+			</if>
+		</if>
+		<if test="SEARCH_TYPE == 'TTIP'">
+			<if test="SEARCH_WORD != null">
+				and b.ttip_nm like #{SEARCH_WORD}
+			</if>
+		</if>
+	</select>
+
+	<insert id="addTTIPDiv" parameterType="Map">
+		insert into
+		mng_dt_tooltipdiv
+		(MENU_CLASS_CD,MENU_NM)
+		values
+		(
+		#{MENU_CLASS_CD}
+		,#{MENU_NM})
+	</insert>
+	<insert id="addTTIPExp" parameterType="Map">
+		insert into
+		mng_dt_tooltipexp
+		(MENU_CLASS_CD,TTIP_ID,TTIP_NM,TTIP_EXP)
+		values
+		(
+		#{MENU_CLASS_CD}
+		,#{TTIP_ID},#{TTIP_NM},#{TTIP_EXP})
+	</insert>
+	<update id="updateTTIP" parameterType="Map">
+		update
+		mng_dt_tooltipexp
+		set TTIP_NM = #{POST_TITLE}, TTIP_EXP
+		= #{POSTY_CONTENT}
+		where TTIP_ID = #{POST_NO} and MENU_CLASS_CD = #{PRIORITY_DISP_YN}
+	</update>
+
+	<select id="checkREL" parameterType="String" resultType="int">
+		select
+		NVL(COUNT(SEARCH_WORD),0) as CNT from SRV_DT_RELSEARCHWORD
+		where SEARCH_WORD = #{SEARCH_WORD}
+	</select>
+
+	<select id="getTTIP" parameterType="Map" resultType="Map">
+		select
+		menu_class_cd, ttip_id, ttip_nm, ttip_exp from mng_dt_tooltipexp
+		where ttip_id = #{POST_NO} and menu_class_cd = #{CLASS_CD}
+	</select>
+	
+	<select id="getTTIPCount" parameterType="hashmap" resultType="int">
+		select count(ttip_id) as cnt
+		where ttip_id = #{POST_NO}
+	</select>
+	<delete id="deleteTTIP">
+		delete from mng_dt_tooltipexp where concat(MENU_CLASS_CD, TTIP_ID) in
+		<foreach collection="array" index="index" item="item" open="("
+			separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	<select id="selectID" parameterType="hashmap" resultType="String">
+		select
+		decode(to_char(max(ttip_id),'000'),null, '001'
+		,to_char(max(ttip_id)+1,'000')) as ttip_id
+		from mng_dt_tooltipexp
+	</select>
+	<select id="getTipDiv" parameterType="hashmap" resultType="Map">
+		select menu_class_cd, menu_nm from mng_dt_tooltipdiv
+	</select>
+</mapper>

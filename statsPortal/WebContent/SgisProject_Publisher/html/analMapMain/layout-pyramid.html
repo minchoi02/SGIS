@@ -1,0 +1,392 @@
+<!-- 
+*
+* HTML입니다.
+* author : 정은우
+*
+//-->
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+	<meta charset="utf-8">
+	<title>통계지리정보서비스</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<script type="text/javascript" src="../../include/js/jquery.min.js"></script>
+	<script src="../../include/plugin/jquery-1.11.3.min.js" type="text/javascript"></script>
+
+	<link rel="stylesheet" type="text/css" href="../../include/css/legend.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/sop.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/common.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/default.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slick/slick.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slick/slick-theme.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/jquery.mCustomScrollbar.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slider-Pips/jquery-ui-slider-pips.min.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slider-Pips/jqueryui.min.css">
+	
+<!-- <link href="/css/jquery-ui-1.10.4.custom.css" rel="stylesheet" type="text/css" /> -->
+	<script type="text/javascript" src="../../include/js/jquery-ui-1.10.3.custom.js"></script>
+	<script type="text/javascript" src="../../include/js/analMapMainCustom.js"></script>
+
+	<script type="text/javascript" src="../../include/plugin/slider-Pips/jquery-plus-ui.min.js"></script>
+	<script type="text/javascript" src="../../include/plugin/slider-Pips/jquery-ui-slider-pips.js"></script>
+	<script type="text/javascript" src="../../include/js/jquery.mCustomScrollbar.concat.min.js"></script>
+
+	<script type="text/javascript" src="../../include/js/legendInfo.js"></script>
+	<script type="text/javascript" src="../../include/js/sop-src.js"></script>
+
+	<script type="text/javascript" src="../../include/js/highchart/js/highcharts.js"></script>
+	<script type="text/javascript" src="../../include/js/highchart/js/modules/exporting.js"></script>
+</head>
+
+<body>
+	<!-- 스킵네비게이션 -->
+	<div class="accNav">
+		<p><a href="#gnb">주메뉴 바로가기</a></p>
+		<p><a href="#container">본문 바로가기</a></p>
+	</div>
+	<!-- 스킵네비게이션 -->
+	<!--wrap-->
+	<div id="wrap">
+		<!--header-->
+		<div id="header">
+			<div class="util"></div>
+		</div>
+	<!--//header-->
+	<hr class="hidden" />
+	<!--contents-->
+	<div class="containerBox">
+		<div class="rela">
+			<div class="sceneBox on" id="view1">
+				<div class="sceneRela">
+					<div class="toolBar">
+						<h2>인구피라미드</h2>
+						<div class="viewTitle"> </div>
+						<!-- 현재위치 네비게이션 -->
+						<!-- <div class="interactNavi" id="mapNavi">
+								<div class="interactiveSelect" id="location_mapNavi">조회중입니다...</div>
+								<img id="interactive_magni" src="../../include/images/magni_plus.png" alt="돋보기">
+							</div> -->
+						<!-- 현재위치 네비게이션 end -->
+						<!-- 튜토리얼 -->
+						<div class="tb_right" id="btnList_1">
+							<div class="left">
+								<button type="button" id="" onclick="" title="지표설명"><span>지표설명</span></button>
+								<button type="button" id="" onclick="" title="보도자료 다운로드"><span>보도자료 다운로드</span></button>
+								<button type="button" id="tuto_start_btn" onclick="readyTutorial();" title="사용법 따라하기"><span>튜토리얼</span></button>
+							</div>
+							<!-- 튜토리얼 end -->
+							<!-- 가로툴바 -->
+							<ul>
+								<li><a onclick="javascript:$interactiveMap.ui.doMaxSize(1);" class="tb_sizing" title="전체 화면 확대"><img src="../../include/images/ico_toolbars01.png"alt="전체 화면 확대"></a></li>
+								<li><a onclick="javascript:$interactiveMap.ui.reportDataSet(1);" class="tb_report" title="보고서 보기"><img src="../../include/images/ico/ico_toolbars06.png"alt="보고서 보기"></a></li>
+							</ul>
+						</div>
+						<!-- 가로툴바 end -->
+					</div>
+					<!-- 도움말 -->
+					<div class="interactiveBar">
+						<!-- <a onclick=""tabindex="98"title="통계지도체험">체험하기</a> -->
+						<!-- <span   title="통계지도체험">체험하기</span> -->
+						<h3 class="h3">인구성장가정 (중위)<span>그래프에 마우스를 올려놓으시면 통계정보를 볼 수 있습니다. </span></h3>
+					</div>
+					<!-- 분석지도 맵 컨텐츠 시작 -->
+					<div id="container" class="column-map clearfix">
+						<div class="inner-wrap">
+							<div id="map-content">
+								<!-- 년월 선택 -->
+								<div id="ui-header-picker" class="clearfix">
+									<div class="picker-year">
+										<div class="button-group" class="clearfix">
+											<button type="button" class="prev-button button default left left-arrow" title="prev"></button>
+											<button type="button" class="next-button button default right right-arrow" title="next"></button>
+											<div class="ui-center">
+												<h2>2018<span>년</span></h2>
+											</div>
+										</div>
+									</div>
+									<div class="picker-month">
+										<div class="button-group" class="clearfix">
+											<button type="button" class="prev-button button default left left-arrow" title="prev"></button>
+											<button type="button" class="next-button button default right  right-arrow" title="next"></button>
+											<div class="ui-center">
+												<h2>1<span>월</span></h2>
+											</div>
+										</div>
+									</div>
+								</div>
+								<!--// 년월 선택 끝-->
+								<div class="archive-notice"><span>1999년 이전 데이터는<strong>80세 이상</strong>, 2000년 이후 데이터는 <strong>100세 이상</strong>까지 있습니다.</span></div>
+								<div class="archive-box clearfix">
+									<div class="pyramid-place">
+										<ul>
+											<li class="chart-area">
+												<div id="pyramid-container" style="min-width: 655px; max-width: 655px; height: 455px; margin: 0 auto"></div>
+												<!--  <div class="bottom">
+												<ul class="chart-legend">
+													<li><span>남자</span></li>
+													<li><span>여자</span></li> 
+												</ul>
+											</div> -->
+											</li>
+											<li>
+												<div class="tabs-content">
+													<div class="pip-slider-box">
+														<div id="flat-slider" class="ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" aria-disabled="false">
+															<span class="ui-slider-pip ui-slider-pip-label ui-slider-pip" style="left:0%"><span class="ui-slider-line"></span><span class="ui-slider-label" data-value="17.6">'17.6</span></span>
+															<span class="ui-slider-pip ui-slider-pip-label ui-slider-pip" style="left:10%"><span class="ui-slider-line"></span><span class="ui-slider-label" data-value="17.6">'17.6</span></span>
+															<span class="ui-slider-pip ui-slider-pip-label ui-slider-pip" style="left:20% "><span class="ui-slider-line"></span><span class="ui-slider-label" data-value="17.6">'17.6</span></span>
+															<span class="ui-slider-pip ui-slider-pip-label ui-slider-pip" style="left:30%"><span class="ui-slider-line"></span><span class="ui-slider-label" data-value="17.6">'17.6</span></span>
+															<span class="ui-slider-pip ui-slider-pip-label ui-slider-pip" style="left:40%"><span class="ui-slider-line"></span><span class="ui-slider-label" data-value="17.6">'17.6</span></span>
+															<span class="ui-slider-pip ui-slider-pip-label ui-slider-pip" style="left:50%"><span class="ui-slider-line"></span><span class="ui-slider-label" data-value="17.6">'17.6</span></span>
+															<span class="ui-slider-pip ui-slider-pip-label ui-slider-pip" style="left:60%"><span class="ui-slider-line"></span><span class="ui-slider-label" data-value="17.6">'17.6</span></span>
+															<span class="ui-slider-pip ui-slider-pip-label ui-slider-pip" style="left:70%"><span class="ui-slider-line"></span><span class="ui-slider-label" data-value="17.6">'17.6</span></span>
+															<span class="ui-slider-pip ui-slider-pip-label ui-slider-pip" style="left:80%"><span class="ui-slider-line"></span><span class="ui-slider-label" data-value="17.6">'17.6</span></span>
+															<span class="ui-slider-pip ui-slider-pip-label ui-slider-pip" style="left:90%"><span class="ui-slider-line"></span><span class="ui-slider-label" data-value="17.6">'17.6</span></span>
+															<span class="ui-slider-pip ui-slider-pip-label ui-slider-pip" style="left:100%"><span class="ui-slider-line"></span><span class="ui-slider-label" data-value="17.6">'17.6</span></span>
+															<a class="ui-slider-handle ui-state-default ui-corner-all" href="#" style="left: 0%;"></a></div>
+													</div>
+													<ul class="play-button-box">
+														<li><a href="#" onclick="" title="역재생"></a></li>
+														<li><a href="#" onclick="" title="정지"></a></li>
+														<li><a href="#" onclick="" title="재생"></a></li>
+													</ul>
+												</div>
+												<script type="text/javascript">
+												$("#flat-slider")
+													.slider({
+														max: 10,
+														min: 0,
+														step: 1
+													})
+													.slider("pips", {
+														step: 1,
+														rest: "label"
+													});                                                    
+												</script>
+											</li>
+										</ul>
+									</div>
+									<div class="item-text">
+										<ul>
+											<li>
+												<div class="title"><span class="date">2018</span>년도 합계정보</div>
+												<div class="total-data">
+													<dl>
+														<dt>총인구 : </dt>
+														<dd><span>47,008,111 </span>명 </dd>
+														<dl class="cunt">
+															<dt>남자인구 :</dt>
+															<dd> <em>23,666,769</em> 명</dd>
+															<dt>여자인구 :</dt>
+															<dd> <em> 23,341,342</em> 명</dd>
+															</dd>
+														</dl>
+														<dl>
+															<dt>성비 (여자1백명당) :</dt>
+															<dd><span>101.4 </span></dd>
+														</dl>
+														<dl>
+															<dt>평균연령 :</dt>
+															<dd><span>33.1</span>세</dd>
+														</dl>
+													</dl>
+												</div>
+											</li>
+											<li>
+												<div class="title">인구성장가정 범례 설명</div>
+												<div class="exp">
+													<dl>
+														<dt>고위</dt>
+														<dd>고위값은 높은 정도의 출산율과 기대수명을
+															<br /> 예상하여 계산한 것입니다.</dd>
+													</dl>
+													<dl>
+														<dt>중위</dt>
+														<dd>중위값은 고위와 저위의 중간치의 출산율과
+															<br /> 기대수명을 예상하여 계산한 것입니다.</dd>
+													</dl>
+													<dl>
+														<dt>저위.</dt>
+														<dd>저위값은 낮은 정도의 출산율과 기대수명을
+															<br /> 예상하여 계산한 것입니다</dd>
+													</dl>
+												</div>
+											</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+						<!-- content 끝-->
+					</div>
+					<!-- inner-wrap 끝-->
+				</div>
+				<!-- container 끝-->
+			</div>
+			<!--// sceneRela -->
+		<a href="javascript:void(0)" class="sideQuick sq02" id="map_left_btn" tabindex="97">
+			<span>통계메뉴</span><img src="../../include/images/ico_totalmenu.gif"alt="통계메뉴"/></a>
+		<!-- 왼쪽메뉴  -->
+		<div class="leftArea">
+			<div class="shadow"></div>
+			<div class="quickBox step01">
+				<div class="subj">
+					<h2>인구피라미드</h2>
+				</div>
+				<div class="scrollBox">
+					<ul class="pyraul ul-area">
+						<li><a href="javascript:void(0)"><span>전국인구추계피라미드</span></a></li>
+						<li><a href="javascript:void(0)"><span>시도인구추계피라미드</span></a></li>
+					</ul>
+					<ol class=" stat-infor">
+						<li><a href="/">보고서 보기</a></li>
+						<li><a href="/">도움말 보기</a></li>
+						<li><a href="/">전체 확면 확대</a></li>
+					</ol>
+				</div>
+				<div class="menuAutoClose">
+					<input type="radio" name="menuAutoClose_radio" id="menuAutoClose_radio" checked="checked" />
+					<label for="menuAutoClose_radio" class="on">메뉴 자동닫기</label>
+				</div>
+				<div class="bottom"><a href="javascript:void(0) " class="buttom stepClose ">닫기</a></div>
+			</div>
+			<div class="nav-sidebar">
+				<ul class="pyramid nav-list">
+					<li><a href="javascript:void(0) " title="전국인구추계피라미드"><span>전국인구<br />추계피라미드</span></a></li>
+					<li><a href="javascript:void(0) " title="시도인구추계피라미드"><span>시도인구<br />추계피라미드</span></a></li>
+				</ul>
+			</div>
+			<div class="quickBox step02">
+				<div class="subj ">
+					<h2>전국인구추계 피마리드 선택</h2>
+					<a href="javascript:void(0)"></a>
+				</div>
+				<div class="normalBox">
+					<div class="stepBox">
+						<p class="on">기준년도
+							<select title="기준년도" id="mainIndex_year" name="mainIndex_year">
+								<option value="2016">2016년도</option>
+								<option value="2015">2015년도</option>
+								<option value="2010">2010년도</option>
+								<option value="2005">2005년도</option>
+								<option value="2000">2000년도</option>
+							</select>
+						</p>
+						<!-- tab on -->
+						<p class="on">인구성장 가정<a href="javascript:void(0)" class="ar"><img src="../../include/images/ico/ico_tooltip01.png" alt="물음표" class="mCS_img_loaded"></a></p>
+						<!-- tab off -->
+						<!-- <p class="">인구성장 가정<a href="javascript:void(0)" class="ar" ><img src="../../include/images/ico/ico_tooltip01.png" alt="물음표" class="mCS_img_loaded"></a></p> -->
+						<ul class="dbTypeCk">
+							<li>
+								<input type="radio" name="strTypes" id="strTypeM" value="M" checked="checked">
+								<label for="strTypeM" class="mr20 on">중위</label>
+							</li>
+							<li>
+								<input type="radio" name="strTypes" id="strTypeH" value="H">
+								<label for="strTypeH" class="mr20">고위</label>
+							</li>
+							<li>
+								<input type="radio" name="strTypes" id="strTypeL" value="L">
+								<label for="strTypeL">저위</label>
+							</li>
+						</ul>
+					</div>
+				</div>
+				<div class="bottom "><a href="javascript:void(0) " class="stepClose ">닫기</a></div>
+			</div>
+		</div>
+		<!-- 왼쪽메뉴  end -->
+		<!-- 데이터보드 -->
+		<div id="dataBoard">
+			<a href="javascript:void(0)" class="interactiveDataBoard">데이터보드</a>
+			<div class="dataSideBox">
+				<div class="bar">
+					<div id="dataSlider" class="dataSlider"></div>
+					<a href="javascript:void(0)" class="stepClose-data">데이터보드 닫기</a>
+				</div>
+				<div class="dataSildeContents"></div>
+			</div>
+			<form id="excelDownForm" name="excelDownForm" method="post"></form>
+		</div>
+		<!-- //데이터보드 end -->
+	</div>
+	<!--//wrap-->
+	</div>
+	<!--//container-->
+	</div>
+	<!--//wrap-->
+</body>
+</html>
+<script type="text/javascript">
+$(function() {
+	var categories = ['0-4', '5-9', '10-14', '15-19',
+		'20-24', '25-29', '30-34', '35-39', '40-44',
+		'45-49', '50-54', '55-59', '60-64', '65-69',
+		'70-74', '75-79', '80-84', '85-89', '90-94',
+		'95-99', '100 + '
+	];
+	$(document).ready(function() {
+		$('#pyramid-container').highcharts({
+			chart: {
+				type: 'bar'
+			},
+			title: {
+				text: ''
+			},
+			subtitle: {
+				text: ''
+			},
+			xAxis: [{
+				categories: categories,
+				reversed: false,
+				labels: {
+					step: 1
+				}
+			}, { // mirror axis on right side
+				opposite: true,
+				reversed: false,
+				categories: categories,
+				linkedTo: 0,
+				labels: {
+					step: 1
+				}
+			}],
+			yAxis: {
+				title: {
+					text: null
+				},
+				labels: {
+					formatter: function() {
+						return (Math.abs(this.value) / 1000000) + 'M';
+					}
+				},
+				min: -4000000,
+				max: 4000000
+			},
+			plotOptions: {
+				series: {
+					stacking: 'normal'
+				}
+			},
+			tooltip: {
+				formatter: function() {
+					return '<b>' + this.series.name + ', age ' + this.point.category + '</b><br/>' +
+						'Population: ' + Highcharts.numberFormat(Math.abs(this.point.y), 0);
+				}
+			},
+			series: [{
+				name: '남자',
+				data: [-1746181, -1884428, -2089758, -2222362, -2537431, -2507081, -2443179,
+					-2664537, -3556505, -3680231, -3143062, -2721122, -2229181, -2227768,
+					-2176300, -1329968, -836804, -354784, -90569, -28367, -3878]
+			}, {
+				name: '여자',
+				data: [1656154, 1787564, 1981671, 2108575, 2403438, 2366003, 2301402, 2519874,
+					3360596, 3493473, 3050775, 2759560, 2304444, 2426504, 2568938, 1785638,
+					1447162, 1005011, 330870, 130632, 21208]
+			}]
+		});
+	});
+});
+</script>

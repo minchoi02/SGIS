@@ -1,0 +1,914 @@
+<!-- 
+*
+* HTML입니다.
+* author : 정은우
+*
+//-->
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+	<meta charset="utf-8">
+	<title>통계지리정보서비스</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<head>
+	<meta charset="utf-8">
+	<title>통계지리정보서비스</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<script type="text/javascript" src="../../include/js/jquery.min.js"></script>
+	<script src="../../include/plugin/jquery-1.11.3.min.js" type="text/javascript"></script>
+
+	<link rel="stylesheet" type="text/css" href="../../include/css/legend.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/sop.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/common.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/default.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slick/slick.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slick/slick-theme.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/jquery.mCustomScrollbar.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slider-Pips/jquery-ui-slider-pips.min.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slider-Pips/jqueryui.min.css">
+	
+	<!-- <link href="/css/jquery-ui-1.10.4.custom.css" rel="stylesheet" type="text/css" /> -->
+	<script type="text/javascript" src="../../include/js/analMapMainCustom.js"></script>
+	
+	<script type="text/javascript" src="../../include/js/jquery-ui-1.10.3.custom.js"></script>
+	<script type="text/javascript" src="../../include/js/jquery.mCustomScrollbar.concat.min.js"></script>
+	
+	<script type="text/javascript" src="../../include/js/legendInfo.js"></script>
+	<script type="text/javascript" src="../../include/js/sop-src.js"></script>
+
+	<script type="text/javascript" src="../../include/js/highchart/js/highcharts.js"></script>
+	<script type="text/javascript" src="../../include/js/highchart/js/modules/exporting.js"></script>
+
+	<!-- 고령화 콘텐츠 CSS -->
+	<link rel="stylesheet" type="text/css" href="../../include/css/aging-contents.css">
+</head>
+
+<body>
+	<!-- 스킵네비게이션 -->
+	<div class="accNav">
+		<p><a href="#gnb">주메뉴 바로가기</a></p>
+		<p><a href="#container">본문 바로가기</a></p>
+	</div>
+	<!-- 스킵네비게이션 -->
+	<!--wrap-->
+	<div id="wrap">
+		<!--header-->
+		<div id="header">
+			<div class="util"></div>
+		</div>
+		<!--//header-->
+		<hr class="hidden" />
+		<!--contents-->
+		<div class="containerBox">
+			<div class="rela">
+				<div class="sceneBox on" id="view1">
+					<div class="sceneRela">
+						<div class="toolBar clearfix">
+							<h2>고령화 현황보기</h2>
+							<div class="viewTitle"> </div>
+							<!-- 현재위치 네비게이션 -->
+							<div class="interactNavi" id="mapNavi">
+								<div class="interactiveSelect" id="location_mapNavi">조회중입니다...</div>
+								<img id="interactive_magni" src="../../include/images/magni_plus.png" alt="돋보기">
+							</div>
+							<!-- //현재위치 네비게이션 -->
+							<!-- 가로툴바 -->
+							<div class="tb_right" id="btnList_1">
+								<div class="left">
+									<button type="button" id="" onclick="" title="지표설명"><span>지표설명</span></button>
+									<button type="button" id="" onclick="" title="보도자료 다운로드"><span>보도자료 다운로드</span></button>
+									<button type="button" id="tuto_start_btn" onclick="readyTutorial();" title="사용법 따라하기"><span>튜토리얼</span></button>
+								</div>
+								<!--//튜토리얼 -->
+								<ul>
+									<li>
+										<a onclick="javascript:$interactiveMap.ui.doMaxSize(1);" class="tb_sizing" title="전체 화면 확대"><img src="../../include/images/ico_toolbars01.png" alt="전체 화면 확대"></a>
+									</li>
+									<li>
+										<a onclick="javascript:$interactiveMap.ui.doClearMap(1);" title="초기화"><img src="../../include/images/ico_toolbars02.png" alt="초기화"></a>
+									</li>
+									<li>
+										<a onclick="javascript:$interactiveMap.ui.doShare(1);" class="tb_share" title="URL 공유하기"><img src="../../include/images/ico_toolbars04.png" alt="URL 공유하기"></a>
+									</li>
+									<li>
+										<a onclick="javascript:$galleryAdd.interactiveGalleryPopOpen();" class="tb_bookmark" title="즐겨찾기로 저장하기"><img src="../../include/images/ico_toolbars05.png" alt="즐겨찾기로 저장하기"></a>
+									</li>
+									<li>
+										<a onclick="javascript:$interactiveMap.ui.reportDataSet(1);" class="tb_report" title="보고서 보기"><img src="../../include/images/ico_toolbars06.png" alt="보고서 보기"></a>
+									</li>
+								</ul>
+							</div>
+							<!-- //가로툴바  -->
+						</div>
+						<!-- 도움말 -->
+						<div class="interactiveBar">
+							<h3 class="h3">고령화주제도</h3>
+						</div>
+						<!-- 	<div class="colorMapLegend">
+							<p>지도표시 영역</p>
+							<a href="javascript:void(0)" class="switchBox">
+								<span class="txt"></span>
+								<span class="ball"></span>
+							</a>
+						</div> -->
+						<!-- 분석지도 맵 컨텐츠 시작 -->
+						<div id="container" class="aging clearfix">
+							<div class="inner-wrap">
+								<div id="aging-contents">
+								<div class="table-header-title">
+									<h4>과거 인구구조변화(2000년 ~ 2016년)</h4>
+									<div class="aging-citation"><span>[ 출처: 2000년, 2005년, 2010년, 2015년, 2016년 인구주택총조사 ]</span></div>
+								</div>
+								<div class="aging-table" id="">
+									<table id="valueTable">
+										<thead>
+											<tr>
+												<th rowspan="3">년도</th>
+											</tr>
+											<tr>
+												<th colspan="2">총인구(명)</th>
+												<th colspan="2">0~14세(명)</th>
+												<th colspan="2">15~64세(명)</th>
+												<th colspan="2">65세이상(명)</th>
+											</tr>
+											<tr>
+												<th>대전광역시</th>
+												<th>서구</th>
+												<th>대전광역시</th>
+												<th>서구</th>
+												<th>대전광역시</th>
+												<th>서구</th>
+												<th>대전광역시</th>
+												<th>서구</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td>2000년</td>
+												<td>1,365,961</td>
+												<td>470,327</td>
+												<td>303,629</td>
+												<td>111,431</td>
+												<td>987,323</td>
+												<td>338,132</td>
+												<td>74,734</td>
+												<td>20,592</td>
+											</tr>
+											<tr>
+												<td>2005년</td>
+												<td>1,438,551</td>
+												<td>508,388</td>
+												<td>291,512</td>
+												<td>106,318</td>
+												<td>1,046,134</td>
+												<td>373,152</td>
+												<td>100,905</td>
+												<td>28,918</td>
+											</tr>
+											<tr>
+												<td>2010년</td>
+												<td>1,490,158</td>
+												<td>498,524</td>
+												<td>256,655</td>
+												<td>86,157</td>
+												<td>1,102,488</td>
+												<td>375,067</td>
+												<td>131,015</td>
+												<td>37,300</td>
+											</tr>
+											<tr>
+												<td>2015년</td>
+												<td>1,519,314</td>
+												<td>487,660</td>
+												<td>222,755</td>
+												<td>71,330</td>
+												<td>1,132,777</td>
+												<td>369,665</td>
+												<td>163,782</td>
+												<td>46,665</td>
+											</tr>
+											<tr>
+												<td>2016년</td>
+												<td>1,515,758</td>
+												<td>487,452</td>
+												<td>215,110</td>
+												<td>69,617</td>
+												<td>1,130,000</td>
+												<td>368,983</td>
+												<td>170,648</td>
+												<td>48,852</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+								<div class="table-header-title">
+									<h4>대전광역시 인구구조 변화</h4>
+								</div>
+								<div class="graph-align">
+									<div class="box">
+										<div id="graph-left">
+											<div style="position: relative;"> <div dir="ltr"> <div aria-label="차트입니다." style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;"><svg width="230" height="130" aria-label="차트입니다." style="overflow: hidden;"> <defs id="defs"> <clipPath id="_ABSTRACT_RENDERER_ID_18"> <rect x="50" y="25" width="170" height="80"></rect> </clipPath> </defs> <rect x="0" y="0" width="230" height="130" stroke="none" stroke-width="0" fill="#ffffff"></rect> <g><text text-anchor="start" x="50" y="17.4" font-family="돋움체" font-size="14" font-weight="bold" stroke="none" stroke-width="0" fill="#000000">2000년 인구구성비(%)</text> <rect x="50" y="5.5" width="170" height="14" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> </g> <g> <rect x="50" y="25" width="170" height="80" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> <g clip-path="url(https://sgis.kostat.go.kr/publicsmodel/trendAnalysis.vw#_ABSTRACT_RENDERER_ID_18)"> <g> <rect x="50" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="92" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="135" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="177" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="219" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#cccccc"></rect> </g> <g> <rect x="51" y="30.5" width="11" height="4" stroke="none" stroke-width="0" fill="#3366cc"></rect> <rect x="50" y="56.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#3366cc"></rect> <rect x="50" y="83.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#3366cc"></rect> <rect x="50" y="35.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#dc3912"></rect> <rect x="51" y="61.5" width="152" height="4" stroke="none" stroke-width="0" fill="#dc3912"></rect> <rect x="50" y="88.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#dc3912"></rect> <rect x="50" y="40.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#ff9900"></rect> <rect x="50" y="66.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#ff9900"></rect> <rect x="51" y="93.5" width="46" height="4" stroke="none" stroke-width="0" fill="#ff9900"></rect> </g> <g> <rect x="50" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#333333"></rect> </g> </g> <g></g> <g> <g><text text-anchor="middle" x="50.5" y="121.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">0</text></g> <g><text text-anchor="middle" x="92.75" y="121.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">20</text></g> <g><text text-anchor="middle" x="135" y="121.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">40</text></g> <g><text text-anchor="middle" x="177.25" y="121.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">60</text></g> <g><text text-anchor="middle" x="219.5" y="121.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">80</text></g> <g><text text-anchor="end" x="47" y="42.516666666666666" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">65세이상</text></g> <g><text text-anchor="end" x="47" y="68.85" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">15~64세</text></g> <g><text text-anchor="end" x="47" y="95.18333333333332" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">0~14세</text></g> </g> </g> <g></g> </svg> </div> </div> </div> </div>
+										<div id="graph-center">
+											<img src="../../include/images/stackChart.png" id="graph2" alt="인구구성비(%)">
+										</div>
+										<div id="graph-right">
+											<div style="position: relative;"> <div dir="ltr"> <div aria-label="차트입니다." style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;"><svg width="230" height="130" aria-label="차트입니다." style="overflow: hidden;"> <defs id="defs"> <clipPath id="_ABSTRACT_RENDERER_ID_19"> <rect x="50" y="25" width="170" height="80"></rect> </clipPath> </defs> <rect x="0" y="0" width="230" height="130" stroke="none" stroke-width="0" fill="#ffffff"></rect> <g><text text-anchor="start" x="50" y="17.4" font-family="돋움체" font-size="14" font-weight="bold" stroke="none" stroke-width="0" fill="#000000">2015년 인구구성비(%)</text> <rect x="50" y="5.5" width="170" height="14" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> </g> <g> <rect x="50" y="25" width="170" height="80" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> <g clip-path="url(https://sgis.kostat.go.kr/publicsmodel/trendAnalysis.vw#_ABSTRACT_RENDERER_ID_19)"> <g> <rect x="50" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="92" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="135" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="177" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="219" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#cccccc"></rect> </g> <g> <rect x="51" y="30.5" width="22" height="4" stroke="none" stroke-width="0" fill="#3366cc"></rect> <rect x="50" y="56.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#3366cc"></rect> <rect x="50" y="83.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#3366cc"></rect> <rect x="50" y="35.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#dc3912"></rect> <rect x="51" y="61.5" width="157" height="4" stroke="none" stroke-width="0" fill="#dc3912"></rect> <rect x="50" y="88.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#dc3912"></rect> <rect x="50" y="40.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#ff9900"></rect> <rect x="50" y="66.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#ff9900"></rect> <rect x="51" y="93.5" width="30" height="4" stroke="none" stroke-width="0" fill="#ff9900"></rect> </g> <g> <rect x="50" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#333333"></rect> </g> </g> <g></g> <g> <g><text text-anchor="middle" x="50.5" y="121.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">0</text></g> <g><text text-anchor="middle" x="92.75" y="121.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">20</text></g> <g><text text-anchor="middle" x="135" y="121.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">40</text></g> <g><text text-anchor="middle" x="177.25" y="121.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">60</text></g> <g><text text-anchor="middle" x="219.5" y="121.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">80</text></g> <g><text text-anchor="end" x="47" y="42.516666666666666" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">65세이상</text></g> <g><text text-anchor="end" x="47" y="68.85" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">15~64세</text></g> <g><text text-anchor="end" x="47" y="95.18333333333332" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">0~14세</text></g> </g> </g> <g></g> </svg> </div> </div> </div>
+										</div>
+									</div>
+								</div>
+								<div class="table-header-title">
+									<h4>서구 인구구조 변화</h4>
+								</div>
+								<div class="graph-align">
+									<div class="box">
+										<div id="graph-left">
+											<div style="position: relative;"> <div dir="ltr"> <div aria-label="차트입니다." style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;"><svg width="230" height="130" aria-label="차트입니다." style="overflow: hidden;"> <defs id="defs"> <clipPath id="_ABSTRACT_RENDERER_ID_18"> <rect x="50" y="25" width="170" height="80"></rect> </clipPath> </defs> <rect x="0" y="0" width="230" height="130" stroke="none" stroke-width="0" fill="#ffffff"></rect> <g><text text-anchor="start" x="50" y="17.4" font-family="돋움체" font-size="14" font-weight="bold" stroke="none" stroke-width="0" fill="#000000">2000년 인구구성비(%)</text> <rect x="50" y="5.5" width="170" height="14" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> </g> <g> <rect x="50" y="25" width="170" height="80" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> <g clip-path="url(https://sgis.kostat.go.kr/publicsmodel/trendAnalysis.vw#_ABSTRACT_RENDERER_ID_18)"> <g> <rect x="50" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="92" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="135" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="177" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="219" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#cccccc"></rect> </g> <g> <rect x="51" y="30.5" width="11" height="4" stroke="none" stroke-width="0" fill="#3366cc"></rect> <rect x="50" y="56.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#3366cc"></rect> <rect x="50" y="83.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#3366cc"></rect> <rect x="50" y="35.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#dc3912"></rect> <rect x="51" y="61.5" width="152" height="4" stroke="none" stroke-width="0" fill="#dc3912"></rect> <rect x="50" y="88.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#dc3912"></rect> <rect x="50" y="40.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#ff9900"></rect> <rect x="50" y="66.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#ff9900"></rect> <rect x="51" y="93.5" width="46" height="4" stroke="none" stroke-width="0" fill="#ff9900"></rect> </g> <g> <rect x="50" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#333333"></rect> </g> </g> <g></g> <g> <g><text text-anchor="middle" x="50.5" y="121.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">0</text></g> <g><text text-anchor="middle" x="92.75" y="121.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">20</text></g> <g><text text-anchor="middle" x="135" y="121.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">40</text></g> <g><text text-anchor="middle" x="177.25" y="121.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">60</text></g> <g><text text-anchor="middle" x="219.5" y="121.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">80</text></g> <g><text text-anchor="end" x="47" y="42.516666666666666" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">65세이상</text></g> <g><text text-anchor="end" x="47" y="68.85" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">15~64세</text></g> <g><text text-anchor="end" x="47" y="95.18333333333332" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">0~14세</text></g> </g> </g> <g></g> </svg> </div> </div> </div> </div>
+										<div id="graph-center">
+											<img src="../../include/images/stackChart.png" id="graph2" alt="인구구성비(%)">
+										</div>
+										<div id="graph-right">
+											<div style="position: relative;"> <div dir="ltr"> <div aria-label="차트입니다." style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;"><svg width="230" height="130" aria-label="차트입니다." style="overflow: hidden;"> <defs id="defs"> <clipPath id="_ABSTRACT_RENDERER_ID_19"> <rect x="50" y="25" width="170" height="80"></rect> </clipPath> </defs> <rect x="0" y="0" width="230" height="130" stroke="none" stroke-width="0" fill="#ffffff"></rect> <g><text text-anchor="start" x="50" y="17.4" font-family="돋움체" font-size="14" font-weight="bold" stroke="none" stroke-width="0" fill="#000000">2015년 인구구성비(%)</text> <rect x="50" y="5.5" width="170" height="14" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> </g> <g> <rect x="50" y="25" width="170" height="80" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> <g clip-path="url(https://sgis.kostat.go.kr/publicsmodel/trendAnalysis.vw#_ABSTRACT_RENDERER_ID_19)"> <g> <rect x="50" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="92" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="135" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="177" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="219" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#cccccc"></rect> </g> <g> <rect x="51" y="30.5" width="22" height="4" stroke="none" stroke-width="0" fill="#3366cc"></rect> <rect x="50" y="56.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#3366cc"></rect> <rect x="50" y="83.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#3366cc"></rect> <rect x="50" y="35.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#dc3912"></rect> <rect x="51" y="61.5" width="157" height="4" stroke="none" stroke-width="0" fill="#dc3912"></rect> <rect x="50" y="88.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#dc3912"></rect> <rect x="50" y="40.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#ff9900"></rect> <rect x="50" y="66.5" width="0.5" height="4" stroke="none" stroke-width="0" fill="#ff9900"></rect> <rect x="51" y="93.5" width="30" height="4" stroke="none" stroke-width="0" fill="#ff9900"></rect> </g> <g> <rect x="50" y="25" width="1" height="80" stroke="none" stroke-width="0" fill="#333333"></rect> </g> </g> <g></g> <g> <g><text text-anchor="middle" x="50.5" y="121.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">0</text></g> <g><text text-anchor="middle" x="92.75" y="121.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">20</text></g> <g><text text-anchor="middle" x="135" y="121.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">40</text></g> <g><text text-anchor="middle" x="177.25" y="121.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">60</text></g> <g><text text-anchor="middle" x="219.5" y="121.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">80</text></g> <g><text text-anchor="end" x="47" y="42.516666666666666" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">65세이상</text></g> <g><text text-anchor="end" x="47" y="68.85" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">15~64세</text></g> <g><text text-anchor="end" x="47" y="95.18333333333332" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">0~14세</text></g> </g> </g> <g></g> </svg> </div> </div> </div>
+										</div>
+									</div>
+								</div>
+								<div class="aging-table" id="">
+									<table id="valueTable">
+										<thead>
+											<tr>
+												<th rowspan="3">년도</th>
+											</tr>
+											<tr>
+												<th colspan="3">인구구성비:0~14세(%)</th>
+												<th colspan="3">인구구성비:15~64세(%)</th>
+												<th colspan="3">인구구성비:65세이상(%)</th>
+												<th colspan="3">노년부양비(%)<a href="#" onclick="return false;" onmouseover="showInformation(&quot;1&quot;)" onmouseout="hideInformation(&quot;1&quot;)"><img src="../../include/images/ico_i.png" alt=""></a></th>
+												<th colspan="3">노령화지수</th>
+											</tr>
+											<tr>
+												<th>전국</th>
+												<th>대전광역시</th>
+												<th>서구</th>
+												<th>전국</th>
+												<th>대전광역시</th>
+												<th>서구</th>
+												<th>전국</th>
+												<th>대전광역시</th>
+												<th>서구</th>
+												<th>전국</th>
+												<th>대전광역시</th>
+												<th>서구</th>
+												<th>전국</th>
+												<th>대전광역시</th>
+												<th>서구</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td>2000년</td>
+												<td>21.0</td>
+												<td>22.2</td>
+												<td>23.7</td>
+												<td>71.7</td>
+												<td>72.3</td>
+												<td>71.9</td>
+												<td>7.3</td>
+												<td>5.5</td>
+												<td>4.4</td>
+												<td>11.6</td>
+												<td>7.6</td>
+												<td>6.1</td>
+												<td>38.9</td>
+												<td>24.6</td>
+												<td>18.5</td>
+											</tr>
+											<tr>
+												<td>2005년</td>
+												<td>19.1</td>
+												<td>20.3</td>
+												<td>20.9</td>
+												<td>71.6</td>
+												<td>72.7</td>
+												<td>73.4</td>
+												<td>9.3</td>
+												<td>7.0</td>
+												<td>5.7</td>
+												<td>14.3</td>
+												<td>9.3</td>
+												<td>7.7</td>
+												<td>51.9</td>
+												<td>33.4</td>
+												<td>27.2</td>
+											</tr>
+											<tr>
+												<td>2010년</td>
+												<td>16.2</td>
+												<td>17.2</td>
+												<td>17.3</td>
+												<td>72.5</td>
+												<td>74.0</td>
+												<td>75.2</td>
+												<td>11.3</td>
+												<td>8.8</td>
+												<td>7.5</td>
+												<td>16.9</td>
+												<td>11.4</td>
+												<td>9.9</td>
+												<td>73.5</td>
+												<td>49.1</td>
+												<td>43.3</td>
+											</tr>
+											<tr>
+												<td>2015년</td>
+												<td>13.9</td>
+												<td>14.7</td>
+												<td>14.6</td>
+												<td>72.9</td>
+												<td>74.6</td>
+												<td>75.8</td>
+												<td>13.2</td>
+												<td>10.8</td>
+												<td>9.6</td>
+												<td>18.9</td>
+												<td>14.1</td>
+												<td>12.6</td>
+												<td>97.2</td>
+												<td>71.2</td>
+												<td>65.4</td>
+											</tr>
+											<tr>
+												<td>2016년</td>
+												<td>13.6</td>
+												<td>14.2</td>
+												<td>14.3</td>
+												<td>72.8</td>
+												<td>74.6</td>
+												<td>75.7</td>
+												<td>13.6</td>
+												<td>11.3</td>
+												<td>10.0</td>
+												<td>19.9</td>
+												<td>15.1</td>
+												<td>13.2</td>
+												<td>104.0</td>
+												<td>79.3</td>
+												<td>70.2</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+								<div class="graph-align">
+									<div class="column">
+										<div class="part01">
+											<div id="graph-left" src="http://chart.apis.google.com/chart?chs=210x100&amp;cht=lc&amp;chco=ff0000,0000ff&amp;chm=o,ff0000,0,-1,5|s,0000ff,1,-1,5&amp;chxt=x,y&amp;chts=000000,14&amp;chxs=0,4E4E4E,11|1,4E4E4E,11&amp;chxtc=1,10|2,-180&amp;chd=t:22.2,20.3,17.2,14.7|23.7,20.9,17.3,14.6&amp;chds=10,30&amp;chtt=0-14%EC%84%B8%20%EC%9D%B8%EA%B5%AC%EA%B5%AC%EC%84%B1%EB%B9%84(%25)&amp;chxl=0:|2000|2005|2010|2015|1:|10|30" alt="0-14세 인구구성비(%)"> <div style="position: relative;"> <div dir="ltr"> <div aria-label="차트입니다." style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;"><svg aria-label="차트입니다." style="overflow: hidden;"> <defs id="defs"> <clipPath id="_ABSTRACT_RENDERER_ID_22"> <rect x="62" y="29" width="367" height="93"></rect> </clipPath> </defs> <rect x="0" y="0" stroke="none" stroke-width="0" fill="#ffffff"></rect> <g><text text-anchor="start" x="62" y="19.4" font-family="돋움체" font-size="14" font-weight="bold" stroke="none" stroke-width="0" fill="#000000">0-14세 인구구성비(%)</text> <rect x="62" y="7.5" width="367" height="14" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> </g> <g> <rect x="62" y="29" width="367" height="93" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> <g clip-path="url(https://sgis.kostat.go.kr/publicsmodel/trendAnalysis.vw#_ABSTRACT_RENDERER_ID_22)"> <g> <rect x="62" y="121" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="75" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="29" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="98" width="367" height="1" stroke="none" stroke-width="0" fill="#ebebeb"></rect> <rect x="62" y="52" width="367" height="1" stroke="none" stroke-width="0" fill="#ebebeb"></rect> </g> <g> <path d="M108.25,58.48000000000001L199.75,71.36000000000001L291.25,87.92L382.75,100.34" stroke="#3366cc" stroke-width="2" fill-opacity="1" fill="none"></path> <path d="M108.25,65.38000000000001L199.75,74.12L291.25,88.38L382.75,99.88000000000001" stroke="#dc3912" stroke-width="2" fill-opacity="1" fill="none"></path> </g> </g> <g> <circle cx="108.25" cy="58.48000000000001" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="199.75" cy="71.36000000000001" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="291.25" cy="87.92" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="382.75" cy="100.34" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="108.25" cy="65.38000000000001" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="199.75" cy="74.12" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="291.25" cy="88.38" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="382.75" cy="99.88000000000001" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> </g> <g> <g><text text-anchor="middle" x="108.25" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2000</text></g> <g><text text-anchor="middle" x="199.75" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2005</text></g> <g><text text-anchor="middle" x="291.25" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2010</text></g> <g><text text-anchor="middle" x="382.75" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2015</text></g> <g><text text-anchor="end" x="51" y="125.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">10</text></g> <g><text text-anchor="end" x="51" y="79.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">20</text></g> <g><text text-anchor="end" x="51" y="33.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">30</text></g> </g> </g> <g></g> </svg> </div> </div> </div> </div> 
+											<div id="graph-center"  src="http://chart.apis.google.com/chart?chs=210x100&amp;cht=lc&amp;chco=ff0000,0000ff&amp;chm=o,ff0000,0,-1,5|s,0000ff,1,-1,5&amp;chxt=x,y&amp;chts=000000,14&amp;chxs=0,4E4E4E,11|1,4E4E4E,11&amp;chxtc=1,10|2,-180&amp;chd=t:72.3,72.7,74,74.6|71.9,73.4,75.2,75.8&amp;chds=70,80&amp;chtt=15-64%EC%84%B8%20%EC%9D%B8%EA%B5%AC%EA%B5%AC%EC%84%B1%EB%B9%84(%25)&amp;chxl=0:|2000|2005|2010|2015|1:|70|80" alt="15-64세 인구구성비(%)"> <div style="position: relative;"> <div dir="ltr"> <div aria-label="차트입니다." style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;"><svg aria-label="차트입니다." style="overflow: hidden;"> <defs id="defs"> <clipPath id="_ABSTRACT_RENDERER_ID_23"> <rect x="62" y="29" width="367" height="93"></rect> </clipPath> </defs> <rect x="0" y="0" stroke="none" stroke-width="0" fill="#ffffff"></rect> <g><text text-anchor="start" x="62" y="19.4" font-family="돋움체" font-size="14" font-weight="bold" stroke="none" stroke-width="0" fill="#000000">15-64세 인구구성비(%)</text> <rect x="62" y="7.5" width="367" height="14" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> </g> <g> <rect x="62" y="29" width="367" height="93" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> <g clip-path="url(https://sgis.kostat.go.kr/publicsmodel/trendAnalysis.vw#_ABSTRACT_RENDERER_ID_23)"> <g> <rect x="62" y="121" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="75" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="29" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="98" width="367" height="1" stroke="none" stroke-width="0" fill="#ebebeb"></rect> <rect x="62" y="52" width="367" height="1" stroke="none" stroke-width="0" fill="#ebebeb"></rect> </g> <g> <path d="M108.25,104.01999999999995L199.75,90.21999999999994L291.25,73.65999999999997L382.75,68.14000000000003" stroke="#3366cc" stroke-width="2" fill-opacity="1" fill="none"></path> <path d="M108.25,100.34000000000003L199.75,96.65999999999997L291.25,84.7L382.75,79.18000000000006" stroke="#dc3912" stroke-width="2" fill-opacity="1" fill="none"></path> </g> </g> <g> <circle cx="108.25" cy="104.01999999999995" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="199.75" cy="90.21999999999994" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="291.25" cy="73.65999999999997" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="382.75" cy="68.14000000000003" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="108.25" cy="100.34000000000003" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="199.75" cy="96.65999999999997" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="291.25" cy="84.7" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="382.75" cy="79.18000000000006" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> </g> <g> <g><text text-anchor="middle" x="108.25" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2000</text></g> <g><text text-anchor="middle" x="199.75" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2005</text></g> <g><text text-anchor="middle" x="291.25" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2010</text></g> <g><text text-anchor="middle" x="382.75" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2015</text></g> <g><text text-anchor="end" x="51" y="125.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">70</text></g> <g><text text-anchor="end" x="51" y="79.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">75</text></g> <g><text text-anchor="end" x="51" y="33.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">80</text></g> </g> </g> <g></g> </svg> </div> </div> </div> </div> 
+											<div id="graph-right"  src="http://chart.apis.google.com/chart?chs=210x100&amp;cht=lc&amp;chco=ff0000,0000ff&amp;chm=o,ff0000,0,-1,5|s,0000ff,1,-1,5&amp;chxt=x,y&amp;chts=000000,14&amp;chxs=0,4E4E4E,11|1,4E4E4E,11&amp;chxtc=1,10|2,-180&amp;chd=t:5.5,7,8.8,10.8|4.4,5.7,7.5,9.6&amp;chds=0,20&amp;chtt=65%EC%84%B8%EC%9D%B4%EC%83%81%20%EC%9D%B8%EA%B5%AC%EA%B5%AC%EC%84%B1%EB%B9%84(%25)&amp;chxl=0:|2000|2005|2010|2015|1:|0|20" alt="65세이상 인구구성비(%)"> <div style="position: relative;"> <div dir="ltr"> <div aria-label="차트입니다." style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;"><svg aria-label="차트입니다." style="overflow: hidden;"> <defs id="defs"> <clipPath id="_ABSTRACT_RENDERER_ID_24"> <rect x="62" y="29" width="367" height="93"></rect> </clipPath> </defs> <rect x="0" y="0" stroke="none" stroke-width="0" fill="#ffffff"></rect> <g><text text-anchor="start" x="62" y="19.4" font-family="돋움체" font-size="14" font-weight="bold" stroke="none" stroke-width="0" fill="#000000">65세이상 인구구성비(%)</text> <rect x="62" y="7.5" width="367" height="14" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> </g> <g> <rect x="62" y="29" width="367" height="93" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> <g clip-path="url(https://sgis.kostat.go.kr/publicsmodel/trendAnalysis.vw#_ABSTRACT_RENDERER_ID_24)"> <g> <rect x="62" y="121" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="75" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="29" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="98" width="367" height="1" stroke="none" stroke-width="0" fill="#ebebeb"></rect> <rect x="62" y="52" width="367" height="1" stroke="none" stroke-width="0" fill="#ebebeb"></rect> </g> <g> <rect x="62" y="121" width="367" height="1" stroke="none" stroke-width="0" fill="#333333"></rect> </g> <g> <path d="M108.25,101.26L199.75,95.28L291.25,87L382.75,77.34" stroke="#3366cc" stroke-width="2" fill-opacity="1" fill="none"></path> <path d="M108.25,96.2L199.75,89.30000000000001L291.25,81.02000000000001L382.75,71.82" stroke="#dc3912" stroke-width="2" fill-opacity="1" fill="none"></path> </g> </g> <g> <circle cx="108.25" cy="101.26" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="199.75" cy="95.28" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="291.25" cy="87" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="382.75" cy="77.34" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="108.25" cy="96.2" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="199.75" cy="89.30000000000001" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="291.25" cy="81.02000000000001" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="382.75" cy="71.82" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> </g> <g> <g><text text-anchor="middle" x="108.25" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2000</text></g> <g><text text-anchor="middle" x="199.75" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2005</text></g> <g><text text-anchor="middle" x="291.25" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2010</text></g> <g><text text-anchor="middle" x="382.75" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2015</text></g> <g><text text-anchor="end" x="51" y="125.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">0</text></g> <g><text text-anchor="end" x="51" y="79.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">10</text></g> <g><text text-anchor="end" x="51" y="33.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">20</text></g> </g> </g> <g></g> </svg> </div> </div> </div> </div> 
+										</div>
+									<div class="part02">
+										<div id="graph-left" src="http://chart.apis.google.com/chart?chs=210x100&amp;cht=lc&amp;chco=ff0000,0000ff&amp;chm=o,ff0000,0,-1,5|s,0000ff,1,-1,5&amp;chxt=x,y&amp;chts=000000,14&amp;chxs=0,4E4E4E,11|1,4E4E4E,11&amp;chxtc=1,10|2,-180&amp;chd=t:22.2,20.3,17.2,14.7|23.7,20.9,17.3,14.6&amp;chds=10,30&amp;chtt=0-14%EC%84%B8%20%EC%9D%B8%EA%B5%AC%EA%B5%AC%EC%84%B1%EB%B9%84(%25)&amp;chxl=0:|2000|2005|2010|2015|1:|10|30" alt="0-14세 인구구성비(%)"> <div style="position: relative;"> <div dir="ltr"> <div aria-label="차트입니다." style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;"><svg aria-label="차트입니다." style="overflow: hidden;"> <defs id="defs"> <clipPath id="_ABSTRACT_RENDERER_ID_22"> <rect x="62" y="29" width="367" height="93"></rect> </clipPath> </defs> <rect x="0" y="0" stroke="none" stroke-width="0" fill="#ffffff"></rect> <g><text text-anchor="start" x="62" y="19.4" font-family="돋움체" font-size="14" font-weight="bold" stroke="none" stroke-width="0" fill="#000000">0-14세 인구구성비(%)</text> <rect x="62" y="7.5" width="367" height="14" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> </g> <g> <rect x="62" y="29" width="367" height="93" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> <g clip-path="url(https://sgis.kostat.go.kr/publicsmodel/trendAnalysis.vw#_ABSTRACT_RENDERER_ID_22)"> <g> <rect x="62" y="121" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="75" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="29" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="98" width="367" height="1" stroke="none" stroke-width="0" fill="#ebebeb"></rect> <rect x="62" y="52" width="367" height="1" stroke="none" stroke-width="0" fill="#ebebeb"></rect> </g> <g> <path d="M108.25,58.48000000000001L199.75,71.36000000000001L291.25,87.92L382.75,100.34" stroke="#3366cc" stroke-width="2" fill-opacity="1" fill="none"></path> <path d="M108.25,65.38000000000001L199.75,74.12L291.25,88.38L382.75,99.88000000000001" stroke="#dc3912" stroke-width="2" fill-opacity="1" fill="none"></path> </g> </g> <g> <circle cx="108.25" cy="58.48000000000001" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="199.75" cy="71.36000000000001" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="291.25" cy="87.92" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="382.75" cy="100.34" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="108.25" cy="65.38000000000001" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="199.75" cy="74.12" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="291.25" cy="88.38" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="382.75" cy="99.88000000000001" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> </g> <g> <g><text text-anchor="middle" x="108.25" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2000</text></g> <g><text text-anchor="middle" x="199.75" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2005</text></g> <g><text text-anchor="middle" x="291.25" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2010</text></g> <g><text text-anchor="middle" x="382.75" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2015</text></g> <g><text text-anchor="end" x="51" y="125.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">10</text></g> <g><text text-anchor="end" x="51" y="79.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">20</text></g> <g><text text-anchor="end" x="51" y="33.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">30</text></g> </g> </g> <g></g> </svg> </div> </div> </div> 
+									</div> 
+										<div id="data-ceter">
+											<dl>
+												<dt><span>빨간색은 대전광역시</span></dt>
+												<dd>대전광역시</dd> 
+												<dt><span>파란색은 서구</span></dt>
+												<dd>서구</dd>
+											</dl>
+											<div class="aging-table" id="">
+												<table>
+													<thead>
+														<tr>
+															<th rowspan="3">년도</th>
+														</tr>
+														<tr>
+															<th>전국</th>
+															<th>대전광역시</th>
+															<th>서구</th>
+														</tr>
+													</thead>
+													<tbody>
+														<tr>
+															<td>2005년</td>
+															<td>고령화사회</td>
+															<td>고령화사회</td>
+															<td class="em-color">일반사회</td>
+														</tr>
+														<tr>
+															<td>2010년</td>
+															<td>고령화사회</td>
+															<td>고령화사회</td>
+															<td class="em-color">고령화사회</td>
+														</tr>
+														<tr>
+															<td>2015년</td>
+															<td>고령화사회</td>
+															<td>고령화사회</td>
+															<td class="em-color">고령화사회</td>
+														</tr>
+													</tbody>
+												</table>
+											</div>
+										</div>	
+										<div id="graph-right"  src="http://chart.apis.google.com/chart?chs=210x100&amp;cht=lc&amp;chco=ff0000,0000ff&amp;chm=o,ff0000,0,-1,5|s,0000ff,1,-1,5&amp;chxt=x,y&amp;chts=000000,14&amp;chxs=0,4E4E4E,11|1,4E4E4E,11&amp;chxtc=1,10|2,-180&amp;chd=t:5.5,7,8.8,10.8|4.4,5.7,7.5,9.6&amp;chds=0,20&amp;chtt=65%EC%84%B8%EC%9D%B4%EC%83%81%20%EC%9D%B8%EA%B5%AC%EA%B5%AC%EC%84%B1%EB%B9%84(%25)&amp;chxl=0:|2000|2005|2010|2015|1:|0|20" alt="65세이상 인구구성비(%)"> <div style="position: relative;"> <div dir="ltr"> <div aria-label="차트입니다." style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;"><svg aria-label="차트입니다." style="overflow: hidden;"> <defs id="defs"> <clipPath id="_ABSTRACT_RENDERER_ID_24"> <rect x="62" y="29" width="367" height="93"></rect> </clipPath> </defs> <rect x="0" y="0" stroke="none" stroke-width="0" fill="#ffffff"></rect> <g><text text-anchor="start" x="62" y="19.4" font-family="돋움체" font-size="14" font-weight="bold" stroke="none" stroke-width="0" fill="#000000">65세이상 인구구성비(%)</text> <rect x="62" y="7.5" width="367" height="14" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> </g> <g> <rect x="62" y="29" width="367" height="93" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> <g clip-path="url(https://sgis.kostat.go.kr/publicsmodel/trendAnalysis.vw#_ABSTRACT_RENDERER_ID_24)"> <g> <rect x="62" y="121" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="75" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="29" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="98" width="367" height="1" stroke="none" stroke-width="0" fill="#ebebeb"></rect> <rect x="62" y="52" width="367" height="1" stroke="none" stroke-width="0" fill="#ebebeb"></rect> </g> <g> <rect x="62" y="121" width="367" height="1" stroke="none" stroke-width="0" fill="#333333"></rect> </g> <g> <path d="M108.25,101.26L199.75,95.28L291.25,87L382.75,77.34" stroke="#3366cc" stroke-width="2" fill-opacity="1" fill="none"></path> <path d="M108.25,96.2L199.75,89.30000000000001L291.25,81.02000000000001L382.75,71.82" stroke="#dc3912" stroke-width="2" fill-opacity="1" fill="none"></path> </g> </g> <g> <circle cx="108.25" cy="101.26" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="199.75" cy="95.28" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="291.25" cy="87" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="382.75" cy="77.34" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="108.25" cy="96.2" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="199.75" cy="89.30000000000001" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="291.25" cy="81.02000000000001" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="382.75" cy="71.82" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> </g> <g> <g><text text-anchor="middle" x="108.25" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2000</text></g> <g><text text-anchor="middle" x="199.75" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2005</text></g> <g><text text-anchor="middle" x="291.25" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2010</text></g> <g><text text-anchor="middle" x="382.75" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2015</text></g> <g><text text-anchor="end" x="51" y="125.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">0</text></g> <g><text text-anchor="end" x="51" y="79.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">10</text></g> <g><text text-anchor="end" x="51" y="33.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">20</text></g> </g> </g> <g></g> </svg> </div> </div> </div> </div> 
+									</div>
+								</div>
+								</div>
+								<div class="table-header-title">
+									<h4>고령화 추세진단</h4>
+								</div>
+								<div class="graph-align type02">
+									<div class="column-type02">
+										<div class="graph-left">
+											<div id="graph12"> <div style="position: relative;"> <div dir="ltr" style="position: relative; width: 390px; height: 200px;"> <div aria-label="차트입니다." style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;"><svg width="390" height="200" aria-label="차트입니다." style="overflow: hidden;"> <defs id="defs"> <clipPath id="_ABSTRACT_RENDERER_ID_36"> <rect x="45" y="38" width="300" height="124"></rect> </clipPath> </defs> <rect x="0" y="0" width="390" height="200" stroke="none" stroke-width="0" fill="#ffffff"></rect> <g><text text-anchor="start" x="45" y="23.9" font-family="돋움체" font-size="14" font-weight="bold" stroke="none" stroke-width="0" fill="#000000">5년간 평균 0-14세미만 인구증가율(%)</text> <rect x="45" y="12" width="300" height="14" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> </g> <g> <rect x="45" y="38" width="300" height="124" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> <g clip-path="url(https://sgis.kostat.go.kr/publicsmodel/trendAnalysis.vw#_ABSTRACT_RENDERER_ID_36)"> <g> <rect x="45" y="161" width="300" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="45" y="130" width="300" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="45" y="100" width="300" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="45" y="69" width="300" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="45" y="38" width="300" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> </g> <g> <rect x="65" y="39" width="30" height="113" stroke="none" stroke-width="0" fill="#3366cc"></rect> <rect x="164" y="38" width="31" height="0.5" stroke="none" stroke-width="0" fill="#3366cc"></rect> <rect x="264" y="38" width="30" height="0.5" stroke="none" stroke-width="0" fill="#3366cc"></rect> <rect x="96" y="38" width="30" height="0.5" stroke="none" stroke-width="0" fill="#dc3912"></rect> <rect x="196" y="39" width="30" height="85" stroke="none" stroke-width="0" fill="#dc3912"></rect> <rect x="295" y="39" width="30" height="72" stroke="none" stroke-width="0" fill="#dc3912"></rect> </g> <g> <rect x="45" y="38" width="300" height="1" stroke="none" stroke-width="0" fill="#333333"></rect> </g> </g> <g></g> <g> <g><text text-anchor="middle" x="95.33333333333334" y="178.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">서구</text></g> <g><text text-anchor="middle" x="195" y="178.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">대전광역시</text></g> <g><text text-anchor="middle" x="294.6666666666667" y="178.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">전국</text></g> <g><text text-anchor="end" x="34" y="165.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">-4</text></g> <g><text text-anchor="end" x="34" y="134.6" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">-3</text></g> <g><text text-anchor="end" x="34" y="103.85" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">-2</text></g> <g><text text-anchor="end" x="34" y="73.1" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">-1</text></g> <g><text text-anchor="end" x="34" y="42.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">0</text></g> </g> </g> <g></g> </svg> </div> </div> </div> </div> <div id="graph13"> <div style="position: relative;"> <div dir="ltr" style="position: relative; width: 390px; height: 200px;"> <div aria-label="차트입니다." style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;"><svg width="390" height="200" aria-label="차트입니다." style="overflow: hidden;"> <defs id="defs"> <clipPath id="_ABSTRACT_RENDERER_ID_28"> <rect x="45" y="38" width="300" height="124"></rect> </clipPath> </defs> <rect x="0" y="0" width="390" height="200" stroke="none" stroke-width="0" fill="#ffffff"></rect> <g><text text-anchor="start" x="45" y="23.9" font-family="돋움체" font-size="14" font-weight="bold" stroke="none" stroke-width="0" fill="#000000">5년간 평균 65세이상 인구증가율(%)</text> <rect x="45" y="12" width="300" height="14" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> </g> <g> <rect x="45" y="38" width="300" height="124" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> <g clip-path="url(https://sgis.kostat.go.kr/publicsmodel/trendAnalysis.vw#_ABSTRACT_RENDERER_ID_28)"> <g> <rect x="45" y="161" width="300" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="45" y="130" width="300" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="45" y="100" width="300" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="45" y="69" width="300" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="45" y="38" width="300" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> </g> <g> <rect x="65" y="68" width="30" height="93" stroke="none" stroke-width="0" fill="#3366cc"></rect> <rect x="164" y="161" width="31" height="0.5" stroke="none" stroke-width="0" fill="#3366cc"></rect> <rect x="264" y="161" width="30" height="0.5" stroke="none" stroke-width="0" fill="#3366cc"></rect> <rect x="96" y="161" width="30" height="0.5" stroke="none" stroke-width="0" fill="#dc3912"></rect> <rect x="196" y="68" width="30" height="93" stroke="none" stroke-width="0" fill="#dc3912"></rect> <rect x="295" y="82" width="30" height="79" stroke="none" stroke-width="0" fill="#dc3912"></rect> </g> <g> <rect x="45" y="161" width="300" height="1" stroke="none" stroke-width="0" fill="#333333"></rect> </g> </g> <g></g> <g> <g><text text-anchor="middle" x="95.33333333333334" y="178.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">서구</text></g> <g><text text-anchor="middle" x="195" y="178.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">대전광역시</text></g> <g><text text-anchor="middle" x="294.6666666666667" y="178.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">전국</text></g> <g><text text-anchor="end" x="34" y="165.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">0.0</text></g> <g><text text-anchor="end" x="34" y="134.6" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">1.5</text></g> <g><text text-anchor="end" x="34" y="103.85" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">3.0</text></g> <g><text text-anchor="end" x="34" y="73.1" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">4.5</text></g> <g><text text-anchor="end" x="34" y="42.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#444444">6.0</text></g> </g> </g> <g></g> </svg> </div> </div> </div> </div> </div>
+										<div class="graph-right">
+											<div><span>고령인구증가</span></div>
+											<div id="graph-img"><img src="../../include/images/chartXY.png" id="graph14" alt="서구 표준화값 그래프"></div>
+											<div><span>고령인구감소</span></div>
+										</div>
+									</div>
+								</div>
+									<div class="aging-table" id="">
+										<table id="valueTable4">
+											<thead>
+												<tr>
+													<th></th>
+													<th>서구 증가율(%)</th>
+													<th>서구 표준화값<a href="#" style="padding-left: 10px" onclick="return false;" onmouseover="showInformation(&quot;2&quot;)" onmouseout="hideInformation(&quot;2&quot;)"><img src="../../include/images/ico_i.png" alt=""></a></th>
+													<th>대전광역시 증가율(%)</th>
+													<th>전국 증가율(%)</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr>
+													<td>14세이하</td>
+													<td>-3.71</td>
+													<td>-1.00</td>
+													<td>-2.79</td>
+													<td>-2.37</td>
+												</tr>
+												<tr>
+													<td>65세이상</td>
+													<td>4.58</td>
+													<td>1.00</td>
+													<td>4.57</td>
+													<td>3.90</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+									<div class="graph-align">
+										<div class="column">
+											<div class="part01">
+												<div id="graph-left" src="http://chart.apis.google.com/chart?chs=210x100&amp;cht=lc&amp;chco=ff0000,0000ff&amp;chm=o,ff0000,0,-1,5|s,0000ff,1,-1,5&amp;chxt=x,y&amp;chts=000000,14&amp;chxs=0,4E4E4E,11|1,4E4E4E,11&amp;chxtc=1,10|2,-180&amp;chd=t:22.2,20.3,17.2,14.7|23.7,20.9,17.3,14.6&amp;chds=10,30&amp;chtt=0-14%EC%84%B8%20%EC%9D%B8%EA%B5%AC%EA%B5%AC%EC%84%B1%EB%B9%84(%25)&amp;chxl=0:|2000|2005|2010|2015|1:|10|30" alt="0-14세 인구구성비(%)"> <div style="position: relative;"> <div dir="ltr"> <div aria-label="차트입니다." style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;"><svg aria-label="차트입니다." style="overflow: hidden;"> <defs id="defs"> <clipPath id="_ABSTRACT_RENDERER_ID_22"> <rect x="62" y="29" width="367" height="93"></rect> </clipPath> </defs> <rect x="0" y="0" stroke="none" stroke-width="0" fill="#ffffff"></rect> <g><text text-anchor="start" x="62" y="19.4" font-family="돋움체" font-size="14" font-weight="bold" stroke="none" stroke-width="0" fill="#000000">0-14세 인구구성비(%)</text> <rect x="62" y="7.5" width="367" height="14" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> </g> <g> <rect x="62" y="29" width="367" height="93" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> <g clip-path="url(https://sgis.kostat.go.kr/publicsmodel/trendAnalysis.vw#_ABSTRACT_RENDERER_ID_22)"> <g> <rect x="62" y="121" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="75" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="29" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="98" width="367" height="1" stroke="none" stroke-width="0" fill="#ebebeb"></rect> <rect x="62" y="52" width="367" height="1" stroke="none" stroke-width="0" fill="#ebebeb"></rect> </g> <g> <path d="M108.25,58.48000000000001L199.75,71.36000000000001L291.25,87.92L382.75,100.34" stroke="#3366cc" stroke-width="2" fill-opacity="1" fill="none"></path> <path d="M108.25,65.38000000000001L199.75,74.12L291.25,88.38L382.75,99.88000000000001" stroke="#dc3912" stroke-width="2" fill-opacity="1" fill="none"></path> </g> </g> <g> <circle cx="108.25" cy="58.48000000000001" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="199.75" cy="71.36000000000001" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="291.25" cy="87.92" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="382.75" cy="100.34" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="108.25" cy="65.38000000000001" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="199.75" cy="74.12" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="291.25" cy="88.38" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="382.75" cy="99.88000000000001" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> </g> <g> <g><text text-anchor="middle" x="108.25" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2000</text></g> <g><text text-anchor="middle" x="199.75" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2005</text></g> <g><text text-anchor="middle" x="291.25" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2010</text></g> <g><text text-anchor="middle" x="382.75" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2015</text></g> <g><text text-anchor="end" x="51" y="125.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">10</text></g> <g><text text-anchor="end" x="51" y="79.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">20</text></g> <g><text text-anchor="end" x="51" y="33.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">30</text></g> </g> </g> <g></g> </svg> </div> </div> </div> </div> 
+												<div id="graph-center" src="http://chart.apis.google.com/chart?chs=210x100&amp;cht=lc&amp;chco=ff0000,0000ff&amp;chm=o,ff0000,0,-1,5|s,0000ff,1,-1,5&amp;chxt=x,y&amp;chts=000000,14&amp;chxs=0,4E4E4E,11|1,4E4E4E,11&amp;chxtc=1,10|2,-180&amp;chd=t:72.3,72.7,74,74.6|71.9,73.4,75.2,75.8&amp;chds=70,80&amp;chtt=15-64%EC%84%B8%20%EC%9D%B8%EA%B5%AC%EA%B5%AC%EC%84%B1%EB%B9%84(%25)&amp;chxl=0:|2000|2005|2010|2015|1:|70|80" alt="15-64세 인구구성비(%)"> <div style="position: relative;"> <div dir="ltr"> <div aria-label="차트입니다." style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;"><svg aria-label="차트입니다." style="overflow: hidden;"> <defs id="defs"> <clipPath id="_ABSTRACT_RENDERER_ID_23"> <rect x="62" y="29" width="367" height="93"></rect> </clipPath> </defs> <rect x="0" y="0" stroke="none" stroke-width="0" fill="#ffffff"></rect> <g><text text-anchor="start" x="62" y="19.4" font-family="돋움체" font-size="14" font-weight="bold" stroke="none" stroke-width="0" fill="#000000">15-64세 인구구성비(%)</text> <rect x="62" y="7.5" width="367" height="14" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> </g> <g> <rect x="62" y="29" width="367" height="93" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> <g clip-path="url(https://sgis.kostat.go.kr/publicsmodel/trendAnalysis.vw#_ABSTRACT_RENDERER_ID_23)"> <g> <rect x="62" y="121" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="75" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="29" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="98" width="367" height="1" stroke="none" stroke-width="0" fill="#ebebeb"></rect> <rect x="62" y="52" width="367" height="1" stroke="none" stroke-width="0" fill="#ebebeb"></rect> </g> <g> <path d="M108.25,104.01999999999995L199.75,90.21999999999994L291.25,73.65999999999997L382.75,68.14000000000003" stroke="#3366cc" stroke-width="2" fill-opacity="1" fill="none"></path> <path d="M108.25,100.34000000000003L199.75,96.65999999999997L291.25,84.7L382.75,79.18000000000006" stroke="#dc3912" stroke-width="2" fill-opacity="1" fill="none"></path> </g> </g> <g> <circle cx="108.25" cy="104.01999999999995" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="199.75" cy="90.21999999999994" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="291.25" cy="73.65999999999997" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="382.75" cy="68.14000000000003" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="108.25" cy="100.34000000000003" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="199.75" cy="96.65999999999997" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="291.25" cy="84.7" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="382.75" cy="79.18000000000006" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> </g> <g> <g><text text-anchor="middle" x="108.25" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2000</text></g> <g><text text-anchor="middle" x="199.75" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2005</text></g> <g><text text-anchor="middle" x="291.25" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2010</text></g> <g><text text-anchor="middle" x="382.75" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2015</text></g> <g><text text-anchor="end" x="51" y="125.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">70</text></g> <g><text text-anchor="end" x="51" y="79.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">75</text></g> <g><text text-anchor="end" x="51" y="33.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">80</text></g> </g> </g> <g></g> </svg> </div> </div> </div> </div> 
+												<div id="graph-right" src="http://chart.apis.google.com/chart?chs=210x100&amp;cht=lc&amp;chco=ff0000,0000ff&amp;chm=o,ff0000,0,-1,5|s,0000ff,1,-1,5&amp;chxt=x,y&amp;chts=000000,14&amp;chxs=0,4E4E4E,11|1,4E4E4E,11&amp;chxtc=1,10|2,-180&amp;chd=t:5.5,7,8.8,10.8|4.4,5.7,7.5,9.6&amp;chds=0,20&amp;chtt=65%EC%84%B8%EC%9D%B4%EC%83%81%20%EC%9D%B8%EA%B5%AC%EA%B5%AC%EC%84%B1%EB%B9%84(%25)&amp;chxl=0:|2000|2005|2010|2015|1:|0|20" alt="65세이상 인구구성비(%)"> <div style="position: relative;"> <div dir="ltr"> <div aria-label="차트입니다." style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;"><svg aria-label="차트입니다." style="overflow: hidden;"> <defs id="defs"> <clipPath id="_ABSTRACT_RENDERER_ID_24"> <rect x="62" y="29" width="367" height="93"></rect> </clipPath> </defs> <rect x="0" y="0" stroke="none" stroke-width="0" fill="#ffffff"></rect> <g><text text-anchor="start" x="62" y="19.4" font-family="돋움체" font-size="14" font-weight="bold" stroke="none" stroke-width="0" fill="#000000">65세이상 인구구성비(%)</text> <rect x="62" y="7.5" width="367" height="14" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> </g> <g> <rect x="62" y="29" width="367" height="93" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> <g clip-path="url(https://sgis.kostat.go.kr/publicsmodel/trendAnalysis.vw#_ABSTRACT_RENDERER_ID_24)"> <g> <rect x="62" y="121" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="75" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="29" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="98" width="367" height="1" stroke="none" stroke-width="0" fill="#ebebeb"></rect> <rect x="62" y="52" width="367" height="1" stroke="none" stroke-width="0" fill="#ebebeb"></rect> </g> <g> <rect x="62" y="121" width="367" height="1" stroke="none" stroke-width="0" fill="#333333"></rect> </g> <g> <path d="M108.25,101.26L199.75,95.28L291.25,87L382.75,77.34" stroke="#3366cc" stroke-width="2" fill-opacity="1" fill="none"></path> <path d="M108.25,96.2L199.75,89.30000000000001L291.25,81.02000000000001L382.75,71.82" stroke="#dc3912" stroke-width="2" fill-opacity="1" fill="none"></path> </g> </g> <g> <circle cx="108.25" cy="101.26" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="199.75" cy="95.28" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="291.25" cy="87" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="382.75" cy="77.34" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="108.25" cy="96.2" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="199.75" cy="89.30000000000001" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="291.25" cy="81.02000000000001" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="382.75" cy="71.82" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> </g> <g> <g><text text-anchor="middle" x="108.25" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2000</text></g> <g><text text-anchor="middle" x="199.75" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2005</text></g> <g><text text-anchor="middle" x="291.25" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2010</text></g> <g><text text-anchor="middle" x="382.75" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2015</text></g> <g><text text-anchor="end" x="51" y="125.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">0</text></g> <g><text text-anchor="end" x="51" y="79.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">10</text></g> <g><text text-anchor="end" x="51" y="33.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">20</text></g> </g> </g> <g></g> </svg> </div> </div> </div> </div> 
+											</div>
+										<div class="part02">
+											<div id="graph-left" src="http://chart.apis.google.com/chart?chs=210x100&amp;cht=lc&amp;chco=ff0000,0000ff&amp;chm=o,ff0000,0,-1,5|s,0000ff,1,-1,5&amp;chxt=x,y&amp;chts=000000,14&amp;chxs=0,4E4E4E,11|1,4E4E4E,11&amp;chxtc=1,10|2,-180&amp;chd=t:22.2,20.3,17.2,14.7|23.7,20.9,17.3,14.6&amp;chds=10,30&amp;chtt=0-14%EC%84%B8%20%EC%9D%B8%EA%B5%AC%EA%B5%AC%EC%84%B1%EB%B9%84(%25)&amp;chxl=0:|2000|2005|2010|2015|1:|10|30" alt="0-14세 인구구성비(%)"> <div style="position: relative;"> <div dir="ltr"> <div aria-label="차트입니다." style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;"><svg aria-label="차트입니다." style="overflow: hidden;"> <defs id="defs"> <clipPath id="_ABSTRACT_RENDERER_ID_22"> <rect x="62" y="29" width="367" height="93"></rect> </clipPath> </defs> <rect x="0" y="0" stroke="none" stroke-width="0" fill="#ffffff"></rect> <g><text text-anchor="start" x="62" y="19.4" font-family="돋움체" font-size="14" font-weight="bold" stroke="none" stroke-width="0" fill="#000000">0-14세 인구구성비(%)</text> <rect x="62" y="7.5" width="367" height="14" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> </g> <g> <rect x="62" y="29" width="367" height="93" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> <g clip-path="url(https://sgis.kostat.go.kr/publicsmodel/trendAnalysis.vw#_ABSTRACT_RENDERER_ID_22)"> <g> <rect x="62" y="121" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="75" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="29" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="98" width="367" height="1" stroke="none" stroke-width="0" fill="#ebebeb"></rect> <rect x="62" y="52" width="367" height="1" stroke="none" stroke-width="0" fill="#ebebeb"></rect> </g> <g> <path d="M108.25,58.48000000000001L199.75,71.36000000000001L291.25,87.92L382.75,100.34" stroke="#3366cc" stroke-width="2" fill-opacity="1" fill="none"></path> <path d="M108.25,65.38000000000001L199.75,74.12L291.25,88.38L382.75,99.88000000000001" stroke="#dc3912" stroke-width="2" fill-opacity="1" fill="none"></path> </g> </g> <g> <circle cx="108.25" cy="58.48000000000001" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="199.75" cy="71.36000000000001" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="291.25" cy="87.92" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="382.75" cy="100.34" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="108.25" cy="65.38000000000001" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="199.75" cy="74.12" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="291.25" cy="88.38" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="382.75" cy="99.88000000000001" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> </g> <g> <g><text text-anchor="middle" x="108.25" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2000</text></g> <g><text text-anchor="middle" x="199.75" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2005</text></g> <g><text text-anchor="middle" x="291.25" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2010</text></g> <g><text text-anchor="middle" x="382.75" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2015</text></g> <g><text text-anchor="end" x="51" y="125.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">10</text></g> <g><text text-anchor="end" x="51" y="79.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">20</text></g> <g><text text-anchor="end" x="51" y="33.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">30</text></g> </g> </g> <g></g> </svg> </div> </div> </div> 
+										</div> 
+											<div id="data-ceter">
+												<dl>
+													<dt><span>빨간색은 대전광역시</span></dt>
+													<dd>대전광역시</dd> 
+													<dt><span>파란색은 서구</span></dt>
+													<dd>서구</dd>
+												</dl>
+												<div class="infor-notice" id="">
+													<ul>
+														<li>전국 기준으로 2005년에 <em>고령화사회</em>로 접어들고 2020년에 <em>고령사회</em>로 접어들고, 2030년에는 <em>초고령사회</em>로 진입할 것으로 예상됨</li>
+														<li>대전광역시 기준으로 2010년에 <em>고령화사회</em>로 접어들고 2025년에 <em>고령화사회</em>로 접어들고, 2030년에는 <em>초고령사회</em>로 진입할 것으로 예상됨</li>
+													</ul>
+												</div>
+											</div>	
+											<div id="graph-right" src="http://chart.apis.google.com/chart?chs=210x100&amp;cht=lc&amp;chco=ff0000,0000ff&amp;chm=o,ff0000,0,-1,5|s,0000ff,1,-1,5&amp;chxt=x,y&amp;chts=000000,14&amp;chxs=0,4E4E4E,11|1,4E4E4E,11&amp;chxtc=1,10|2,-180&amp;chd=t:5.5,7,8.8,10.8|4.4,5.7,7.5,9.6&amp;chds=0,20&amp;chtt=65%EC%84%B8%EC%9D%B4%EC%83%81%20%EC%9D%B8%EA%B5%AC%EA%B5%AC%EC%84%B1%EB%B9%84(%25)&amp;chxl=0:|2000|2005|2010|2015|1:|0|20" alt="65세이상 인구구성비(%)"> <div style="position: relative;"> <div dir="ltr"> <div aria-label="차트입니다." style="position: absolute; left: 0px; top: 0px; width: 100%; height: 100%;"><svg aria-label="차트입니다." style="overflow: hidden;"> <defs id="defs"> <clipPath id="_ABSTRACT_RENDERER_ID_24"> <rect x="62" y="29" width="367" height="93"></rect> </clipPath> </defs> <rect x="0" y="0" stroke="none" stroke-width="0" fill="#ffffff"></rect> <g><text text-anchor="start" x="62" y="19.4" font-family="돋움체" font-size="14" font-weight="bold" stroke="none" stroke-width="0" fill="#000000">65세이상 인구구성비(%)</text> <rect x="62" y="7.5" width="367" height="14" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> </g> <g> <rect x="62" y="29" width="367" height="93" stroke="none" stroke-width="0" fill-opacity="0" fill="#ffffff"></rect> <g clip-path="url(https://sgis.kostat.go.kr/publicsmodel/trendAnalysis.vw#_ABSTRACT_RENDERER_ID_24)"> <g> <rect x="62" y="121" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="75" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="29" width="367" height="1" stroke="none" stroke-width="0" fill="#cccccc"></rect> <rect x="62" y="98" width="367" height="1" stroke="none" stroke-width="0" fill="#ebebeb"></rect> <rect x="62" y="52" width="367" height="1" stroke="none" stroke-width="0" fill="#ebebeb"></rect> </g> <g> <rect x="62" y="121" width="367" height="1" stroke="none" stroke-width="0" fill="#333333"></rect> </g> <g> <path d="M108.25,101.26L199.75,95.28L291.25,87L382.75,77.34" stroke="#3366cc" stroke-width="2" fill-opacity="1" fill="none"></path> <path d="M108.25,96.2L199.75,89.30000000000001L291.25,81.02000000000001L382.75,71.82" stroke="#dc3912" stroke-width="2" fill-opacity="1" fill="none"></path> </g> </g> <g> <circle cx="108.25" cy="101.26" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="199.75" cy="95.28" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="291.25" cy="87" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="382.75" cy="77.34" r="3.5" stroke="none" stroke-width="0" fill="#3366cc"></circle> <circle cx="108.25" cy="96.2" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="199.75" cy="89.30000000000001" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="291.25" cy="81.02000000000001" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> <circle cx="382.75" cy="71.82" r="3.5" stroke="none" stroke-width="0" fill="#dc3912"></circle> </g> <g> <g><text text-anchor="middle" x="108.25" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2000</text></g> <g><text text-anchor="middle" x="199.75" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2005</text></g> <g><text text-anchor="middle" x="291.25" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2010</text></g> <g><text text-anchor="middle" x="382.75" y="138.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#222222">2015</text></g> <g><text text-anchor="end" x="51" y="125.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">0</text></g> <g><text text-anchor="end" x="51" y="79.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">10</text></g> <g><text text-anchor="end" x="51" y="33.35" font-family="돋움체" font-size="11" stroke="none" stroke-width="0" fill="#4e4e4e">20</text></g> </g> </g> <g></g> </svg> </div> </div> </div> </div> 
+										</div>
+										</div>
+									</div>
+							</div>
+							</div>
+						</div>
+						<!-- right menu -->
+					</div>
+				</div>
+				<!-- //분석지도 맵 컨텐츠 끝 -->
+				<a href="javascript:void(0)" class="sideQuick sq02" id="map_left_btn" tabindex="97">
+					<span>통계메뉴</span><img src="../../include/images/ico_totalmenu.gif"alt="통계메뉴"/>
+				</a>
+<!-- 				<div class="buttonBar ui-draggable">
+					<a href="javascript:void(0)" class="sideQuick sq03 result xw"><span>선택항목</span></a>
+					<div class="sqListBox sq03" id="sqlListBox">
+						<div class="sqTabs">
+							<div id="gridHideShowNumberBtn" style="float:right">
+								<span>통계표출</span>
+								<a href="javascript:void(0)" id="showNumberBtn">off</a>
+							</div>
+							<div style="float:right">
+								<div id="dataSlider_item"></div> 
+							</div>	
+						</div>
+						<div id="searchBtnResultRgn" class="sqList result">
+							<ul>
+								<li class="dragItem ui-draggable">
+									<a href="javascript:void(0)" class="ellipsis drag on M_on" title="노인인구비율">
+										<div class="text">노인인구비율</div>
+										<div class="atdrc_yn" style="display:none;"></div>
+									</a><a href="javascript:$interactiveLeftMenu.ui.deleteSearchBtn(0);" class="sqdel"><img src="../../include/images/btn_closel01.png" alt="삭제" class="mCS_img_loaded"></a>
+								</li>
+								<li class="dragItem ui-draggable">
+									<a href="javascript:void(0)" class="ellipsis drag" title="노인인구">
+										<div class="text">노인인구</div>
+										<div class="atdrc_yn" style="display:none;"></div>
+									</a><a href="javascript:$interactiveLeftMenu.ui.deleteSearchBtn(0);" class="sqdel"><img src="../../include/images/btn_closel01.png" alt="삭제" class="mCS_img_loaded"></a>
+								</li>
+								<li class="dragItem ui-draggable">
+									<a href="javascript:void(0)" class="ellipsis drag" title="노령화지수">
+										<div class="text">노령화지수</div>
+										<div class="atdrc_yn" style="display:none;"></div>
+									</a><a href="javascript:$interactiveLeftMenu.ui.deleteSearchBtn(0);" class="sqdel"><img src="../../include/images/btn_closel01.png" alt="삭제" class="mCS_img_loaded"></a>
+								</li>
+								<li class="dragItem ui-draggable">
+									<a href="javascript:void(0)" class="ellipsis drag" title="고령인구비율">
+										<div class="text">고령인구비율</div>
+										<div class="atdrc_yn" style="display:none;"></div>
+									</a><a href="javascript:$interactiveLeftMenu.ui.deleteSearchBtn(0);" class="sqdel"><img src="../../include/images/btn_closel01.png" alt="삭제" class="mCS_img_loaded"></a>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div> -->
+				<!-- 왼쪽메뉴  -->
+				<div class="leftArea">
+					<div class="shadow"></div>
+					<div class="quickBox step01">
+						<div class="subj">
+							<h2>고령화 현황보기</h2>
+						</div>
+						<div class="scrollBox">
+							<ul class="agingul ul-area">
+								<li><a href="javascript:void(0)">고령화주제도</a></li>
+								<li><a href="javascript:void(0)">현황비교</a></li>
+								<li><a href="javascript:void(0)">추세비교</a></li>
+								<li><a href="javascript:void(0)">복지시설</a></li>
+							</ul>
+							<ol class="stat-infor">
+								<li><a href="/">보고서 보기</a></li>
+								<li><a href="/">도움말 보기</a></li>
+								<li><a href="/">전체 확면 확대</a></li>
+							</ol>
+						</div>
+						<div class="menuAutoClose">
+							<input type="radio " name="menuAutoClose_radio " id="menuAutoClose_radio " onclick="$interactiveLeftMenu.ui.sqlListBoxPosition( '244px'); ">
+							<label for="menuAutoClose_radio " class="on ">메뉴 자동닫기</label>
+						</div>
+						<div class="bottom "><a href="javascript:void(0) " class="buttom stepClose ">닫기</a></div>
+					</div>
+					<div class="nav-sidebar">
+						<ul class="aging-compare nav-list ">
+							<li><a href="javascript:void(0)" title="고령화주제도"><span>고령화주제도</span></a></li>
+							<li><a href="javascript:void(0)" title="현황비교"><span>현황비교</span></a></li>
+							<li><a href="javascript:void(0)" title="추세비교"><span>추세비교</span></a></li>
+							<li><a href="javascript:void(0)" title="복지시설"><span>복지시설</span></a></li>
+						</ul>
+					</div>
+					<div class="quickBox step02">
+						<div class="subj">
+							<h2>현황비교 세부지표 선택<a href="javascript:void(0)" class="ar" ><!-- <img src="../../include/images/ico/ico_tooltip01.png" alt="물음표" > --></a></h2>
+							<a href="javascript:void(0)"></a>
+						</div>
+						<div class="normalBox">
+							<div class="stepBox group">
+								<ul class="radioType">
+									<li>
+										<input type="radio" name=" " id=" " value=" " />
+										<label id=" " for=" ">고령화주제도</label>
+									</li>
+									<li>
+										<input type="radio " name=" " id=" " value=" " />
+										<label id=" " for=" ">생활비원천별 고령자</label>
+									</li>
+									<li>
+										<input type="radio" name=" " id=" " value=" " />
+										<label id=" " for=" ">거처의 종류별 가구</label>
+									</li>
+									<li>
+										<input type="radio " name=" " id=" " value=" " />
+										<label id=" " for=" ">국민기초 일반수급자수</label>
+									</li>
+									<li>
+										<input type="radio" name=" " id=" " value=" " />
+										<label id=" " for=" ">생활비 마련방법(60세 이상인구)</label>
+									</li>
+									<li>
+										<input type="radio " name=" " id=" " value=" " />
+										<label id=" " for=" ">산업별 종사현황</label>
+									</li>
+								</ul>
+							</div>
+						</div>
+						<div class="bottom "><a href="javascript:void(0) " class="stepClose ">닫기</a></div>
+					</div>
+				</div>
+				<!-- 왼쪽메뉴  end -->
+				<!-- 데이터보드 -->
+				<div id="dataBoard">
+					<a href="javascript:void(0)" class="interactiveDataBoard pacific-Blue ">데이터보드</a>
+					<div class="dataSideBox pacific-Blue">
+						<div class="bar ">
+							<div id="dataSlider" class="dataSlider"></div>
+							<a href="javascript:void(0)" class="stepClose-data">데이터보드 닫기</a>
+						</div>
+						<div class="dataSideContents">
+							<div class="dataSideScroll">
+							<dl class="dscList">
+								<div class="direction-area">
+									<p class="zone">대전광역시 서구 둔산2동</p>
+									<span class="infor">원하는 지역을 선택하여 해당 지역의 다양한 통계정보를 확인하실 수 있습니다.</span>
+								</div>
+								<dt class="area-tit"><a href="javascript:void(0)"><span>복지시설위치</span></a></dt>
+								<div class="citation"><span>[ 출처: 2016년 전국사업체조사 ]</span></div>
+								<dd>
+									<div class="databoard-table type02">
+										<table id="facilitiesTable">
+											<thead>
+												<tr>
+													<th>복지시설명</th>
+													<th>복지시설주소</th>
+												</tr>
+											</thead>
+											<tbody>
+												<tr>
+													<td><a href="#" onclick=""><img src="../../include/images/ico/map-marker.png" alt="">편안세상</a></td>
+													<td>대전광역시 서구 기성동</td>
+												</tr>
+												<tr>
+													<td><a href="#" onclick=""><img src="../../include/images/ico/map-marker.png" alt="">사랑가득한집</a></td>
+													<td>대전광역시 서구 기성동</td>
+												</tr>
+												<tr>
+													<td><a href="#" onclick=""><img src="../../include/images/ico/map-marker.png" alt="">사랑가득한집</a></td>
+													<td>대전광역시 서구 기성동</td>
+												</tr>
+													<tr>
+													<td><a href="#" onclick=""><img src="../../include/images/ico/map-marker.png" alt="">사랑가득한집</a></td>
+													<td>대전광역시 서구 기성동</td>
+												</tr>
+												<tr>
+													<td><a href="#" onclick=""><img src="../../include/images/ico/map-marker.png" alt="">사랑가득한집</a></td>
+													<td>대전광역시 서구 기성동</td>
+												</tr>
+												<tr>
+													<td><a href="#" onclick=""><img src="../../include/images/ico/map-marker.png" alt="">사랑가득한집</a></td>
+													<td>대전광역시 서구 기성동</td>
+												</tr>
+												<tr>
+													<td><a href="#" onclick=""><img src="../../include/images/ico/map-marker.png" alt="">사랑가득한집</a></td>
+													<td>대전광역시 서구 기성동</td>
+												</tr>
+												<tr>
+													<td><a href="#" onclick=""><img src="../../include/images/ico/map-marker.png" alt="">사랑가득한집</a></td>
+													<td>대전광역시 서구 기성동</td>
+												</tr>
+											</tbody>
+										</table>
+									</div>
+								</dd>
+								<dt class="area-tit"><a href="javascript:void(0)"><span>노인주거 복지시설</span></a></dt>
+								<div class="citation"><span>[ 출처: 2018년 노인복지시설현황(보건복지부) ]</span></div>
+								<dd>
+									<div class="databoard-table type03">
+									<table id="dataTable1">
+										<thead>
+											<tr>
+												<th rowspan="3">지역</th>
+												<th colspan="12">노인주거복지시설</th>
+											</tr>
+											<tr>
+												<th colspan="3">양로시설</th>
+												<th colspan="3">공동생활가정</th>
+												<th colspan="3">노인복지주택</th>
+												<th colspan="3">합계</th>
+											</tr>
+											<tr>
+												<th>시설수</th>
+												<th>정원</th>
+												<th>현원</th>
+												<th>시설수</th>
+												<th>정원</th>
+												<th>현원</th>
+												<th>시설수</th>
+												<th>정원</th>
+												<th>현원</th>
+												<th>시설수</th>
+												<th>정원</th>
+												<th>현원</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td>대전광역시</td>
+												<td>3</td>
+												<td>247</td>
+												<td>92</td>
+												<td>5</td>
+												<td>36</td>
+												<td>23</td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>8</td>
+												<td>283</td>
+												<td>115</td>
+											</tr>
+											<tr>
+												<td><a href="#" onclick="">대전광역시 서구</a></td>
+												<td>1</td>
+												<td>70</td>
+												<td>25</td>
+												<td>1</td>
+												<td>6</td>
+												<td>1</td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>2</td>
+												<td>76</td>
+												<td>26</td>
+											</tr>
+											<tr>
+												<th colspan="121">인접지역</th>
+											</tr>
+											<tr>
+												<td><a href="#" onclick="">대전광역시 중구</a></td>
+												<td>1</td>
+												<td>125</td>
+												<td>15</td>
+												<td>2</td>
+												<td>16</td>
+												<td>16</td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>3</td>
+												<td>141</td>
+												<td>31</td>
+											</tr>
+											<tr>
+												<td><a href="#" onclick="">대전광역시 유성구</a></td>
+												<td>1</td>
+												<td>52</td>
+												<td>52</td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>1</td>
+												<td>52</td>
+												<td>52</td>
+											</tr>
+											<tr>
+												<td><a href="#" onclick="">대전광역시 대덕구</a></td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>1</td>
+												<td>6</td>
+												<td>5</td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>1</td>
+												<td>6</td>
+												<td>5</td>
+											</tr>
+											<tr>
+												<td><a href="#" onclick="">충청남도 논산시</a></td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>4</td>
+												<td>35</td>
+												<td>26</td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>4</td>
+												<td>35</td>
+												<td>26</td>
+											</tr>
+											<tr>
+												<td><a href="#" onclick="">충청남도 계룡시</a></td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+											</tr>
+											<tr>
+												<td><a href="#" onclick="">충청남도 금산군</a></td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>2</td>
+												<td>18</td>
+												<td>13</td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>2</td>
+												<td>18</td>
+												<td>13</td>
+											</tr>
+											<tr>
+												<th colspan="121">시군구</th>
+											</tr>
+											<tr>
+												<td><a href="#" onclick="">대전광역시 동구</a></td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>1</td>
+												<td>8</td>
+												<td>4</td>
+												<td>0</td>
+												<td>0</td>
+												<td>0</td>
+												<td>1</td>
+												<td>8</td>
+												<td>4</td>
+											</tr>
+										</tbody>
+									</table>
+									</div>
+								</dd>
+
+								<dt class="area-tit"><a href="javascript:void(0)"><span>향후 자녀와 동거 의향(60세 이상)</span></a></dt>
+								<div class="citation"><span>[ 출처: 2017년 사회조사 ]</span></div>
+								<dd>
+									<div class="databoard-table type04">
+									<table id="welfareTable">
+										<thead>
+											<tr>
+												<th rowspan="2">향후 자녀와 동거 의향</th>
+												<th>전국</th>
+												<th>대전광역시</th>
+											</tr>
+											<tr>
+												<th>향후 자녀와 동거의향(%)</th>
+												<th>향후 자녀와 동거의향(%)</th>
+											</tr>
+										</thead>
+										<tbody>
+											<tr>
+												<td>같이 살고 싶음</td>
+												<td>22.2</td>
+												<td class="em-color">18.1</td>
+											</tr>
+											<tr>
+												<td>같이 살고 싶지 않음</td>
+												<td>77.8</td>
+												<td class="em-color">81.9</td>
+											</tr>
+											<tr>
+												<td>자기 집</td>
+												<td>87.4</td>
+												<td class="em-color">85.3</td>
+											</tr>
+											<tr>
+												<td>양로 요양 시설</td>
+												<td>12.6</td>
+												<td class="em-color">14.7</td>
+											</tr>
+											<tr>
+												<td>기타</td>
+												<td>0</td>
+												<td class="em-color">0</td>
+											</tr>
+										</tbody>
+									</table>
+									</div>
+								</dd>
+							</div>
+						</div>
+					</div>
+					<form id="excelDownForm" name="excelDownForm" method="post"></form>
+				</div>
+				<!-- //데이터보드 end -->
+			</div>
+			<!--//rela-->
+		</div>
+		<!--//containerBox-->
+	</div>
+	<!--//wrap-->
+
+</body>
+
+</html>

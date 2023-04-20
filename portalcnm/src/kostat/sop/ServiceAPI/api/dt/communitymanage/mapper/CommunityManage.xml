@@ -1,0 +1,440 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="CommunityManage">
+	<sql id="cmmntyItem">
+		SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID,
+		SRV_DT_CMMNTY_MAP.CMMNTY_MAP_NM,
+		SRV_DT_CMMNTY_MAP.INTRCN,
+		SRV_DT_CMMNTY_MAP.AREA_ESTBS_SIDO_CD,
+		SRV_DT_CMMNTY_MAP.AREA_ESTBS_SGG_CD,
+		SRV_DT_CMMNTY_MAP.AREA_ESTBS_EMDONG_CD,
+		TO_CHAR(PRID_ESTBS_START_DATE,'yyyy-mm-dd') AS PRID_ESTBS_START_DATE,
+		TO_CHAR(PRID_ESTBS_END_DATE,'yyyy-mm-dd') AS PRID_ESTBS_END_DATE,
+		SRV_DT_CMMNTY_MAP.CMMNTY_PARTCPTN_GRANT_YN,
+		SRV_DT_CMMNTY_MAP.REG_SYMBOL,
+		SRV_DT_CMMNTY_MAP.TEMP_SAVE_YN,
+		SRV_DT_CMMNTY_MAP.LOCK_YN,
+		SRV_DT_CMMNTY_MAP.USR_ID,
+		PRID_ESTBS_START_DATE||'~'||PRID_ESTBS_END_DATE AS REG_DATE,
+		CASE WHEN (SELECT SRV_DT_HOT_CMMNTY_MAP.ORDER FROM SRV_DT_HOT_CMMNTY_MAP WHERE SRV_DT_HOT_CMMNTY_MAP.CMMNTY_MAP_ID = SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID) = 0 THEN '-' 
+		ELSE (SELECT SRV_DT_HOT_CMMNTY_MAP.ORDER FROM SRV_DT_HOT_CMMNTY_MAP WHERE SRV_DT_HOT_CMMNTY_MAP.CMMNTY_MAP_ID  = SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID ) END AS HOT_ORDER
+	</sql>
+	<sql id="selectCmmntyItem">
+		SELECT 
+			A.*
+		FROM(
+			SELECT
+				<include refid="cmmntyItem"/>,
+				SRV_DT_CMMNTY_MAP_ATCH_IMAGE.CMMNTY_MAP_ATCH_FILE_ID,
+				SRV_DT_CMMNTY_MAP_ATCH_IMAGE.PATH_NM,
+				SRV_DT_CMMNTY_MAP_ATCH_IMAGE.SAVE_FILE_NM,
+				SRV_DT_CMMNTY_MAP_ATCH_IMAGE.FILE_EXTN,
+				SRV_DT_CMMNTY_MAP_ATCH_IMAGE.FILE_TYPE,
+				SRV_DT_CMMNTY_MAP_ATCH_IMAGE.ORI_FILE_NM,
+				CASE 
+					WHEN AREA_ESTBS_SIDO_CD='00' THEN ''
+					ELSE 
+						CASE 
+							WHEN AREA_ESTBS_SGG_CD='999' THEN AREA_ESTBS_SIDO_CD
+							ELSE CASE
+								WHEN AREA_ESTBS_EMDONG_CD='00' THEN AREA_ESTBS_SIDO_CD||AREA_ESTBS_SGG_CD
+								ELSE AREA_ESTBS_SIDO_CD||AREA_ESTBS_SGG_CD||AREA_ESTBS_EMDONG_CD
+							END
+						END
+					END
+				AS ADM_CD,
+				CASE
+                       WHEN AREA_ESTBS_SIDO_CD = '00'
+                       THEN '전국'
+                       ELSE CASE
+                           WHEN AREA_ESTBS_SGG_CD = '999'
+                           THEN (SELECT SIDO_NM FROM SRV_PG_SIDOBORD WHERE SIDO_CD = AREA_ESTBS_SIDO_CD AND BASE_YEAR='${bnd_year}'<!-- #으로 하면 에러나서 현재 이렇게 개발되어있습니다 mybatis 문제인듯... -->)
+                           ELSE CASE
+                               WHEN AREA_ESTBS_EMDONG_CD = '00'
+                               THEN (SELECT SIDO_NM||' '||SGG_NM FROM SRV_PG_SGGBORD WHERE SIDO_CD = AREA_ESTBS_SIDO_CD AND SGG_CD = AREA_ESTBS_SGG_CD AND BASE_YEAR='${bnd_year}'<!-- #으로 하면 에러나서 현재 이렇게 개발되어있습니다 mybatis 문제인듯... -->)
+                               ELSE (SELECT SIDO_NM||' '||SGG_NM||' '||EMDONG_NM FROM SRV_PG_ADMBORD WHERE SIDO_CD = AREA_ESTBS_SIDO_CD AND SGG_CD = AREA_ESTBS_SGG_CD AND EMDONG_CD = AREA_ESTBS_EMDONG_CD  AND BASE_YEAR='${bnd_year}'<!-- #으로 하면 에러나서 현재 이렇게 개발되어있습니다 mybatis 문제인듯... -->)
+                           END
+                       END
+                   END AS ADM_NM
+			FROM
+				SRV_DT_CMMNTY_MAP
+			LEFT OUTER JOIN SRV_DT_CMMNTY_MAP_ATCH_IMAGE ON SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ATCH_FILE_ID = SRV_DT_CMMNTY_MAP_ATCH_IMAGE.CMMNTY_MAP_ATCH_FILE_ID
+		) A
+		<where>
+			<trim prefixOverrides="AND">
+				<if test="COMMUNITYNAME != null and COMMUNITYNAME != ''">
+					AND (
+						CMMNTY_MAP_NM LIKE '%'||#{COMMUNITYNAME}||'%'
+						OR (SELECT COUNT(1) FROM SRV_DT_CMMNTY_KWRD WHERE SRV_DT_CMMNTY_KWRD.CMMNTY_MAP_ID = A.CMMNTY_MAP_ID AND KWRD LIKE '%'||#{search_word}||'%') &gt; 0
+					)
+				</if>
+				<if test="USR_ID != null and USR_ID != ''">
+					AND USR_ID LIKE '%'|| #{USR_ID}||'%'
+				</if>
+				<if test="STARTDATE != null and STARTDATE != ''">
+					AND TO_DATE(PRID_ESTBS_START_DATE) &gt;= TO_DATE(#{STARTDATE}) 
+				</if>
+				<if test="ENDDATE != null and ENDDATE != ''">
+					AND TO_DATE(PRID_ESTBS_START_DATE) &lt;= TO_DATE(#{ENDDATE})
+				</if>
+				<if test="HOT_ORDER != null and HOT_ORDER != '' and HOT_ORDER == 'true'">
+					AND HOT_ORDER &gt; 0
+				</if>
+			</trim>
+		</where>
+	</sql>
+	<sql id="selectCmmntyListItem">
+		SELECT
+			A.*,
+			(SELECT COUNT(1) FROM SRV_DT_CMMNTY_POI WHERE A.CMMNTY_MAP_ID = SRV_DT_CMMNTY_POI.CMMNTY_MAP_ID) AS POI_CNT,
+			CASE 
+				WHEN CMMNTY_PARTCPTN_GRANT_YN = 'Y' THEN (SELECT COUNT(1) FROM SRV_DT_CMMNTY_APPROVAL WHERE A.CMMNTY_MAP_ID = SRV_DT_CMMNTY_APPROVAL.CMMNTY_MAP_ID AND APPROVAL_DISTINCT LIKE '%A%')
+				WHEN CMMNTY_PARTCPTN_GRANT_YN = 'M' THEN (SELECT COUNT(1) FROM SRV_DT_CMMNTY_MAP_REG_MBER_LIST WHERE A.CMMNTY_MAP_ID = SRV_DT_CMMNTY_MAP_REG_MBER_LIST.CMMNTY_MAP_ID)
+				ELSE (SELECT COUNT(DISTINCT USR_ID) FROM SRV_DT_CMMNTY_POI WHERE A.CMMNTY_MAP_ID = SRV_DT_CMMNTY_POI.CMMNTY_MAP_ID)
+			END AS JOIN_CNT,
+			(SELECT COUNT(1) FROM SRV_DT_POI_STTEMNT WHERE SRV_DT_POI_STTEMNT.CMMNTY_POI_ID IN (SELECT CMMNTY_POI_ID FROM SRV_DT_CMMNTY_POI WHERE A.CMMNTY_MAP_ID = SRV_DT_CMMNTY_POI.CMMNTY_MAP_ID)) AS STTEMNT_CNT,
+			(SELECT COUNT(1) FROM SRV_DT_CMMNTY_KWRD WHERE A.CMMNTY_MAP_ID = SRV_DT_CMMNTY_KWRD.CMMNTY_MAP_ID) AS TAG_CNT,
+			(SELECT COUNT(1) FROM SRV_DT_CMMNTY_MAP_LIST WHERE A.CMMNTY_MAP_ID = SRV_DT_CMMNTY_MAP_LIST.CMMNTY_MAP_ID) AS STATS_CNT
+		FROM(
+			<include refid="selectCmmntyItem"/>
+		) A
+	</sql>
+	<select id="selectMapList" parameterType="Map" resultType="Map">
+		SELECT
+			CASE
+				WHEN LIST='bassBsnes' THEN '총사업체'
+				WHEN LIST='bassStats' THEN '총인구'
+				ELSE (SELECT HIST_NM FROM SRV_DT_STATSEARCHHIST WHERE SRV_DT_STATSEARCHHIST.HIST_ID = LIST)
+			END AS HIST_NM,
+			LIST
+		FROM SRV_DT_CMMNTY_MAP_LIST
+		WHERE
+		CMMNTY_MAP_ID = #{CMMNTY_MAP_ID}
+		ORDER BY CMMNTY_MAP_LIST_ID ASC
+	</select>
+	<select id="selectCmmntyCount" resultType="int">
+		SELECT COUNT(1) FROM (<include refid="selectCmmntyItem"/>)
+	</select>
+	<select id="selectCmmntyList" resultType="java.util.HashMap">
+		SELECT * FROM(
+			SELECT *,ROWNUM R FROM(
+				<include refid="selectCmmntyListItem"/>
+				ORDER BY 
+				<choose>
+					<when test="sort != null and sort != ''">
+						<choose>
+							<when test="sort == 'REG_DATE'">
+								TO_DATE(${sort})
+							</when>
+							<otherwise>
+								${sort}
+							</otherwise>
+						</choose>
+					</when>
+					<otherwise>
+						TO_NUMBER(CMMNTY_MAP_ID)
+					</otherwise>
+				</choose>
+				<choose>
+					<when test="order != null and order != ''">
+						${order}
+					</when>
+					<otherwise>
+						DESC
+					</otherwise>
+				</choose>
+				
+			)
+			WHERE ROWNUM <![CDATA[<=]]> #{END_INDEX}
+		)
+		WHERE R <![CDATA[>=]]> #{START_INDEX}
+	</select>
+	<update id="updateCommunityMap">
+		UPDATE SRV_DT_CMMNTY_MAP
+		<set>
+			PRID_ESTBS_START_DATE=#{STARTDATE}, 
+			PRID_ESTBS_END_DATE=#{ENDDATE},
+			LOCK_YN=#{CMMNTY_MAP_LOCK_YN}
+		</set>
+		<where>
+			<choose>
+				<when test="CMMNTY_MAP_ID != null and CMMNTY_MAP_ID !=''">
+					CMMNTY_MAP_ID = #{CMMNTY_MAP_ID}
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose>
+		</where>
+	</update>
+	
+	<insert id="insertCommunityHotOrder" parameterType="Map">
+		INSERT INTO SRV_DT_HOT_CMMNTY_MAP
+		VALUES (#{CMMNTY_MAP_ID} , #{HOT_ORDER})
+	</insert>
+	
+	<delete id="deleteCommunityHotOrder" parameterType="Map">
+		DELETE FROM SRV_DT_HOT_CMMNTY_MAP
+		WHERE (CMMNTY_MAP_ID = #{CMMNTY_MAP_ID} 
+				OR ORDER = #{HOT_ORDER})
+	</delete>
+	
+	<sql id="cmmntyPoiItem">
+		SRV_DT_CMMNTY_POI.CMMNTY_POI_ID, 
+		SRV_DT_CMMNTY_POI.CMMNTY_USR_DATA_PT_ID, 
+		SRV_DT_CMMNTY_POI.CMMNTY_MAP_ID, 
+		SRV_DT_CMMNTY_POI.TITLE, 
+		SRV_DT_CMMNTY_POI.REG_LC, 
+		SRV_DT_CMMNTY_POI.OPINION_STATE, 
+		SRV_DT_CMMNTY_POI.USR_ID, 
+		SRV_DT_CMMNTY_POI.DEL_YN, 
+		SRV_DT_POI_ATCH_IMAGE.POI_ATCH_IMAGE_ID,
+		SRV_DT_POI_ATCH_IMAGE.PATH_NM,
+		SRV_DT_POI_ATCH_IMAGE.ORI_FILE_NM,
+		SRV_DT_POI_ATCH_IMAGE.SAVE_FILE_NM,
+		SRV_DT_POI_ATCH_IMAGE.FILE_EXTN,
+		SRV_DT_POI_ATCH_IMAGE.FILE_TYPE,
+		(SELECT COUNT(1) FROM SRV_DT_POI_REPLY WHERE SRV_DT_POI_REPLY.CMMNTY_POI_ID = SRV_DT_CMMNTY_POI.CMMNTY_POI_ID) AS REPLY_CNT,
+		(SELECT COUNT(1) FROM SRV_DT_POI_STTEMNT WHERE SRV_DT_POI_STTEMNT.CMMNTY_POI_ID = SRV_DT_CMMNTY_POI.CMMNTY_POI_ID) AS STTEMNT_CNT,
+		TO_CHAR(SRV_DT_CMMNTY_POI.REG_DATE,'yyyy.mm.dd') AS REG_DATE
+	</sql>
+	<sql id="cmmntyPoiJoin">
+		INNER JOIN SRV_DT_CMMNTY_MAP ON SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID = SRV_DT_CMMNTY_POI.CMMNTY_MAP_ID
+		INNER JOIN SRV_PT_CMMNTY_USR_DATA_PT ON SRV_PT_CMMNTY_USR_DATA_PT.CMMNTY_USR_DATA_PT_ID = SRV_DT_CMMNTY_POI.CMMNTY_USR_DATA_PT_ID
+		LEFT OUTER JOIN SRV_DT_POI_ATCH_IMAGE ON SRV_DT_POI_ATCH_IMAGE.CMMNTY_POI_ID = SRV_DT_CMMNTY_POI.CMMNTY_POI_ID
+	</sql>
+	<sql id="cmmntyPoiListWhere">
+		<where>
+			<trim prefixOverrides="AND">
+				<choose>
+					<when test="STARTDATE != null and STARTDATE != '' and ENDDATE != null and ENDDATE !=''">
+						AND TO_DATE(C.REG_DATE) BETWEEN TO_DATE(#{STARTDATE}) AND TO_DATE(#{ENDDATE}) 
+					</when>
+					<when test="STARTDATE != null and STARTDATE != ''">
+						AND TO_DATE(C.REG_DATE) &gt;= TO_DATE(#{STARTDATE}) 
+					</when>
+					<when test="ENDDATE != null and ENDDATE !=''">
+						AND TO_DATE(C.REG_DATE) &lt;= TO_DATE(#{ENDDATE}) 
+					</when>
+				</choose>
+				<if test="TITLE != null and TITLE != ''">
+					AND TITLE LIKE '%'||#{TITLE}||'%'
+				</if>
+				<if test="IS_STTEMNT != null and IS_STTEMNT != '' and IS_STTEMNT == 'true'">
+					AND C.STTEMNT_CNT &gt; 0
+				</if>
+			</trim>
+		</where>
+	</sql>
+	<select id="selectCmmntyPoi" resultType="java.util.HashMap">
+		SELECT 
+			<include refid="cmmntyPoiItem"/>,
+			CASE 
+				WHEN SRV_DT_CMMNTY_MAP.USR_ID = #{member_id} THEN 'Y'
+				ELSE 'N'
+			END AS IS_MASTER
+		FROM SRV_DT_CMMNTY_POI
+		<include refid="cmmntyPoiJoin"/>
+		<where>
+			<choose>
+				<when test="POI_ID != null and POI_ID != ''">
+					SRV_DT_CMMNTY_POI.CMMNTY_POI_ID = #{POI_ID}
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose> 
+		</where>
+	</select>
+	<select id="selectCmmntyPoiCount" resultType="int">
+		SELECT 
+			COUNT(1)
+		FROM (
+		SELECT C.* FROM(
+			SELECT 
+				<include refid="cmmntyPoiItem"/>
+			FROM SRV_DT_CMMNTY_POI
+			<include refid="cmmntyPoiJoin"/>
+			)C
+		<include refid="cmmntyPoiListWhere"/>
+		)
+	</select>
+	<select id="selectCmmntyPoiList" resultType="java.util.HashMap">
+		SELECT * FROM(
+			SELECT *,ROWNUM R FROM(
+				SELECT C.* FROM(
+				SELECT
+					<include refid="cmmntyPoiItem"/>
+				FROM SRV_DT_CMMNTY_POI
+				<include refid="cmmntyPoiJoin"/>
+				ORDER BY REG_DATE DESC,SRV_DT_CMMNTY_POI.CMMNTY_POI_ID DESC
+				)C
+				<include refid="cmmntyPoiListWhere"/>
+			)
+			WHERE ROWNUM <![CDATA[<=]]> #{END_INDEX}
+		)
+		WHERE R <![CDATA[>=]]> #{START_INDEX}
+	</select>
+	<delete id="deletePoiSttemnt">
+		DELETE FROM SRV_DT_POI_STTEMNT
+		<where>
+			<choose>
+				<when test="CMMNTY_POI_ID != null and CMMNTY_POI_ID != ''">
+					CMMNTY_POI_ID = #{CMMNTY_POI_ID}
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose> 
+		</where>
+	</delete>
+	<delete id="deletePoiImags">
+		DELETE FROM SRV_DT_POI_ATCH_IMAGE
+		<where>
+			<choose>
+				<when test="CMMNTY_POI_ID != null and CMMNTY_POI_ID != ''">
+					CMMNTY_POI_ID = #{CMMNTY_POI_ID}
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose> 
+		</where>
+	</delete>
+	<delete id="deletePoiReplys">
+		DELETE FROM SRV_DT_POI_REPLY
+		<where>
+			<choose>
+				<when test="CMMNTY_POI_ID != null and CMMNTY_POI_ID != ''">
+					CMMNTY_POI_ID = #{CMMNTY_POI_ID}
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose> 
+		</where>
+	</delete>
+	<delete id="deleteCommunityMapPoi">
+		DELETE FROM SRV_DT_CMMNTY_POI
+		<where>
+			<choose>
+				<when test="CMMNTY_POI_ID != null and CMMNTY_POI_ID != ''">
+					CMMNTY_POI_ID = #{CMMNTY_POI_ID}
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose> 
+		</where>
+	</delete>
+	
+	<select id="selectPoiReply" resultType="java.util.HashMap">
+		SELECT
+			POI_REPLY_ID, 
+			CMMNTY_POI_ID, 
+			CMMNTY_USR_DATA_PT_ID, 
+			REPLY_CONTENT, 
+			USR_ID, 
+			CASE 
+				WHEN USR_ID = #{member_id} THEN 'Y'
+				ELSE 'N'
+			END AS IS_REGISTER,
+			TO_CHAR(REG_DATE,'yyyy.mm.dd') AS REG_DATE
+		FROM SRV_DT_POI_REPLY
+		<where>
+			<choose>
+				<when test="poi_reply_id != null and poi_reply_id != ''">
+					POI_REPLY_ID = #{poi_reply_id}
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose>
+		</where>
+	</select>
+	<select id="selectPoiReplyList" resultType="java.util.HashMap">
+		SELECT
+			POI_REPLY_ID, 
+			CMMNTY_POI_ID, 
+			CMMNTY_USR_DATA_PT_ID, 
+			REPLY_CONTENT, 
+			USR_ID, 
+			CASE 
+				WHEN USR_ID = #{member_id} THEN 'Y'
+				ELSE 'N'
+			END AS IS_REGISTER,
+			TO_CHAR(REG_DATE,'yyyy.mm.dd') AS REG_DATE
+		FROM SRV_DT_POI_REPLY
+		<where>
+			<choose>
+				<when test="CMMNTY_POI_ID != null and CMMNTY_POI_ID != ''">
+					CMMNTY_POI_ID = #{CMMNTY_POI_ID}
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose>
+		</where>
+		ORDER BY REG_DATE DESC,POI_REPLY_ID DESC
+	</select>
+	<select id="selectPoiAtchImageListForCommunity" resultType="java.util.HashMap">
+		SELECT
+			CMMNTY_POI_ID,
+			POI_ATCH_IMAGE_ID,
+			REPLACE(PATH_NM,'\','/') AS PATH_NM,
+			ORI_FILE_NM,
+			SAVE_FILE_NM,
+			FILE_EXTN,
+			FILE_TYPE
+		FROM SRV_DT_POI_ATCH_IMAGE
+		<where>
+			<choose>
+				<when test="list != null and list != ''">
+					<foreach collection="list" item="item" open="CMMNTY_POI_ID IN (" separator="," close=")">
+						${item.CMMNTY_POI_ID}
+					</foreach>
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose>
+		</where>
+	</select>
+	<select id="selectCmmntyMapAddRegion" resultType="java.util.HashMap">
+		SELECT *,
+			CASE 
+				<!-- 2017. 07. 06 j.h.Seok DB 패치로 인한 수정 -->
+				WHEN LENGTH(ADM_CD)=2 THEN (SELECT SIDO_NM FROM SRV_PG_SIDOBORD WHERE BASE_YEAR = ${bnd_year} AND SIDO_CD = A.SIDO_CD)
+				WHEN LENGTH(ADM_CD)=5 THEN (SELECT ADDR FROM SRV_PG_SGGBORD WHERE BASE_YEAR = ${bnd_year} AND SIDO_CD = A.SIDO_CD AND SGG_CD = A.SGG_CD)
+				WHEN LENGTH(ADM_CD)=7 THEN (SELECT ADDR FROM SRV_PG_ADMBORD WHERE BASE_YEAR = ${bnd_year} AND SIDO_CD = A.SIDO_CD AND SGG_CD = A.SGG_CD AND EMDONG_CD = A.EMDONG_CD)
+				ELSE '전국'
+			END AS ADM_NM
+		FROM (
+			SELECT
+				CASE WHEN SIDO_CD = '00' THEN ''
+				ELSE
+					CASE WHEN SGG_CD = '999' THEN SIDO_CD
+					ELSE 
+						CASE WHEN EMDONG_CD = '00' THEN SIDO_CD||SGG_CD
+						ELSE SIDO_CD||SGG_CD||EMDONG_CD
+					END
+				END
+				END ADM_CD,
+				SIDO_CD,
+				SGG_CD,
+				EMDONG_CD
+			FROM SRV_DT_CMMNTY_MAP_ADD_REGION
+			<where>
+				<choose>
+					<when test="cmmnty_map_id != null and cmmnty_map_id !=''">
+						CMMNTY_MAP_ID = #{cmmnty_map_id}
+					</when>
+					<otherwise>
+						1!=1
+					</otherwise>
+				</choose>
+			</where>
+			ORDER BY ORDER ASC
+		) A
+	</select>
+</mapper>

@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ecountry">
+	
+	<select id="selectCategory" parameterType="string" resultType="hashmap">
+		SELECT list_id, list_nm, upper_list_id
+			 , DECODE(category_cnt,0,'N','Y') AS child_yn
+			 , DECODE(list_cnt,0,'N','Y') AS list_yn
+		  FROM (
+				SELECT a.ecountry_list_id AS list_id
+					 , a.ecountry_list_nm AS list_nm
+					 , a.ecountry_up_list_id AS upper_list_id
+					 , ( SELECT COUNT(*) 
+					 	   FROM srv_dt_ecountry_category 
+					 	  WHERE ecountry_up_list_id = a.ecountry_list_id
+					 	    AND srv_yn = 'Y' ) AS category_cnt
+					 , COUNT(*) AS list_cnt
+				  FROM srv_dt_ecountry_category a LEFT OUTER JOIN srv_dt_ecountry_list b
+					ON a.ecountry_list_id = b.ecountry_list_id
+				 WHERE a.srv_yn = 'Y'
+				 GROUP BY a.ecountry_list_id, a.ecountry_list_nm, a.ecountry_up_list_id
+			   )
+		 WHERE upper_list_id = #{upper_list_id}
+	</select>
+	
+	<select id="selectEcountryList" parameterType="hashmap" resultType="hashmap">
+		SELECT inst_id, list_id, tbl_id, tbl_nm, upper_list_id, atdrc_yn, gis_se
+			 , DECODE(upper_list_nm,null,( list_nm||'>'||tbl_nm  ), ( upper_list_nm||'>'||list_nm||'>'||tbl_nm ) ) AS list_path
+		  FROM (
+				SELECT b.ecountry_inst_id AS inst_id
+					 , a.ecountry_list_id AS list_id
+					 , a.ecountry_list_nm AS list_nm
+					 , b.ecountry_tbl_id AS tbl_id
+					 , b.ecountry_tbl_nm AS tbl_nm
+					 , a.ecountry_up_list_id AS upper_list_id
+					 , ( SELECT ecountry_list_nm FROM srv_dt_ecountry_category WHERE ecountry_list_id = a.ecountry_up_list_id ) AS upper_list_nm
+					 , b.atdrc_yn
+					 , b.gis_se
+				  FROM srv_dt_ecountry_category a LEFT OUTER JOIN srv_dt_ecountry_list b
+					ON a.ecountry_list_id = b.ecountry_list_id
+				   AND b.srv_yn = 'Y'
+				 <if test='searchword == null'>
+				 	WHERE a.ecountry_list_id = #{list_id}
+				 </if>
+				 <if test = 'searchword != null'>
+				    WHERE b.ecountry_tbl_nm LIKE '%' || #{searchword} || '%'
+					LIMIT #{startnum}, #{endnum}
+				 </if>
+				)
+	</select>
+	
+	<select id="selectEcountryCount" parameterType="hashmap" resultType="Integer">
+		SELECT COUNT(*)
+		  FROM srv_dt_ecountry_category a LEFT OUTER JOIN srv_dt_ecountry_list b
+			ON a.ecountry_list_id = b.ecountry_list_id
+		 <if test='searchword == null'>
+		 	WHERE a.ecountry_list_id = #{list_id}
+		 </if>
+		 <if test = 'searchword != null'>
+		    WHERE b.ecountry_tbl_nm LIKE '%' || #{searchword} || '%'
+		 </if>
+	</select>
+	
+	<select id="selectItemList" parameterType="string" resultType="hashmap">
+		SELECT ecountry_field_id AS field_id
+			 , SUBSTRING(ecountry_field_id,5,1) AS field_id_sn
+			 , ecountry_scr_kor AS scr_kor
+		  FROM srv_dt_ecountry_item
+		 WHERE ecountry_tbl_id = #{tbl_id}
+		   AND ecountry_item_div = '2' 
+		 ORDER BY ecountry_obj_var_id, ecountry_field_id
+	</select>
+	
+	<select id="selectBaseItemList" parameterType="string" resultType="hashmap">
+		SELECT ecountry_base_item_id AS base_item_id
+			 , ecountry_base_item_nm AS base_item_nm
+			 , ecountry_base_item_sn AS base_item_sn
+		  FROM srv_dt_ecountry_baseitem
+		 WHERE ecountry_tbl_id = #{tbl_id}
+		 ORDER BY ecountry_base_item_sn
+	</select>
+	
+	<select id="selectAddItemList" parameterType="hashmap" resultType="hashmap">
+		SELECT b.ecountry_add_item_id AS add_item_id
+			 , b.ecountry_add_item_nm AS add_item_nm
+			 , b.ecountry_add_item_sn AS add_item_sn
+		  FROM srv_dt_ecountry_item a JOIN srv_dt_ecountry_additem b
+			ON a.ecountry_tbl_id = b.ecountry_tbl_id
+		   AND a.ecountry_obj_var_id = b.ecountry_obj_var_id
+		   AND a.ecountry_field_id = b.ecountry_field_id
+ 		   AND a.ecountry_tbl_id = #{tbl_id}
+ 		   AND a.ecountry_field_id = #{field_id}
+ 		   <if test='tbl_id == "DT_1YL20261"'>
+ 		   		and b.ecountry_add_item_sn = '1' 
+ 		   		and b.ecountry_add_item_id in ('01', '02')
+ 		   </if>
+ 		   <if test='tbl_id != "DT_1YL20261"'>
+			   AND b.ecountry_add_item_sn = 
+			   		( SELECT MAX( ecountry_add_item_sn ) 
+					    FROM srv_dt_ecountry_additem 
+					   WHERE ecountry_tbl_id = #{tbl_id}
+						 AND ecountry_field_id = #{field_id} )
+ 		   </if>
+		 ORDER BY a.ecountry_obj_var_id, b.ecountry_add_item_id
+	</select>
+	
+	<select id="selectPrdList" parameterType="string" resultType="hashmap">
+		SELECT ecountry_period_id AS prd_id
+			 , ecountry_period_detail AS prd_detail
+			 , ecountry_period_nm AS prd_nm
+		  FROM srv_dt_ecountry_periodlist
+		 WHERE ecountry_tbl_id = #{tbl_id}
+		 ORDER BY ecountry_period_nm ASC
+	</select>
+	
+	<select id="selectPrdValueList" parameterType="hashmap" resultType="hashmap">
+		SELECT a.ecountry_period_id AS prid_id
+			 , b.ecountry_prid_nm AS prid_nm
+			 , b.ecountry_prid_value AS prid_value
+		  FROM srv_dt_ecountry_periodlist a JOIN srv_dt_ecountry_periodvalue b
+			ON a.ecountry_tbl_id = b.ecountry_tbl_id
+		   AND a.ecountry_period_id = b.ecountry_period_id
+		 WHERE a.ecountry_tbl_id = #{tbl_id}
+		   AND a.ecountry_period_id = #{prd_id}
+		 ORDER BY b.ecountry_prid_value desc
+	</select>
+	
+	<select id="selectExpList" parameterType="string" resultType="hashmap">
+		SELECT rnum, exp
+ 		  FROM srv_dt_ecountry_exp
+ 		 WHERE ecountry_tbl_id = #{tbl_id}
+ 		 ORDER BY rnum ASC
+	</select>
+	
+	<select id="selectDataList" parameterType="hashmap" resultType="hashmap">
+		select *
+		  from (
+				select adm_cd, data_value, rn, len(adm_cd) AS adm_cd_len
+				  from (
+						SELECT a.ecountry_tbl_id AS tbl_id
+							 , DECODE( mapng_adm_cd, 'null', kosis_adm_cd, mapng_adm_cd ) AS adm_cd
+							 , data_value
+							 , serial AS rn
+						  FROM srv_dt_ecountry_data a
+						 WHERE a.ecountry_tbl_id = #{tbl_id}
+						   AND a.ecountry_base_item_id = #{base_item_id}
+						   AND a.ecountry_period_id = #{prd_id}
+						   AND a.ecountry_prid_value = #{prid_value}
+						<if test='ov_l1_id != null'>
+						   AND a.ecountry_add_item_id_1 = #{ov_l1_id} 
+						</if>
+						<if test='ov_l2_id != null'>
+						   AND a.ecountry_add_item_id_2 = #{ov_l2_id} 
+						</if>
+						<if test='ov_l3_id != null'>
+						   AND a.ecountry_add_item_id_3 = #{ov_l3_id} 
+						</if>
+						<if test='ov_l4_id != null'>
+						   AND a.ecountry_add_item_id_4 = #{ov_l4_id} 
+						</if>
+						<if test='ov_l5_id != null'>
+						   AND a.ecountry_add_item_id_5 = #{ov_l5_id} 
+						</if>
+						)
+				<if test='adm_cd != null'>
+					WHERE adm_cd LIKE #{adm_cd}||'%'
+				</if>
+		 	   )
+		  where adm_cd_len = #{adm_cd_len}
+	</select>
+	
+	<select id="selectDataInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT a.ecountry_tbl_id AS tbl_id
+			 , a.ecountry_tbl_nm AS tbl_nm
+			 , a.ecountry_inst_id AS inst_id
+ 			 , a.atdrc_yn
+			 , b.unit
+			 , ( SELECT ecountry_period_nm 
+			 	   FROM srv_dt_ecountry_periodlist 
+			 	  WHERE ecountry_tbl_id = a.ecountry_tbl_id 
+			 	    AND ecountry_period_id = #{prd_id} ) AS prid_nm
+		  FROM srv_dt_ecountry_list a, srv_dt_ecountry_baseitem b
+		 WHERE a.ecountry_tbl_id = b.ecountry_tbl_id
+		   AND a.ecountry_tbl_id = #{tbl_id}
+		   AND b.ecountry_base_item_id = #{base_item_id}
+	</select>
+</mapper>

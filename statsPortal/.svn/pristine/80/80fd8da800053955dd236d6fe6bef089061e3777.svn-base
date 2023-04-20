@@ -1,0 +1,577 @@
+/**
+ * 도시화 분석 지도 Open API에 대한 클래스
+ *
+ * history : 2021/11/08 초기 작성 version : 1.0 see :
+ *
+ */
+(function(W, D) {
+	W.$urbanApi = W.$urbanApi || {};
+	var setData1 = [];
+	var setData2 = [];
+	$urbanApi.request = {
+
+			API_202171_URL : "/ServiceAPI/OpenAPI3/urban/commonInfo.json",
+			API_202172_URL : "/ServiceAPI/OpenAPI3/urban/urbarsGeometry.geojson",
+			API_202173_URL : "/ServiceAPI/OpenAPI3/urban/urbarsStatistics.json",
+			API_202175_URL : "/ServiceAPI/OpenAPI3/urban/urbarsIndexes.json",
+			API_220801_URL : "/ServiceAPI/OpenAPI3/urban/urbarsFacility.json",
+			API_220830_URL : "/ServiceAPI/OpenAPI3/urban/urbarsFacilitySearch.json",
+			combineFailCnt : 0,
+
+			/**
+			 *
+			 * @name         : getCommonInfo
+			 * @description  : 공통정보 api
+			 *
+			 */
+			getCommonInfo : function(params) {
+				var sopPortalCommonInfoObj = new sop.portal.commonInfo.api();
+				sopPortalCommonInfoObj.addParam("accessToken", accessToken);
+				sopPortalCommonInfoObj.addParam("work_gb", params.work_gb);
+
+				if(params.work_gb == "urbars" || params.work_gb == "urbars_adm"){	//도시지역 목록 조회 시
+					sopPortalCommonInfoObj.addParam("base_year", params.base_year);
+					sopPortalCommonInfoObj.addParam("urban_cls_gb", params.urbarInfo.urban_cls_gb);
+
+					if(params.urbarInfo.urban_type !== undefined && params.urbarInfo.urban_type !== null && params.urbarInfo.urban_type !== ""){
+						sopPortalCommonInfoObj.addParam("urban_type", params.urbarInfo.urban_type);
+					}
+
+					if(params.work_gb == "urbars_adm"){
+						if(params.urbarInfo.urban_sido_cd !== undefined && params.urbarInfo.urban_sido_cd !== null && params.urbarInfo.urban_sido_cd !== ""){
+							sopPortalCommonInfoObj.addParam("urban_sido_cd", params.urbarInfo.urban_sido_cd);
+						}
+						if(params.urbarInfo.urban_sgg_cd !== undefined && params.urbarInfo.urban_sgg_cd !== null && params.urbarInfo.urban_sgg_cd !== ""){
+							sopPortalCommonInfoObj.addParam("urban_sgg_cd", params.urbarInfo.urban_sgg_cd);
+						}
+					}
+				}else if(params.work_gb == "subRegion"){ //하위지역 목록 조회 시
+					sopPortalCommonInfoObj.addParam("base_year", params.base_year);
+					sopPortalCommonInfoObj.addParam("urban_cls_gb", params.urbarInfo.urban_cls_gb);
+					sopPortalCommonInfoObj.addParam("urban_id", params.urbarInfo.urban_id);
+
+					if(params.urbarInfo.urban_type !== undefined && params.urbarInfo.urban_type !== null && params.urbarInfo.urban_type !== ""){
+						sopPortalCommonInfoObj.addParam("urban_type", params.urbarInfo.urban_type);
+					}
+				}
+
+				var async = true;
+				if (params.async !== undefined && params.async !== null) {
+					async = params.async;
+				}
+
+				sopPortalCommonInfoObj.request({
+					method : "POST",
+					async : async,
+					url : contextPath + this.API_202171_URL,
+					options : {
+						params : params,
+						url : this.API_202171_URL
+					}
+				});
+			},
+
+			/**
+			 *
+			 * @name         : getUrbarsGeometry
+			 * @description  : 도시화지역 도형정보 api
+			 *
+			 */
+			getUrbarsGeometry : function(params) {
+				var sopPortalUrbarsGeometryObj = new sop.portal.urbarsGeometry.api();
+				sopPortalUrbarsGeometryObj.addParam("accessToken", accessToken);
+				sopPortalUrbarsGeometryObj.addParam("base_year", params.base_year);
+				sopPortalUrbarsGeometryObj.addParam("urban_cls_gb", params.urbarInfo.urban_cls_gb);
+
+				if(params.urbarInfo.urban_id !== undefined && params.urbarInfo.urban_id !== null && params.urbarInfo.urban_id !== ""){
+					sopPortalUrbarsGeometryObj.addParam("urban_id", params.urbarInfo.urban_id);
+				}
+				if(params.urbarInfo.urban_type !== undefined && params.urbarInfo.urban_type !== null && params.urbarInfo.urban_type !== ""){
+					sopPortalUrbarsGeometryObj.addParam("urban_type", params.urbarInfo.urban_type);
+				}
+				if(params.urbarInfo.urban_sido_cd !== undefined && params.urbarInfo.urban_sido_cd !== null && params.urbarInfo.urban_sido_cd !== ""){
+					sopPortalUrbarsGeometryObj.addParam("urban_sido_cd", params.urbarInfo.urban_sido_cd);
+				}
+				if(params.urbarInfo.urban_sgg_cd !== undefined && params.urbarInfo.urban_sgg_cd !== null && params.urbarInfo.urban_sgg_cd !== ""){
+					sopPortalUrbarsGeometryObj.addParam("urban_sgg_cd", params.urbarInfo.urban_sgg_cd);
+				}
+				if(params.urbarInfo.urban_sido_list !== undefined && params.urbarInfo.urban_sido_list !== null && params.urbarInfo.urban_sido_list !== ""){
+					sopPortalUrbarsGeometryObj.addParam("urban_sido_list", params.urbarInfo.urban_sido_list);
+				}
+				if(params.comparison_gb !== undefined && params.comparison_gb !== null && params.comparison_gb !== ""){
+					sopPortalUrbarsGeometryObj.addParam("comparison_gb", params.comparison_gb);
+				}
+				if(params.urbarInfo.comparison_urban_id !== undefined && params.urbarInfo.comparison_urban_id !== null && params.urbarInfo.comparison_urban_id !== ""){
+					sopPortalUrbarsGeometryObj.addParam("comparison_urban_id", params.urbarInfo.comparison_urban_id);
+				}
+
+				var async = true;
+				if (params.async !== undefined && params.async !== null) {
+					async = params.async;
+				}
+
+				sopPortalUrbarsGeometryObj.request({
+					method : "POST",
+					async : async,
+					url : contextPath + this.API_202172_URL,
+					options : {
+						params : params,
+						url : this.API_202172_URL
+					}
+				});
+			},
+
+			/**
+			 *				 :
+			 * @name         : getUrbarsFacility
+			 * @description  : 생활시설 리스트 가져오기
+			 *
+			 */
+			getUrbarsFacility : function(params){
+				var sopPortalUrbarsFacilityObj = new sop.portal.urbarsFacility.api();
+				sopPortalUrbarsFacilityObj.addParam("accessToken", accessToken);
+				sopPortalUrbarsFacilityObj.addParam("work_gb", params.work_gb);
+				sopPortalUrbarsFacilityObj.addParam("urban_type", params.urbarInfo.urban_type);
+				sopPortalUrbarsFacilityObj.addParam("urban_id", params.urbarInfo.urban_id);
+
+
+				var async = true;
+				if (params.async !== undefined && params.async !== null) {
+					async = params.async;
+				}
+
+				sopPortalUrbarsFacilityObj.request({
+					method : "POST",
+					async : async,
+					url : contextPath + this.API_220801_URL,
+					options : {
+						params : params,
+						url : this.API_220801_URL
+					}
+				});
+			},
+			/**
+			 *				 :
+			 * @name         : getUrbarsFacilitySearch
+			 * @description  : 선택한 시설 좌표
+			 *
+			 */
+			getUrbarsFacilitySearch : function(params){
+				var sopPortalUrbarsFacilitySearchObj = new sop.portal.urbarsFacilitySearch.api();
+				sopPortalUrbarsFacilitySearchObj.addParam("accessToken", accessToken);
+				sopPortalUrbarsFacilitySearchObj.addParam("work_gb", params.work_gb);
+				sopPortalUrbarsFacilitySearchObj.addParam("urban_type", params.urbarInfo.urban_type);
+				sopPortalUrbarsFacilitySearchObj.addParam("urban_id", params.urbarInfo.urban_id);
+				sopPortalUrbarsFacilitySearchObj.addParam("ksic_5_cd", params.urbarInfo.ksic_5_cd);
+				if(params.urbarInfo.urban_sido_cd)	sopPortalUrbarsFacilitySearchObj.addParam("urban_sido_cd", params.urbarInfo.urban_sido_cd);
+				if(params.urbarInfo.urban_sgg_cd)sopPortalUrbarsFacilitySearchObj.addParam("urban_sgg_cd", params.urbarInfo.urban_sgg_cd);
+
+				var async = true;
+				if (params.async !== undefined && params.async !== null) {
+					async = params.async;
+				}
+
+				sopPortalUrbarsFacilitySearchObj.request({
+					method : "POST",
+					async : async,
+					url : contextPath + this.API_220830_URL,
+					options : {
+						params : params,
+						url : this.API_220830_URL
+					}
+				});
+			},
+
+			/**
+			 *
+			 * @name         : getUrbarsStatistics
+			 * @description  : 도시화지역 통계정보 api
+			 *
+			 */
+			getUrbarsStatistics : function(params){
+				var sopPortalUrbarsStatisticsObj = new sop.portal.urbarsStatistics.api();
+				sopPortalUrbarsStatisticsObj.addParam("accessToken", accessToken);
+				sopPortalUrbarsStatisticsObj.addParam("work_gb", params.work_gb);
+				sopPortalUrbarsStatisticsObj.addParam("base_year", params.base_year);
+				sopPortalUrbarsStatisticsObj.addParam("urban_cls_gb", params.urbarInfo.urban_cls_gb);
+
+				if(params.urbarInfo.urban_id !== undefined && params.urbarInfo.urban_id !== null && params.urbarInfo.urban_id !== ""){
+					sopPortalUrbarsStatisticsObj.addParam("urban_id", params.urbarInfo.urban_id);
+				}
+				if(params.urbarInfo.urban_type !== undefined && params.urbarInfo.urban_type !== null && params.urbarInfo.urban_type !== ""){
+					sopPortalUrbarsStatisticsObj.addParam("urban_type", params.urbarInfo.urban_type);
+				}
+				if(params.urbarInfo.urban_sido_cd !== undefined && params.urbarInfo.urban_sido_cd !== null && params.urbarInfo.urban_sido_cd !== ""){
+					sopPortalUrbarsStatisticsObj.addParam("urban_sido_cd", params.urbarInfo.urban_sido_cd);
+				}
+				if(params.urbarInfo.urban_sgg_cd !== undefined && params.urbarInfo.urban_sgg_cd !== null && params.urbarInfo.urban_sgg_cd !== ""){
+					sopPortalUrbarsStatisticsObj.addParam("urban_sgg_cd", params.urbarInfo.urban_sgg_cd);
+				}
+				if(params.class_deg !== undefined && params.class_deg !== null && params.class_deg !== ""){
+					sopPortalUrbarsStatisticsObj.addParam("class_deg", params.class_deg);
+				}
+				if(params.comparison_gb !== undefined && params.comparison_gb !== null && params.comparison_gb !== ""){
+					sopPortalUrbarsStatisticsObj.addParam("comparison_gb", params.comparison_gb);
+				}
+
+				var async = true;
+				if (params.async !== undefined && params.async !== null) {
+					async = params.async;
+				}
+
+				sopPortalUrbarsStatisticsObj.request({
+					method : "POST",
+					async : async,
+					url : contextPath + this.API_202173_URL,
+					options : {
+						params : params,
+						url : this.API_202173_URL
+					}
+				});
+			},
+
+			/**
+			 *
+			 * @name         : getUrbarsIndexes
+			 * @description  : 도시화지역 지표정보 api
+			 *
+			 */
+			getUrbarsIndexes : function(params){
+				var sopPortalUrbarsIndexesObj = new sop.portal.urbarsIndexes.api();
+				sopPortalUrbarsIndexesObj.addParam("accessToken", accessToken);
+				sopPortalUrbarsIndexesObj.addParam("base_year", params.base_year);
+				sopPortalUrbarsIndexesObj.addParam("urban_cls_gb", params.urbarInfo.urban_cls_gb);
+
+				if(params.urbarInfo.urban_id !== undefined && params.urbarInfo.urban_id !== null && params.urbarInfo.urban_id !== ""){
+					sopPortalUrbarsIndexesObj.addParam("urban_id", params.urbarInfo.urban_id);
+				}
+				if(params.urbarInfo.urban_type !== undefined && params.urbarInfo.urban_type !== null && params.urbarInfo.urban_type !== ""){
+					sopPortalUrbarsIndexesObj.addParam("urban_type", params.urbarInfo.urban_type);
+				}
+				if(params.urbarInfo.urban_sido_cd !== undefined && params.urbarInfo.urban_sido_cd !== null && params.urbarInfo.urban_sido_cd !== ""){
+					sopPortalUrbarsIndexesObj.addParam("urban_sido_cd", params.urbarInfo.urban_sido_cd);
+				}
+				if(params.urbarInfo.urban_sgg_cd !== undefined && params.urbarInfo.urban_sgg_cd !== null && params.urbarInfo.urban_sgg_cd !== ""){
+					sopPortalUrbarsIndexesObj.addParam("urban_sgg_cd", params.urbarInfo.urban_sgg_cd);
+				}
+				if(params.comparison_gb !== undefined && params.comparison_gb !== null && params.comparison_gb !== ""){
+					sopPortalUrbarsIndexesObj.addParam("comparison_gb", params.comparison_gb);
+				}
+				if(params.urbarInfo.comparison_urban_id !== undefined && params.urbarInfo.comparison_urban_id !== null && params.urbarInfo.comparison_urban_id !== ""){
+					sopPortalUrbarsIndexesObj.addParam("comparison_urban_id", params.urbarInfo.comparison_urban_id);
+				}
+				if(params.urbarInfo.main_urban_id !== undefined && params.urbarInfo.main_urban_id !== null && params.urbarInfo.main_urban_id !== ""){
+					sopPortalUrbarsIndexesObj.addParam("main_urban_id", params.urbarInfo.main_urban_id);
+				}
+				if(params.urbarInfo.comparison_main_urban_id !== undefined && params.urbarInfo.comparison_main_urban_id !== null && params.urbarInfo.comparison_main_urban_id !== ""){
+					sopPortalUrbarsIndexesObj.addParam("comparison_main_urban_id", params.urbarInfo.comparison_main_urban_id);
+				}
+
+				var async = true;
+				if (params.async !== undefined && params.async !== null) {
+					async = params.async;
+				}
+
+				sopPortalUrbarsIndexesObj.request({
+					method : "POST",
+					async : async,
+					url : contextPath + this.API_202175_URL,
+					options : {
+						params : params,
+						url : this.API_202175_URL
+					}
+				});
+			},
+
+			getAddress : function(params) {
+				var sopPortalAddressObj = new sop.portal.address.api();
+				sopPortalAddressObj.addParam("base_year", params.bnd_year);
+
+				var apiUrl = "";
+				if(params.work_gb == "sido"){
+					apiUrl = "/ServiceAPI/map/sidoAddressList.json";
+				}else if(params.work_gb == "sgg"){
+					sopPortalAddressObj.addParam("sido_cd", params.address.sido_cd);
+					apiUrl = "/ServiceAPI/map/sggAddressList.json";
+				}
+
+				var async = true;
+				if (params.async !== undefined && params.async !== null) {
+					async = params.async;
+				}
+
+				sopPortalAddressObj.request({
+					method : "POST",
+					async : async,
+					url : contextPath + apiUrl,
+					options : {
+						params : params,
+						url : apiUrl
+					}
+				});
+			}
+	};
+
+	/** ********* 공통정보 Start ********* */
+	(function() {
+		$class("sop.portal.commonInfo.api").extend(sop.portal.absAPI)
+		.define(
+				{
+					onSuccess : function(status, res, options) {
+						switch (parseInt(res.errCd)) {
+							case 0:
+								if(options.params.work_gb == "dstrct"){
+									$urbanLeftMenu.ui.setDistrictInfo(res, options);
+								}else if(options.params.work_gb == "urbars"){
+									$urbanLeftMenu.ui.setUrbanAreas(res, options);
+								}else if(options.params.work_gb == "subRegion"){
+									$urbanDataBoard.ui.setSubRegion(res, options);
+								}else if(options.params.work_gb == "urbars_adm"){
+									$urbanMain.ui.setUrbanAreas2(res, options);
+								}else if(options.params.work_gb == "code"){
+								}
+								break;
+							case -401:
+								accessTokenInfo(function() {
+									$urbanApi.request.getCommonInfo(options.params);
+								});
+								break;
+							case -100:
+								//messageAlert.open("알림", "검색결과가 존재하지 않습니다.");
+								if(options.params.work_gb == "urbars"){
+									$urbanLeftMenu.ui.setUrbanAreas(res, options);
+								}else if(options.params.work_gb == "urbars_adm"){
+									$urbanMain.ui.setUrbanAreas2(res, options);
+								}
+								break;
+							default:
+								messageAlert.open("알림", res.errMsg);
+								break;
+						}
+					},
+					onFail : function(status, options) {
+						//
+					}
+				});
+	}());
+	/** ********* 공통정보 End ********* */
+	/** ********* 도시화지역 도형 Start ********* */
+	(function() {
+		$class("sop.portal.urbarsGeometry.api").extend(sop.portal.absAPI)
+		.define(
+				{
+					onSuccess : function(status, res, options) {
+						//var that = options.target;
+						switch (parseInt(res.errCd)) {
+							case 0:
+								var selMenuId = $urbanLeftMenu.ui.getSelectedLeftMenuId();
+								if(selMenuId === "gnb_menu_2"){
+									//console.error("시계열 번호 >>> " + $urbanMain.ui.timeSeriesIdx + "지도 호출 완료");
+									if(!$urbanMain.ui.isTimeSeriesStop){
+										$urbanMain.ui.setUrbarsGeometry(res, options);
+									}
+								}else{
+									$urbanMain.ui.setUrbarsGeometry(res, options);
+								}
+
+								if(options.callback !== undefined && options.callback !== null && options.callback instanceof Function) {
+									options.callback.call(undefined, that, res);
+								}
+								break;
+							case -401:
+								accessTokenInfo(function() {
+									$urbanApi.request.getUrbarsGeometry(options.params);
+								});
+								break;
+							case -100:
+								//messageAlert.open("알림", "검색결과가 존재하지 않습니다.");
+								$urbanMain.ui.setUrbarsGeometry(res, options);
+								break;
+							default:
+								//messageAlert.open("알림", res.errMsg);
+								break;
+						}
+					},
+					onFail : function(status, options) {
+						console.log("[$urbanApi.js] sop.portal.urbarsGeometry.api onFail [" + status + "]");
+					}
+				});
+	}());
+	/** ********* 도시화지역 도형 End ********* */
+	/** ********* 도시화지역 통계 Start ********* */
+	(function() {
+		$class("sop.portal.urbarsStatistics.api").extend(sop.portal.absAPI)
+		.define(
+				{
+					onSuccess : function(status, res, options) {
+						$urbanMask.endUnitWork(options.params.identifier);
+						switch (parseInt(res.errCd)) {
+							case 0:
+								if(options.params.comparison_gb == "CT1" ||options.params.comparison_gb == "CT2" ){
+									if(options.params.comparison_gb == "CT1"){
+
+											setData1.push(res.result)
+									}else{
+
+											setData2.push(res.result)
+											let keyAscArrya = [...setData2];
+											console.log(keyAscArrya);
+									}
+									console.log(setData1)
+									console.log(setData2)
+
+									$urbanDataBoard.ui.setUrbarsStatistics2(setData1,setData2, options);
+
+								}else{
+									$urbanDataBoard.ui.setUrbarsStatistics(res, options);
+									setData1 =[];
+									setData2 =[];
+								}
+								break;
+							case -401:
+								accessTokenInfo(function() {
+									$urbanApi.request.getUrbarsStatistics(options.params);
+								});
+								break;
+							case -100:
+								//messageAlert.open("알림", "검색결과가 존재하지 않습니다.");
+								break;
+							default:
+								//messageAlert.open("알림", res.errMsg);
+								break;
+						}
+					},
+					onFail : function(status, options) {
+						$urbanMask.endUnitWork(options.params.identifier);
+						console.log("[$urbanApi.js] sop.portal.urbarsStatistics.api onFail [" + status + "]");
+					}
+				});
+	}());
+	/** ********* 생활시설 목록 Start ********* */
+	(function() {
+		$class("sop.portal.urbarsFacility.api").extend(sop.portal.absAPI)
+		.define(
+				{
+					onSuccess : function(status,res,options) {
+						$urbanMask.endUnitWork(options.params.identifier);
+						switch (parseInt(res.errCd)) {
+						case 0:
+							$urbanLeftMenu.ui.setLivingCnt(res,options);
+							break;
+						case -401:
+							accessTokenInfo(function() {
+							});
+							break;
+						case -100:
+							//messageAlert.open("알림", "검색결과가 존재하지 않습니다.");
+							break;
+						default:
+							//messageAlert.open("알림", res.errMsg);
+							break;
+
+						}
+					},
+					onFail : function(status) {
+						console.log(options.params.identifier);
+						console.log(" 실패!!!! [" + status + "]");
+					}
+
+				});
+	}());
+	/** ********* 생활시설 좌표 Start ********* */
+	(function() {
+		var start = new Date();
+		$class("sop.portal.urbarsFacilitySearch.api").extend(sop.portal.absAPI)
+		.define(
+				{
+					onSuccess : function(status,res,options) {
+						$urbanMask.endUnitWork(options.params.identifier);
+						switch (parseInt(res.errCd)) {
+						case 0:
+							console.log('시간 측정 db :'+(new Date() - start)/1000)
+							$urbanMain.ui.creatSimpleSearchMarker(res)
+
+							break;
+						case -401:
+							accessTokenInfo(function() {
+							});
+							break;
+						case -100:
+							//messageAlert.open("알림", "검색결과가 존재하지 않습니다.");
+							break;
+						default:
+							//messageAlert.open("알림", res.errMsg);
+							break;
+
+						}
+					},
+					onFail : function(status) {
+						console.log(" 실패!!!! [" + status + "]");
+					}
+
+				});
+	}());
+	/** ********* 도시화지역 통계 End ********* */
+	/** ********* 도시화지역 지표 Start ********* */
+	(function() {
+		$class("sop.portal.urbarsIndexes.api").extend(sop.portal.absAPI)
+		.define(
+				{
+					onSuccess : function(status, res, options) {
+						$urbanMask.endUnitWork(options.params.identifier);
+						switch (parseInt(res.errCd)) {
+							case 0:
+								$urbanDataBoard.ui.setUrbarsIndexes(res, options);
+								break;
+							case -401:
+								accessTokenInfo(function() {
+									$urbanApi.request.getUrbarsIndexes(options.params);
+								});
+								break;
+							case -100:
+								//messageAlert.open("알림", "검색결과가 존재하지 않습니다.");
+								break;
+							default:
+								//messageAlert.open("알림", res.errMsg);
+								break;
+						}
+					},
+					onFail : function(status, options) {
+						console.log('@@@')
+						$urbanMask.endUnitWork(options.params.identifier);
+						console.log("[$urbanApi.js] sop.portal.urbarsIndexes.api onFail [" + status + "]");
+					}
+				});
+	}());
+	/** ********* 도시화지역 지표 End ********* */
+	/** ********* 시도/시군구 목록 Start ********* */
+	(function() {
+		$class("sop.portal.address.api").extend(sop.portal.absAPI)
+		.define(
+				{
+					onSuccess : function(status, res, options) {
+						switch (parseInt(res.errCd)) {
+							case 0:
+								$urbanMain.ui.setAddress(res, options);
+								break;
+							case -401:
+								accessTokenInfo(function() {
+									$urbanApi.request.getAddress(options.params);
+								});
+								break;
+							case -100:
+								//messageAlert.open("알림", "검색결과가 존재하지 않습니다.");
+								break;
+							default:
+								//messageAlert.open("알림", res.errMsg);
+								break;
+						}
+					},
+					onFail : function(status, options) {
+						console.log("[$urbanApi.js] sop.portal.address.api onFail(" + options.params.work_gb + ") [" + status + "]");
+					}
+				});
+	}());
+	/** ********* 시도/시군구 목록 End ********* */
+
+}(window, document));

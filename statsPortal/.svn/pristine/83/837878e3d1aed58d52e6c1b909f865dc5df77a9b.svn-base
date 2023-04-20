@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, target-densitydpi=medium-dpi" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <script src="/publish_2018/include/plugin/jquery-1.11.3.min.js" type="text/javascript"></script>
+    <script src="/publish_2018/include/plugin/slick/slick.js" type="text/javascript"></script>
+    <script src="/publish_2018/include/js/ui.js" type="text/javascript"></script>
+    <link rel="stylesheet" type="text/css" href="/publish_2018/include/css/common.css">
+    <link rel="stylesheet" type="text/css" href="/publish_2018/include/plugin/slick/slick.css">
+    <link rel="stylesheet" type="text/css" href="/publish_2018/include/plugin/slick/slick-theme.css">
+    <!--알림마당 컨텐츠 추가-->
+    <link rel="stylesheet" type="text/css" href="/publish_2018/include/css/contents.css">
+    <script src="/publish_2018/include/plugin/slick/common.js" type="text/javascript"></script>
+    <script src="/publish_2018/include/js/jquery-ui.min.js" type="text/javascript"></script>
+	<!--게시판 css 추가-->
+	<link rel="stylesheet" type="text/css" href="/publish_2018/include/css/board.css">	
+    <title>통계지리정보서비스</title>
+</head>
+<body>
+	<!-- 스킵네비게이션 -->
+	<!--//스킵네비게이션 -->
+	<!--wrap-->
+	<div id="wrap">
+		<!--header-->
+		<!--//header-->
+		<hr class="hidden" />
+		<!--contents-->
+		<div id="container" class="sub">
+			<!--lnb 시작-->
+			<aside class="aside">
+				<h2 class="title">
+					<span>알림마당</span>
+				</h2>
+				<ul>
+					<li><a href="#" class="on">SGIS 소개</a>
+						<ul>
+							<li><a href="#">SGIS소개 및 연혁</a></li>
+							<li><a href="#">SGIS 주요 서비스 안내</a></li>
+						</ul></li>
+					<li><a href="#">설명과 공지</a>
+						<ul>
+							<li><a href="#">공지사항</a></li>
+							<li><a href="#">주요 용어 설명</a></li>
+							<li><a href="#">SGIS 서비스 자료제공시점 현황</a></li>
+						</ul></li>
+					</li>
+					<li><a href="#">질문과 개선요청</a>
+						<ul>
+							<li><a href="#">FAQ</a></li>
+							<li><a href="#">Q&A</a></li>
+							<li><a href="#">통계주제도 신규요청</a></li>
+						</ul></li>
+					<li><a href="#">자료제공서비스</a>
+						<ul>
+							<li><a href="#">자료제공서비스란?</a></li>
+							<li><a href="#">자료제공목록</a></li>
+							<li><a href="#">자료신청</a></li>
+							<li><a href="#">과거집계구 자료신청</a></li>
+							<li><a href="#">신청내역</a></li>
+							<li><a href="#">자료다운로드</a></li>
+						</ul></li>
+					<!--<li class="nochild"><a href="#">none</a> -->
+				</ul>
+			</aside>
+			<!--//lnb 끝--> 
+            <div id="content">
+                <div id="title-area">
+                    <ul class="location">
+              			<li>알림마당</li>
+                        <li>자료신청</li>
+                        <li><em>자료선택 및 신청완료</em></li>
+                    </ul>
+                    <h1 class="sub-title">자료선택 및 신청완료</h1>
+                </div>
+                 <div class="step-box">
+                    <ul>
+                        <li class="on">
+                            <p class="num">01</p>
+                            <p class="text">기본정보 입력 및 약관동의</p>
+                        </li>
+                        <li>
+                            <p class="num">02</p>
+                            <p class="text">자료선택  및 신청완료</p>
+                        </li>
+                    </ul>
+                </div>
+                <div id="contents" class="view">
+                    <!--view-->
+                        <form id="censusFm_id" name="censusFm" method="post" action="shortcut_05_03_apply.jsp" onsubmit="return applyClicked();">
+                            <input type="hidden" name="param_userkey" value="bombjak1">
+                            <input type="hidden" name="aT" value="">
+                            <input type="hidden" name="sgis_census_req_id" value="">
+                            <input type="hidden" name="old_census_file" value="">
+						<h2>기본정보</h2>
+						<div class="table-type">
+                            <p class="required"><em title="필수 항목">*</em> 는 필수 입력 항목입니다.</p>
+                            <table class="table-style type02" summary="자료신청">
+                                <colgroup>
+                                    <col width="160px">
+                                    <col width="*">
+                                </colgroup>
+                                <tbody>
+                                    <input type="hidden" id="census_output_area_year" name="census_output_area_year" value="2016">
+									<tr>
+										<th scope="row"><label>성명(신청인)</label></th>
+										<td>김준하</td>
+									</tr>
+									<tr>
+										<th scope="row">
+											<label for="sgis_census_req_sosok">소속<em>*</em></label>
+										</th>
+										<td>
+                                            <div class="select-wrap">
+                                                <select name="sgis_census_req_sosok" id="sgis_census_req_sosok" class=" " style="width:180px;" title="기관유형 선택">
+                                                    <option value="">기관유형 선택</option>
+                                                    <option value="001001">중앙행정기관</option>
+                                                    <option value="001002">지방자치단체</option>
+                                                    <option value="001003">공사/공단</option>
+                                                    <option value="001004">학술기관</option>
+                                                    <option value="001005">민간</option>
+                                                </select>
+                                            </div>
+                                            <div class="select-wrap">
+                                                <select name="sgis_census_req_sosok" id="sgis_census_req_sosok" class=" " style="width:180px;" title="기관선택">
+                                                    <option value="">기관선택</option>
+                                                </select>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">
+                                            <label for="sgis_census_req_tel_1">연락처<em>*</em></label>
+                                        </th>
+                                        <td>
+                                            <span class="input_area"><input type="text" name="sgis_census_req_tel_1" id="sgis_census_req_tel_1" style="width: 97px;" title="연락처 앞번호" maxlength="3" class="inp" value="010" onkeyup="chkNumber(this)"></span> -
+                                            <span class="input_area"><input type="text" name="sgis_census_req_tel_2" id="sgis_census_req_tel_2" style="width: 97px;" title="연락처 가운데번호" maxlength="4" class="inp" value="3422" onkeyup="chkNumber(this)"></span> -
+                                            <span class="input_area"><input type="text" name="sgis_census_req_tel_3" id="sgis_census_req_tel_3" style="width: 97px;" title="연락처 뒷번호" maxlength="4" value="4252" onkeyup="chkNumber(this)"></span>
+                                        </td>
+                                    </tr>
+									<tr>
+										<th scope="row">
+											<label for="sgis_census_req_email">메일주소<em>*</em></label>
+										</th>
+										<td>
+											<span>
+												<input type="text" name="sgis_census_req_email" id="sgis_census_req_email" title="메일주소" class=" " style="width: 155px;" maxlength="200" value="bombjak@naver.com">
+											</span> @ 
+											<span>
+												<input type="text" id="" class=" " style="width: 175px;" maxlength="200">
+											</span> 
+											<span>
+													<div class="select-wrap">
+														<select name="sgis_census_req_mokjuk" id="" class=" " style="width: 155px;" title=""> </select>
+													</div>
+											</span>
+										</td>
+									</tr>
+									<tr>
+                                    <th scope="row">
+                                        <label for="sgis_census_req_mokjuk">집계구 기준년도<em>*</em></label>
+                                    </th>
+                                    <td>
+                                   		<span>
+	                                        <div class="select-wrap">	
+	                                            <select name="" id="" style="width: 250px;" title="집계구 기준년도">
+	                                                <option>2015</option>
+	                                                <option value=""></option>
+	                                                <option value=""></option>
+	                                                <option value=""></option>
+	                                            </select>
+	                                        </div>
+                                        </span>
+                                        <span class="coment pdl5">(집계구 기준년도별로 변경하실 경우 작성하신 내역이 초기화 됩니다.)
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">
+                                        <label for="sgis_census_req_mokjuk">요청목적<em>*</em></label>
+                                    </th>
+                                    <td>
+                                        <span class="select-wrap">
+                                            <select name="sgis_census_req_mokjuk" id="sgis_census_req_mokjuk" style="width: 250px;" title="요청목적">
+                                                <option>= 선택 =</option>
+                                                <option value="002001">공간DB구축</option>
+                                                <option value="002002">연구수행</option>
+                                                <option value="002003">지도작성</option>
+                                            </select>
+                                        </span>
+                                        <span>
+                                            <input type="text" name="" id="" style="width: 250px;" title="요청목적" maxlength="200" value="내용을 입력하세요.">
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">
+                                        <label for="sgis_census_req_goal">활용목적<em>*</em></label>
+                                    </th>
+                                    <td class="color">
+                                        <textarea onmouseover="tooltip.show('100자이상 구체적으로<br/> 작성해주세요',180,10,-70)" onmouseout="tooltip.hide();" onfocus="tooltip.hide();" name="sgis_census_req_goal" id="sgis_census_req_goal" rows="" cols="" onkeyup="len_chk2('500');"></textarea>
+                                        <div class="coment mt8 mb5">※ 100자 이상 구체적으로 작성해 주세요.</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">
+                                        <label for="sgis_census_req_kwaje">수행과제<em>*</em></label>
+                                    </th>
+                                    <td>
+                                        <div>
+                                            <input type="text" name="sgis_census_req_kwaje" id="sgis_census_req_kwaje" title="수행과제" maxlength="200" value="">
+                                        </div>
+                                        <div class="coment mt15 mb5">예시)도시디자인과 교통안전고의 연관성을 실증 분석하고자 함</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        </div>
+                        <h2>제출동의 및 자료제공기간<em>(필수)</em></h2>
+                        <div class="table-type">
+                        <table class="table-style type02" summary="제출동의 및 자료제공기간">
+								<colgroup>
+									<col width="160px">
+									<col width="*">
+								</colgroup>
+								<tbody>
+                                <tr>
+										<th scope="row">제출동의</th>
+										<td>
+											<ul>
+												<li>제공된 자료에 대한 출처를 반드시 명시하고, 결과물이 완성되었을 때 통계청에<span>사본 1부를 제출할 것을 동의합니다. (논문, URL 등)</span></li>
+												<li>※ 동의하지 않을 경우 신청이 불가합니다.</li>
+												<li>※ 자료제공 신청 시, 신청된 정보는 <strong>통계갤러리 서비스에 비공개 저장</strong>됩니다.
+												</li>
+											</ul>
+										</td>
+									</tr>
+									<tr>
+										<th scope="row"><label>자료제공기간</label></th>
+										<td>
+											<ul>
+												<li>※ 자료 다운로드는<strong>승인 후 일주일 동안</strong>만 가능합니다.
+												</li>
+											</ul>
+										</td>
+									</tr>
+								</tbody>
+                        </table>
+                        <div class="agree">
+                            <input type="checkbox" class="check" name="concur" id="concur">
+                            <label for="concur"><span>위 내용에 동의합니다.</span></label>
+                        </div>
+                        </div>
+                        <div class="btn-area">
+                            <button type="button" name="next" class="default-color" id="" value="다음" onclick=""><span>다음</span></button>
+                        </div>
+                    </form>
+                </div>
+  				 <!--//view-->
+				</div>
+			</div>
+		</div>
+		<!--//contents-->
+		<hr class="hidden" />
+		<!--footer-->
+		<div id="footer"></div>
+		<!--//footer-->
+	</div>
+	<!--//wrap-->
+</body>
+</html>

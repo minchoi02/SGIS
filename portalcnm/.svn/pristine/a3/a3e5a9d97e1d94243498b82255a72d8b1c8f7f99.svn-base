@@ -1,0 +1,483 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd" >
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>SGIS 관리자사이트(CNM)</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<link rel="stylesheet" href="./../include/css/login.css" />
+<link rel="stylesheet" href="./../include/css/default.css" />
+<script type="text/javascript"
+	src="./../include/js/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="./../include/js/default.js"></script>
+<script type="text/javascript" src="../../js/common/includeHead.js"></script>
+<script src="../../js/common/common.js"></script>
+<link rel="stylesheet" href="../../css/jquery-ui-1.10.4.custom.css" />
+<script type="text/javascript"
+	src="../../js/plugins/jquery-ui-1.10.3.custom.js"></script>
+<script type="text/javascript"
+	src="../../js/plugins/jquery-ui-timepicker-addon.js"></script>
+<script type="text/javascript" src="../../js/srvLogCount/houseAnalysisMapUseStat.js"></script>
+<!-- 
+<script type="text/javascript" src="../../js/MN/jquery.battatech.excelexport.js"></script>
+ -->
+
+
+</head>
+
+<body  onload="init();">
+	<script type="text/javascript"
+		src="../../js/plugins/highcharts/highcharts.js"></script>
+	<script type="text/javascript"
+		src="../../js/plugins/highcharts/export-csv.js"></script>
+	<!-- Js file of hightCharts need to import in body tags -->
+	<div class="wrapper">
+		<!-- cls:header start -->
+		<div class="header">
+			<div class="defaultbox">
+				<div class="logo">
+					<a href="#"><img src="./../include/img/pic/pic_logo.png"
+						alt="logo" /></a>
+				</div>
+				<div class="navi"></div>
+			</div>
+			<div class="menuWrapper">
+				<div class="menuCnm">
+					<ul>
+						<li><a class="on">서비스 현황</a></li>
+						<li><a>사용자 현황</a></li>
+						<li><a>서비스 관리</a></li>
+						<li><a>정보 관리</a></li>
+						<li><a>게시판 관리</a></li>
+						<li><a>회원 관리</a></li>
+					</ul>
+				</div>
+			</div>
+			<div class="subMenuWrapper">
+				<div class="subMenu"></div>
+			</div>
+		</div>
+		<!-- cls:header end -->
+			<div class="contents">
+			<!-- cls:left start -->
+				<div class="lefitMenuWrapper">
+					<script type="text/javascript">
+						makeLeftMenu("1", "3", "4");	//탑메뉴순서, 선택된 왼쪽 빅메뉴, 선택된 왼쪽 small메뉴
+					</script>
+				</div>
+			<!-- cls:left end -->
+				<!-- 여기서부터 -->
+				<div class="acticle">
+					<div class="location">
+						<p>
+							<a href="#"><img src="./../include/img/ico/ico_home.png" alt="home"/></a>
+							<span><img src="./../include/img/ico/ico_navi.png" alt="다음"/></span>
+							<span >서비스 현황</span>
+							<span><img src="./../include/img/ico/ico_navi.png" alt="다음"/></span>
+							<span class="fontS"> 페이지 방문통계</span>
+						</p>
+					</div>
+					<p class="title01">살고싶은 우리동네 이용현황</p>
+					<div>
+						<div class="searchWrapper">
+							<select class="input_use07" id="yearSel"
+										name="yearSel">
+											<option value="2015">2015</option>
+											<option value="2016" selected="selected">2016</option>
+											<option value="2017">2017</option>
+									</select> 
+								년
+									<select class="input_use07" id="monthSel"
+										name="monthSel">
+											<option value="01">01</option>
+											<option value="02">02</option>
+											<option value="03">03</option>
+											<option value="04" selected="selected">04</option>
+											<option value="05">05</option>
+											<option value="06">06</option>
+											<option value="07">07</option>
+											<option value="08">08</option>
+											<option value="09">09</option>
+											<option value="10">10</option>
+											<option value="11">11</option>
+											<option value="12">12</option>
+									</select> 
+								월
+							<div class="searchBtn"><a href="#" id="searchBtn"><img src="./../include/img/btn/btn_search.png" alt="검색"/></a></div>
+							<a href="#" id="totExcelBtn"><img src="./../include/img/btn/btn_save.png" style="height:27px;" alt="엑셀저장"/></a>
+						</div>
+					</div>		
+					
+					<!-- 2017.07.18 [개발팀] khc 살고싶은 우리동네 이용현황 그래프보기 추가  start -->		
+					<div>
+						<p class="tilte02">메뉴별 이용현황</p>
+						<div style="overflow: scroll; height:295px" id="houseAnaMapTableDiv">
+							<table class="apiTable03" summary="메뉴별 이용현황" id="houseAnaMapTable" style="width: 728px">
+								<caption>메뉴별 이용현황 입니다.</caption>							
+								<colgroup>								
+									<col width="200"/>
+									<col width="200"/>
+									<col width="200"/>
+									<col width="200"/>
+									<col width="200"/>
+								</colgroup>
+								<tbody id="houseAnaMapBody">
+									<tr>
+										<th>메뉴</th>
+										<th>페이지뷰</th>
+										<th>방문자수</th>
+										<th>연간 페이지뷰</th>
+										<th>연간 방문자수</th>
+									</tr>
+									<tr>
+										<td>추천지역찾기</td>
+										<td>13,213건</td>
+										<td>60,123</td>
+									</tr>
+								</tbody>
+							</table>							
+						</div>
+						
+						<div class="apiTable03" id="houseAnaMapGraphView"></div>
+						<a style="cursor: pointer; float: right;" id="houseAnaMapTableExcelBtn"><img style="margin-top:5px;" src="./../include/img/btn/btn_save.png" alt="엑셀저장" /></a>
+						<a href="javascript:changeType(0, 'houseAnaMapTableDiv','houseAnaMapGraphView', 'houseAnaMapGraphViewBtn');" style="cursor: pointer; float: right;" id="houseAnaMapGraphViewBtn"><img style="margin-top:5px;" src="./../include/img/btn/btn_graph_view.png" alt="그래프보기" /></a>
+					</div>
+					<div class="mt30">
+						<p class="tilte02">인기지표 (주거현황보기 + 추천지역찾기)</p>
+						<div style="overflow: scroll; height:295px">
+							<table class="apiTable03" summary="인기지표" id="popCondiTbl"  style="width: 728px"> 
+								<caption>인기지표 이용현황 입니다.</caption>							
+								<colgroup>
+									<col width="100"/>
+									<col width="200"/> 
+									<col width="200"/>
+									<col width="200"/> 
+									<col width="150"/> 
+								</colgroup>
+								<tbody id="popCondiBody">
+									<tr>
+										<th>순위</th>
+										<th>인기지표</th>
+										<th>주거현황보기</th>
+										<th>추천지역찾기</th>
+										<th>계</th>
+									</tr>
+									<tr>
+										<td>1위</td>
+										<td></td>
+										<td>60,123</td>
+										<td></td>
+										<td></td>
+									</tr>
+								</tbody>
+							</table>
+							
+							<div class="apiTable03" id="popCondiGraphView" style="height: 600px;"></div>							
+						</div>
+						
+						<a style="cursor: pointer; float: right;" id="popCondiTblExcelBtn"><img style="margin-top:5px;" src="./../include/img/btn/btn_save.png" alt="엑셀저장" /></a>
+						<a href="javascript:changeType(1, 'popCondiTbl','popCondiGraphView', 'popCondiGraphViewBtn');" style="cursor: pointer; float: right;" id="popCondiGraphViewBtn"><img style="margin-top:5px;" src="./../include/img/btn/btn_graph_view.png" alt="그래프보기" /></a>
+					</div>	
+					<div class="mt30">
+						<p class="tilte02">인기지표조합(추천지역 찾기)</p>
+						<div style="overflow: scroll; height:800px">
+							<table class="apiTable03" summary="인기지표조합" id="popCondiMixTbl"  style="width: 728px;">
+								<caption>인기지표조합 이용현황 입니다.</caption>							
+								<colgroup>
+									<col width="100"/>
+									<col width="300"/> 
+									<col width="100"/>
+									<col width="100"/>
+								</colgroup>
+								<tbody id="popCondiMixBody">
+									<tr>
+										<th>순위</th>
+										<th>인기지표조합</th>
+										<th>페이지뷰</th>
+										<th>연간 페이지뷰</th>
+									</tr>
+									<tr>
+										<td>1위</td>
+										<td></td>
+										<td></td>
+										<td></td>
+									</tr>
+									<tr>
+										<td>2위</td>
+										<td></td>
+										<td></td>
+										<td></td>
+									</tr>
+									<tr>
+										<td>3위</td>
+										<td></td>
+										<td></td>
+										<td></td>
+									</tr>
+								</tbody>
+							</table>
+							
+							<div class="apiTable03" id="popCondiMixGraphView" style="height: 800px;"></div>		
+						</div>
+						
+						<a style="cursor: pointer; float: right;" id="popCondiMixTblExcelBtn"><img style="margin-top:5px;" src="./../include/img/btn/btn_save.png" alt="엑셀저장" /></a>
+						<a href="javascript:changeType(2, 'popCondiMixTbl','popCondiMixGraphView', 'popCondiMixGraphViewBtn');" style="cursor: pointer; float: right;" id="popCondiMixGraphViewBtn"><img style="margin-top:5px;" src="./../include/img/btn/btn_graph_view.png" alt="그래프보기" /></a>					
+					</div>
+					<div class="mt30">
+						<p class="tilte02">인기 관심지역</p>
+						<div style="overflow: scroll; height:295px">
+							<table class="apiTable03" summary="인기 관심지역" id="interestAreaTbl" style="width: 728px">
+								<caption>인기 관심지역 이용현황 입니다.</caption>							
+								<colgroup>
+									<col width="100"/>
+									<col width="100"/> 
+									<col width="100"/>
+									<col width="100"/>
+									<col width="100"/>
+								</colgroup>
+								<tbody id="interestAreaBody">
+									<tr>
+										<th>순위</th>
+										<th>인기 관심지역</th>
+										<th>주거현황보기</th>
+										<th>추천지역찾기</th>
+										<th>계</th>
+									</tr>
+									<tr>
+										<td>1위</td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+									</tr>
+									<tr>
+										<td>2위</td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+									</tr>
+									<tr>
+										<td>3위</td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+									</tr>
+								</tbody>
+							</table>
+							
+							<div class="apiTable03" id="interestAreaGraphView" style="height: 600px;"></div>	
+						</div>		
+						
+						<a style="cursor: pointer; float: right;" id="interestAreaTblExcelBtn"><img style="margin-top:5px;" src="./../include/img/btn/btn_save.png" alt="엑셀저장" /></a>	
+						<a href="javascript:changeType(3, 'interestAreaTbl','interestAreaGraphView', 'interestAreaGraphViewBtn');" style="cursor: pointer; float: right;" id="interestAreaGraphViewBtn"><img style="margin-top:5px;" src="./../include/img/btn/btn_graph_view.png" alt="그래프보기" /></a>			
+					</div>
+					<div class="mt30">
+						<p class="tilte02">POI별 검색</p>
+						<div style="overflow: scroll; height:295px">
+							<table class="apiTable03" summary="POI별 검색" style="width: 728px" id="poiTbl">
+								<caption>POI별 검색 이용현황 입니다.</caption>							
+								<colgroup>
+									<col width="150"/>
+									<col width="150"/> 
+									<col width="150"/>
+									<col width="150"/>
+								</colgroup>
+								<tbody>
+									<tr>
+										<th></th>
+										<th></th>
+										<th>검색횟수</th>
+										<th>계</th>
+									</tr>
+									<tr>
+										<td rowspan="3" style="border-right:1px solid #cacaca;">학구도</td>
+										<td>초등학교</td>
+										<td><span id="totalV1_1"></span></td>
+										<td rowspan="3"><span id="totalVal1"></span></td>
+									</tr>
+									<tr>
+										<td>중학교</td>
+										<td><span id="totalV1_2"></span></td>
+									</tr>
+									<tr>
+										<td>고등학교</td>
+										<td><span id="totalV1_3"></span></td>
+									</tr>								
+									<tr>
+										<td rowspan="5" style="border-right:1px solid #cacaca;">생활편의.교통</td>
+										<td>편의시설</td>
+										<td><span id="totalV2_1"></span></td>
+										<td rowspan="5"><span id="totalVal2"></span></td>
+									</tr>
+									<tr>
+										<td>쇼핑시설</td>
+										<td><span id="totalV2_2"></span></td>
+									</tr>
+									<tr>
+										<td>외식시설</td>
+										<td><span id="totalV2_3"></span></td>
+									</tr>
+									<tr>
+										<td>버스정류장</td>
+										<td><span id="totalV2_4"></span></td>
+									</tr>
+									<tr>
+										<td>지하철</td>
+										<td><span id="totalV2_5"></span></td>
+									</tr>
+									<tr>
+										<td rowspan="6" style="border-right:1px solid #cacaca;">교육</td>
+										<td>전문대학교</td>
+										<td><span id="totalV3_1"></span></td>
+										<td rowspan="6"><span id="totalVal3"></span></td>
+									</tr>
+									<tr>
+										<td>대학교</td>
+										<td><span id="totalV3_2"></span></td>
+									</tr>
+									<tr>
+										<td>대학원</td>
+										<td><span id="totalV3_3"></span></td>
+									</tr>
+									<tr>
+										<td>교습어학원</td>
+										<td><span id="totalV3_4"></span></td>
+									</tr>
+									<tr>
+										<td>어학원</td>
+										<td><span id="totalV3_5"></span></td>
+									</tr>
+									<tr>
+										<td>예체능학원</td>
+										<td><span id="totalV3_6"></span></td>
+									</tr>
+									<tr>
+										<td rowspan="9" style="border-right:1px solid #cacaca;">복지문화</td>
+										<td>유치원</td>
+										<td><span id="totalV4_1"></span></td>
+										<td rowspan="9"><span id="totalVal4"></span></td>
+									</tr>
+									<tr>
+										<td>어린이집</td>
+										<td><span id="totalV4_2"></span></td>
+									</tr>
+									<tr>
+										<td>병원</td>
+										<td><span id="totalV4_3"></span></td>
+									</tr>
+									<tr>
+										<td>노인복지시설</td>
+										<td><span id="totalV4_4"></span></td>
+									</tr>
+									<tr>
+										<td>사회복지시설</td>
+										<td><span id="totalV4_5"></span></td>
+									</tr>
+									<tr>
+										<td>극장/영화관</td>
+										<td><span id="totalV4_6"></span></td>
+									</tr>
+									<tr>
+										<td>도서관/박물관</td>
+										<td><span id="totalV4_7"></span></td>
+									</tr>
+									<tr>
+										<td>공연단체</td>
+										<td><span id="totalV4_8"></span></td>
+									</tr>
+									<tr>
+										<td>스포츠서비스업</td>
+										<td><span id="totalV4_9"></span></td>
+									</tr>
+								</tbody>
+							</table>
+							
+							<div class="apiTable03" id="poiGraphView" style="height: 600px;"></div>	
+						</div>		
+						
+						<a style="cursor: pointer; float: right;" id="poiTblExcelBtn"><img style="margin-top:5px;" src="./../include/img/btn/btn_save.png" alt="엑셀저장" /></a>	
+						<a href="javascript:changeType(4, 'poiTbl','poiGraphView', 'poiGraphViewBtn');" style="cursor: pointer; float: right;" id="poiGraphViewBtn"><img style="margin-top:5px;" src="./../include/img/btn/btn_graph_view.png" alt="그래프보기" /></a>
+					</div>
+					
+					<div>
+						<p class="tilte02">외부 호출</p>
+						<div style="overflow: scroll; height:295px">
+							<table class="apiTable03" summary="외부 이용현황" id="directCallTable" style="width: 728px">
+								<caption>외부호출 입니다.</caption>							
+								<colgroup>								
+									<col width="200"/>
+									<col width="200"/>
+									<col width="200"/>
+									<col width="200"/>
+									<col width="200"/>
+								</colgroup>
+								<tbody id="directCallBody">
+									<tr>
+										<th>주소</th>
+										<th>방문건수</th>
+									</tr>
+									<tr>
+										<td>추천지역찾기</td>
+										<td>60,123</td>
+									</tr>
+								</tbody>
+							</table>
+							
+							<div class="apiTable03" id="directCallGraphView" style="height: 600px;"></div>							
+						</div>
+						
+						<a style="cursor: pointer; float: right;" id="directCallExcelBtn"><img style="margin-top:5px;" src="./../include/img/btn/btn_save.png" alt="엑셀저장" /></a>
+						<a href="javascript:changeType(5, 'directCallTable','directCallGraphView', 'directCallGraphViewBtn');" style="cursor: pointer; float: right;" id="directCallGraphViewBtn"><img style="margin-top:5px;" src="./../include/img/btn/btn_graph_view.png" alt="그래프보기" /></a>
+					</div>
+					<!-- 2017.07.18 [개발팀] khc 살고싶은 우리동네 이용현황 그래프보기 추가  end -->
+				<!-- mng_s 201710109 lifestyle 추가 leekh -->
+				<div>
+						<p class="tilte02">라이프스타일별 지표 설정</p>
+						<div style="overflow: scroll; height:295px">
+							<table class="apiTable03" summary="외부 이용현황" id="lifeStyleTable" style="width: 728px">
+								<caption>라이프스타일별 지표설정 입니다.</caption>							
+								<colgroup>								
+									<col width="400"/>
+									<col width=""/>
+								</colgroup>
+								<tbody id="lifeStyleBody">
+									<tr>
+										<th>지표</th>
+										<th>지표건수</th>
+									</tr>
+									<tr>
+										<td>추천지역찾기</td>
+										<td>60,123</td>
+									</tr>
+								</tbody>
+							</table>
+							<div class="apiTable03" id="lifeStyleGraphView" style="height: 300px;"></div>								
+						</div>
+						<a style="cursor: pointer; float: right;" id="lifeStyleExcelBtn"><img style="margin-top:5px;"src="	./../include/img/btn/btn_save.png" alt="엑셀저장" /></a>
+						<a href="javascript:changeType(6, 'lifeStyleTable','lifeStyleGraphView', 'lifeStyleGraphViewBtn');" style="cursor: pointer; float: right;" id="lifeStyleGraphViewBtn"><img style="margin-top:5px;" src="./../include/img/btn/btn_graph_view.png" alt="그래프보기" /></a>
+					</div>
+					
+					<!-- mng_e 201710109 lifestyle 추가 leekh -->	
+				</div> <!-- 여기까지 -->
+			</div>
+		</div>
+		<!-- dim처리 문구 출력 -->
+		<div class="wrap-loading display-none">
+   			<div style="background-color: rgb(255, 255, 255); border: 3px solid rgb(0, 0, 0); position: absolute; height: 10px; line-height: 50px; padding-bottom: 40px; width: 400px; top: 50%; left: 50%; z-index: 11000; cursor: wait; margin: -5px 0px 0px -200px; text-align: center;">기다리십시요...</div>
+		</div>
+		<!-- cls:footer start -->
+		<div class="footerWrapper"></div>
+		
+	<form id="excelDownForm" method="post" action="/s-portalcnm/jsp/excel/serviceUseStat.jsp">
+		<input type="hidden" id="htmlStr0" name="htmlStr0" />
+		<input type="hidden" id="htmlStr1" name="htmlStr1" />
+		<input type="hidden" id="htmlStr2" name="htmlStr2" />
+		<input type="hidden" id="htmlStr3" name="htmlStr3" />
+		<input type="hidden" id="htmlStr4" name="htmlStr4" />
+		<input type="hidden" id="htmlStr5" name="htmlStr5" />
+		<input type="hidden" id="htmlStr6" name="htmlStr6" />
+		<input type="hidden" id="exfilename" name="exfilename" value="service.xls" />
+	</form>
+	</body>
+</html>

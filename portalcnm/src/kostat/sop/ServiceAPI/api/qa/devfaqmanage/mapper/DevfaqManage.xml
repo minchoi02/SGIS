@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="DevfaqManage">
+    <!-- FAQ -->
+	<select id="searchFAQ"  parameterType="Map" resultType="Map">
+		select * from 
+		(
+			select 
+			a.BOARD_CD,
+			a.POST_NO,
+			a.POST_TITLE,
+			a.POST_CONTENT,
+			a.REG_MEMBER_ID,
+			SUBSTR(TO_CHAR(a.REG_TS,'yyyy-MM-dd'),0,10) as REG_TS,
+		 	UPPER(a.FILE_YN) as FILE_YN,
+		 	UPPER(a.PRIORITY_DISP_YN) as PRIORITY_DISP_YN,
+		 	ROWNUM R,
+		 	a.MANAGER_NM
+			from
+			(
+				select BOARD_CD,POST_NO,POST_TITLE,REG_MEMBER_ID,POST_CONTENT,REG_TS,FILE_YN,PRIORITY_DISP_YN,M.MANAGER_NM
+				
+				from SRV_DT_BOARD B
+				LEFT OUTER JOIN MNG_DT_MANAGERINFO M
+				on B.reg_member_id=M.manager_id
+				where BOARD_CD = 'BOARD_006'
+				<if test="MANAGER_NM != null">  
+				   and M.MANAGER_NM like '%'|| #{MANAGER_NM} || '%'
+				</if>
+				
+				<if test="POST_TITLE != null">  
+				   and POST_TITLE like '%' || #{POST_TITLE} || '%'
+				</if>
+				<if test="POST_CONTENT != null">  
+				   and POST_CONTENT like '%' || #{POST_CONTENT}|| '%'
+				</if>
+				<if test="REG_MEMBER_ID != null">  
+				   and REG_MEMBER_ID like '%' || #{REG_MEMBER_ID} ||'%'
+				</if>
+				<if test="PRIORITY_DISP_YN != null and PRIORITY_DISP_YN != 'ALL'">
+					and UPPER(PRIORITY_DISP_YN) = #{PRIORITY_DISP_YN}
+				</if>
+		        <if test="order == 'desc'">
+				    order by REG_TS desc
+				</if>
+				<if test="order == 'asc'">
+				    order by REG_TS asc
+				</if>
+				
+				
+			) a
+			where ROWNUM <![CDATA[<=]]> #{END_INDEX}
+		)
+		where R <![CDATA[>=]]> #{START_INDEX}
+	</select>
+	
+	<select id="searchBanner"  parameterType="Map" resultType="Map">
+		select * from 
+		(
+			select 
+			a.BOARD_CD,
+			a.POST_NO,
+			a.POST_TITLE,
+			a.POST_CONTENT,
+			a.REG_MEMBER_ID,
+			SUBSTR(TO_CHAR(a.REG_TS,'yyyy-MM-dd'),0,10) as REG_TS,
+		 	UPPER(a.FILE_YN) as FILE_YN,
+		 	UPPER(a.PRIORITY_DISP_YN) as PRIORITY_DISP_YN,
+		 	ROWNUM R,
+		 	a.MANAGER_NM
+			from
+			(
+				select BOARD_CD,POST_NO,POST_TITLE,REG_MEMBER_ID,POST_CONTENT,REG_TS,FILE_YN,PRIORITY_DISP_YN,M.MANAGER_NM
+				
+				from SRV_DT_BOARD B
+				LEFT OUTER JOIN MNG_DT_MANAGERINFO M
+				on B.reg_member_id=M.manager_id
+				where BOARD_CD = 'BOARD_007'
+				<if test="MANAGER_NM != null">  
+				   and M.MANAGER_NM like '%'|| #{MANAGER_NM} || '%'
+				</if>
+				
+				<if test="POST_TITLE != null">  
+				   and POST_TITLE like '%' || #{POST_TITLE} || '%'
+				</if>
+				<if test="POST_CONTENT != null">  
+				   and POST_CONTENT like '%' || #{POST_CONTENT}|| '%'
+				</if>
+				<if test="REG_MEMBER_ID != null">  
+				   and REG_MEMBER_ID like '%' || #{REG_MEMBER_ID} ||'%'
+				</if>
+				<if test="PRIORITY_DISP_YN != null and PRIORITY_DISP_YN != 'ALL'">
+					and UPPER(PRIORITY_DISP_YN) = #{PRIORITY_DISP_YN}
+				</if>
+		        <if test="order == 'desc'">
+				    order by REG_TS desc
+				</if>
+				<if test="order == 'asc'">
+				    order by REG_TS asc
+				</if>
+				
+				
+			) a
+			where ROWNUM <![CDATA[<=]]> #{END_INDEX}
+		)
+		where R <![CDATA[>=]]> #{START_INDEX}
+	</select>
+	
+	<select id="searchFAQCount"  parameterType="Map" resultType="int">
+		select NVL(COUNT(POST_NO),0) as CNT
+		from SRV_DT_BOARD  B
+			LEFT OUTER JOIN MNG_DT_MANAGERINFO M
+				on B.reg_member_id=M.manager_id
+		WHERE
+			 BOARD_CD = 'BOARD_006'
+			
+		<if test="MANAGER_NM != null">  
+		   and MANAGER_NM like '%' ||#{MANAGER_NM} || '%'
+		</if>	
+		<if test="POST_TITLE != null">  
+		   and POST_TITLE like '%' || #{POST_TITLE}|| '%'
+		</if>
+		<if test="POST_CONTENT != null">  
+		   and POST_CONTENT like '%' || #{POST_CONTENT} || '%'
+		</if>
+		<if test="REG_MEMBER_ID != null">  
+		   and REG_MEMBER_ID like '%' || #{REG_MEMBER_ID} || '%'
+		</if>
+	</select>
+	<select id="searchBannerCount"  parameterType="Map" resultType="int">
+		select NVL(COUNT(POST_NO),0) as CNT
+		from SRV_DT_BOARD  B
+			LEFT OUTER JOIN MNG_DT_MANAGERINFO M
+				on B.reg_member_id=M.manager_id
+		WHERE
+			 BOARD_CD = 'BOARD_007'
+			
+		<if test="MANAGER_NM != null">  
+		   and MANAGER_NM like '%' ||#{MANAGER_NM} || '%'
+		</if>	
+		<if test="POST_TITLE != null">  
+		   and POST_TITLE like '%' || #{POST_TITLE}|| '%'
+		</if>
+		<if test="POST_CONTENT != null">  
+		   and POST_CONTENT like '%' || #{POST_CONTENT} || '%'
+		</if>
+		<if test="REG_MEMBER_ID != null">  
+		   and REG_MEMBER_ID like '%' || #{REG_MEMBER_ID} || '%'
+		</if>
+	</select>
+	<select id="getFAQ"  parameterType="String" resultType="Map">
+		select 
+		BOARD_CD,
+		POST_NO,
+		POST_TITLE,
+		POST_CONTENT,
+		UPPER(FILE_YN) as FILE_YN,
+		UPPER(PRIORITY_DISP_YN) as PRIORITY_DISP_YN,
+		LOW_RANK_S_CLASS_CD
+		from SRV_DT_BOARD
+		where BOARD_CD = 'BOARD_006' and POST_NO = #{POST_NO}
+	</select>
+	<select id="getBanner"  parameterType="String" resultType="Map">
+		select 
+		BOARD_CD,
+		POST_NO,
+		POST_TITLE,
+		POST_CONTENT,
+		UPPER(FILE_YN) as FILE_YN,
+		UPPER(PRIORITY_DISP_YN) as PRIORITY_DISP_YN,
+		LOW_RANK_S_CLASS_CD,
+		LINK_URL
+		from SRV_DT_BOARD
+		where BOARD_CD = 'BOARD_007' and POST_NO = #{POST_NO}
+	</select>
+	
+	<select id="getFAQFile" parameterType="String" resultType="Map">
+		select 
+		a.FILE_PATH,
+		a.FILE_NM,
+		a.FILE_EXTN AS FILE_EXTENSION,
+		a.FILE_CONTENT_TYPE,
+		a.FILE_ID
+		from SRV_DT_FILE a, SRV_DT_BOARD b
+		where a.BOARD_CD = b.BOARD_CD and a.POST_NO = b.POST_NO
+		and a.BOARD_CD = 'BOARD_006' and a.POST_NO = #{POST_NO}
+	</select>
+	<delete id="deleteFAQ" >
+		delete from SRV_DT_BOARD where BOARD_CD = 'BOARD_006' and POST_NO in
+		<foreach item="item" collection="array" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	<delete id="deleteBanner" >
+		delete from SRV_DT_BOARD where BOARD_CD = 'BOARD_007' and POST_NO in
+		<foreach item="item" collection="array" open="(" separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+	<delete id="deleteFAQFile">
+		delete from SRV_DT_FILE where BOARD_CD = 'BOARD_006' and POST_NO in
+		<foreach item="item" collection="array" open="(" separator="," close=")">
+			#{item}			
+		</foreach>
+	</delete>
+	<delete id="deleteOneFAQFile" parameterType="String">
+		delete from SRV_DT_FILE where  BOARD_CD = 'BOARD_006' and POST_NO = #{POST_NO}
+	</delete>
+	<select id="getFAQPostNO" resultType="int">
+		select NVL(MAX(POST_NO),0)+1 from  SRV_DT_BOARD where BOARD_CD = 'BOARD_006'
+	</select>
+	<select id="getbannerPostNO" resultType="int">
+		select NVL(MAX(POST_NO),0)+1 from  SRV_DT_BOARD where BOARD_CD = 'BOARD_007'
+	</select>
+	<insert id="addFAQ" parameterType="Map">
+		insert into SRV_DT_BOARD 
+		(
+			BOARD_CD,
+			POST_NO,
+			PARENT_POST_ID,
+			POST_DEPTH,
+			POST_ORDER,
+			POST_TITLE,
+			POST_CONTENT,
+			REG_MEMBER_ID,
+			REG_TS,
+			MOD_TS,
+			FILE_YN,
+			PRIORITY_DISP_YN
+		)
+		values
+		(
+			'BOARD_006',
+			#{POST_NO},
+			#{POST_NO},
+			0,
+			0,
+			#{POST_TITLE},
+			#{POST_CONTENT},
+			#{MEMBER_ID},
+			sysdate,
+			sysdate,
+			#{FILE_YN},
+			#{PRIORITY_DISP_YN}
+		)
+	</insert>
+	<insert id="addBanner" parameterType="Map">
+		insert into SRV_DT_BOARD 
+		(
+			BOARD_CD,
+			POST_NO,
+			PARENT_POST_ID,
+			POST_DEPTH,
+			POST_ORDER,
+			POST_TITLE,
+			POST_TITLE_EN,
+			POST_CONTENT,
+			REG_MEMBER_ID,
+			REG_TS,
+			MOD_TS,
+			FILE_YN,
+			PRIORITY_DISP_YN,
+			LINK_URL
+		)
+		values
+		(
+			'BOARD_007',
+			#{POST_NO},
+			#{POST_NO},
+			0,
+			0,
+			#{POST_TITLE},
+			#{POST_TITLE_EN},
+			#{POST_CONTENT},
+			#{MEMBER_ID},
+			sysdate,
+			sysdate,
+			#{FILE_YN},
+			#{PRIORITY_DISP_YN},
+			#{LINK_URL}
+		)
+	</insert>
+	<insert id="addFAQFile" parameterType="Map">
+		insert into SRV_DT_File
+		(
+			BOARD_CD,
+			POST_NO,
+			FILE_ID,
+			FILE_PATH,
+			FILE_NM,
+			FILE_EXTN,
+			FILE_CONTENT_TYPE
+		) values 
+		(
+			'BOARD_006',
+			#{POST_NO},
+			#{FILE_ID},
+			#{FILE_PATH},
+			#{FILE_NM},
+			#{FILE_EXTENSION},
+			#{FILE_CONTENT_TYPE}
+		)
+	</insert>
+	<update id="updateFAQ" parameterType="Map">
+		update SRV_DT_BOARD set 
+		POST_TITLE = #{POST_TITLE},
+		POST_CONTENT = #{POST_CONTENT},
+		MOD_TS = sysdate,
+		FILE_YN = #{FILE_YN},
+		PRIORITY_DISP_YN = #{PRIORITY_DISP_YN}
+		where BOARD_CD = 'BOARD_006' and POST_NO = #{POST_NO}
+	</update>
+	<update id="updateBanner" parameterType="Map">
+		update SRV_DT_BOARD set 
+		POST_TITLE = #{POST_TITLE},
+		POST_CONTENT = #{POST_CONTENT},
+		POST_TITLE_EN = #{POST_TITLE_EN},
+		MOD_TS = sysdate,
+		FILE_YN = #{FILE_YN},
+		PRIORITY_DISP_YN = #{PRIORITY_DISP_YN},
+		LINK_URL = #{LINK_URL}
+		where BOARD_CD = 'BOARD_007' and POST_NO = #{POST_NO}
+	</update>
+	
+
+</mapper>

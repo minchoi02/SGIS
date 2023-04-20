@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="CommunityStat">
+	<select id="selectAllCmmntyList" resultType="java.util.HashMap">
+		SELECT
+			<include refid="CommunityManage.cmmntyItem"/>,
+			CUSTOM_SYMBOL_GROUP_ID
+		FROM SRV_DT_CMMNTY_MAP
+		ORDER BY REG_DATE DESC
+	</select>
+	<select id="selectCmmnty" resultType="java.util.HashMap">
+		SELECT
+			<include refid="CommunityManage.cmmntyItem"/>,
+			CUSTOM_SYMBOL_GROUP_ID
+		FROM SRV_DT_CMMNTY_MAP
+		<where>
+			<choose>
+				<when test="CMMNTY_MAP_ID != null and CMMNTY_MAP_ID != ''">
+					SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID = #{CMMNTY_MAP_ID}
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose>
+		</where>
+	</select>
+	<sql id="dateFormat">
+		<choose>
+			<when test="TIMETYPE == 'DAILY'">'yyyy-mm-dd'</when>
+			<when test="TIMETYPE == 'MONTHLY'">'yyyy-mm'</when>
+			<otherwise>'yyyy'</otherwise>
+		</choose>
+	</sql>
+	<select id="selectSymbolDateStat" resultType="java.util.HashMap">
+		SELECT 
+			REG_SYMBOL,
+			SYMBOL,
+			TO_CHAR(SRV_DT_CMMNTY_POI.REG_DATE,<include refid="dateFormat"/>) AS REG_DATE,
+			COUNT(1) AS CNT
+		FROM SRV_DT_CMMNTY_POI 
+		INNER JOIN SRV_DT_CMMNTY_MAP ON SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID = SRV_DT_CMMNTY_POI.CMMNTY_MAP_ID
+		<where>
+			<choose>
+				<when test="CMMNTY_MAP_ID != null and CMMNTY_MAP_ID != ''">
+					SRV_DT_CMMNTY_POI.CMMNTY_MAP_ID = #{CMMNTY_MAP_ID}
+					AND SRV_DT_CMMNTY_POI.REG_DATE BETWEEN TO_DATE(#{STARTDATE}<if test="TIMETYPE == 'MONTHLY'">||'-01'</if>) AND TO_DATE(#{ENDDATE}<if test="TIMETYPE == 'MONTHLY'">||'-31'</if>)
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose>
+		</where>
+		GROUP BY REG_SYMBOL,SYMBOL,TO_CHAR(SRV_DT_CMMNTY_POI.REG_DATE,<include refid="dateFormat"/>)
+	</select>
+	<select id="selectSymbolList" resultType="java.util.HashMap">
+		SELECT 
+			SRV_DT_CMMNTY_MAP.REG_SYMBOL,
+			SRV_DT_CMMNTY_CUSTOM_SYMBOL.CUSTOM_SYMBOL_ID,
+			SRV_DT_CMMNTY_CUSTOM_SYMBOL.LABEL_NM,
+			SRV_DT_CMMNTY_CUSTOM_SYMBOL.ORDER,
+			SRV_DT_CMMNTY_CUSTOM_SYMBOL_ATCH_IMAGE.PATH_NM,
+			SRV_DT_CMMNTY_CUSTOM_SYMBOL_ATCH_IMAGE.SAVE_FILE_NM 
+		FROM SRV_DT_CMMNTY_CUSTOM_SYMBOL
+		INNER JOIN SRV_DT_CMMNTY_MAP ON SRV_DT_CMMNTY_MAP.CUSTOM_SYMBOL_GROUP_ID = SRV_DT_CMMNTY_CUSTOM_SYMBOL.CUSTOM_SYMBOL_GROUP_ID
+		LEFT OUTER JOIN SRV_DT_CMMNTY_CUSTOM_SYMBOL_ATCH_IMAGE ON SRV_DT_CMMNTY_CUSTOM_SYMBOL.CUSTOM_SYMBOL_ID = SRV_DT_CMMNTY_CUSTOM_SYMBOL_ATCH_IMAGE.CUSTOM_SYMBOL_ID
+		<where>
+			<choose>
+				<when test="CMMNTY_MAP_ID != null and CMMNTY_MAP_ID != ''">
+					SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID = #{CMMNTY_MAP_ID}
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose>
+		</where>
+		ORDER BY ORDER ASC
+	</select>
+</mapper>

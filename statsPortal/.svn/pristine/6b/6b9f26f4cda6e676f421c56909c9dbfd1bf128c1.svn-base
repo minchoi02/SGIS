@@ -1,0 +1,513 @@
+// 우리동네 상황판 콤비네이션 차트 (라인 + 컬럼)
+function fn_layerDonut(id, data){
+    Highcharts.chart(id, {
+        chart : {
+          plotBackgroundColor: null,
+            plotBorderWidth: 0,
+            plotShadow: false,
+            margin: 0,
+            padding:0
+            // marginBottom:45
+        },
+        legend: {
+            enabled:false,
+            y:0,
+            margin:0,
+            padding:0,
+            lineHeight:0
+        },
+        plotOptions: {
+          pie: {
+              dataLabels: {enabled: false},
+              startAngle: -90,
+              endAngle: 90,
+              center: ['50%', '40px'],
+              size: '330%',
+              colors:[mapInfo.colorPl[0],mapInfo.colorPl[1]]
+          }
+        },
+        xAxis:{
+                categories: [data.thisyearkey1,data.thisyearkey2]
+        },
+        series: [{
+                    type: 'pie',
+                    innerSize: '50%',
+                    data:[[data.thisyearkey1, data.thisyearval1],[data.thisyearkey2, data.thisyearval2]]
+                }]
+    });
+}
+
+function fn_layerLine (id, data) {
+    Highcharts.chart(id, {
+            chart : {type : 'line'},
+    xAxis: {
+        categories: data['yearData']['year']
+    },
+    legend: {enabled:false},
+    yAxis:{visible:false},
+    plotOptions: {
+        series: {
+            marker: {
+                enabled: true, //마커 보이기 / 안보이기 [true : 보이기, false : 안보이기]
+                lineWidth: 2, //라인 굵기
+                lineColor:mapInfo.colorPl[0], //라인 색
+                fillColor:'#ffffff'
+            },
+            color: mapInfo.colorPl[0],
+            dataLabels: {
+                enabled: true, //데이터레이블 보이기/안보이기 [true : 보이기, false : 안보이기]
+                allowOverlap: true //데이터레이블 겹치기/안겹치기 (안겹치기시 겹치는 데이터레이블 안보임) [true : 겹치다, false : 안겹치다]
+            },
+            events: {
+                mouseOver: function (event) { //마우스 오버 이벤트[마우스올리면 : show(데이터레이블 보이기)]
+                    $.each(this.data, function(i, point){
+                        point.dataLabel.show();
+                    });
+                },
+                mouseOut: function (e) { //마우스 오버 이벤트[마우스내리면 : hide(데이터레이블 안보이기)]
+                    $.each(this.data, function(i, point){
+                        point.dataLabel.hide();
+                    });
+                }
+            }
+        }
+    },
+    
+    series: [
+                {name:data['name'],
+                data:data['yearData']['tot_data'],
+                color:mapInfo.colorPl[1],
+                marker: {
+                    lineWidth: 2, //라인 굵기
+                    lineColor:mapInfo.colorPl[1], //라인 색
+                    fillColor:'#ffffff'
+                    }
+                }
+            ]
+        });
+}
+                
+function fn_layerMap (id, data) {
+    Highcharts.chart(id, {
+        colorAxis: {
+            minColor: '#FFFFFF',
+            maxColor: mapInfo.colorPl[1]
+        },
+        yAxis:{visible:false},
+        legend: {enabled:false},
+        series:[{
+            type: 'treemap',
+            layoutAlgorithm: 'squarified',
+            data: data.dataSeries
+        }]
+    });
+
+}
+function fn_layerColumn(id, data) {
+
+    Highcharts.chart(id, {
+        chart : {type : 'column'},
+        xAxis: {categories: data.category},
+        yAxis:{visible:false},
+        legend: {enabled:false},
+        plotOptions: {
+            series: {
+                stacking: 'normal',
+                marker: {
+                    enabled: true, //마커 보이기 / 안보이기 [true : 보이기, false : 안보이기]
+                    lineWidth: 2, //라인 굵기
+                    lineColor:'#0475F4', //라인 색
+                    fillColor:'#ffffff'
+                },
+                dataLabels: {
+                    enabled: true, //데이터레이블 보이기/안보이기 [true : 보이기, false : 안보이기]
+                    allowOverlap: true //데이터레이블 겹치기/안겹치기 (안겹치기시 겹치는 데이터레이블 안보임) [true : 겹치다, false : 안겹치다]
+                },
+                events: {
+                    mouseOver: function (event) { //마우스 오버 이벤트[마우스올리면 : show(데이터레이블 보이기)]
+                        $.each(this.data, function(i, point){
+                            point.dataLabel.show();
+                        });
+                    },
+                    mouseOut: function (e) { //마우스 오버 이벤트[마우스내리면 : hide(데이터레이블 안보이기)]
+                        $.each(this.data, function(i, point){
+                            point.dataLabel.hide();
+                        });
+                    }
+                }
+            }
+        },
+        colors:mapInfo.colorPl,
+        series: [{name:data.dataName, data:data.dataCount}]
+                
+        
+    });
+}
+function fn_layerPie(id, data){
+    Highcharts.chart(id, {
+        chart : {
+            renderTo: 'dounutChart',
+            type: 'pie'
+        },
+        colors:[mapInfo.colorPl[0], mapInfo.colorPl[1]],    
+        legend: {enabled : false},
+        plotOptions: {
+            pie: {//도넛(파이)차트 전체 옵션 지정.
+                size: '140%', 
+                showInLegend: true, //범례 show/hide 설정. (series 내에서 개별 지정도 가능.)
+            }
+        },
+        tooltip: {
+            useHTML: false,//툴팁 포맷을 html로 변경할 경우 true로 지정.(default false)
+            borderRadius: 10,
+            
+            shadow: false,
+            padding:10,
+            style: {			 
+                fontSize :'12px',  
+                fontWeight: '400',
+                textAlign:'center',
+            },
+            shared: true
+            
+        },
+        series: [
+                    {name: data.title,
+                    innerSize:'50%',
+                    dataLabels: {enabled: false},
+                    data: [{name:data.thisyearkey1,y:data.thisyearval1,sliced:true},
+                        {name:data.thisyearkey2,y:data.thisyearval2},
+                      ]
+                    }
+                ],
+    });
+}
+
+
+
+function fn_layerColumnType2(id, data){
+    let colorAr = [];
+
+    if(data['chartData'].length == 3) colorAr = [mapInfo.colorPl[3],mapInfo.colorPl[3],mapInfo.colorPl[1]]
+    else                        colorAr = [mapInfo.colorPl[3],mapInfo.colorPl[1]]
+
+    Highcharts.chart(id, {
+        chart : {
+            type : 'column',
+            padding: [0,0,0,0],
+            margin: [0, 0, 22, 0], // equivalent of the above
+        },
+        xAxis: {
+            lineWidth:0,
+            offset: -5,
+            categories: data.category,
+            labels: {style: {fontSize:'12px',fontWeight: '400',letterSpacing: '-1px',}},
+        },
+        
+        yAxis:{visible:false},
+        legend: {enabled:false},
+        plotOptions: {
+            series: {
+                colorByPoint:true,
+                colors:colorAr,
+                dataLabels: {enabled: false} //데이터레이블 보이기/안보이기 [true : 보이기, false : 안보이기]
+            }
+        },
+        series: [{name:data.title, data:data.chartData}]
+                
+        
+    });
+}
+
+function fn_combiLineColumn(id, data){
+    Highcharts.chart(id, {
+        chart : {
+            type : 'column'
+        },
+        yAxis: {
+            labels: {enabled : true},
+        },
+        
+        xAxis: {
+            categories: data.category,
+            labels: {style: {color: '#333',fontSize:'12px'}},
+        },
+        legend: {enabled:false},
+        plotOptions: {
+            series: {
+                marker: {
+                    enabled: false, //마커 보이기 / 안보이기 [true : 보이기, false : 안보이기]
+                },
+                dataLabels: {
+                    enabled: true, //데이터레이블 보이기/안보이기 [true : 보이기, false : 안보이기]
+                    allowOverlap: true, //데이터레이블 겹치기/안겹치기 (안겹치기시 겹치는 데이터레이블 안보임) [true : 겹치다, false : 안겹치다]
+                    shadow:false,
+                    borderColor: mapInfo.colorPl[3]
+                }
+            }
+        },
+        series: [{
+                    type:"column",
+                    name:data.title,
+                    data:data.data,
+                    color:mapInfo.colorPl[0]
+                },
+                {
+                    type: 'line',
+                    name: data.title,
+                    data: data.data,
+                    color:mapInfo.colorPl[1],
+                    marker: {
+                        enabled: true, //마커 보이기 / 안보이기 [true : 보이기, false : 안보이기]
+                        lineWidth: 2, //라인 굵기
+                        lineColor:mapInfo.colorPl[1], //라인 색
+                        fillColor:'#ffffff'
+                    }
+                }]
+    });
+}
+
+
+function fn_multiAxisLineColumn(id, data) {
+
+    Highcharts.chart(id, {
+        chart : {
+            // height: "100%",
+            // padding: [0,0,0,0],
+            // margin: [0, 30, 30, 30], // equivalent of the above
+        },
+        yAxis: [
+                { // Primary yAxis
+                    labels: {enabled:true},
+                    opposite: true
+                }, { // Secondary yAxis
+                    labels: {enabled:true}
+                    // opposite: true
+                }],
+        xAxis: {
+            categories: data.category,
+            labels: {style: {color: '#333',fontSize:'12px'}},
+        },
+        legend: {enabled:false},
+        plotOptions: {
+            series: {
+                marker: {
+                    enabled: false, //마커 보이기 / 안보이기 [true : 보이기, false : 안보이기]
+                },
+                dataLabels: {
+                    enabled: true, //데이터레이블 보이기/안보이기 [true : 보이기, false : 안보이기]
+                    allowOverlap: true, //데이터레이블 겹치기/안겹치기 (안겹치기시 겹치는 데이터레이블 안보임) [true : 겹치다, false : 안겹치다]
+                    shadow:false,
+                    borderColor: mapInfo.colorPl[3]
+                }
+            }
+        },
+        series: [{
+                    name: data.originTitle,
+                    type: 'column',
+                    yAxis: 1,
+                    color:mapInfo.colorPl[0],
+                    data: data.originData
+                }, {
+                    name: data.vrsTitle,
+                    type: 'spline',
+                    data: data.vrsData,
+                    color:mapInfo.colorPl[1],
+                    marker: {
+                        enabled: true, //마커 보이기 / 안보이기 [true : 보이기, false : 안보이기]
+                        lineWidth: 2, //라인 굵기
+                        lineColor:mapInfo.colorPl[1], //라인 색
+                        fillColor:'#ffffff'
+                    }
+                }]
+    });
+    
+}
+
+
+function fn_columnLineLarge(id,data) {
+    Highcharts.chart(id, {
+        chart : {
+            type : 'column'
+        },
+        yAxis: {
+            labels: {enabled : true},
+        },
+        
+        xAxis: {
+            categories: data.category,
+            labels: {style: {color: '#333',fontSize:'12px'}},
+        },
+        legend: {enabled:false},
+        plotOptions: {
+            series: {
+                marker: {
+                    enabled: false, //마커 보이기 / 안보이기 [true : 보이기, false : 안보이기]
+                },
+                dataLabels: {
+                    enabled: true, //데이터레이블 보이기/안보이기 [true : 보이기, false : 안보이기]
+                    allowOverlap: true, //데이터레이블 겹치기/안겹치기 (안겹치기시 겹치는 데이터레이블 안보임) [true : 겹치다, false : 안겹치다]
+                    shadow:false,
+                    borderColor: mapInfo.colorPl[3]
+                }
+            }
+        },
+        series: [{
+                    type:"column",
+                    name:data.title,
+                    data:data.data,
+                    color:mapInfo.colorPl[0]
+                },
+                {
+                    type: 'line',
+                    name: data.title,
+                    data: data.data,
+                    color:mapInfo.colorPl[1],
+                    marker: {
+                        enabled: true, //마커 보이기 / 안보이기 [true : 보이기, false : 안보이기]
+                        lineWidth: 2, //라인 굵기
+                        lineColor:mapInfo.colorPl[1], //라인 색
+                        fillColor:'#ffffff'
+                    }
+                }]
+    });
+}
+
+function fn_barLarge (id, data) {
+    Highcharts.chart(id, {
+        chart: {type: 'bar'},
+        xAxis: {labels: {
+                    style: {
+                        color: '#666',
+                        fontSize:'12px',
+                        fontWeight: '400',
+                        letterSpacing: '-1px',
+                    }
+                },
+                categories: data.category},
+        yAxis: {min: 0},
+        tooltip: {valueSuffix: ''}, // value 
+        plotOptions: {
+            bar: {
+                dataLabels: {enabled: true}
+            },
+            series: {
+                pointWidth: 15,
+                pointPadding:0.25,
+            }
+        },
+        legend: {enabled:false},
+        
+        series: [{
+            name: data.title,
+            data: data.data,
+            color:mapInfo.colorPl[0]
+        }]
+    });
+}
+
+function fn_solidgauge(id,data) {
+    Highcharts.chart(id, {
+        chart: {
+            type: 'solidgauge',
+            height: '100%'
+        },
+        pane: {
+            startAngle: 0,
+            endAngle: 360,
+            center:['50%','37%'],
+            size:180,
+            background: [{ 
+                outerRadius: '110%',
+                innerRadius: '93%',
+                backgroundColor: Highcharts.color(mapInfo.colorPl[3]).setOpacity(0.4).get(),
+                borderWidth: 0
+            }, { 
+                outerRadius: '92%',
+                innerRadius: '75%',
+                backgroundColor: Highcharts.color(mapInfo.colorPl[3]).setOpacity(0.4).get(),
+                borderWidth: 0
+            }, { 
+                outerRadius: '74%',
+                innerRadius: '57%',
+                backgroundColor: Highcharts.color(mapInfo.colorPl[3]).setOpacity(0.4).get(),
+                borderWidth: 0
+            },{ 
+                outerRadius: '56%',
+                innerRadius: '39%',
+                backgroundColor: Highcharts.color(mapInfo.colorPl[3]).setOpacity(0.4).get(),
+                borderWidth: 0
+            }]
+        },
+        yAxis: {min: 0,max: 100,lineWidth: 0,tickPositions: []},
+        legend: {
+            layout:'vertical',
+            backgroundColor: 'transparent',
+            align:'bottom',
+            float:'left',
+            itemMarginTop: 3,
+            itemMarginBottom: 3,
+            x:20,
+            y:0,
+            labelFormatter: function() {
+                return '<span>' + this.name + " : " + this.yData +'%</span>';
+            }
+        },
+        plotOptions: {
+            solidgauge: {
+              colorByPoint: false,
+              linecap: 'round',
+                stickyTracking: false,
+                rounded: true,
+              dataLabels: {
+                enabled: false
+              }
+        
+            }
+          },
+    
+        series: [{
+                    name: data[0].title,
+                    title: data[0].title,
+                    color: mapInfo.colorPl[0],
+                    data: [{
+                        color: mapInfo.colorPl[0],
+                        radius: '110%',
+                        innerRadius: '93%',
+                        y: data[0].data
+                    }],
+                    showInLegend: true
+                }, {
+                    name: data[1].title,
+                    color: mapInfo.colorPl[1],
+                    data: [{
+                        color: mapInfo.colorPl[1],
+                        radius: '92%',
+                        innerRadius: '75%',
+                        y: data[1].data
+                    }],
+                    showInLegend: true
+                }, {
+                    name: data[2].title,
+                    color: mapInfo.colorPl[2],
+                    showInLegend: true,
+                    data: [{
+                        color: mapInfo.colorPl[2],
+                        radius: '74%',
+                        innerRadius: '57%',
+                        y: data[2].data
+                    }]
+                },{
+                    name: data[3].title,
+                    showInLegend: true,
+                    color:mapInfo.colorPl[4],
+                    data: [{
+                        color: mapInfo.colorPl[4],
+                        radius: '56%',
+                        innerRadius: '39%',
+                        y: data[3].data
+                    }]
+                    
+                }]
+    });
+}

@@ -1,0 +1,383 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd" >
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>SGIS 관리자사이트(CNM)</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<link rel="stylesheet" href="./../include/css/login.css" />
+<link rel="stylesheet" href="./../include/css/default.css" />
+<script type="text/javascript"
+	src="./../include/js/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="./../include/js/default.js"></script>
+<script type="text/javascript" src="../../js/common/includeHead.js"></script>
+<script src="../../js/common/common.js"></script>
+<link rel="stylesheet" href="../../css/jquery-ui-1.10.4.custom.css" />
+<script type="text/javascript"
+	src="../../js/plugins/jquery-ui-1.10.3.custom.js"></script>
+<script type="text/javascript"
+	src="../../js/plugins/jquery-ui-timepicker-addon.js"></script>
+<script type="text/javascript" src="../../js/MN/SRVStat.js"></script>
+
+</head>
+
+<body>
+	<script type="text/javascript"
+		src="../../js/plugins/highcharts/highcharts.js"></script>
+	<script type="text/javascript"
+		src="../../js/plugins/highcharts/export-csv.js"></script>
+	<!-- Js file of hightCharts need to import in body tags -->
+	<div class="wrapper">
+		<!-- cls:header start -->
+		<div class="header">
+			<div class="defaultbox">
+				<div class="logo">
+					<a href="#"><img src="./../include/img/pic/pic_logo.png"
+						alt="logo" /></a>
+				</div>
+				<div class="navi"></div>
+			</div>
+			<div class="menuWrapper">
+				<div class="menuCnm">
+					<ul>
+						<li><a class="on">서비스 현황</a></li>
+						<li><a>사용자 현황</a></li>
+						<li><a>서비스 관리</a></li>
+						<li><a>정보 관리</a></li>
+						<li><a>게시판 관리</a></li>
+						<li><a>회원 관리</a></li>
+					</ul>
+				</div>
+			</div>
+			<div class="subMenuWrapper">
+				<div class="subMenu"></div>
+			</div>
+		</div>
+		<!-- cls:header end -->
+		<div class="contents">
+			<!-- cls:left start -->
+			<div class="lefitMenuWrapper">
+				<div class="leftTitle">서비스 현황</div>
+				
+				<!-- 2017.07.20 [개발팀] khc 빠진 메뉴 추가  start -->
+				<div class="leftMenu">
+					<ul>
+						<li><a href="./../MN/totUseStat.html">총괄이용현황</a></li>
+						<li><a href="./../MN/APIStat.html">API 이용통계</a></li>
+						<li>
+							<a class="on" href="./../MN/SRVStat.html">페이지 방문통계</a>
+							<ul class="sub">
+								<li><a class="on" href="./../MN/SRVStat.html">기존 페이지 방문통계</a></li>
+								<li><a href="./../MN/serviceUseStat.html" >서비스별 이용현황</a></li>
+								<li><a href="./../MN/interactiveMapStstUse.html">대화형 통계지도 이용현황</a></li>
+								<li><a href="./../MN/thematicMapUseStat.html">통계주제도 이용현황</a></li>
+								<li><a href="./../MN/houseAnalysisMapUseStat.html">살고싶은 우리동네 이용현황</a></li>
+								<li><a href="./../MN/bizStatMapUseStat.html">생활업종지도 이용현황</a></li>
+								<li><a href="./../MN/introUseStat.html">통계소통지도 이용현황</a></li>	
+								<li><a href="./../MN/mobileUseStat.html">모바일 이용현황</a></li>
+								<li><a href="./../MN/GalleryUseStat.html">통계갤러리 이용현황</a></li>
+								<li><a href="./../MN/policyStaticMap.html">정책통계지도 이용현황</a></li>
+								<li><a href="./../MN/technicalBizMap.html">기술업종통계지도 이용현황</a></li>
+							</ul>	
+						</li>		
+						<li><a href="./../MN/RELStat.html">검색어 통계</a></li>
+						<li><a href="./../MN/CommunityStat.html">통계소통지도 통계</a></li>
+					</ul>
+				</div>
+				<!-- 2017.07.20 [개발팀] khc 빠진 메뉴 추가  end -->
+				
+			</div>
+			<!-- cls:left end -->
+			<div class="acticle">
+				<div class="location">
+					<p>
+						<a><img src="./../include/img/ico/ico_home.png" alt="home" /></a>
+						<span><img src="./../include/img/ico/ico_navi.png" alt="다음" /></span>
+						<span>서비스 현황</span> <span><img
+							src="./../include/img/ico/ico_navi.png" alt="다음" /></span> <span
+							class="fontS"> 페이지 방문통계</span>
+					</p>
+				</div>
+				<p class="title01" style="clear: left;">페이지 방문통계</p>
+				<ul class="tab_st">
+					<li rel="tab1"><a class="on">페이지 뷰 (PV)</a></li>
+					<li rel="tab2"><a class="">방문자수</a></li>
+					<li rel="tab3"><a class="">사용자별 방문통계</a></li>
+					<li rel="tab4"><a class="">상세통계</a></li>
+				</ul>
+				<div class="tab_container">
+					<!-- 페이지 뷰 (PV)  -->
+					<div id="tab1" class="tab_content">
+						<div class="tab1">
+							<div class="searchWrapper">
+								&nbsp;&nbsp; <input type="hidden" id="mainPageSelect"
+									value="페이지뷰(PV)"></input> <select class="input_use27"
+									id="selectType" name="selectType">
+									<option value="DAILY">일간</option>
+									<option value="MONTHLY">월간</option>
+								</select> &nbsp;&nbsp;
+								<div class="searchBtn02">
+									<a> <input type="text" class="input_use06" id="startDate1"
+										style="width: 90px; margin-right: 5px" readonly />
+									</a>
+								</div>
+								&nbsp;~&nbsp;
+								<div class="searchBtn02">
+									<a> <input type="text" class="input_use06" id="endDate1"
+										style="width: 90px; margin-right: 5px" readonly />
+									</a>
+								</div>
+								&nbsp;&nbsp;
+								<div class="searchBtn" id="searchButton">
+									<a style="cursor: pointer"><img
+										src="./../include/img/btn/btn_search.png" alt="검색" /></a>
+								</div>
+							</div>
+							<!-- 
+								<div class="service">
+									<div class="serviceTitle">페이지뷰(PV)</div>
+									<div class="serviceText" id="totalPageVist">0</div>
+								</div>
+								<div class="service">
+									<div class="serviceTitle">신규 회원</div>
+									<div class="serviceText" id="totalAccrueMember">
+										0<span>명</span>
+									</div>
+								</div>
+								<div class="service">
+									<div class="serviceTitle">방문자수</div>
+									<div class="serviceText" id="totalMainVist">
+										0<span>명</span>
+									</div>
+								</div>
+								<div class="service">
+									<div class="serviceTitle">누적방문자수</div>
+									<div class="serviceText" id="totalAccrueVist">
+										0<span>명</span>
+									</div>
+								</div>
+								<div class="service02">
+									<div class="serviceTitle">일평균 방문자수</div>
+									<div class="serviceText" id="averageVist">
+										0<span>명</span>
+									</div>
+								</div>
+								 -->
+							<div class="graph" id="chart">
+								<div class="chartText">
+									<input type="text" id="chartTextLeft" readonly
+										style="text-align: left; width: 300px; border: 0px; margin-left: 10px;" />
+									&nbsp;&nbsp;&nbsp; <input type="text" id="chartTextRight"
+										readonly
+										style="text-align: right; width: 400px; border: 0px; margin-right: 10px; font-size: 12px;" />
+								</div>
+								<div id="openAPIArea1" style="width: 743px; height: 240px;">
+									<!-- <img src="./../include/img/pic/pic_graph.png" alt="그래프"/> -->
+								</div>
+							</div>
+							<p id="viewTitle" class="tilte04">페이지뷰 현황 (상위 3순위)</p>
+							<div id="graphdiv" class="graph02" style="float: left;">
+								<div class="graphTitle">페이지 로그기록</div>
+								<div class="graphIimg" id="openAPIPie1"
+									style="height: 200px; width: 209px; overflow: auto">
+									<!-- <img src="./../include/img/pic/pic_graph02.png" alt="그래프"/> -->
+								</div>
+								<div>
+									<ul id="top3Api"></ul>
+								</div>
+							</div>
+							<div id="tableview" style="flaot: left">
+								<table class="apiTable03" style="clear: none; width: 480px;">
+									<caption>SOP 서비스 통계현황</caption>
+									<colgroup>
+										<col width="5%" />
+										<col width="62%" />
+										<col width="25%" />
+										<col width="12%" />
+									</colgroup>
+									<tr id="pageHeader">
+										<th>순위</th>
+										<th>페이지명</th>
+										<th>페이지뷰</th>
+									</tr>
+								</table>
+							</div>
+						</div>
+					</div>
+					<!-- 방문자수  -->
+					<div id="tab2" class="tab_content">
+						<div class="tab2">
+							<div class="searchWrapper">
+								&nbsp;&nbsp; <input type="hidden" id="mainPageSelect"
+									value="방문자수"></input> <select class="input_use27"
+									id="selectType" name="selectType">
+									<option value="DAILY">일간</option>
+									<option value="MONTHLY">월간</option>
+								</select> &nbsp;&nbsp;
+								<div class="searchBtn02">
+									<a> <input type="text" class="input_use06" id="startDate2"
+										style="width: 90px; margin-right: 5px" readonly />
+									</a>
+								</div>
+								&nbsp;~&nbsp;
+								<div class="searchBtn02">
+									<a> <input type="text" class="input_use06" id="endDate2"
+										style="width: 90px; margin-right: 5px" readonly />
+									</a>
+								</div>
+								&nbsp;&nbsp;
+								<div class="searchBtn" id="searchButton">
+									<a style="cursor: pointer"><img
+										src="./../include/img/btn/btn_search.png" alt="검색" /></a>
+								</div>
+							</div>
+							<div class="graph" id="chart">
+								<div class="chartText">
+									<input type="text" id="chartTextLeft" readonly
+										style="text-align: left; width: 300px; border: 0px; margin-left: 10px;" />
+									&nbsp;&nbsp;&nbsp; <input type="text" id="chartTextRight"
+										readonly
+										style="text-align: right; width: 400px; border: 0px; margin-right: 10px; font-size: 12px;" />
+								</div>
+								<div id="openAPIArea2" style="width: 743px; height: 240px;">
+									<!-- <img src="./../include/img/pic/pic_graph.png" alt="그래프"/> -->
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- 사용자별 방문통계  -->
+					<div id="tab3" class="tab_content">
+						<div class="tab3">
+							<form id="toolbarForm">
+								<table class="apiTable02" summary="조회조건">
+									<caption>검색조건</caption>
+									<colgroup>
+										<col width="141" />
+										<col width="" />
+									</colgroup>
+									<tr>
+										<th>사용자 ID, 이름</th>
+										<td><input type="text" class="input_use03"
+											id="SEARCH_WORD" name="SEARCH_WORD" maxlength="33"
+											style="width: 158px" /> <a id="searchButton"
+											style="cursor: pointer"><img
+												src="./../include/img/btn/btn_search.png" alt="검색" /></a></td>
+									</tr>
+								</table>
+							</form>
+							<div class="searchWrapper" id="searchlayout">
+								&nbsp;&nbsp; <input type="hidden" id="mainPageSelect"
+									value="페이지뷰(PV)"></input> <select class="input_use27"
+									id="selectType" name="selectType">
+									<option value="DAILY">일간</option>
+									<option value="MONTHLY">월간</option>
+								</select> &nbsp;&nbsp;
+								<div class="searchBtn02">
+									<a> <input type="text" class="input_use06" id="startDate3"
+										style="width: 90px; margin-right: 5px" readonly />
+									</a>
+								</div>
+								&nbsp;~&nbsp;
+								<div class="searchBtn02">
+									<a> <input type="text" class="input_use06" id="endDate3"
+										style="width: 90px; margin-right: 5px" readonly />
+									</a>
+								</div>
+								&nbsp;&nbsp;
+								<div class="searchBtn" id="searchDaliyButton">
+									<a style="cursor: pointer"><img
+										src="./../include/img/btn/btn_search.png" alt="검색" /></a>
+								</div>
+							</div>
+							<div class="chartText">
+								<input type="text" id="chartTextLeft" readonly
+									style="text-align: left; width: 300px; border: 0px; margin-left: 10px; margin-top: 10px;" />
+								&nbsp;&nbsp;&nbsp; <input type="text" id="chartTextRight"
+									readonly
+									style="text-align: right; width: 400px; border: 0px; margin-right: 10px; margin-top: 10px; font-size: 12px;" />
+							</div>
+							<div style="float: left; width: 300px">
+								<table class="apiTable03" summary="검색결과"></table>
+								<table id="searchResultTable" summary="검색결과"
+									style="width: 280px"></table>
+								<div class="searchWrapper02" id="noSearchResult"
+									style="margin-top: -95px; border-left: 0; border-top: 0; border-right: 0; position: absolute; height: 30px; padding-top: 0px; text-align: center">검색
+									결과가 없습니다</div>
+							</div>
+							<div
+								style="float: left; margin-top: 15px; width: 410px; height: 400px;"
+								id="openAPIArea3"></div>
+						</div>
+					</div>
+					<!-- 상세통계  -->
+					<div id="tab4" class="tab_content">
+						<div class="tab4">
+							<div class="searchWrapper">
+								&nbsp;&nbsp; <select class="input_use26" id="usr_logBCd"
+									name="usr_logBCd"></select> &nbsp;&nbsp; <select
+									class="input_use26" id="usr_logSCd" name="usr_logSCd"></select>
+								&nbsp;&nbsp; <select class="input_use27" id="selectType"
+									name="selectType">
+									<option value="DAILY">일간</option>
+									<option value="MONTHLY">월간</option>
+								</select> &nbsp;&nbsp;
+								<div class="searchBtn02">
+									<a><input type="text" class="input_use06" id="startDate4"
+										style="width: 90px; margin-right: 5px" readonly /></a>
+								</div>
+								~
+								<div class="searchBtn02">
+									<a><input type="text" class="input_use06" id="endDate4"
+										style="width: 90px; margin-right: 5px" readonly /></a>
+								</div>
+								&nbsp;&nbsp;
+								<div class="searchBtn" id="chartAddButton">
+									<a style="cursor: pointer"><img
+										src="./../include/img/btn/btn_add.png" alt="추가" /></a>
+								</div>
+							</div>
+							<!-- <div class="graph04"> -->
+							<div class="chartArea" id="chartArea">
+								<!-- <div class="graph" id="chart">
+									<div class="searchBtn06" id="grapeButton"
+										onclick='grapeClickRow(this);'>
+										<a style="cursor: pointer"><img
+											src="./../include/img/btn/btn_chart.gif" alt="그래프" /></a>
+									</div>
+									<div class="searchBtn06" id="tableButton"
+										onclick='tableClickRow(this);'>
+										<a style="cursor: pointer"><img
+											src="./../include/img/btn/btn_table.gif" alt="표" /></a>
+									</div>
+									<div class="searchBtn07" id="delButton"
+										onclick='delFileRow(this);'>
+										<a style="cursor: pointer"><img
+											src="./../include/img/btn/btn_del.png" alt="삭제" /></a>
+									</div>
+									<div class="chartText">
+										<input type="text" id="chartText" readonly
+											style="width: 400px; border: 0px; margin-left: 10px;" />
+									</div>
+									<div id="openAPIArea4" style="min-width: 740px; height: 240px;"></div>
+									 <div id="openTable"
+										style="min-width: 740px; height: 240px; overflow: scroll;">
+										<table id="searchResultTable" class="apiTable12"
+											summary="검색결과" width=100% height=100%>
+										</table>
+									</div>
+									<div class="btnBox">
+										<a id="excelButton"
+										onclick='excelClickRow(this)' style="cursor: pointer"><img
+											src="	./../include/img/btn/btn_save.png" alt="엑셀" /></a>
+									</div> 
+								</div> -->
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- cls:footer start -->
+	<div class="footerWrapper"></div>
+</body>
+</html>

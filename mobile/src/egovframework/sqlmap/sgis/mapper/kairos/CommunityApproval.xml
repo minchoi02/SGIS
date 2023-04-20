@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.sgis.map.service.mapper.kairos.CommunityApprovalMapper">
+	<select id="selectCmmntyApprovalFromMemberCount" resultType="int">
+		SELECT
+			COUNT(1)
+		FROM SRV_DT_CMMNTY_APPROVAL
+		<where>
+			<choose>
+				<when test="cmmnty_map_id != null and cmmnty_map_id != '' and member_id != null and member_id != ''">
+						CMMNTY_MAP_ID = #{cmmnty_map_id}
+					AND USR_ID = #{member_id}
+					<if test="approval_distinct != null and approval_distinct != ''">
+						AND APPROVAL_DISTINCT = #{approval_distinct}
+					</if>
+				</when>	
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose>
+		</where>
+	</select>
+	<insert id="insertCmmntyApprovalAccessWait">
+		INSERT INTO SRV_DT_CMMNTY_APPROVAL(
+			CMMNTY_APPROVAL_ID,
+			CMMNTY_MAP_ID,
+			APPROVAL_WATIE_DATE,
+			APPROVAL_DISTINCT,
+			USR_ID
+		)VALUES(
+			<!-- mng_s 20171031_주용민, 이중화 관련 sequence 삭제 -->
+			<!-- SRV_DT_CMMNTY_APPROVAL_ID.nextval, -->
+			(SELECT MAX(CMMNTY_APPROVAL_ID)+1 FROM SRV_DT_CMMNTY_APPROVAL),
+			<!-- mng_e 20171031_주용민, 이중화 관련 sequence 삭제 -->
+			#{cmmnty_map_id},
+			SYSDATE,
+			'WA',
+			#{member_id}
+		)
+	</insert>
+	<update id="updateCmmntyApprovalDistinct">
+		UPDATE SRV_DT_CMMNTY_APPROVAL
+		<set>
+			<choose>
+				<when test='approval_distinct == "WA"'>
+					APPROVAL_WATIE_DATE = SYSDATE,
+				</when>
+				<when test='approval_distinct == "WS"'>
+					SSCESSION_WATIE_DATE = SYSDATE,
+				</when>
+			</choose>
+			APPROVAL_DISTINCT = #{approval_distinct}
+		</set>
+		<where>
+			<choose>
+				<when test="(approval_distinct == 'WA' or approval_distinct == 'WS')and cmmnty_map_id != null and cmmnty_map_id != '' and member_id != null and member_id != ''">
+						CMMNTY_MAP_ID = #{cmmnty_map_id}
+					AND USR_ID = #{member_id}
+				</when>	
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose>
+		</where>
+	</update>
+</mapper>

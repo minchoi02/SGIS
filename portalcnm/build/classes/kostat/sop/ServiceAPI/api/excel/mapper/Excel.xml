@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Excel">
+	<select id="getSearchWord"  parameterType="Map" resultType="Map">
+		select ALL_ROW.*,ROWNUM R from 
+		(
+			select 
+			SEARCH_WORD, NVL(SUM(CNT),0) as CNT from SRV_DT_RELSEARCHHIST
+			where TO_DATE(SEARCH_TS,'yyyyMMddHH24MISS') <![CDATA[>=]]> #{STARTDATE} 
+			and   TO_DATE(SEARCH_TS,'yyyyMMddHH24MISS') <![CDATA[<]]> #{ENDDATE}
+			<if test="SEARCH_WORD != null">  
+           		and SEARCH_WORD like '%' || #{SEARCH_WORD} || '%'
+  			</if>
+  			and SEARCH_WORD is not NULL
+  			group by SEARCH_WORD
+			order by CNT DESC
+		) ALL_ROW
+		where ALL_ROW.CNT != 0
+	</select>
+	<select id="getSearchArea" parameterType="Map" resultType="Map">
+		select 
+		ALL_ROW.*, ROWNUM R
+		from
+		(
+			select 
+			SEARCH_AREA, NVL(SUM(CNT),0) as CNT from SRV_DT_RELSEARCHHIST
+			where TO_DATE(SEARCH_TS,'yyyyMMddHH24MISS') <![CDATA[>=]]> #{STARTDATE} 
+			and   TO_DATE(SEARCH_TS,'yyyyMMddHH24MISS') <![CDATA[<]]> #{ENDDATE}
+			<if test="SEARCH_AREA != null">  
+	           		and SEARCH_AREA like '%' || #{SEARCH_AREA} || '%'
+	  		</if>
+	  		and SEARCH_AREA is not NULL
+	  		group by SEARCH_AREA
+			order by CNT DESC
+		) ALL_ROW
+		where ALL_ROW.CNT != 0
+	</select>
+	<select id="getSRVStatDetail" parameterType="Map" resultType="Map">
+		select a.CALL_CNT,'https://sop.kostat.go.kr'|| a.HPAGE AS HPAGE ,b.HPAGE_NM from
+		(
+			select  HPAGE, NVL(sum(HOURLY_CALL_CNT),0)as CALL_CNT 
+			from SRV_DT_PAGEHOURLYSTAT
+			where 
+			HPAGE is not NULL and
+			TO_DATE(CALL_TS,'yyyyMMddHH24') <![CDATA[>=]]> #{STARTDATE} and
+			TO_DATE(CALL_TS,'yyyyMMddHH24') <![CDATA[<]]> #{ENDDATE}
+			group by HPAGE 
+			order by CALL_CNT DESC
+		)a
+		join SRV_DT_PAGENMINFO b on a.HPAGE=b.HPAGE
+	</select>
+	<select id="getSumWordCNT" parameterType="Map" resultType="Integer">
+		select NVL(SUM(CNT_TEMP),0) as CNT from
+		(
+			select NVL(SUM(CNT),0)  as CNT_TEMP from SRV_DT_RELSEARCHHIST
+			where TO_DATE(SEARCH_TS,'yyyyMMddHH24MISS') <![CDATA[>=]]> #{STARTDATE} 
+			and   TO_DATE(SEARCH_TS,'yyyyMMddHH24MISS') <![CDATA[<]]> #{ENDDATE}
+			<if test="SEARCH_WORD != null">  
+	            and SEARCH_WORD like '%' || #{SEARCH_WORD} || '%'
+	   		</if>
+	   		and SEARCH_WORD is not NULL
+   			group by SEARCH_WORD
+		)
+	</select>
+	<select id="getSumAreaCNT" parameterType="Map" resultType="Integer">
+		select NVL(SUM(CNT_TEMP),0) as CNT from
+		(
+			select NVL(SUM(CNT),0)  as CNT_TEMP from SRV_DT_RELSEARCHHIST
+			where TO_DATE(SEARCH_TS,'yyyyMMddHH24MISS') <![CDATA[>=]]> #{STARTDATE} 
+			and   TO_DATE(SEARCH_TS,'yyyyMMddHH24MISS') <![CDATA[<]]> #{ENDDATE}
+			<if test="SEARCH_AREA != null">  
+	            and SEARCH_AREA like '%' || #{SEARCH_AREA} || '%'
+	   		</if>
+	   		and SEARCH_AREA is not NULL
+   			group by SEARCH_AREA
+		)
+	</select>
+</mapper>

@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="administStatsDetail">
+
+	<select id="getStatsItemList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			t2.s_class_cd
+			, t2.s_class_cd_nm
+			, t1.org_id
+			, t1.tbl_id
+			, t1.stattb_url
+			, t1.stattb_begin_year
+			, t1.stattb_end_year
+			, t1.region_end
+			, t1.tbl_nm
+			, t1.region_var_ord
+			, t1.menu_disp_yn
+		FROM
+			srv_dt_st_list t1
+		INNER JOIN (
+				SELECT
+					*
+				FROM
+					cmm_cd_comcd s1
+				WHERE
+					s1.b_class_cd = 'COM38'
+			) t2 ON
+			t2.s_class_cd = t1.disp_ctgry
+		WHERE
+			1 = 1
+			AND t1.del_yn = 'N'
+			AND t2.s_class_cd LIKE #{class_cd} || '%'
+		ORDER BY
+			t2.s_class_cd_order
+			, t1.stattb_order;
+	</select>
+
+	<select id="getChartsInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT LIST.ORG_ID
+			, LIST.TBL_ID
+			, LIST.STATTB_URL
+			, LIST.REGION_VAR_ORD
+			, LIST.REGION_BEGIN
+			, LIST.REGION_END
+			, SETUP.CHART_ORD
+			, SETUP.DISP_VAR_ORD
+			, SETUP.CHART_NM
+			, SETUP.KOSIS_UNIT_NM
+			, SETUP.KOSIS_UNIT
+			, SETUP.DISP_UNIT_NM
+			, SETUP.DISP_UNIT
+			, SETUP.DISP_CO
+			, SETUP.ALL_DISP_AT
+			, SETUP.CHART_TYPE
+			, SETUP.DISP_OBJ_VAR_ID
+			, DET.OBJ_VAR_ID
+			, DET.ITM_ID
+			, DET.VAR_ORD
+			, DET.SCR_KOR
+			, DET.ALTRTV_DISP_WRD
+			, DET.SUBSUM_YN
+		FROM SRV_DT_ST_LIST LIST
+			, SRV_DT_ST_CHART_ITM_SETUP SETUP
+			, SRV_DT_ST_CHART_DET_ITM_SETUP DET
+		WHERE LIST.ORG_ID = SETUP.ORG_ID
+		  AND LIST.TBL_ID = SETUP.TBL_ID
+		  AND SETUP.ORG_ID = DET.ORG_ID
+		  AND SETUP.TBL_ID = DET.TBL_ID
+		  AND SETUP.DET_YN = DET.DET_YN
+		  AND SETUP.TOT_SURV_YN = DET.TOT_SURV_YN
+		  AND SETUP.CHART_ORD = DET.CHART_ORD
+		  AND SETUP.ORG_ID = '101'
+		  AND SETUP.TBL_ID = #{tbl_id}
+		  AND DET.CHOISE_YN = 'Y'
+		  AND DET.DEL_YN = 'N'
+		  AND DET.OBJ_VAR_ID = '13999001'
+		  AND SETUP.TOT_SURV_YN = 'N'
+		  AND SETUP.DET_YN = 'Y'
+	</select>
+	
+	<select id="getDispSrvDetailList" resultType="egovframework.rte.psl.dataaccess.util.EgovMap">
+		SELECT
+			LIST.ORG_ID
+			, LIST.TBL_ID
+			, LIST.REGION_VAR_ORD
+			, LIST.STATTB_URL
+			, LIST.REGION_BEGIN
+			, LIST.REGION_END
+			, SETUP.CHART_ORD
+			, SETUP.CHART_NM
+			, SETUP.KOSIS_UNIT_NM
+			, SETUP.KOSIS_UNIT
+			, SETUP.DISP_UNIT_NM
+			, SETUP.DISP_UNIT
+			, SETUP.DISP_CO
+			, SETUP.ALL_DISP_AT
+			, SETUP.CHART_TYPE
+			, SETUP.DISP_VAR_ORD
+			, SETUP.DISP_LV
+			, SETUP.CHART_SNO
+			, SETUP.IEM_CL
+			, SETUP.CHART_CM
+			, SETUP.RMNDR_USE_YN
+			, SETUP.CHART_SNO
+			, SETUP.STACK_VAR_ORD
+			, DET.OBJ_VAR_ID
+			, DET.ITM_ID
+			, DET.VAR_ORD
+			, DET.SCR_KOR
+			, DET.ALTRTV_DISP_WRD
+			, DET.SUBSUM_YN
+			, DET.UNACTIVY_YN
+			, DET.CLICK_EVENT_YN
+			, DET.TTIP_USE_YN
+			, DET.LABEL_USE_YN
+			, DET.CHART_NM_BY_AREA
+			, DET.CHART_NM_BY_YEAR
+			, DET.USE_YN_BY_YEAR_CHART
+
+		FROM
+			(
+				SELECT
+					ORG_ID
+					, TBL_ID
+					, REGION_VAR_ORD
+					, STATTB_URL
+					, REGION_BEGIN
+					, REGION_END
+				FROM
+					SRV_DT_ST_LIST
+				WHERE
+					ORG_ID = #{org_id_list}
+			) LIST
+			, (
+				SELECT
+					ORG_ID
+					, TBL_ID
+					, CHART_ORD
+					, CHART_NM
+					, KOSIS_UNIT_NM
+					, KOSIS_UNIT
+					, DISP_UNIT_NM
+					, DISP_UNIT
+					, DISP_CO
+					, ALL_DISP_AT
+					, CHART_TYPE
+					, DISP_VAR_ORD
+					, STACK_VAR_ORD
+					, DISP_LV
+					, IEM_CL
+					, CHART_CM
+					, RMNDR_USE_YN
+					, CHART_SNO
+				FROM
+					SRV_DT_ST_CHART_ITM_SETUP
+				WHERE
+					ORG_ID = #{org_id_list}
+					AND DEL_YN = 'N'
+					AND DET_YN = 'Y'
+					AND TOT_SURV_YN = 'N'
+					AND IEM_CL = #{iem_cl}
+			) SETUP
+			, (
+				SELECT
+					ORG_ID
+					, TBL_ID
+					, CHART_ORD
+					, OBJ_VAR_ID
+					, ITM_ID
+					, VAR_ORD
+					, SCR_KOR
+					, ALTRTV_DISP_WRD
+					, SUBSUM_YN
+					, UNACTIVY_YN
+					, CLICK_EVENT_YN
+					, TTIP_USE_YN
+					, LABEL_USE_YN
+					, CHART_NM_BY_AREA
+					, CHART_NM_BY_YEAR
+					, USE_YN_BY_YEAR_CHART
+				FROM
+					SRV_DT_ST_CHART_DET_ITM_SETUP
+				WHERE
+					ORG_ID = #{org_id_list}
+					AND DET_YN = 'Y'
+					AND TOT_SURV_YN = 'N'
+					AND CHOISE_YN = 'Y'
+					AND DEL_YN = 'N'
+			) DET
+		WHERE
+			LIST.ORG_ID = SETUP.ORG_ID
+			AND LIST.TBL_ID = SETUP.TBL_ID
+			AND SETUP.ORG_ID = DET.ORG_ID(+)
+			AND SETUP.TBL_ID = DET.TBL_ID(+)
+			AND SETUP.CHART_ORD = DET.CHART_ORD(+)
+	</select>
+</mapper>

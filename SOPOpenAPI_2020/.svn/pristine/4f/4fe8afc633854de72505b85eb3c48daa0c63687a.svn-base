@@ -1,0 +1,557 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans    http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+
+	<!-- **************************************************************************************************** -->
+	<!-- 사용자 인증, API_0101 -->
+	<bean name="/OpenAPI3/auth/authentication.*" class="kostat.sop.OpenAPI3.api.auth.Authentication">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	
+	<!-- JavaScript 제공, API_0102 -->
+	<bean name="/OpenAPI3/auth/javascriptAuth*" class="kostat.sop.OpenAPI3.api.auth.JavascriptAuth">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="mobileScript" ref="java_script_file_path_mobile" />
+		<property name="webScript" ref="java_script_file_path" />
+	</bean>
+	<!-- **************************************************************************************************** -->
+	
+	<!-- **************************************************************************************************** -->
+	<!-- 좌표 변환, API_0201 -->
+	<bean name="/OpenAPI3/transformation/transcoord.*" class="kostat.sop.OpenAPI3.api.transformation.Coordinate">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="projection" ref="projectionFactory" />
+	</bean>
+	<!-- **************************************************************************************************** -->
+	
+    <!-- **************************************************************************************************** -->
+	<!-- 인구통계, API_0301 -->
+	<!--
+	<bean name="/OpenAPI3/stats/population.*" class="kostat.sop.OpenAPI3.api.stats.Population">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	-->
+		
+	<!-- 내부용 인구통계 조건검색, API_0302 -->
+	<bean name="/OpenAPI3/stats/innersearchpopulation.*" class="kostat.sop.OpenAPI3.api.stats.InnerSearchpopulation">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+
+	<!-- 산업체분류, API_0303 -->
+	<bean name="/OpenAPI3/stats/industrycode.*" class="kostat.sop.OpenAPI3.api.stats.Industrycode">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	
+	<!-- 사업체통계, API_0304 -->
+	<bean name="/OpenAPI3/stats/company.*" class="kostat.sop.OpenAPI3.api.stats.CompanyTotal">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="companyTotalService" ref="companyTotalService" />
+	</bean>
+	
+	<!-- 가구통계, API_0305 -->
+	<bean name="/OpenAPI3/stats/household.*" class="kostat.sop.OpenAPI3.api.stats.Household">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	
+	<!-- 주택통계, API_0306 -->	
+	<bean name="/OpenAPI3/stats/house.*" class="kostat.sop.OpenAPI3.api.stats.House">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="houseAreaCodeMap">
+    		<map>
+    			<entry key="01">
+    				<map>
+    					<entry key="from" value="0" />
+    					<entry key="to" value="20" />
+    				</map>
+    			</entry>
+    			<entry key="02">
+    				<map>
+    					<entry key="from" value="21" />
+    					<entry key="to" value="40" />
+    				</map>
+    			</entry>
+    			<entry key="03">
+    				<map>
+    					<entry key="from" value="41" />
+    					<entry key="to" value="60" />
+    				</map>
+    			</entry>
+    			<entry key="04">
+    				<map>
+    					<entry key="from" value="61" />
+    					<entry key="to" value="85" />
+    				</map>
+    			</entry>
+    			<entry key="05">
+    				<map>
+    					<entry key="from" value="86" />
+    					<entry key="to" value="100" />
+    				</map>
+    			</entry>
+    			<entry key="06">
+    				<map>
+    					<entry key="from" value="101" />
+    					<entry key="to" value="130" />
+    				</map>
+    			</entry>
+    			<entry key="07">
+    				<map>
+    					<entry key="from" value="131" />
+    					<entry key="to" value="165" />
+    				</map>
+    			</entry>
+    			<entry key="08">
+    				<map>
+    					<entry key="from" value="166" />
+    					<entry key="to" value="230" />
+    				</map>
+    			</entry>
+    			<entry key="09">
+    				<map>
+    					<entry key="from" value="231" />
+    					<entry key="to" value="99999" />
+    				</map>
+    			</entry>
+    		</map>
+		</property>
+	</bean>
+	
+	<!-- 농가통계, API_0307 -->	
+	<bean name="/OpenAPI3/stats/farmhousehold.*" class="kostat.sop.OpenAPI3.api.stats.Farmhousehold">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	
+	<!-- 임가통계, API_0308 -->	
+	<bean name="/OpenAPI3/stats/forestryhousehold.*" class="kostat.sop.OpenAPI3.api.stats.Forestryhousehold">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	
+	<!-- 어가통계, API_0309 -->	
+	<bean name="/OpenAPI3/stats/fisheryhousehold.*" class="kostat.sop.OpenAPI3.api.stats.Fisheryhousehold">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	
+	<!-- 가구원통계, API_0310 -->	
+	<bean name="/OpenAPI3/stats/householdmember.*" class="kostat.sop.OpenAPI3.api.stats.Householdmember">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	
+	<!-- 사업체조회, API_0311 -->	
+	<bean name="/OpenAPI3/stats/companysearch.*" class="kostat.sop.OpenAPI3.api.stats.Companysearch">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	
+	<!-- 인구통계 조건검색, API_0312 -->
+	<bean name="/OpenAPI3/stats/searchpopulation.*" class="kostat.sop.OpenAPI3.api.stats.Searchpopulation">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	
+	<!-- 총조사주요지표, API_0301 -->		
+	<bean name="/OpenAPI3/stats/population.*" class="kostat.sop.OpenAPI3.api.stats.CensusIndex">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="censusIndexService" ref="censusIndexService" />
+	</bean>
+	
+	<!-- APITest, API_0320 -->	
+	<bean name="/OpenAPI3/stats/apitest.*" class="kostat.sop.OpenAPI3.api.stats.APItest">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	
+	<!-- GridLegend, GRID_0301 -->	
+	<bean name="/OpenAPI3/stats/gridlegend.*" class="kostat.sop.OpenAPI3.api.stats.GridLegend">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	<!-- **************************************************************************************************** -->
+	
+	<!-- **************************************************************************************************** -->
+	<!-- 연관어검색, API_0501 -->	
+	<bean name="/OpenAPI3/search/relword.*" class="kostat.sop.OpenAPI3.api.search.RelWord">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	
+	<!-- SOP검색, API_0502 -->	
+	<bean name="/OpenAPI3/search/sop.*" class="kostat.sop.OpenAPI3.api.search.SOP">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	
+	<!-- MENU 검색, API_0505 -->	
+	<bean name="/OpenAPI3/search/menu.*" class="kostat.sop.OpenAPI3.api.search.Menu">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	
+	<!-- KOSIS검색, API_0503 -->
+	<bean name="/OpenAPI3/search/kosis.*" class="kostat.sop.OpenAPI3.api.search.Kosis">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	
+	<!-- POI검색, API_0504 -->
+	<bean name="/OpenAPI3/search/poi.*" class="kostat.sop.OpenAPI3.api.search.POI">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="searcher" ref="poiSearch" />
+		<property name="handler" ref="searchHandler" />
+	</bean>	
+	<!-- **************************************************************************************************** -->
+
+	<!-- **************************************************************************************************** -->
+	<!-- 단계별 주소조회, API_0701 -->	
+	<bean name="/OpenAPI3/addr/stage.*" class="kostat.sop.OpenAPI3.api.addr.Stage">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>	
+	<!-- 단계별 주소조회, API_0701 (모바일)일자리 맵-->	
+	<bean name="/OpenAPI3/addr/stageWR.*" class="kostat.sop.OpenAPI3.api.addr.StageWR">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+		
+	<!-- 지오코딩, API_0702 -->	
+	<bean name="/OpenAPI3/addr/geocode.*" class="kostat.sop.OpenAPI3.api.addr.Geocode">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="searcher" ref="geoSearch" />
+		<property name="handler" ref="searchHandler" />
+	</bean>
+
+	<!-- 리버스 지오코딩, API_0703 -->	
+	<bean name="/OpenAPI3/addr/rgeocode.*" class="kostat.sop.OpenAPI3.api.addr.Rgeocode">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+
+	<!-- 행정동 경계, API_0704 -->
+	<bean name="/OpenAPI3/boundary/hadmarea.*" class="kostat.sop.OpenAPI3.api.boundary.Hadmarea">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	
+	<!-- 행정동경량화 경계, API_0704 -->
+	<bean name="/OpenAPI3/boundary/hadmareasmp.*" class="kostat.sop.OpenAPI3.api.boundary.Hadmareasmp">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+
+	<!-- 집계구 경계, API_0705 -->
+	<bean name="/OpenAPI3/boundary/statsarea.*" class="kostat.sop.OpenAPI3.api.boundary.Statsarea">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	
+	<!-- 영역내 경계 제공, API_0706 -->
+	<bean name="/OpenAPI3/boundary/userarea.*" class="kostat.sop.OpenAPI3.api.boundary.Userarea">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	
+	<!-- 영역내 집계구경계 제공, API_0707 -->
+	<bean name="/OpenAPI3/boundary/totregarea.*" class="kostat.sop.OpenAPI3.api.boundary.Totregarea">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	
+	<!-- 20191107 손원웅 추가 시작 -->
+	<!-- 연속지적도, API_0708 -->
+	<bean name="/OpenAPI3/boundary/ctnlgsspce.*" class="kostat.sop.OpenAPI3.api.boundary.CtnlgsSpce">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	<!-- 20191107 손원웅 추가 끝 -->
+	
+	<!-- 그리드 경계, API_0709 -->
+	<!-- 
+	<bean name="/OpenAPI3/boundary/gridarea.*" class="kostat.sop.OpenAPI3.api.boundary.Gridarea">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	 -->
+	<!-- **************************************************************************************************** -->
+	
+	
+	<!-- **************************************************************************************************** -->
+	<!-- 창업지원 통계, API_0601 -->	
+	<bean name="/OpenAPI3/startupbiz/startupbiz.*" class="kostat.sop.OpenAPI3.api.startupbiz.StartupBiz2015">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="startupBizService" ref="startupBizService" />
+	</bean>
+	<!-- 창업지원 통계, API_0601 -->	
+	<!-- bean name="/OpenAPI3/startupbiz/startupbiz.*" class="kostat.sop.OpenAPI3.api.startupbiz.Startupbiz">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean -->
+	<!-- 창업지원 인구, API_0602 -->	
+	<bean name="/OpenAPI3/startupbiz/pplsummary.*" class="kostat.sop.OpenAPI3.api.startupbiz.Pplsummary">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	<!-- 창업지원 남녀인구비율, API_0603 -->	
+	<bean name="/OpenAPI3/startupbiz/mfratiosummary.*" class="kostat.sop.OpenAPI3.api.startupbiz.Mfratiosummary">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	<!-- 창업지원 거처종류, API_0604 -->	
+	<bean name="/OpenAPI3/startupbiz/housesummary.*" class="kostat.sop.OpenAPI3.api.startupbiz.Housesummary">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	<!-- 창업지원 외국인비율, API_0605 -->	
+	<bean name="/OpenAPI3/startupbiz/foreignsummary.*" class="kostat.sop.OpenAPI3.api.startupbiz.Foreignsummary">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	<!-- 창업지원 주택점유형태, API_0606 -->	
+	<bean name="/OpenAPI3/startupbiz/ocptnsummary.*" class="kostat.sop.OpenAPI3.api.startupbiz.Ocptnsummary">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	<!-- 창업지원 사업체분포, API_0607 -->	
+	<bean name="/OpenAPI3/startupbiz/corpdistsummary.*" class="kostat.sop.OpenAPI3.api.startupbiz.Corpdistsummary">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	<!-- 창업지원 사업체업력, API_0608 -->	
+	<bean name="/OpenAPI3/startupbiz/corpyearsummary.*" class="kostat.sop.OpenAPI3.api.startupbiz.Corpyearsummary">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	<!-- 창업지원 소상공인 사업체증감, API_0609 -->	
+	<bean name="/OpenAPI3/startupbiz/corpindecrease.*" class="kostat.sop.OpenAPI3.api.startupbiz.Corpindecrease">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	<!-- 창업지원 지역종합, API_0610 -->	
+	<bean name="/OpenAPI3/startupbiz/regiontotal.*" class="kostat.sop.OpenAPI3.api.startupbiz.Regiontotal">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	
+	<!-- 시도생활업종 정보, API_0611 -->	
+	<bean name="/OpenAPI3/startupbiz/sidotobinfo.*" class="kostat.sop.OpenAPI3.api.startupbiz.SidoTypeOfBusinessInfo">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sidoTypeOfBusinessInfoService" ref="sidoTypeOfBusinessInfoService" />
+	</bean>
+	<!-- 시도 생활업종 순위, API_0612 -->
+	<bean name="/OpenAPI3/startupbiz/sidotobrank.*" class="kostat.sop.OpenAPI3.api.startupbiz.SidoTypeOfBusinessRank">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sidoTypeOfBusinessRankService" ref="sidoTypeOfBusinessRankService" />
+	</bean>
+	
+	<!-- 시도 생활업종 그룹별 사업체 속성, API_0613 -->
+	<bean name="/OpenAPI3/startupbiz/sidotobgroup.*" class="kostat.sop.OpenAPI3.api.startupbiz.SidoTypeOfBusinessGroup">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sidoTypeOfBusinessGroupService" ref="sidoTypeOfBusinessGroupService" />
+	</bean>
+	
+	<!-- 지표별 시도 순위, API_0614 -->
+	<bean name="/OpenAPI3/startupbiz/sidoindexorder.*" class="kostat.sop.OpenAPI3.api.startupbiz.SidoIndexOrder">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sidoIndexOrderService" ref="sidoIndexOrderService" />
+	</bean>
+	
+	<!-- 전국 시군구 생활업종 업체수, API_0615 -->
+	<bean name="/OpenAPI3/startupbiz/sggtobcorpcount.*" class="kostat.sop.OpenAPI3.api.startupbiz.SggTypeOfBusinessCorporationCount">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sggTypeOfBusinessCorporationCountService" ref="sggTypeOfBusinessCorporationCountService" />
+	</bean>
+	
+	<!-- 시군구 생활업종 정보, API_0616 -->
+	<bean name="/OpenAPI3/startupbiz/sggtobinfo.*" class="kostat.sop.OpenAPI3.api.startupbiz.SggTypeOfBusinessInfo">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sggTypeOfBusinessInfoService" ref="sggTypeOfBusinessInfoService" />
+	</bean>
+	
+	<!-- 생활업종 시군구 순위, API_0617 -->
+	<bean name="/OpenAPI3/startupbiz/sggtobrank.*" class="kostat.sop.OpenAPI3.api.startupbiz.SggTypeOfBusinessRank">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sggTypeOfBusinessRankService" ref="sggTypeOfBusinessRankService" />
+	</bean>
+	
+	<!-- 지역종합정보비교, API_0618 -->
+	<bean name="/OpenAPI3/startupbiz/Compareregiontotal.*" class="kostat.sop.OpenAPI3.api.startupbiz.Compareregiontotal">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	
+	<!-- 시도생활업종 정보,박길섭추가, API_0619 -->	
+	<bean name="/OpenAPI3/startupbiz/sidobusinessinfo.*" class="kostat.sop.OpenAPI3.api.startupbiz.SidoTypeOfBusinessChartInfo">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sidoTypeOfBusinessChartInfoService" ref="sidoTypeOfBusinessChartInfoService" />
+	</bean>
+	
+	<!-- 시도생활업종 종사자정보,박길섭추가, API_0620 -->	
+	<bean name="/OpenAPI3/startupbiz/sidoworkerinfo.*" class="kostat.sop.OpenAPI3.api.startupbiz.SidoTypeOfWorkerInfo">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sidoTypeOfWorkerInfoService" ref="sidoTypeOfWorkerInfoService" />
+	</bean>
+	<!-- 시도 생활업종 그룹별 종사자 속성 박길섭 추가, API_0621 -->
+	<bean name="/OpenAPI3/startupbiz/sidoworkergroup.*" class="kostat.sop.OpenAPI3.api.startupbiz.SidoTypeOfWorkerGroup">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sidoTypeOfWorkerGroupService" ref="sidoTypeOfWorkerGroupService" />
+	</bean>
+	<!-- 시도 사업체,종사자 입지계수 속성  박길섭 추가, API_0622 -->
+	<bean name="/OpenAPI3/startupbiz/sidolq.*" class="kostat.sop.OpenAPI3.api.startupbiz.SidoTypeOfLq">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sidoTypeOfLqService" ref="sidoTypeOfLqService" />
+	</bean>
+	<!-- 시군구 사업체,종사자 입지계수 속성  박길섭 추가, API_0623 -->
+	<bean name="/OpenAPI3/startupbiz/sgglq.*" class="kostat.sop.OpenAPI3.api.startupbiz.SggTypeOfLq">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sggTypeOfLqService" ref="sggTypeOfLqService" />
+	</bean>
+	<!-- 시군구 사업체,종사자 수 및 백분율 속성  박길섭 추가, API_0624 -->
+	<bean name="/OpenAPI3/startupbiz/sggbusinessworker.*" class="kostat.sop.OpenAPI3.api.startupbiz.SggTypeOfBusinessWorker">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sggTypeOfBusinessWorkerService" ref="sggTypeOfBusinessWorkerService" />
+	</bean>
+	<!-- 시군구 사업체,종사자 음식점,도소매,서비스,숙박업 평균보기  박길섭 추가, API_0625 -->
+	<bean name="/OpenAPI3/startupbiz/sggaverage.*" class="kostat.sop.OpenAPI3.api.startupbiz.SggTypeOfAverage">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sggTypeOfAverageService" ref="sggTypeOfAverageService" />
+	</bean>
+	<!-- 시군구 사업체,종사자 음식점,도소매,서비스,숙박업 상세보기  박길섭 추가, API_0626 -->
+	<bean name="/OpenAPI3/startupbiz/sgglifedetail.*" class="kostat.sop.OpenAPI3.api.startupbiz.SggTypeOfLifeDetail">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sggTypeOfLifeDetailService" ref="sggTypeOfLifeDetailService" />
+	</bean>
+	<!--업종별 입지계수 지도 - 전국대비 시도 입지계수  박길섭 추가, API_0627 -->
+	<bean name="/OpenAPI3/startupbiz/sidolqofcountry.*" class="kostat.sop.OpenAPI3.api.startupbiz.LqMapTypeOfCountrySidoLq">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="lqMapTypeOfCountrySidoLqService" ref="lqMapTypeOfCountrySidoLqService" />
+	</bean>
+	<!--업종별 입지계수 지도 - 전국 및 시도 대비 시군구 입지계수  박길섭 추가, API_0628 -->
+	<bean name="/OpenAPI3/startupbiz/sgglqofsidosgg.*" class="kostat.sop.OpenAPI3.api.startupbiz.LqMapTypeOfCountrySidoSggLq">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="lqMapTypeOfCountrySidoSggLqService" ref="lqMapTypeOfCountrySidoSggLqService" />
+	</bean>
+	<!--시군구 막대차트  박길섭 추가, API_0629 -->
+	<bean name="/OpenAPI3/startupbiz/sggbarchart.*" class="kostat.sop.OpenAPI3.api.startupbiz.SggTypeOfBarChart">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sggTypeOfBarChartService" ref="sggTypeOfBarChartService" />
+	</bean>
+	<!--연도별 입지계수 차트  박길섭 추가, API_0630 -->
+	<bean name="/OpenAPI3/startupbiz/lqchartofyear.*" class="kostat.sop.OpenAPI3.api.startupbiz.LqChartOfYear">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="lqChartOfYearService" ref="lqChartOfYearService" />
+	</bean>
+	<!-- **************************************************************************************************** -->
+
+	<!-- 사업체전개도 -> 전개도 건물 공간 정보, API_0801 -->
+	<bean name="/OpenAPI3/figure/buildingarea.*" class="kostat.sop.OpenAPI3.api.figure.BuildingArea">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="buildingAreaService" ref="buildingAreaService" />
+	</bean>
+	
+	<!-- 사업체전개도 -> 개별 건물 속성, API_0802 -->
+	<bean name="/OpenAPI3/figure/buildingattribute.*" class="kostat.sop.OpenAPI3.api.figure.BuildingAttribute">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="buildingAttributeService" ref="buildingAttributeService" />
+	</bean>	
+	
+	<!-- 사업체전개도 -> 개별건물의 층별 외각 공간정보, API_0803 -->
+	<bean name="/OpenAPI3/figure/floorboundary.*" class="kostat.sop.OpenAPI3.api.figure.FloorBoundary">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="floorBoundaryService" ref="floorBoundaryService" />
+	</bean>
+	
+	<!-- 사업체전개도 -> 개별건물의 층별 사업체 공간정보, API_0804 -->
+	<bean name="/OpenAPI3/figure/floorcompany.*" class="kostat.sop.OpenAPI3.api.figure.FloorCompany">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="floorCompanyService" ref="floorCompanyService" />
+	</bean>
+	
+	<!-- 사업체전개도 -> 개별건물의 층별 기타 시설물 공간정보, API_0805 -->
+	<bean name="/OpenAPI3/figure/flooretcfacility.*" class="kostat.sop.OpenAPI3.api.figure.FloorEtcFacility">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="floorEtcFacilityService" ref="floorEtcFacilityService" />
+	</bean>
+	
+	<!-- 사업체전개도 -> 개별건물의 층별 사업체 정보, API_0806 -->
+	<bean name="/OpenAPI3/figure/floorcompanyinfo.*" class="kostat.sop.OpenAPI3.api.figure.FloorCompanyInfo">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="floorCompanyInfoService" ref="floorCompanyInfoService" />
+	</bean>
+	
+	<!-- **************************************************************************************************** -->
+	<!-- 통계커뮤니티맵 -> 통계커뮤니티 목록, API_0901 -->
+	<bean name="/OpenAPI3/statscommunity/list.*" class="kostat.sop.OpenAPI3.api.statscommunity.StatsCommunityList">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="statsCommunityListService" ref="statsCommunityListService" />
+	</bean>
+	
+	<!-- 통계커뮤니티맵 -> 통계커뮤니티 의견리스트, API_0902 -->
+	<bean name="/OpenAPI3/statscommunity/opinionlist.*" class="kostat.sop.OpenAPI3.api.statscommunity.StatsCommunityOpinionList">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="statsCommunityOpinionListService" ref="statsCommunityOpinionListService" />
+	</bean>
+	<!-- **************************************************************************************************** -->
+
+	<!-- **************************************************************************************************** -->
+	<!-- 주거지분석 API -> 시군구 주거지 현황, API_1001 -->
+	<bean name="/OpenAPI3/dwelling/sggdwellingrank.*" class="kostat.sop.OpenAPI3.api.dwelling.SggDwellingRank">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sggDwellingRankService" ref="sggDwellingRankService" />
+	</bean>
+
+	<!-- 주거지분석 API -> 시군구지표, API_1002 -->
+	<bean name="/OpenAPI3/dwelling/sggindex.*" class="kostat.sop.OpenAPI3.api.dwelling.SggIndex">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sggIndexService" ref="sggIndexService" />
+	</bean>
+	<!-- **************************************************************************************************** -->
+
+	<!-- 개인화API -> 소지역코드찾기, API_9901 -->
+	<bean name="/OpenAPI3/personal/findcodeinsmallarea.*" class="kostat.sop.OpenAPI3.api.personal.FindCodeInSmallArea">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="findCodeInSmallAreaService" ref="findCodeInSmallAreaService" />
+	</bean>
+	
+	<!-- 기술업종통계API -> 전국 기술업종 정보, API_1101 -->
+	<bean name="/OpenAPI3/technicalbiz/companyinfo.*" class="kostat.sop.OpenAPI3.api.technicalbiz.CompanyInfo">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="companyInfoService" ref="companyInfoService" />
+	</bean>
+
+	<!-- 기술업종통계API -> 시도별 기술업종 정보, API_1102 -->
+	<bean name="/OpenAPI3/technicalbiz/sidocompanyinfo.*" class="kostat.sop.OpenAPI3.api.technicalbiz.SidoCompanyInfo">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sidoCompanyInfoService" ref="sidoCompanyInfoService" />
+	</bean>
+	
+	<!-- 기술업종통계API -> 시군구별 기술업종 정보, API_1103 -->
+	<bean name="/OpenAPI3/technicalbiz/sggcompanyinfo.*" class="kostat.sop.OpenAPI3.api.technicalbiz.SggCompanyInfo">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sggCompanyInfoService" ref="sggCompanyInfoService" />
+	</bean>
+
+	<!-- 기술업종통계API -> 전국 창업지원정보, API_1104 -->
+	<bean name="/OpenAPI3/technicalbiz/startupbizfac.*" class="kostat.sop.OpenAPI3.api.technicalbiz.StartupBizFac">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="startupBizFacService" ref="startupBizFacService" />
+	</bean>
+	
+	<!-- 기술업종통계API -> 시도별 창업지원시설수, API_1105 -->
+	<bean name="/OpenAPI3/technicalbiz/sidostartupbizfaccount.*" class="kostat.sop.OpenAPI3.api.technicalbiz.SidoStartupBizFacCount">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sidoStartupBizFacCountService" ref="sidoStartupBizFacCountService" />
+	</bean>
+	
+	<!-- 기술업종통계API -> 시군구 창업지원정보, API_1106 -->
+	<bean name="/OpenAPI3/technicalbiz/sidosggstartupbizfac.*" class="kostat.sop.OpenAPI3.api.technicalbiz.SggStartupBizFac">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sggStartupBizFacService" ref="sggStartupBizFacService" />
+	</bean>
+	
+	<!-- 기술업종통계API -> 시도 산업단지수, API_1107 -->
+	<bean name="/OpenAPI3/technicalbiz/sidoinduscomcount.*" class="kostat.sop.OpenAPI3.api.technicalbiz.SidoInduscomCount">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sidoInduscomCountService" ref="sidoInduscomCountService" />
+	</bean>
+	
+	<!-- 기술업종통계API -> 전국 산업단지 정보, API_1108 -->
+	<bean name="/OpenAPI3/technicalbiz/induscom.*" class="kostat.sop.OpenAPI3.api.technicalbiz.Induscom">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="induscomService" ref="induscomService" />
+	</bean>
+	
+	<!-- 기술업종통계API -> 시군구 산업단지정보, API_1109 -->
+	<bean name="/OpenAPI3/technicalbiz/sidosgginduscom.*" class="kostat.sop.OpenAPI3.api.technicalbiz.SggInduscom">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sggInduscomService" ref="sggInduscomService" />
+	</bean>
+	
+	<!-- 기술업종통계API -> 산업단지 경계, API_1110 -->
+	<bean name="/OpenAPI3/technicalbiz/induscombord.*" class="kostat.sop.OpenAPI3.api.technicalbiz.InduscomBord">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="induscomBordService" ref="induscomBordService" />
+	</bean>
+	
+	<!-- 2017.09.04 개발팀 추가 -->
+	<!-- 기술업종통계API -> 시도별 기술업종 종사자 정보, API_1111 -->
+	<bean name="/OpenAPI3/technicalbiz/sidoworkerinfo.*" class="kostat.sop.OpenAPI3.api.technicalbiz.SidoWorkerInfo">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+		<property name="sidoWorkerInfoService" ref="sidoWorkerInfoService" />
+	</bean>
+	
+	<!-- 2018.11.01 SGIS 스마트플랫폼 구축 사업단  추가 -->
+	<!-- 일자리맵서비스API -> 오늘의구인현황, API_WORK -->
+	<bean name="/OpenAPI3/workroad/gettodaystatus.*" class="kostat.sop.OpenAPI3.api.workroad.GetTodayStatus">
+		<property name="sqlSession" ref="sqlSessionTemplate" />
+	</bean>
+	
+	
+</beans>

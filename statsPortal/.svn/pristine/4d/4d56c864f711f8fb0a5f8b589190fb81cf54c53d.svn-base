@@ -1,0 +1,444 @@
+
+<%
+	/**************************************************************************************************************************
+	* Program Name	: 행정통계시각화 > 통계더보기 > 퇴직연금
+	* File Name		: more2Dash.jsp
+	* Comment		:
+	* History		:
+	**************************************************************************************************************************/
+%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<!DOCTYPE html>
+<link rel="stylesheet" href="/css/administStats/renew/moreNewDash2.css">
+<script src="/Job-map/include/plugin/slick/slick.js"></script>
+<link rel="stylesheet" href="/Job-map/include/plugin/slick/slick.css" />
+<link rel="stylesheet" href="/Job-map/include/plugin/slick/slick-theme.css" />
+<style media="screen">
+.slick-slider{width: 210px;height: 230px; margin: 0 auto;}
+.slick-slider .box{width: 100%; height: 100%;}
+.slick-slider .box span { display:block; text-align:center; margin-bottom:7px; }
+.slick-slider .box span.tit1 { font-size:14px; font-weight:bold; color:#F3FFE2;  }
+.slick-slider .box span.tit2 { font-size:17px; font-weight:bold; color:#F3FFE2;  }
+.slick-slider .box span.icon { width:50px; height:50px;  margin:0 auto 10px auto;  }
+.slick-slider .box span.icon img { max-width:100%; }
+.slick-slider .box span.txt1 { color:#FE2432; font-weight:bold; font-size:17px;  }
+.slick-slider .box div.innerBox { width:100%; margin:0 auto; background-color:#ABE064; box-sizing:border-box; padding:10px;}
+.slick-slider .box div.innerBox span.tit1 { font-size:14px; font-weight:bold; color:#fff;}
+.slick-slider .box div.innerBox span.tit2 { font-size:17px; font-weight:bold; color:#000000; margin-bottom:0px;}
+
+.slick-dots li button:before { color:#fff; opacity:1;}
+.slick-dots li.slick-active button:before { color:#FEF527; opacity:1;}
+</style>
+<script type="text/javascript">
+$(document).ready(function() {
+  $('.slick-slider').slick({
+    dots: true,
+    speed: 300,
+    autoplay: false,
+    autoplaySpeed: 2000
+  });
+});
+</script>
+<div id="wrapperMore">
+	<div class="container">
+		<div class="contentbox-typeB">
+			<div class="left-col">
+				<div class="slick-slider">
+					<div class="box">
+					     <span class="tit1">퇴직연금</span>
+					     <span class="tit2">도입사업장</span>
+					     <span class="icon"><img src="/img/new/more2Dash_slide01.png" alt="" /></span>
+					     <span class="tit1">전년대비</span>
+					     <span class="txt1" id="more2Card1Per">3.0% 증가(12천개소)</span>
+					     <div class="innerBox">
+					     	<span class="tit1" id="more2Card1Firstdata">2019년 396,539 개소</span>
+					     	<span class="tit2" id="more2Card1Lastdata">2020년 408,462 개소</span>
+					     </div>
+					</div>
+					<div class="box">
+					     <span class="tit1">퇴직연금</span>
+					     <span class="tit2">총 가입 근로자</span>
+					     <span class="icon"><img src="/img/new/more2Dash_slide02.png" alt="" /></span>
+					     <span class="tit1">전년대비</span>
+					     <span class="txt1">4.3% 증가(277천 명)</span>
+					     <div class="innerBox">
+					     	<span class="tit1">2019년 6,371,010 명</span>
+					     	<span class="tit2">2020년 6,647,982 명</span>
+					     </div>
+					</div>
+					<div class="box">
+					     <span class="tit1">퇴직연금</span>
+					     <span class="tit2">도입률</span>
+					     <span class="icon"><img src="/img/new/more2Dash_slide03.png" alt="" /></span>
+					     <span class="tit1">전년대비</span>
+					     <span class="txt1">0.3%p 감소</span>
+					     <div class="innerBox">
+					     	<span class="tit1">2019년 27.5%</span>
+					     	<span class="tit2">2020년 27.2%</span>
+					     </div>
+					</div>
+					<div class="box">
+					     <span class="tit1">퇴직연금</span>
+					     <span class="tit2">가입률</span>
+					     <span class="icon"><img src="/img/new/more2Dash_slide04.png" alt="" /></span>
+					     <span class="tit1">전년대비</span>
+					     <span class="txt1">0.9%p 증가</span>
+					     <div class="innerBox">
+					     	<span class="tit1">2019년 51.5%</span>
+					     	<span class="tit2">2020년 52.4%</span>
+					     </div>
+					</div>
+					<div class="box">
+					     <span class="tit1">퇴직연금</span>
+					     <span class="tit2">적립금액</span>
+					     <span class="icon"><img src="/img/new/more2Dash_slide05.png" alt="" /></span>
+					     <span class="tit1">전년대비</span>
+					     <span class="txt1">16.1% 증가(35조 원)</span>
+					     <div class="innerBox">
+					     	<span class="tit1">2019년 220조 원</span>
+					     	<span class="tit2">2020년 255조 원</span>
+					     </div>
+					</div>
+				</div>
+			</div>
+			<div class="right-col borderGreen">
+				<div class="title">적립금액 및 운용방식</div>
+				<div class="selection top flex-height-270">
+					<div class="rcon_box flex-width-500">
+						<div class="rcon_tit">
+							<span><b>퇴직연금 총 적립금액</b></span>
+							<span>
+								<button class="btn_down"><img src="/images/administStats/more1/btncon_down.png" alt=""></button>
+								<button class="btn_table">통계표보기</button>
+								<button class="btn_question"><img src="/images/administStats/more1/btncon_question.png" alt=""></button>
+							</span>
+						</div>
+						<div class="chartbox">
+							<div id="more2Chart1" style="width:480px; height:230px;"></div>
+						</div>						
+					</div>
+					<div class="border1dotted"></div>
+					<div class="rcon_box flex-width-450">
+						<div class="rcon_tit">
+							<span><b>제도유형별 운용방법별 현황</b></span>
+							<span>
+								<button class="btn_down"><img src="/images/administStats/more1/btncon_down.png" alt=""></button>
+								<button class="btn_table">통계표보기</button>
+								<button class="btn_question"><img src="/images/administStats/more1/btncon_question.png" alt=""></button>
+							</span>
+						</div>
+						<div class="chartbox">
+							<div id="more2Chart2" style="width:440px; height:230px;"></div>
+						</div>						
+					</div>
+					<div class="border1dotted"></div>
+					<div class="rcon_box flex-width-450">
+						<div class="rcon_tit">
+							<span><b>금융권역별 운용방법별 현황</b></span>
+							<span>
+								<button class="btn_down"><img src="/images/administStats/more1/btncon_down.png" alt=""></button>
+								<button class="btn_table">통계표보기</button>
+								<button class="btn_question"><img src="/images/administStats/more1/btncon_question.png" alt=""></button>
+							</span>
+						</div>
+						<div class="chartbox">
+							<div id="more2Chart3" style="width:440px; height:230px;"></div>
+						</div>						
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="contentbox-typeC flex-height-270 mgt10">
+			<div class="left-col">
+				<div class="title">도입사업장 및 도입률</div>
+				<div class="rcon_box flex-width-520">
+					<div class="rcon_tit">
+						<span><b>전체</b></span>
+						<span>
+							<button class="btn_down"><img src="/images/administStats/more1/btncon_down.png" alt=""></button>
+							<button class="btn_table">통계표보기</button>
+							<button class="btn_question"><img src="/images/administStats/more1/btncon_question.png" alt=""></button>
+						</span>
+					</div>
+					<div class="chartbox">
+						<div id="more2Chart4" style="width:510px; height:230px;"></div>
+					</div>						
+				</div>
+				<div class="border1dotted"></div>
+				<div class="rcon_box flex-width-520">
+					<div class="rcon_tit">
+						<span><b>주요 산업별(대분류)</b></span>
+						<span>
+							<button class="btn_down"><img src="/images/administStats/more1/btncon_down.png" alt=""></button>
+							<button class="btn_table">통계표보기</button>
+							<button class="btn_question"><img src="/images/administStats/more1/btncon_question.png" alt=""></button>
+						</span>
+					</div>
+					<div class="chartbox">
+						<div id="more2Chart5" style="width:510px; height:230px;"></div>
+					</div>						
+				</div>
+			</div>
+			<div class="right-col">
+				<div class="rcon_tit">
+					<span><b>개인형 퇴직연금 추가 가입현황</b></span>
+					<span>
+						<button class="btn_down"><img src="/images/administStats/more1/btncon_down.png" alt=""></button>
+						<button class="btn_table">통계표보기</button>
+						<button class="btn_question"><img src="/images/administStats/more1/btncon_question.png" alt=""></button>
+					</span>
+				</div>
+				<div class="body">
+					<div class="rcon_box flex-width-300">
+						<div class="chartbox">
+							<div id="more2Chart8" style="width:280px; height:220px;"></div>
+						</div>						
+					</div>
+					<div class="border1dotted" style="height:200px"></div>
+					<div class="rcon_box flex-width-300">
+						<div class="chartbox">
+							<div id="more2Chart9" style="width:280px; height:220px;"></div>
+						</div>						
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="contentbox-typeC flex-height-270 mgt10 ">
+			<div class="left-col bcBlue">
+				<div class="title">가입근로자 및 가입률</div>
+				<div class="rcon_box flex-width-520">
+					<div class="rcon_tit">
+						<span><b>전체</b></span>
+						<span>
+							<button class="btn_down"><img src="/images/administStats/more1/btncon_down.png" alt=""></button>
+							<button class="btn_table">통계표보기</button>
+							<button class="btn_question"><img src="/images/administStats/more1/btncon_question.png" alt=""></button>
+						</span>
+					</div>
+					<div class="chartbox">
+						<div id="more2Chart6" style="width:510px; height:230px;"></div>
+					</div>						
+				</div>
+				<div class="border1dotted"></div>
+				<div class="rcon_box flex-width-520">
+					<div class="rcon_tit">
+						<span><b>주요 산업별(대분류)</b></span>
+						<span>
+							<button class="btn_down"><img src="/images/administStats/more1/btncon_down.png" alt=""></button>
+							<button class="btn_table">통계표보기</button>
+							<button class="btn_question"><img src="/images/administStats/more1/btncon_question.png" alt=""></button>
+						</span>
+					</div>
+					<div class="chartbox">
+						<div id="more2Chart7" style="width:510px; height:230px;"></div>
+					</div>						
+				</div>
+			</div>
+			<div class="right-col">
+				<div class="rcon_tit">
+					<span><b>사유별, 연령별 중도인출 현황</b></span>
+					<span>
+						<button class="btn_down"><img src="/images/administStats/more1/btncon_down.png" alt=""></button>
+						<button class="btn_table">통계표보기</button>
+						<button class="btn_question"><img src="/images/administStats/more1/btncon_question.png" alt=""></button>
+					</span>
+				</div>
+				<div class="body">
+					<div class="rcon_box flex-width-600">
+						<div class="chartbox">
+							<div id="more2Chart10" style="width:600px; height:220px;"></div>
+						</div>						
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+			<!-- 
+			<div class="panel-titles bg-type-1">
+				<b>퇴직연금제도 적립금액 및 운용방식</b>
+			</div> -->
+			
+</div>
+<!-- <div class="panel-body border-color-1" style="display:none">
+	<div class="row" style="height: 185.5px">
+		<div class="col col-4">
+			<div class="card">
+				<div class="card-header">
+					<div class="card-title">
+						<h4 class="icon-1 more2Chart1_title"></h4>
+					</div>
+
+					<div class="util-group">
+						<a href="#" class="btn-util-1" title="지표설명" data-chart-id="more2Chart1" onclick="javascript: return false;"></a>
+						<a href="#" class="btn-util-2" target="_blank" data-chart-id="more2Chart1" onclick="javascript: return false;"></a>
+						<a href="#" class="btn-util-4" title="이미지 저장" data-chart-id="more2Chart1" data-chart-id="more2Chart1" onclick="javascript: return false;"></a>
+					</div>
+				</div>
+				<div class="card-body" id="more2Chart1"></div>
+			</div>
+		</div>
+		<div class="col col-4 bdl-1">
+			<div class="card">
+				<div class="card-header">
+					<div class="card-title">
+						<h4 class="icon-1 more2Chart2_title"></h4>
+					</div>
+
+					<div class="util-group">
+						<a href="#" class="btn-util-1" title="지표설명" data-chart-id="more2Chart2" onclick="javascript: return false;"></a>
+						<a href="#" class="btn-util-2" target="_blank" data-chart-id="more2Chart2" onclick="javascript: return false;"></a>
+						<a href="#" class="btn-util-4" title="이미지 저장" data-chart-id="more2Chart2" onclick="javascript: return false;"></a>
+					</div>
+				</div>
+				<div class="card-body" id=""></div>
+			</div>
+		</div>
+		<div class="col col-4 bdl-1">
+			<div class="card">
+				<div class="card-header">
+					<div class="card-title">
+						<h4 class="icon-1 more2Chart3_title"></h4>
+					</div>
+
+					<div class="util-group">
+						<a href="#" class="btn-util-2" target="_blank" data-chart-id="more2Chart3" onclick="javascript: return false;"></a>
+						<a href="#" class="btn-util-4" title="이미지 저장" data-chart-id="more2Chart3" onclick="javascript: return false;"></a>
+					</div>
+				</div>
+				<div class="card-body" id=""></div>
+			</div>
+		</div>
+
+	</div>
+</div>
+
+// row
+
+<div class="row" style="display:none">
+	<div class="col col-6">
+		<div class="panel panel-hori panel-vertical">
+			<div class="panel-titles bg-type-2">
+				<b>퇴직연금제도 도입 사업장 및 도입률</b>
+			</div>
+			<div class="panel-body border-color-2">
+				<div class="row">
+					<div class="col col-12 bd-b" style="height: 185.5px">
+						<div class="card">
+							<div class="card-header">
+								<div class="card-title">
+									<h4 class="icon-2 more2Chart4_title"></h4>
+								</div>
+
+								<div class="util-group">
+									<a href="#" class="btn-util-1" title="지표설명" data-chart-id="more2Chart4" onclick="javascript: return false;"></a>
+									<a href="#" class="btn-util-2" target="_blank" data-chart-id="more2Chart4" onclick="javascript: return false;"></a>
+									<a href="#" class="btn-util-4" title="이미지 저장" data-chart-id="more2Chart4" onclick="javascript: return false;"></a>
+								</div>
+							</div>
+							<div class="card-body" id="more2Chart4"></div>
+						</div>
+					</div>
+					<div class="col col-12" style="height: 185.5px">
+						<div class="card">
+							<div class="card-header">
+								<div class="card-title">
+									<h4 class="icon-2 more2Chart5_title"></h4>
+								</div>
+								<div class="util-group">
+									<a href="#" class="btn-util-2" target="_blank" data-chart-id="more2Chart5" onclick="javascript: return false;"></a>
+									<a href="#" class="btn-util-4" title="이미지 저장" data-chart-id="more2Chart5" onclick="javascript: return false;"></a>
+								</div>
+							</div>
+							<div class="card-body" id="more2Chart5"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col col-6">
+		<div class="panel panel-hori panel-vertical">
+			<div class="panel-titles bg-type-3">
+				<b>퇴직연금제도 가입 근로자 및 가입률</b>
+			</div>
+			<div class="panel-body border-color-3">
+				<div class="row">
+					<div class="col col-12 bd-b" style="height: 185.5px">
+						<div class="card">
+							<div class="card-header">
+								<div class="card-title">
+									<h4 class="icon-3 more2Chart6_title"></h4>
+								</div>
+
+								<div class="util-group">
+									<a href="#" class="btn-util-1" title="지표설명" data-chart-id="more2Chart6" onclick="javascript: return false;"></a>
+									<a href="#" class="btn-util-2" target="_blank" data-chart-id="more2Chart6" onclick="javascript: return false;"></a>
+									<a href="#" class="btn-util-4" title="이미지 저장" data-chart-id="more2Chart6" onclick="javascript: return false;"></a>
+								</div>
+							</div>
+							<div class="card-body" id="more2Chart6"></div>
+						</div>
+					</div>
+					<div class="col col-12" style="height: 185.5px">
+						<div class="card">
+							<div class="card-header">
+								<div class="card-title">
+									<h4 class="icon-3 more2Chart7_title"></h4>
+								</div>
+
+								<div class="util-group">
+									<a href="#" class="btn-util-2" target="_blank" data-chart-id="more2Chart7" onclick="javascript: return false;"></a>
+									<a href="#" class="btn-util-4" title="이미지 저장" data-chart-id="more2Chart7" onclick="javascript: return false;"></a>
+								</div>
+							</div>
+							<div class="card-body" id="more2Chart7"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+// row
+
+<div class="row"style="display:none">
+	<div class="col col-6" style="height: 185.5px">
+		<div class="panel">
+			<div class="card">
+				<div class="card-header">
+					<div class="card-title">
+						<h4 class="icon-5 more2Chart8_title"></h4>
+					</div>
+
+					<div class="util-group">
+						<a href="#" class="btn-util-1" title="지표설명" data-chart-id="more2Chart8,more2Chart9" onclick="javascript: return false;"></a>
+						<a href="#" class="btn-util-2" target="_blank" data-chart-id="more2Chart8,more2Chart9" onclick="javascript: return false;"></a>
+						<a href="#" class="btn-util-4" title="이미지 저장" data-chart-id="more2Chart8,more2Chart9" onclick="javascript: return false;"></a>
+					</div>
+				</div>
+				<div class="card-body" id="more2Chart8" style="float: left; width: 50%;"></div>
+				<div class="card-body" id="more2Chart9" style="float: left; width: 50%;"></div>
+			</div>
+		</div>
+	</div>
+	<div class="col col-6">
+		<div class="panel" style="height: 185.5px">
+			<div class="card">
+				<div class="card-header">
+					<div class="card-title">
+						<h4 class="icon-6 more2Chart10_title"></h4>
+					</div>
+
+					<div class="util-group">
+						<a href="#" class="btn-util-2" target="_blank" data-chart-id="more2Chart10" onclick="javascript: return false;"></a>
+						<a href="#" class="btn-util-4" title="이미지 저장" data-chart-id="more2Chart10" onclick="javascript: return false;"></a>
+					</div>
+				</div>
+				<div class="card-body" id="more2Chart10"></div>
+			</div>
+		</div>
+	</div>
+</div> -->

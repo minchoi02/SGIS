@@ -1,0 +1,2155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="totSurvFishery">
+
+	<!--  어업총조사 인구 조회 - 2020.09.22	한광희	신규 -->
+	<select id="getTotFishery" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_CD
+			, SURV_ID
+			, REGION_NM
+			, DT
+			, C1
+			, ITM_CD
+			, ITM_NM
+			, UNIT_NM
+			, RANK
+			, NVL(IRDSRATE, 0) IRDSRATE
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		 <!-- 20201123 심창무 속도개선 START -->
+		    <choose>
+				<when test='fisheryType == "sea" and year == "2020"'>
+			      AND SURV_ID = 'FS0614'
+		          AND SURV_YEAR = '2020'
+			   </when>
+			   <when test='fisheryType == "sea" and year == "2015"'>
+			      AND SURV_ID = 'FS0112'
+		          AND SURV_YEAR = '2015'
+			   </when>
+			   <when test='fisheryType == "sea" and year == "2010"'>
+			      AND SURV_ID = 'FS0413'
+		          AND SURV_YEAR = '2010'
+			   </when>
+			   <when test='fisheryType == "inland" and year == "2020"'>
+			      AND SURV_ID = 'FS0621'
+		          AND SURV_YEAR = '2020'
+			   </when>
+			   <when test='fisheryType == "inland" and year == "2015"'>
+			      AND SURV_ID = 'FS0171'
+		          AND SURV_YEAR = '2015'
+			   </when>
+			   <otherwise>
+			      AND SURV_ID = 'FS0469'
+		          AND SURV_YEAR = '2010'
+			   </otherwise>
+		    </choose>
+		    <choose>
+			   <when test='region_cd == "99" or region_cd == "00"'>
+			      AND region_cd = '00'
+			   </when>
+			   <otherwise>
+			      AND region_cd = #{region_cd}
+			   </otherwise>
+		    </choose>
+		    <!-- 20201123 심창무 속도개선 END -->
+
+		    <!-- 20201123 심창무 소스삭제 START
+		 20201119 박은식 조회 속도 개선 START
+		 	<if test="fisheryType != null and fisheryType != '' and fisheryType == 'sea'">
+		 		AND SURV_ID IN ('FS0614','FS0112', 'FS0413') /* FS0112 : 가구원수별 어가(2015), FS0413 : 가구원수별 어가(2010) */
+		 	</if>
+		 	<if test="fisheryType != null and fisheryType != '' and fisheryType == 'inland'">
+		 		AND SURV_ID IN ('FS0621','FS0171', 'FS0469') /* FS0112 : 가구원수별 어가(2015), FS0413 : 가구원수별 어가(2010) */
+		 	</if>
+		 20201119 박은식 조회 속도 개선 END
+		 	<if test='region_cd == "99" or region_cd == "00"'>
+		 		AND region_cd = '00'
+		 	</if>
+		 	<if test='region_cd != "99" and region_cd != "00"'>
+		 		AND region_cd = #{region_cd}
+		 	</if>
+		 	<if test='year != null and year != "" '>					/* 지표년도 */
+		 		AND SURV_YEAR = #{year}
+		 	</if>
+		 	20201123 심창무 소스삭제 END -->
+
+		 	AND ITM_CD = 'T00'	/* 가구원총수 (가구) */
+		 	AND C1 = '000'	/* 계 */
+		 <!-- 20201119 박은식 조회 속도 개선 START -->
+		 	<!-- <if test="fisheryType != null and fisheryType != '' and fisheryType == 'sea'">
+		 		AND SURV_ID IN ('FS0614','FS0112', 'FS0413') /* FS0112 : 가구원수별 어가(2015), FS0413 : 가구원수별 어가(2010) */
+		 	</if>
+		 	<if test="fisheryType != null and fisheryType != '' and fisheryType == 'inland'">
+		 		AND SURV_ID IN ('FS0621', 'FS0171', 'FS0469') /* FS0112 : 가구원수별 어가(2015), FS0413 : 가구원수별 어가(2010) */
+		 	</if> -->
+		 <!-- 20201119 박은식 조회 속도 개선 END -->
+	</select>
+	
+	<!-- 해수면 내수면 어가 조회 - 2020.09.24 한광희	신규 -->
+	<select id="getTotSlvlIwrsFhrshs" parameterType="hashmap" resultType="hashmap">
+		/* 해수면 */
+		SELECT
+			REGION_CD
+			, SURV_ID
+			, REGION_NM
+			, DT
+			, C1
+			, ITM_CD
+			, ITM_NM
+			, UNIT_NM
+			, RANK
+			, NVL(IRDSRATE, 0) IRDSRATE
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+
+		   <if test='year == "2020"'>
+		   	AND SURV_ID = 'FS0614'	/* FS0614 : 가구원수별 어가(2020) */
+		   </if>		 
+		 <!-- 20201119 박은식 조회 속도 개선 START -->
+		 	<if test='year == "2015"'>
+		   	AND SURV_ID = 'FS0112'	/* FS0112 : 가구원수별 어가(2015) */
+		   </if>
+		   <if test='year == "2010"'>
+		   	AND SURV_ID = 'FS0413'	/* FS0413 : 가구원수별 어가(2010) */
+		   </if>
+		 <!-- 20201119 박은식 조회 속도 개선 END -->
+		   <if test='region_cd == "99" or region_cd == "00"'>
+		  	AND region_cd = '00'
+	 	   </if>
+	 	   <if test='region_cd != "99" and region_cd != "00"'>
+	 	  	AND region_cd = #{region_cd}
+	 	   </if>
+	 	   <if test='year != null and year != "" '>					/* 지표년도 */
+	 	  	AND SURV_YEAR = #{year}
+	 	   </if>
+		 <!-- 20201119 박은식 조회 속도 개선 START -->
+	 	   <!-- <if test='year == "2015"'>
+		   	AND SURV_ID = 'FS0112'	/* FS0112 : 가구원수별 어가(2015) */
+		   </if>
+		   <if test='year == "2010"'>
+		   	AND SURV_ID = 'FS0413'	/* FS0413 : 가구원수별 어가(2010) */
+		   </if> -->
+		 <!-- 20201119 박은식 조회 속도 개선 END -->
+		   AND ITM_CD = 'T00'	/* 어가 (가구) */
+		   AND C1 = '000'
+		UNION ALL
+		/* 내수면 */
+		SELECT
+			REGION_CD
+			, SURV_ID
+			, REGION_NM
+			, DT
+			, C1
+			, ITM_CD
+			, ITM_NM
+			, UNIT_NM
+			, RANK
+			, NVL(IRDSRATE, 0) IRDSRATE
+		 FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+		 <!-- 20220212 내수면 SURV ID 필요함 -JW -->
+		  <if test='year == "2020"'>
+		   	AND SURV_ID = 'FS0621'	/* FS0171 : 가구원수별 어가(2020) */
+		  </if>		
+		 <!-- 20201119 박은식 조회 속도 개선 START -->
+		  <if test='year == "2015"'>
+		   	AND SURV_ID = 'FS0171'	/* FS0171 : 가구원수별 어가(2015) */
+		  </if>
+		  <if test='year == "2010"'>
+		   	AND SURV_ID = 'FS0469'	/* FS0469 : 가구원수별 어가(2010) */
+		  </if>
+		 <!-- 20201119 박은식 조회 속도 개선 END -->
+		  <if test='region_cd == "99" or region_cd == "00"'>
+		  	AND region_cd = '00'
+	 	  </if>
+	 	  <if test='region_cd != "99" and region_cd != "00"'>
+	 	  	AND region_cd = #{region_cd}
+	 	  </if>
+	 	  <if test='year != null and year != "" '>					/* 지표년도 */
+	 	  	AND SURV_YEAR = #{year}
+	 	  </if>
+		 <!-- 20201119 박은식 조회 속도 개선 START -->
+		  <!-- <if test='year == "2015"'>
+		   	AND SURV_ID = 'FS0171'	/* FS0171 : 가구원수별 어가(2015) */
+		  </if>
+		  <if test='year == "2010"'>
+		   	AND SURV_ID = 'FS0469'	/* FS0469 : 가구원수별 어가(2010) */
+		  </if> -->
+		 <!-- 20201119 박은식 조회 속도 개선 START -->
+		  AND ITM_CD = 'T00'	/* 어가 (가구) */
+		  AND C1 = '000'
+	</select>
+	
+	<!-- 해수면 경영주 교육정도 조회 - 2020.09.24 한광희	신규 -->
+	<select id="getTotSlvlMngerEdc" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_CD
+			, SURV_ID
+			, REGION_NM
+			, DT
+			, C1
+			, ITM_CD
+			, ITM_NM
+			, UNIT_NM
+			, RANK
+			, NVL(IRDSRATE, 0) IRDSRATE
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+
+		   <if test='year == "2020"'>
+		   	AND SURV_ID = 'FS0618'	/* FS0618 : 경영주 연령 및 교육정도별 어가(2020) */
+		   </if>		 
+		 <!-- 20201119 박은식 조회 속도 개선 START -->
+		   <if test='year == "2015"'>
+		   	AND SURV_ID = 'FS0116'	/* FS0171 : 경영주 교육정도별 어가(2015) */
+		   </if>
+		   <if test='year == "2010"'>
+		   	AND SURV_ID = 'FS0417'	/* FS0417 : 경영주 교육정도별 어가(2010) */
+		   </if>
+		 <!-- 20201119 박은식 조회 속도 개선 END -->
+		   <if test='region_cd == "99" or region_cd == "00"'>
+		  	AND region_cd = '00'
+	 	   </if>
+	 	   <if test='region_cd != "99" and region_cd != "00"'>
+	 	  	AND region_cd = #{region_cd}
+	 	   </if>
+	 	   <if test='year != null and year != "" '>					/* 지표년도 */
+	 	  	AND SURV_YEAR = #{year}
+	 	   </if>
+		 <!-- 20201119 박은식 조회 속도 개선 START -->
+	 	   <!-- <if test='year == "2015"'>
+		   	AND SURV_ID = 'FS0116'	/* FS0171 : 경영주 교육정도별 어가(2015) */
+		   </if>
+		   <if test='year == "2010"'>
+		   	AND SURV_ID = 'FS0417'	/* FS0417 : 경영주 교육정도별 어가(2010) */
+		   </if> -->
+		 <!-- 20201119 박은식 조회 속도 개선 END -->
+		   <!-- 20201123 심창무 속도개선 START -->
+		   AND C1 = '000'
+		   AND ITM_CD IN ('T01', 'T02', 'T03', 'T04', 'T05', 'T06')	/* T06:4년제대학교이상 (가구), T05:4년제미만대학 (가구), T04:고등학교 (가구), T03:중학교 (가구), T02:초등학교 (가구), T01:경영주교육정도별어가:받지 않았음 (가구) */
+		 <!-- 20201123 심창무 속도개선 END -->
+
+		 <!-- 20201123 심창무 소스삭제 START
+		   AND ITM_CD IN ('T01', 'T02', 'T03', 'T04', 'T05', 'T06')	/* T06:4년제대학교이상 (가구), T05:4년제미만대학 (가구), T04:고등학교 (가구), T03:중학교 (가구), T02:초등학교 (가구), T01:경영주교육정도별어가:받지 않았음 (가구) */
+		   AND C1 = '000'
+		 20201123 심창무 소스삭제 END -->
+		 ORDER BY REGION_CD, ITM_CD DESC
+	</select>
+	
+	<!-- 내수면 경영주 교육정도 조회 - 2020.09.24 한광희	신규 -->
+	<select id="getTotIwrsMngerEdc" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			REGION_CD
+			, SURV_ID
+			, REGION_NM
+			, DT
+			, C1
+			, ITM_CD
+			, ITM_NM
+			, UNIT_NM
+			, RANK
+			, NVL(IRDSRATE, 0) IRDSRATE
+		  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		 WHERE 1=1
+		 
+		 <!-- 20220212 내수면 SURV ID 필요함 -JW -->
+		 <if test='year == "2020"'>
+		   	AND SURV_ID = 'FS0175'	/* FS0175 : 경영주 교육정도별 어가(2015) */
+		   </if>		 
+		 <!-- 20201119 박은식 조회 속도 개선 START -->
+		   <if test='year == "2015"'>
+		   	AND SURV_ID = 'FS0175'	/* FS0175 : 경영주 교육정도별 어가(2015) */
+		   </if>
+		   <if test='year == "2010"'>
+		   	AND SURV_ID = 'FS0473'	/* FS0473 : 경영주 교육정도별 어가(2010) */
+		   </if>
+		 <!-- 20201119 박은식 조회 속도 개선 END -->
+		   <if test='region_cd == "99" or region_cd == "00"'>
+		  	AND region_cd = '00'
+	 	   </if>
+	 	   <if test='region_cd != "99" and region_cd != "00"'>
+	 	  	AND region_cd = #{region_cd}
+	 	   </if>
+	 	   <if test='year != null and year != "" '>					/* 지표년도 */
+	 	  	AND SURV_YEAR = #{year}
+	 	   </if>
+		 <!-- 20201119 박은식 조회 속도 개선 START -->
+	 	   <!-- <if test='year == "2015"'>
+		   	AND SURV_ID = 'FS0175'	/* FS0175 : 경영주 교육정도별 어가(2015) */
+		   </if>
+		   <if test='year == "2010"'>
+		   	AND SURV_ID = 'FS0473'	/* FS0473 : 경영주 교육정도별 어가(2010) */
+		   </if> -->
+		 <!-- 20201119 박은식 조회 속도 개선 END -->
+		   <!-- 20201123 심창무 속도개선 START -->
+		   AND C1 = '000'
+		   AND ITM_CD IN ('T01', 'T02', 'T03', 'T04', 'T05', 'T06')	/* T06:4년제대학교이상 (가구), T05:4년제미만대학 (가구), T04:고등학교 (가구), T03:중학교 (가구), T02:초등학교 (가구), T01:경영주교육정도별어가:받지 않았음 (가구) */
+		 <!-- 20201123 심창무 속도개선 END -->
+
+		 <!-- 20201123 심창무 소스삭제 START
+		   AND ITM_CD IN ('T01', 'T02', 'T03', 'T04', 'T05', 'T06')	/* T06:4년제대학교이상 (가구), T05:4년제미만대학 (가구), T04:고등학교 (가구), T03:중학교 (가구), T02:초등학교 (가구), T01:경영주교육정도별어가:받지 않았음 (가구) */
+		   AND C1 = '000'
+		 20201123 심창무 소스삭제 END -->
+		 ORDER BY REGION_CD, ITM_CD DESC
+	</select>
+
+	<!-- 해수면 판매 금액별 어가 조회 - 2020.10.23 박은식	신규 -->
+	<select id="getTotSeaPriceFish" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, REPLACE(REPLACE(ITM_NM, '(가구)', ''), '수산물판매금액별어가:', '') AS ITM_NM
+				, UNIT_NM
+				, RANK 
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+				<if test="year != null and year != '' and year == '2020'">
+					AND SURV_ID = 'FS0616'
+				</if>			
+				<if test="year != null and year != '' and year == '2015'">
+					AND SURV_ID = 'FS0136'
+				</if>
+				<if test="year != null and year != '' and year == '2010'">
+					AND SURV_ID = 'FS0436'
+				</if>
+				<if test='region_cd == "99" or region_cd == "00"'>
+					AND region_cd = '00'
+				</if>
+				<if test='region_cd != "99" and region_cd != "00"'>
+					AND region_cd = #{region_cd}
+				</if>
+				AND C1 = '000'
+				AND ITM_CD &lt;&gt; 'T00'
+	</select>
+	
+	<!-- 내수면 판매 금액별 어가 조회 - 2020.10.23 박은식	신규 -->
+	<select id="getTotInlandPriceFish" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK 
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+		 <!-- 20220212 내수면 SURV ID 필요함 -JW -->			
+				<if test="year != null and year != '' and year == '2020'">
+					AND SURV_ID = 'FS0623'
+				</if>			
+				<if test="year != null and year != '' and year == '2015'">
+					AND SURV_ID = 'FS0195'
+				</if>
+				<if test="year != null and year != '' and year == '2010'">
+					AND SURV_ID = 'FS0492'
+				</if>
+				<if test='region_cd == "99" or region_cd == "00"'>
+					AND region_cd = '00'
+				</if>
+				<if test='region_cd != "99" and region_cd != "00"'>
+					AND region_cd = #{region_cd}
+				</if>
+				AND C1 = '000'
+				AND ITM_CD &lt;&gt; 'T00'
+	</select>
+	
+	<!-- 해수면 동력톤수별 어가 조회 - 2020.10.23 박은식	신규 -->
+	<select id="getTotSeaPowerTons" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK 
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+		 <!-- 20220212 SURV ID 필요함 -JW -->
+				<if test="year != null and year != '' and year == '2020'">
+					AND SURV_ID = 'FS0132'
+				</if>		 
+				<if test="year != null and year != '' and year == '2015'">
+					AND SURV_ID = 'FS0132'
+				</if>
+				<if test="year != null and year != '' and year == '2010'">
+					AND SURV_ID = 'FS0432'
+				</if>
+				<if test='region_cd == "99" or region_cd == "00"'>
+					AND region_cd = '00'
+				</if>
+				<if test='region_cd != "99" and region_cd != "00"'>
+					AND region_cd = #{region_cd}
+				</if>
+				AND C1 = '000'
+				AND ITM_CD NOT IN ('T00', 'T02')
+	</select>
+	
+	<!-- 내수면 동력톤수별 어가 조회 - 2020.10.23 박은식	신규 -->
+	<select id="getTotInlandPowerTons" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK 
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+		 <!-- 20220212 내수면 SURV ID 필요함 -JW -->			
+				<if test="year != null and year != '' and year == '2020'">
+					AND SURV_ID = 'FS0192'
+				</if>		 
+				<if test="year != null and year != '' and year == '2015'">
+					AND SURV_ID = 'FS0192'
+				</if>
+				<if test="year != null and year != '' and year == '2010'">
+					AND SURV_ID = 'FS0489'
+				</if>
+				<if test='region_cd == "99" or region_cd == "00"'>
+					AND region_cd = '00'
+				</if>
+				<if test='region_cd != "99" and region_cd != "00"'>
+					AND region_cd = #{region_cd}
+				</if>
+				AND C1 = '000'
+				AND ITM_CD NOT IN ('T00', 'T02')
+	</select>
+	
+	<!-- 해수면 어가 인구 증감 데이터 조회 - 2020.10.23 박은식	신규 -->
+	<select id="getTotSeaFisheryRatio" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_YEAR
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK 
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+		    AND SURV_ID IN ('FS0112', 'FS0413','FS0614')
+		    <if test='year != null and year != ""'>
+				AND SURV_YEAR &lt;= ${year}
+			</if>
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+			<if test='year != null and year != ""'>
+				AND SURV_YEAR &lt;= ${year}
+			</if>
+			AND SURV_ID IN ('FS0112', 'FS0413','FS0614')
+			20201123 심창무 소스삭제 END -->
+			<if test='regionCd == "99" or regionCd == "00"'>
+				AND REGION_CD = '00'
+			</if>
+			<if test='regionCd != "99" and regionCd != "00"'>
+				AND REGION_CD = #{regionCd}
+			</if>
+			AND ITM_CD = 'T01'
+			AND C1= '000'
+	</select>
+	
+	<!-- 내수면 어가 인구 증감 데이터 조회 - 2020.10.23 박은식	신규 -->
+	<select id="getTotInlandFisheryRatio" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK 
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			where 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+		    AND SURV_ID IN ('FS0621', 'FS0171', 'FS0469')
+		    <if test="year != null and year !=''">
+				AND SURV_YEAR &lt;= ${year}
+			</if>
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+			<if test="year != null and year !=''">
+				AND SURV_YEAR &lt;= ${year}
+			</if>
+			AND SURV_ID IN ('FS0621', 'FS0171', 'FS0469')
+			20201123 심창무 소스삭제 END -->
+			<if test=' regionCd != null and regionCd != ""'>
+				<if test='regionCd == "99" or regionCd == "00"'>
+					AND REGION_CD = '00'
+				</if>
+				<if test='regionCd != "99" and regionCd != "00"'>
+					AND REGION_CD = #{regionCd}
+				</if>
+			</if>
+			AND ITM_CD = 'T01'
+			AND C1= '000'
+	</select>
+	
+	<!-- 해수면 고령인구 데이터 조회 - 2020.10.23 박은식	신규 -->
+	<select id="getTotSeaOldFishery" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			'FS0620' AS SURV_ID
+			,'2020' AS SURV_YEAR
+			, #{regionCd} AS REGION_CD
+			, SUM(DT) AS DT
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+				<!-- 20201123 심창무 속도개선 START -->
+		    	AND SURV_ID = 'FS0620'
+		    	AND SURV_YEAR &lt;= #{year}
+		    	AND REGION_CD = #{regionCd}
+				AND ITM_CD IN ('T42', 'T45', 'T48', 'T51', 'T54')
+				<!-- 20201123 심창무 속도개선 END -->
+
+				<!-- 20201123 심창무 소스삭제 START
+				AND SURV_YEAR = #{year}
+				AND SURV_ID = 'FS0620'
+				AND REGION_CD = #{regionCd}
+				AND ITM_CD IN ('T42', 'T45', 'T48', 'T51', 'T54')
+				20201123 심창무 소스삭제 END -->
+			
+			UNION ALL
+		SELECT
+			'FS0146' AS SURV_ID
+			,'2015' AS SURV_YEAR
+			, #{regionCd} AS REGION_CD
+			, SUM(DT) AS DT
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+				<!-- 20201123 심창무 속도개선 START -->
+		    	AND SURV_ID = 'FS0146'
+		    	AND SURV_YEAR &lt;= #{year}
+		    	AND REGION_CD = #{regionCd}
+				AND ITM_CD IN ('T42', 'T45', 'T48', 'T51', 'T54')
+				<!-- 20201123 심창무 속도개선 END -->
+
+				<!-- 20201123 심창무 소스삭제 START
+				AND SURV_YEAR = #{year}
+				AND SURV_ID = 'FS0146'
+				AND REGION_CD = #{regionCd}
+				AND ITM_CD IN ('T42', 'T45', 'T48', 'T51', 'T54')
+				20201123 심창무 소스삭제 END -->
+			
+			UNION ALL
+			
+		SELECT
+			'FS0446' AS SURV_ID
+			,'2010' AS SURV_YEAR
+			, #{regionCd} AS REGION_CD
+			, SUM(DT) AS DT
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+				<!-- 20201123 심창무 속도개선 START -->
+				AND SURV_ID = 'FS0446'
+				AND SURV_YEAR &lt;= #{year}
+				AND REGION_CD = #{regionCd}
+				AND ITM_CD IN ('T42', 'T45', 'T48', 'T51', 'T54')
+				<!-- 20201123 심창무 속도개선 END -->
+
+				<!-- 20201123 심창무 소스삭제 START
+				AND SURV_YEAR = #{year}
+				AND SURV_ID = 'FS0446'
+				AND REGION_CD = #{regionCd}
+				AND ITM_CD IN ('T42', 'T45', 'T48', 'T51', 'T54')
+				20201123 심창무 소스삭제 END -->
+			
+	</select>
+	
+	<!-- 내수면 어가 고령인구 데이터 조회 - 2020.10.23 박은식	신규 -->
+	<select id="getTotInlandOldFishery" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			'FS0627' AS SURV_ID
+			,'2020' AS SURV_YEAR
+			, #{regionCd} AS REGION_CD
+			, SUM(DT) AS DT
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+				<!-- 20201123 심창무 속도개선 START -->
+				AND SURV_ID = 'FS0627'
+				AND SURV_YEAR &lt;= #{year}
+				AND REGION_CD = #{regionCd}
+				AND ITM_CD IN ('T42', 'T45', 'T48', 'T51', 'T54')
+				<!-- 20201123 심창무 속도개선 END -->
+
+				<!-- 20201123 심창무 소스삭제 START
+				AND SURV_YEAR = #{year}
+				AND SURV_ID = 'FS0627'
+				AND REGION_CD = #{regionCd}
+				AND ITM_CD IN ('T42', 'T45', 'T48', 'T51', 'T54')
+				20201123 심창무 소스삭제 END -->
+			
+			UNION ALL
+			
+		SELECT
+			'FS0205' AS SURV_ID
+			,'2015' AS SURV_YEAR
+			, #{regionCd} AS REGION_CD
+			, SUM(DT) AS DT
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+				<!-- 20201123 심창무 속도개선 START -->
+				AND SURV_ID = 'FS0205'
+				AND SURV_YEAR &lt;= #{year}
+				AND REGION_CD = #{regionCd}
+				AND ITM_CD IN ('T42', 'T45', 'T48', 'T51', 'T54')
+				<!-- 20201123 심창무 속도개선 END -->
+
+				<!-- 20201123 심창무 소스삭제 START
+				AND SURV_YEAR = #{year}
+				AND SURV_ID = 'FS0205'
+				AND REGION_CD = #{regionCd}
+				AND ITM_CD IN ('T42', 'T45', 'T48', 'T51', 'T54')
+				20201123 심창무 소스삭제 END -->
+			
+			UNION ALL
+			
+		SELECT
+			'FS0502' AS SURV_ID
+			,'2010' AS SURV_YEAR
+			, #{regionCd} AS REGION_CD
+			, SUM(DT) AS DT
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+				<!-- 20201123 심창무 속도개선 START -->
+				AND SURV_ID = 'FS0502'
+				AND SURV_YEAR &lt;= #{year}
+				AND REGION_CD = #{regionCd}
+				AND ITM_CD IN ('T42', 'T45', 'T48', 'T51', 'T54')
+				<!-- 20201123 심창무 속도개선 END -->
+
+				<!-- 20201123 심창무 소스삭제 START
+				AND SURV_YEAR = #{year}
+				AND SURV_ID = 'FS0502'
+				AND REGION_CD = #{regionCd}
+				AND ITM_CD IN ('T42', 'T45', 'T48', 'T51', 'T54')
+				20201123 심창무 소스삭제 END -->
+	</select>
+	
+	<!-- 해수면 어가 가구 랭크 조회 - 2020.10.23 박은식	신규 -->
+	<select id="getTotSeaFisheryHouseRnak" parameterType="hashmap" resultType="hashmap">
+		SELECT *
+			FROM (
+				SELECT
+						*
+						, ROWNUM AS RANK
+					FROM (
+						SELECT
+								a.REGION_CD
+								, a.REGION_NM
+								, a.DT
+								, a.SURV_ID
+								, a.C1
+								, a.ITM_CD
+								, a.SURV_YEAR
+								, TO_CHAR(a.IRDSRATE, 'FM9990.00') AS IRDSRATE <!-- range 주택증감 값 표시 정보  -->
+							FROM SRV_DT_ST_CHART_DET_ITM_RANK a
+						    WHERE 1=1
+						    <if test=" year != null and year != '' and year == '2020' ">
+								AND a.SURV_ID = 'FS0614'
+						    	AND a.SURV_YEAR = #{year}
+						    	AND a.ITM_CD = 'T00'
+								AND a.C1 = '000'
+						    </if>							
+						    <if test=" year != null and year != '' and year == '2015' ">
+						    	<!-- 20201123 심창무 속도개선 START -->
+								AND a.SURV_ID = 'FS0112'
+						    	AND a.SURV_YEAR = #{year}
+						    	AND a.ITM_CD = 'T00'
+								AND a.C1 = '000'
+						    	<!-- 20201123 심창무 속도개선 END -->
+
+						    	<!-- 20201123 심창무 소스삭제 START
+						    	AND a.SURV_YEAR = #{year}
+								AND a.SURV_ID = 'FS0112' 20201119 박은식 조회 속도 개선
+								AND a.ITM_CD = 'T00'
+								AND a.C1 = '000'
+								20201123 심창무 소스삭제 END -->
+						    </if>
+						    <if test=" year != null and year != '' and year == '2010' ">
+						    	<!-- 20201123 심창무 속도개선 START -->
+								AND a.SURV_ID = 'FS0413'
+						        AND a.SURV_YEAR &lt;= #{year}
+								AND a.ITM_CD = 'T00'
+								AND a.C1 = '000'
+								<!-- 20201123 심창무 속도개선 END -->
+
+						    	<!-- 20201123 심창무 소스삭제 START
+						    	AND a.SURV_YEAR = #{year}
+								AND a.SURV_ID = 'FS0413'  20201119 박은식 조회 속도 개선
+								AND a.ITM_CD = 'T00'
+								AND a.C1 = '000'
+								20201123 심창무 소스삭제 END -->
+						    </if>
+							<if test="level != null and level != '' and level == 'sido'"><!-- 광역시도 -->
+									AND LENGTH(a.REGION_CD) = 2
+									<if test="regionCd != '00'">
+										AND a.REGION_CD &lt;&gt; '00'
+									</if>
+									<if test="regionCd == '00' or regionCd == '99'">
+										AND a.REGION_CD = '00'
+									</if>
+							</if>
+							<if test="level != null and level != '' and level == 'sgg'"><!-- 시군구 -->
+								AND LENGTH(a.REGION_CD) = 5
+								AND a.REGION_CD NOT IN (SELECT REGION_CD FROM SRV_DT_TOT_SURV_NON_ATDRC WHERE DEL_YN = 'N' AND BASE_YEAR = #{year} AND UPPER_REGION_CD IS NOT NULL)
+							</if>
+							<if test='level != null and level != "" and level == "atdrc"'>
+								AND a.REGION_CD IN (SELECT REGION_CD FROM SRV_DT_TOT_SURV_NON_ATDRC WHERE BASE_YEAR = #{year}
+								<if test="up_regionCd != null and up_regionCd != ''">
+									AND UPPER_REGION_CD = #{up_regionCd}
+								</if>
+								 AND REGION_CD NOT LIKE '%0'
+								 AND DEL_YN = 'N')
+							</if>
+							ORDER BY a.RANK
+						)
+					)
+					WHERE 1=1
+					<if test="rank != null and rank != ''">
+						AND RANK = #{rank}
+					</if>
+					<if test="regionCd != null and regionCd != ''">
+						AND REGION_CD = #{regionCd}
+					</if>
+	</select>
+	
+	<!-- 내수면 어가 가구 랭크 조회 - 2020.10.23 박은식	신규 -->
+	<select id="getTotInlandFisheryHouseRnak" parameterType="hashmap" resultType="hashmap">
+		SELECT *
+			FROM (
+				SELECT
+						*
+						, ROWNUM AS RANK
+					FROM (
+						SELECT
+								a.REGION_CD
+								, a.REGION_NM
+								, a.DT
+								, a.SURV_ID
+								, a.C1
+								, a.ITM_CD
+								, a.SURV_YEAR
+								, TO_CHAR(a.IRDSRATE, 'FM9990.00') AS IRDSRATE <!-- range 주택증감 값 표시 정보  -->
+							FROM SRV_DT_ST_CHART_DET_ITM_RANK a
+						    WHERE 1=1
+						    <if test=" year != null and year != '' and year == '2020' ">
+								AND a.SURV_ID = 'FS0621'
+						    	AND a.SURV_YEAR = #{year}
+								AND a.ITM_CD = 'T00'
+								AND a.C1 = '000'
+						    </if>							
+						    <if test=" year != null and year != '' and year == '2015' ">
+						    	<!-- 2020-11-23 [곽제욱] 속도개선 START -->
+								AND a.SURV_ID = 'FS0171' <!-- 20201119 박은식 조회 속도 개선 -->
+						    	AND a.SURV_YEAR = #{year}
+						    	<!-- 2020-11-23 [곽제욱] 속도개선 END -->
+								AND a.ITM_CD = 'T00'
+								AND a.C1 = '000'
+						    </if>
+						    <if test=" year != null and year != '' and year == '2010' ">
+						    	<!-- 2020-11-23 [곽제욱] 속도개선 START -->
+								AND a.SURV_ID = 'FS0469' <!-- 20201119 박은식 조회 속도 개선 -->
+						    	AND a.SURV_YEAR &lt;= #{year}
+						    	<!-- 2020-11-23 [곽제욱] 속도개선 END -->
+								AND a.ITM_CD = 'T00'
+								AND a.C1 = '000'
+						    </if>
+							<if test="level != null and level != '' and level == 'sido'"><!-- 광역시도 -->
+									AND LENGTH(a.REGION_CD) = 2
+									<if test="regionCd != '00'">
+										AND a.REGION_CD &lt;&gt; '00'
+									</if>
+									<if test="regionCd == '00' or regionCd == '99'">
+										AND a.REGION_CD = '00'
+									</if>
+							</if>
+							<if test="level != null and level != '' and level == 'sgg'"><!-- 시군구 -->
+								AND LENGTH(a.REGION_CD) = 5
+								AND a.REGION_CD NOT IN (SELECT REGION_CD FROM SRV_DT_TOT_SURV_NON_ATDRC WHERE DEL_YN = 'N' AND BASE_YEAR = #{year} AND UPPER_REGION_CD IS NOT NULL)
+							</if>
+							<if test='level != null and level != "" and level == "atdrc"'>
+								AND a.REGION_CD IN (SELECT REGION_CD FROM SRV_DT_TOT_SURV_NON_ATDRC WHERE BASE_YEAR = #{year}
+								<if test="up_regionCd != null and up_regionCd != ''">
+									AND UPPER_REGION_CD = #{up_regionCd}
+								</if>
+								 AND REGION_CD NOT LIKE '%0'
+								 AND DEL_YN = 'N')
+							</if>
+							ORDER BY a.RANK
+						)
+					)
+					WHERE 1=1
+					<if test="rank != null and rank != ''">
+						AND RANK = #{rank}
+					</if>
+					<if test="regionCd != null and regionCd != ''">
+						AND REGION_CD = #{regionCd}
+					</if>
+	</select>
+	
+	<!-- 해수면 경영주 연령별 어가 조회 - 2020.10.23 박은식	신규 -->
+	<select id="getTotSeaFisheryAge" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK 
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			where 1=1
+			<if test="year != null and year != '' and year == '2020'">
+				AND SURV_ID = 'FS0618'
+			</if>
+			<if test="year != null and year != '' and year == '2015'">
+				AND SURV_ID = 'FS0115'
+			</if>
+			<if test="year != null and year != '' and year == '2010'">
+				AND SURV_ID = 'FS0416'
+			</if>
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND REGION_CD = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND REGION_CD = #{region_cd}
+			</if>
+			AND c1 = '000'
+			AND itm_cd not in ( 'T00','T14','T15','T16','T17','T18','T19','T20','T21','T22' )
+	</select>
+	
+	<!-- 내수면 경영주 연령별 어가 조회 - 2020.10.23 박은식	신규 -->
+	<select id="getTotInlandFisheryAge" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK 
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			where 1=1
+			<if test="year != null and year != '' and year == '2020'">
+				AND SURV_ID = 'FS0625'
+			</if>
+			<if test="year != null and year != '' and year == '2015'">
+				AND SURV_ID = 'FS0174'
+			</if>
+			<if test="year != null and year != '' and year == '2010'">
+				AND SURV_ID = 'FS0472'
+			</if>
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND c1 = '000'
+			AND itm_cd not in ( 'T00','T14','T15','T16','T17','T18','T19','T20','T21','T22' )
+	</select>
+	
+	<!-- 해수면 어가 가구 증감 데이터 조회 - 2020.10.23 박은식	신규 -->
+	<select id="getTotSeaFisheryHouseRatio" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_YEAR
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK 
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+			AND SURV_ID IN ('FS0112', 'FS0413','FS0614')
+			<if test='year != null and year != ""'>
+				AND SURV_YEAR &lt;= ${year}
+			</if>
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+			<if test='year != null and year != ""'>
+				AND SURV_YEAR = ${year}
+			</if>
+			AND SURV_ID IN ('FS0112', 'FS0413','FS0614')
+			20201123 심창무 소스삭제 END -->
+			<if test='regionCd == "99" or regionCd == "00"'>
+				AND REGION_CD = '00'
+			</if>
+			<if test='regionCd != "99" and regionCd != "00"'>
+				AND REGION_CD = #{regionCd}
+			</if>
+			AND ITM_CD = 'T00'
+			AND C1= '000'
+	</select>
+	
+	<!-- 내수면 어가 가구 증감 데이터 조회 - 2020.10.23 박은식	신규 -->
+	<select id="getTotInlandFisheryHouseRatio" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK 
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			where 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+			AND SURV_ID IN ('FS0621', 'FS0171', 'FS0469')
+			<if test="year != null and year !=''">
+				AND SURV_YEAR &lt;= ${year}
+			</if>
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+			<if test="year != null and year !=''">
+				AND SURV_YEAR &lt;= ${year}
+			</if>
+			AND SURV_ID IN ('FS0621', 'FS0171', 'FS0469')
+			20201123 심창무 소스삭제 END -->
+			<if test=' regionCd != null and regionCd != ""'>
+				<if test='regionCd == "99" or regionCd == "00"'>
+					AND REGION_CD = '00'
+				</if>
+				<if test='regionCd != "99" and regionCd != "00"'>
+					AND REGION_CD = #{regionCd}
+				</if>
+			</if>
+			AND ITM_CD = 'T00'
+			AND C1= '000'
+	</select>
+	
+	<!-- 해수면 어획품종별 어가(어류) 조회 - 2020.10.23 박은식	신규 -->
+	<select id="getTotSeaGetFish" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK 
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+				<if test="year != null and year != '' and year == '2020'">
+					AND SURV_ID = 'FS0127'
+				</if>			
+				<if test="year != null and year != '' and year == '2015'">
+					AND SURV_ID = 'FS0127'
+				</if>
+				<if test="year != null and year != '' and year == '2010'">
+					AND SURV_ID = 'FS0427'
+				</if>
+				<if test='region_cd == "99" or region_cd == "00"'>
+					AND region_cd = '00'
+				</if>
+				<if test='region_cd != "99" and region_cd != "00"'>
+					AND region_cd = #{region_cd}
+				</if>
+				AND C1 = '000'
+				AND ITM_CD IN ('T03','T04','T05','T06','T07','T08','T09','T10','T11','T12','T13','T14','T15','T16');
+
+	</select>
+	
+	<!-- 해수면 어획품종별 어가(패류,갑각류) 조회 - 2020.10.23 박은식	신규 -->
+	<select id="getTotSeaGetShellfish" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK 
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+				<if test="year != null and year != '' and year == '2015'">
+					AND SURV_ID = 'FS0127'
+				</if>
+				<if test="year != null and year != '' and year == '2010'">
+					AND SURV_ID = 'FS0427'
+				</if>
+				<if test='region_cd == "99" or region_cd == "00"'>
+					AND region_cd = '00'
+				</if>
+				<if test='region_cd != "99" and region_cd != "00"'>
+					AND region_cd = #{region_cd}
+				</if>
+				AND C1 = '000'
+				AND ITM_CD IN ('T18','T19','T20','T22','T23','T25','T26','T27','T28')
+	</select>
+	
+	<!-- 해수면 어획품종별 어가(기타류-연체동물류,수산동물류,해초류) 조회 - 2020.10.23 박은식	신규 -->
+	<select id="getTotSeaGetOthersFish" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK 
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+				<if test="year != null and year != '' and year == '2015'">
+					AND SURV_ID = 'FS0127'
+				</if>
+				<if test="year != null and year != '' and year == '2010'">
+					AND SURV_ID = 'FS0427'
+				</if>
+				<if test='region_cd == "99" or region_cd == "00"'>
+					AND region_cd = '00'
+				</if>
+				<if test='region_cd != "99" and region_cd != "00"'>
+					AND region_cd = #{region_cd}
+				</if>
+				AND C1 = '000'
+				AND ITM_CD IN ('T30','T31','T32','T33','T34','T36','T37','T39','T40','T41')
+	</select>
+	
+	<!-- 내수면 어획품종별(어류) 어가 조회 - 2020.10.23 박은식	신규 -->
+	<select id="getTotInlandGetFhsh" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+				<if test="year != null and year != '' and year == '2020'">
+					AND SURV_ID = 'FS0628'
+				</if>
+				<if test="year != null and year != '' and year == '2015'">
+					AND SURV_ID = 'FS0186'
+				</if>
+				<if test="year != null and year != '' and year == '2010'">
+					AND SURV_ID = 'FS0483'
+				</if>
+				<if test='region_cd == "99" or region_cd == "00"'>
+					AND region_cd = '00'
+				</if>
+				<if test='region_cd != "99" and region_cd != "00"'>
+					AND region_cd = #{region_cd}
+				</if>
+				AND C1 = '000'
+				AND ITM_CD IN ('T02','T03','T04','T05','T06','T07','T08','T09','T10','T11','T12','T13','T14')
+	</select>
+	
+	<!-- 내수면 어획품종별(기타류 - 갑각류, 패류, 기타수산동식물) 어가 조회 - 2020.10.23 박은식	신규 -->
+	<select id="getTotInlandGetOthersFhsh" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+				<if test="year != null and year != '' and year == '2020'">
+					AND SURV_ID = 'FS0628'
+				</if>
+				<if test="year != null and year != '' and year == '2015'">
+					AND SURV_ID = 'FS0186'
+				</if>
+				<if test="year != null and year != '' and year == '2010'">
+					AND SURV_ID = 'FS0483'
+				</if>
+				<if test='region_cd == "99" or region_cd == "00"'>
+					AND region_cd = '00'
+				</if>
+				<if test='region_cd != "99" and region_cd != "00"'>
+					AND region_cd = #{region_cd}
+				</if>
+				AND C1 = '000'
+				AND ITM_CD IN ('T15','T16','T17','T18','T19','T20','T21')
+	</select>
+	
+	<!-- 해수면 경영주 경영 형태별 어가 - 2020.11.05 박은식	신규 -->
+	<select id="getTotSeaFisheryOperationType" parameterType="hashmap" resultType="hashmap">
+		<if test='year == "2020"'>
+			SELECT 
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				<!-- 20220311 이영호 어가 내수면 경영형태별 어가 지표 명 변경 처리 START -->
+				, (CASE WHEN ITM_CD = 'T02' THEN '근해어업'
+						WHEN ITM_CD = 'T03' THEN '연안어업'
+						WHEN ITM_CD = 'T04' THEN '구획어업'
+						WHEN ITM_CD = 'T05' THEN '정치망'
+						WHEN ITM_CD = 'T06' THEN '마을어업'
+						WHEN ITM_CD = 'T07' THEN '기타어업'
+						WHEN ITM_CD = 'T09' THEN '양식업(어류)'
+						WHEN ITM_CD = 'T10' THEN '양식업(갑각류)'
+						WHEN ITM_CD = 'T11' THEN '양식업(패류)'
+						WHEN ITM_CD = 'T12' THEN '양식업(기타)'
+						WHEN ITM_CD = 'T13' THEN '양식업(해조류)'
+						WHEN ITM_CD = 'T14' THEN '양식업(종자-종묘)'
+						END) AS ITM_NM
+				<!-- 20220311 이영호 어가 내수면 경영형태별 어가 지표 명 변경 처리 END -->
+				, UNIT_NM
+				, RANK
+				, C1_NM
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+		
+			<!-- 20201123 심창무 속도개선 START -->
+			<if test='year == "2020"'>
+				AND SURV_ID = 'FS0615'
+			</if>
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			<!-- 20201123 심창무 속도개선 END -->
+			
+			AND C1 = '000'
+			AND ITM_CD IN ('T02','T03','T04','T05','T06','T07','T09','T10','T11','T12','T13','T14')
+		</if>
+		<if test='year != "2020"'>
+			SELECT 
+					REGION_CD
+					, SURV_ID
+					, REGION_NM
+					, DT
+					, C1
+					, ITM_CD
+					<!-- 20201117 박은식 어가-해수면 지표명 변경 처리 START -->
+					<choose>
+						<when test='year == "2020"'>
+						, (CASE WHEN ITM_CD = 'T02' THEN '어로어업(어선사용)'
+								WHEN ITM_CD = 'T05' THEN '어로어업(어선미사용)'
+								WHEN ITM_CD = 'T09' THEN '양식업(어류)'
+								WHEN ITM_CD = 'T10' THEN '양식업(갑각류)'
+								WHEN ITM_CD = 'T11' THEN '양식업(패류)'
+								WHEN ITM_CD = 'T12' THEN '양식업(기타)'
+								WHEN ITM_CD = 'T13' THEN '양식업(해조류)'
+								WHEN ITM_CD = 'T14' THEN '양식업(종묘)'
+								ELSE 'No_data' END ) AS ITM_NM
+						<!-- 20201117 박은식 어가-해수면 지표명 변경 처리 END -->
+						</when>
+						<otherwise>
+						, (CASE WHEN ITM_CD = 'T02' THEN '어로어업(어선사용)'
+								WHEN ITM_CD = 'T05' THEN '어로어업(어선미사용)'
+								WHEN ITM_CD = 'T07' THEN '양식업(어류)'
+								WHEN ITM_CD = 'T08' THEN '양식업(갑각류)'
+								WHEN ITM_CD = 'T09' THEN '양식업(패류)'
+								WHEN ITM_CD = 'T10' THEN '양식업(기타)'
+								WHEN ITM_CD = 'T11' THEN '양식업(해조류)'
+								WHEN ITM_CD = 'T12' THEN '양식업(종묘)'
+								ELSE 'No_data' END ) AS ITM_NM
+						</otherwise>
+					</choose>
+					, UNIT_NM
+					, RANK
+					, C1_NM
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+				<!-- 20201123 심창무 속도개선 START -->
+			    <if test='year == "2015"'>
+					AND SURV_ID = 'FS0111'
+				</if>
+				<if test='year == "2010"'>
+					AND SURV_ID = 'FS0412'
+				</if>
+				<!-- 20201123 심창무 속도개선 END -->
+				<if test='region_cd == "99" or region_cd == "00"'>
+					AND region_cd = '00'
+				</if>
+				<if test='region_cd != "99" and region_cd != "00"'>
+					AND region_cd = #{region_cd}
+				</if>
+
+				AND C1 = '000'
+				AND ITM_CD NOT IN ('T00', 'T01', 'T03', 'T04', 'T06')
+		</if>
+	</select>
+	
+	<!-- 해수면 경영주 어업 경력기간별 어가 - 2020.11.05 박은식	신규 -->
+	<select id="getTotSeaFisheryCareer" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK
+				, C1_NM
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+		    <if test='year == "2020"'>
+				AND SURV_ID = 'FS0619'
+			</if>		
+			<!-- 20201123 심창무 속도개선 START -->
+		    <if test='year == "2015"'>
+				AND SURV_ID = 'FS0119'
+			</if>
+			<if test='year == "2010"'>
+				AND SURV_ID = 'FS0420'
+			</if>
+			<!-- 20201123 심창무 속도개선 END -->
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			<!-- 20201123 심창무 속도개선 START -->
+			AND C1 = '000'
+			AND ITM_CD IN ('T01','T02','T03','T04','T05')
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+			<if test='year == "2015"'>
+				AND SURV_ID = 'FS0119'
+			</if>
+			<if test='year == "2010"'>
+				AND SURV_ID = 'FS0420'
+			</if>
+			AND ITM_CD IN ('T01','T02','T03','T04','T05')
+			AND C1 = '000'
+			20201123 심창무 소스삭제 END -->
+	</select>
+	
+	<!-- 해수면 어로어업 방법별(근해어업) 2015 어가 - 2020.11.05 박은식	신규 -->
+	<select id="getTotSeaInshoreFishery2015" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, REPLACE(REPLACE(ITM_NM,'(가구)', ''), '주된어로어업방법별어가:', '') AS ITM_NM
+				, UNIT_NM
+				, RANK
+				, C1_NM
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+			AND SURV_ID = 'FS0124'
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND C1 = '000'
+			AND ITM_CD IN (
+				'T02', 'T03', 'T04', 'T05',
+				'T06', 'T07', 'T08', 'T09',
+				'T10', 'T11', 'T12', 'T13',
+				'T14', 'T15', 'T16', 'T17',
+				'T18', 'T19', 'T20', 'T21',
+				'T22')
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND SURV_ID = 'FS0124'
+			AND ITM_CD IN (
+				'T02', 'T03', 'T04', 'T05',
+				'T06', 'T07', 'T08', 'T09',
+				'T10', 'T11', 'T12', 'T13',
+				'T14', 'T15', 'T16', 'T17',
+				'T18', 'T19', 'T20', 'T21',
+				'T22')
+			AND C1 = '000'
+			20201123 심창무 소스삭제 END -->
+	</select>
+	
+	<!-- 해수면 어로어업 방법별(구획어업) 2015  어가 - 2020.11.05 박은식	신규 -->
+	<select id="getTotSeaBlockFishery2015" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK
+				, C1_NM
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+			AND SURV_ID = 'FS0124'
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND C1 = '000'
+			AND ITM_CD IN ('T31', 'T32', 'T32', 'T33', 'T34', 'T35', 'T36' )
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND SURV_ID = 'FS0124'
+			AND ITM_CD IN ('T31', 'T32', 'T32', 'T33', 'T34', 'T35', 'T36' )
+			AND C1 = '000'
+			20201123 심창무 소스삭제 END -->
+	</select>
+	
+	<!-- 해수면 어로어업 방법별(연안어업) 2015  어가 - 2020.11.05 박은식	신규 -->
+	<select id="getTotSeaCoastalFishery2015" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK
+				, C1_NM
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+			AND SURV_ID = 'FS0124'
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND C1 = '000'
+			AND ITM_CD IN ('T23', 'T24', 'T25', 'T26', 'T27', 'T28', 'T29', 'T30')
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND SURV_ID = 'FS0124'
+			AND ITM_CD IN ('T23', 'T24', 'T25', 'T26', 'T27', 'T28', 'T29', 'T30')
+			AND C1 = '000'
+			20201123 심창무 소스삭제 END -->
+	</select>
+	
+	<!-- 해수면 어로어업 방법별(기타어업) 2015  어가 - 2020.11.05 박은식	신규 -->
+	<select id="getTotSeaOthersFishery2015" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK
+				, C1_NM
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+			AND SURV_ID = 'FS0124'
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND C1 = '000'
+			AND ITM_CD IN ('T37', 'T38', 'T39', 'T40')
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND SURV_ID = 'FS0124'
+			AND ITM_CD IN ('T37', 'T38', 'T39', 'T40')
+			AND C1 = '000'
+			20201123 심창무 소스삭제 END -->
+	</select>
+	
+	<!-- 해수면 어로어업 방법별(근해어업) 2010 어가 - 2020.11.05 박은식	신규 -->
+	<select id="getTotSeaInshoreFishery2010" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK
+				, C1_NM
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+			AND SURV_ID = 'FS0424'
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND C1 = '000'
+			AND ITM_CD IN ('T02', 'T03', 'T04', 'T05', 'T06', 'T07', 'T08', 'T09', 'T10', 'T11', 'T12', 'T13')
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND SURV_ID = 'FS0424'
+			AND ITM_CD IN ('T02', 'T03', 'T04', 'T05', 'T06', 'T07', 'T08', 'T09', 'T10', 'T11', 'T12', 'T13')
+			AND C1 = '000'
+			20201123 심창무 소스삭제 END -->
+	</select>
+	
+	<!-- 해수면 어로어업 방법별(구획어업) 2010  어가 - 2020.11.05 박은식	신규 -->
+	<select id="getTotSeaBlockFishery2010" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK
+				, C1_NM
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+			AND SURV_ID = 'FS0424'
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND C1 = '000'
+			AND ITM_CD IN ('T15', 'T16', 'T17')
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND SURV_ID = 'FS0424'
+			AND ITM_CD IN ('T15', 'T16', 'T17')
+			AND C1 = '000'
+			20201123 심창무 소스삭제 END -->
+	</select>
+	
+	<!-- 해수면 어로어업 방법별(연안어업) 2010  어가 - 2020.11.05 박은식	신규 -->
+	<select id="getTotSeaCoastalFishery2010" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK
+				, C1_NM
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+			AND SURV_ID = 'FS0424'
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND C1 = '000'
+			AND ITM_CD IN ('T18', 'T19', 'T20', 'T21', 'T22', 'T23', 'T24', 'T25')
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND SURV_ID = 'FS0424'
+			AND ITM_CD IN ('T18', 'T19', 'T20', 'T21', 'T22', 'T23', 'T24', 'T25')
+			AND C1 = '000'
+			20201123 심창무 소스삭제 END -->
+	</select>
+	
+	<!-- 해수면 어로어업 방법별(기타어업) 2010  어가 - 2020.11.05 박은식	신규 -->
+	<select id="getTotSeaOthersFishery2010" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK
+				, C1_NM
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+			AND SURV_ID = 'FS0424'
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND C1 = '000'
+			AND ITM_CD IN ('T26', 'T27', 'T28')
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND SURV_ID = 'FS0424'
+			AND ITM_CD IN ('T26', 'T27', 'T28')
+			AND C1 = '000'
+			20201123 심창무 소스삭제 END -->
+	</select>
+	
+	<!-- 내수면 경영주 어업 경력기간별 어가 - 2020.11.05 박은식	신규 -->
+	<select id="getTotInlandFisheryCareer" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				, ITM_NM
+				, UNIT_NM
+				, RANK
+				, C1_NM
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+			<if test='year == "2020"'>
+				AND SURV_ID = 'FS0626'
+			</if>
+			<if test='year == "2015"'>
+				AND SURV_ID = 'FS0178'
+			</if>
+			<if test='year == "2010"'>
+				AND SURV_ID = 'FS0476'
+			</if>
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			<if test='year == "2020"'>
+				AND SURV_ID = 'FS0626'
+			</if>
+			<if test='year == "2015"'>
+				AND SURV_ID = 'FS0178'
+			</if>
+			<if test='year == "2010"'>
+				AND SURV_ID = 'FS0476'
+			</if>
+			20201123 심창무 소스삭제 END -->
+			AND C1 = '000'
+			AND ITM_CD IN ('T01','T02','T03','T04','T05')
+	</select>
+	
+	<!-- 내수면 경영주 경영형태별 어가 - 2020.11.05 박은식	신규 -->
+	<select id="getTotInlandFisheryOperationType" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				REGION_CD
+				, SURV_ID
+				, REGION_NM
+				, DT
+				, C1
+				, ITM_CD
+				<!-- 20201117 박은식 어가 내수면 경영형태별 어가 지표 명 변경 처리 START -->
+				, (CASE WHEN ITM_CD = 'T01' THEN '어로어업' 
+						WHEN ITM_CD = 'T03' THEN '양식업(어류)'
+						WHEN ITM_CD = 'T04' THEN '양식업(갑각류)'
+						WHEN ITM_CD = 'T05' THEN '양식업(패류)'
+						WHEN ITM_CD = 'T06' THEN '양식업(기타)'
+						ELSE 'No_data' END) AS ITM_NM
+				<!-- 20201117 박은식 어가 내수면 경영형태별 어가 지표 명 변경 처리 END -->
+				, UNIT_NM
+				, RANK
+				, C1_NM
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+		
+			<!-- 20201123 심창무 속도개선 START -->
+			<if test='year == "2020"'>
+				AND SURV_ID = 'FS0622'
+			</if>
+			<if test='year == "2015"'>
+				AND SURV_ID = 'FS0170'
+			</if>
+			<if test='year == "2010"'>
+				AND SURV_ID = 'FS0468'
+			</if>
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			<if test='year == "2020"'>
+				AND SURV_ID = 'FS0622'
+			</if>
+			<if test='year == "2015"'>
+				AND SURV_ID = 'FS0170'
+			</if>
+			<if test='year == "2010"'>
+				AND SURV_ID = 'FS0468'
+			</if>
+			20201123 심창무 소스삭제 END -->
+			AND C1 = '000'
+			AND ITM_CD IN ('T01','T03','T04','T05','T06')
+	</select>
+	
+	<!-- 해수면 어로어업 방볍벌 어가 전체 - 2020.11.17 박은식	신규  START-->
+	<select id="getTotFisheryTotal2015" parameterType="hashmap" resultType="hashmap">
+
+		SELECT 
+				SUM(DT) AS DT
+				, 'FS0124' AS SURV_ID
+				, '000' AS C1
+				, 'T02,T03,T04,T05,T06,T07,T08,T09,T10,T11,T12,T13,T14,T15,T16,T17,T18,T19,T20,T21,T22' AS ITM_CD
+				, '근해어업' AS ITM_NM
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+				<!-- 20201123 심창무 속도개선 START -->
+			AND SURV_ID = 'FS0124'
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND C1 = '000'
+			AND ITM_CD IN (
+				'T02', 'T03', 'T04', 'T05',
+				'T06', 'T07', 'T08', 'T09',
+				'T10', 'T11', 'T12', 'T13',
+				'T14', 'T15', 'T16', 'T17',
+				'T18', 'T19', 'T20', 'T21',
+				'T22')
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+				<if test='region_cd == "99" or region_cd == "00"'>
+					AND region_cd = '00'
+				</if>
+				<if test='region_cd != "99" and region_cd != "00"'>
+					AND region_cd = #{region_cd}
+				</if>
+			AND SURV_ID = 'FS0124'
+			AND ITM_CD IN (
+				'T02', 'T03', 'T04', 'T05',
+				'T06', 'T07', 'T08', 'T09',
+				'T10', 'T11', 'T12', 'T13',
+				'T14', 'T15', 'T16', 'T17',
+				'T18', 'T19', 'T20', 'T21',
+				'T22')
+			AND C1 = '000'
+			20201123 심창무 소스삭제 END -->
+			
+		UNION All
+
+		SELECT 
+				SUM(DT) AS DT
+				, 'FS0124' AS SURV_ID
+				, '000' AS C1
+				, 'T31,T32,T32,T33,T34,T35,T36' AS ITM_CD
+				, '구획어업' AS ITM_NM
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+			AND SURV_ID = 'FS0124'
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND C1 = '000'
+			AND ITM_CD IN ('T31', 'T32', 'T32', 'T33', 'T34', 'T35', 'T36' )
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND SURV_ID = 'FS0124'
+			AND ITM_CD IN ('T31', 'T32', 'T32', 'T33', 'T34', 'T35', 'T36' )
+			AND C1 = '000'
+			20201123 심창무 소스삭제 END -->
+			
+		UNION All
+		
+		SELECT 
+				SUM(DT) AS DT
+				, 'FS0124' AS SURV_ID
+				, '000' AS C1
+				, 'T23,T24,T25,T26,T27,T28,T29,T30' AS ITM_CD
+				, '연안어업' AS ITM_NM
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+			AND SURV_ID = 'FS0124'
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND C1 = '000'
+			AND ITM_CD IN ('T23', 'T24', 'T25', 'T26', 'T27', 'T28', 'T29', 'T30')
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND SURV_ID = 'FS0124'
+			AND ITM_CD IN ('T23', 'T24', 'T25', 'T26', 'T27', 'T28', 'T29', 'T30')
+			AND C1 = '000'
+			20201123 심창무 소스삭제 END -->
+			
+		UNION All
+		
+		SELECT 
+				SUM(DT) AS DT
+				, 'FS0124' AS SURV_ID
+				, '000' AS C1
+				, 'T37,T38,T39,T40' AS ITM_CD
+				, '기타어업' AS ITM_NM
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+			AND SURV_ID = 'FS0124'
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND C1 = '000'
+			AND ITM_CD IN ('T37', 'T38', 'T39', 'T40')
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND SURV_ID = 'FS0124'
+			AND ITM_CD IN ('T37', 'T38', 'T39', 'T40')
+			AND C1 = '000'
+			20201123 심창무 소스삭제 END -->
+			
+	</select>
+	<!-- 해수면 어로어업 방볍벌 어가 전체 - 2020.11.17 박은식	신규  EMD-->
+	
+	
+	<!-- 해수면 어로어업 방볍벌 어가 전체 - 2020.11.17 박은식	신규  START-->
+	<select id="getTotFisheryTotal2010" parameterType="hashmap" resultType="hashmap">
+
+		SELECT 
+				SUM(DT) AS DT
+				, 'FS0424' AS SURV_ID
+				, '000' AS C1
+				, 'T02,T03,T04,T05,T06,T07,T08,T09,T10,T11,T12,T13' AS ITM_CD
+				, '근해어업' AS ITM_NM
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+			AND SURV_ID = 'FS0424'
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND C1 = '000'
+			AND ITM_CD IN ('T02', 'T03', 'T04', 'T05', 'T06', 'T07', 'T08', 'T09', 'T10', 'T11', 'T12', 'T13')
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+				<if test='region_cd == "99" or region_cd == "00"'>
+					AND region_cd = '00'
+				</if>
+				<if test='region_cd != "99" and region_cd != "00"'>
+					AND region_cd = #{region_cd}
+				</if>
+			AND SURV_ID = 'FS0424'
+			AND ITM_CD IN ('T02', 'T03', 'T04', 'T05', 'T06', 'T07', 'T08', 'T09', 'T10', 'T11', 'T12', 'T13')
+			AND C1 = '000'
+			20201123 심창무 소스삭제 END -->
+			
+		UNION All
+
+		SELECT 
+				SUM(DT) AS DT
+				, 'FS0424' AS SURV_ID
+				, '000' AS C1
+				, 'T15,T16,T17' AS ITM_CD
+				, '구획어업' AS ITM_NM
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+			AND SURV_ID = 'FS0424'
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND C1 = '000'
+			AND ITM_CD IN ('T15', 'T16', 'T17' )
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND SURV_ID = 'FS0424'
+			AND ITM_CD IN ('T15', 'T16', 'T17' )
+			AND C1 = '000'
+			20201123 심창무 소스삭제 END -->
+			
+		UNION All
+		
+		SELECT 
+				SUM(DT) AS DT
+				, 'FS0424' AS SURV_ID
+				, '000' AS C1
+				, 'T18,T19,T20,T21,T22,T23,T24,T25' AS ITM_CD
+				, '연안어업' AS ITM_NM
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+			AND SURV_ID = 'FS0424'
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND C1 = '000'
+			AND ITM_CD IN ('T18', 'T19', 'T20', 'T21', 'T22', 'T23', 'T24', 'T25')
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND SURV_ID = 'FS0424'
+			AND ITM_CD IN ('T18', 'T19', 'T20', 'T21', 'T22', 'T23', 'T24', 'T25')
+			AND C1 = '000'
+			20201123 심창무 소스삭제 END -->
+			
+		UNION All
+		
+		SELECT 
+				SUM(DT) AS DT
+				, 'FS0424' AS SURV_ID
+				, '000' AS C1
+				, 'T26,T27,T28' AS ITM_CD
+				, '기타어업' AS ITM_NM
+		FROM SRV_DT_ST_CHART_DET_ITM_RANK
+		WHERE 1=1
+			<!-- 20201123 심창무 속도개선 START -->
+			AND SURV_ID = 'FS0424'
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND C1 = '000'
+			AND ITM_CD IN ('T26', 'T27', 'T28')
+			<!-- 20201123 심창무 속도개선 END -->
+
+			<!-- 20201123 심창무 소스삭제 START
+			<if test='region_cd == "99" or region_cd == "00"'>
+				AND region_cd = '00'
+			</if>
+			<if test='region_cd != "99" and region_cd != "00"'>
+				AND region_cd = #{region_cd}
+			</if>
+			AND SURV_ID = 'FS0424'
+			AND ITM_CD IN ('T26', 'T27', 'T28')
+			AND C1 = '000'
+			20201123 심창무 소스삭제 END -->
+			
+	</select>
+	<!-- 해수면 어로어업 방볍벌 어가 전체 - 2020.11.17 박은식	신규  EMD-->
+	
+	<!-- 내수면 어획품종별(전체) 어가 조회 - 2020.10.23 박은식	신규 START -->
+	<select id="getTotInlandGetFhshTotal" parameterType="hashmap" resultType="hashmap">
+			SELECT 
+				SUM(DT) AS DT
+				<if test="year != null and year != '' and year == '2020'">
+					, 'FS0628' AS SURV_ID
+				</if>
+				<if test="year != null and year != '' and year == '2015'">
+					, 'FS0186' AS SURV_ID
+				</if>
+				<if test="year != null and year != '' and year == '2010'">
+					, 'FS0483' AS SURV_ID
+				</if>
+				, 'T02,T03,T04,T05,T06,T07,T08,T09,T10,T11,T12,T13,T14' AS ITM_CD
+				, '어류' AS ITM_NM
+				, '000' AS C1
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+				<if test="year != null and year != '' and year == '2020'">
+					AND SURV_ID = 'FS0628'
+				</if>
+				<if test="year != null and year != '' and year == '2015'">
+					AND SURV_ID = 'FS0186'
+				</if>
+				<if test="year != null and year != '' and year == '2010'">
+					AND SURV_ID = 'FS0483'
+				</if>
+				<if test='region_cd == "99" or region_cd == "00"'>
+					AND region_cd = '00'
+				</if>
+				<if test='region_cd != "99" and region_cd != "00"'>
+					AND region_cd = #{region_cd}
+				</if>
+				AND C1 = '000'
+				AND ITM_CD IN ('T02','T03','T04','T05','T06','T07','T08','T09','T10','T11','T12','T13','T14')
+			<!-- 20201118 박은식 기타수산동식물 그룹 분할 처리 START -->
+			UNION ALL
+			
+			SELECT 
+				SUM(DT) AS DT
+				<if test="year != null and year != '' and year == '2020'">
+					, 'FS0628' AS SURV_ID
+				</if>
+				<if test="year != null and year != '' and year == '2015'">
+					, 'FS0186' AS SURV_ID
+				</if>
+				<if test="year != null and year != '' and year == '2010'">
+					, 'FS0483' AS SURV_ID
+				</if>
+				, 'T15,T16,T17' AS ITM_CD
+				, '갑각류' AS ITM_NM
+				, '000' AS C1
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+				<if test="year != null and year != '' and year == '2020'">
+					AND SURV_ID = 'FS0628'
+				</if>
+				<if test="year != null and year != '' and year == '2015'">
+					AND SURV_ID = 'FS0186'
+				</if>
+				<if test="year != null and year != '' and year == '2010'">
+					AND SURV_ID = 'FS0483'
+				</if>
+				<if test='region_cd == "99" or region_cd == "00"'>
+					AND region_cd = '00'
+				</if>
+				<if test='region_cd != "99" and region_cd != "00"'>
+					AND region_cd = #{region_cd}
+				</if>
+				AND C1 = '000'
+				AND ITM_CD IN ('T15','T16','T17')
+			
+			UNION ALL
+			
+			SELECT 
+				SUM(DT) AS DT
+				<if test="year != null and year != '' and year == '2020'">
+					, 'FS0628' AS SURV_ID
+				</if>
+				<if test="year != null and year != '' and year == '2015'">
+					, 'FS0186' AS SURV_ID
+				</if>
+				<if test="year != null and year != '' and year == '2010'">
+					, 'FS0483' AS SURV_ID
+				</if>
+				, 'T18,T19,T20' AS ITM_CD
+				, '패류' AS ITM_NM
+				, '000' AS C1
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+				<if test="year != null and year != '' and year == '2020'">
+					AND SURV_ID = 'FS0628'
+				</if>
+				<if test="year != null and year != '' and year == '2015'">
+					AND SURV_ID = 'FS0186'
+				</if>
+				<if test="year != null and year != '' and year == '2010'">
+					AND SURV_ID = 'FS0483'
+				</if>
+				<if test='region_cd == "99" or region_cd == "00"'>
+					AND region_cd = '00'
+				</if>
+				<if test='region_cd != "99" and region_cd != "00"'>
+					AND region_cd = #{region_cd}
+				</if>
+				AND C1 = '000'
+				AND ITM_CD IN ('T18','T19','T20')
+				
+			UNION ALL
+
+			SELECT 
+				SUM(DT) AS DT
+				<if test="year != null and year != '' and year == '2020'">
+					, 'FS0628' AS SURV_ID
+				</if>
+				<if test="year != null and year != '' and year == '2015'">
+					, 'FS0186' AS SURV_ID
+				</if>
+				<if test="year != null and year != '' and year == '2010'">
+					, 'FS0483' AS SURV_ID
+				</if>
+				, 'T21' AS ITM_CD
+				, '기타 수산동식물' AS ITM_NM
+				, '000' AS C1
+			FROM SRV_DT_ST_CHART_DET_ITM_RANK
+			WHERE 1=1
+				<if test="year != null and year != '' and year == '2020'">
+					AND SURV_ID = 'FS0628'
+				</if>
+				<if test="year != null and year != '' and year == '2015'">
+					AND SURV_ID = 'FS0186'
+				</if>
+				<if test="year != null and year != '' and year == '2010'">
+					AND SURV_ID = 'FS0483'
+				</if>
+				<if test='region_cd == "99" or region_cd == "00"'>
+					AND region_cd = '00'
+				</if>
+				<if test='region_cd != "99" and region_cd != "00"'>
+					AND region_cd = #{region_cd}
+				</if>
+				AND C1 = '000'
+				AND ITM_CD = 'T21' <!-- 20201123 심창무 속도개선 in 을 이퀄로 -->
+			<!-- 20201118 박은식 기타수산동식물 그룹 분할 처리 END -->
+	</select>
+	<!-- 내수면 어획품종별(전체) 어가 조회 - 2020.10.23 박은식	신규 END-->
+</mapper>

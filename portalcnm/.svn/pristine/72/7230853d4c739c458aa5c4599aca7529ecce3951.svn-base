@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:task="http://www.springframework.org/schema/task"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans 
+        						http://www.springframework.org/schema/beans/spring-beans-3.2.xsd 
+        						http://www.springframework.org/schema/task 
+        						http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+             
+	<!-- #################### -->
+	<!-- Spring Task(스케쥴러) 설정 -->
+	<!-- #################### -->
+
+    <!-- 소스 기반 설정 -->
+	<task:scheduler id="SOPScheduler" pool-size="20" />  <!-- ## 스케줄러 ID 설정 - log상에 프로세스 이름으로 기록됨 -->
+		<task:scheduled-tasks scheduler="SOPScheduler">
+		<!-- 매일 새벽 3시에 한번씩 수행되는 프로세스 :: 1년전 로그인기록 삭제 -->
+		<task:scheduled ref="BatchUpdateUSESRV" method="batchProcess" cron="0 0 3 * * *"/>
+		<!-- 2020년 SGIS고도화 3차(My로그) 수정 시작 (ggm) -->
+		<task:scheduled ref="BatchGetTrendsFromPortal" method="batchProcessGoogle" cron="0 0 1 * * *"/>
+<!-- 		<task:scheduled ref="BatchGetTrendsFromPortal" method="batchProcessNaver" cron="30 * * * * *"/> -->
+		<!-- 2020년 SGIS고도화 3차(My로그) 수정 끝 -->
+	</task:scheduled-tasks>
+	
+	<!-- IoC :: 1년전 로그인기록 삭제 -->
+	<bean id="BatchUpdateUSESRV" class="kostat.sop.ServiceAPI.batch.run.BatchUpdateUSESRV">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>
+	
+	<!-- 2020년 SGIS고도화 3차(My로그) 수정 시작 (ggm) -->
+	<bean id="BatchGetTrendsFromPortal" class="kostat.sop.ServiceAPI.batch.run.BatchGetTrendsFromPortal">
+		<property name="sqlSessionFactory" ref="db.dataSource" />
+	</bean>	
+	<!-- 2020년 SGIS고도화 3차(My로그) 수정 끝 -->
+</beans>

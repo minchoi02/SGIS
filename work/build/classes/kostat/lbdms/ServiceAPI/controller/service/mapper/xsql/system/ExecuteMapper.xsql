@@ -1,0 +1,638 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<mapper namespace="executeMapper">
+	<!-- 
+		분석 생성 수행한다
+	 -->
+	<insert id="insertSgisLog" parameterType="hashMap">
+	insert into sgis_use_log 
+	(reg_user_id, analysis_type, req_year, depth1, depth2, result_data_nm) 
+	values 
+	(
+		#{ user_id }, 
+		#{ analysis_type },
+		#{ req_year },
+		#{ depth1 },
+		#{ depth2 },
+		#{ result_data_nm }
+	)
+	</insert> 
+	
+	<!-- execute 상세 정보 조회 -->
+ 	<select id="detailExecute" parameterType="String" resultType="hashMap">
+	 <![CDATA[
+		select 
+			  execute_id 	          AS "EXECUTE_ID" 	       
+			, workflow_id 	          AS "WORKFLOW_ID" 	       
+			, action_id	              AS "ACTION_ID"	           
+			, user_id 		          AS "USER_ID" 		       
+			, state 		          AS "STATE" 		       
+			, max_cnt 		          AS "MAX_CNT" 		       
+			, cur_cnt 	              AS "CUR_CNT" 	           
+			, start_time	          AS "START_TIME"	       
+			, alive_time 	          AS "ALIVE_TIME" 	       
+			, end_time 	              AS "END_TIME" 	           
+			, schedule_id             AS "SCHEDULE_ID"          
+			, input_resource_id       AS "INPUT_RESOURCE_ID"    
+			, output_resource_id      AS "OUTPUT_RESOURCE_ID"   
+			, relation_execute_id     AS "RELATION_EXECUTE_ID"  
+			, category1               AS "CATEGORY1"            
+			, category2               AS "CATEGORY2"            
+			, category3               AS "CATEGORY3"            
+			, category4               AS "CATEGORY4"            
+			, reserve                 AS "RESERVE"              
+			, data_nm                 AS "DATA_NM"              
+			, data_storage_type       AS "DATA_STORAGE_TYPE"    
+			, action_type		      AS "ACTION_TYPE"		   
+			, execute_description	  AS "EXECUTE_DESCRIPTION"	
+			, workflow_execute_id     AS "WORKFLOW_EXECUTE_ID"  
+			, action_nm               AS "ACTION_NM"            
+			, desc_nm                 AS "DESC_NM"              
+		from
+			execute
+		where
+			execute_id = #{execute_id}
+	]]>
+ 	</select>
+ 	
+ 	<select id="detailExecuteReturnExecute" parameterType="String" resultType="Execute">
+	 <![CDATA[
+		select 
+			  execute_id 	          AS "EXECUTE_ID" 	       
+			, workflow_id 	          AS "WORKFLOW_ID" 	       
+			, action_id	              AS "ACTION_ID"	           
+			, user_id 		          AS "USER_ID" 		       
+			, state 		          AS "STATE" 		       
+			, max_cnt 		          AS "MAX_CNT" 		       
+			, cur_cnt 	              AS "CUR_CNT" 	           
+			, start_time	          AS "START_TIME"	       
+			, alive_time 	          AS "ALIVE_TIME" 	       
+			, end_time 	              AS "END_TIME" 	           
+			, schedule_id             AS "SCHEDULE_ID"          
+			, input_resource_id       AS "INPUT_RESOURCE_ID"    
+			, output_resource_id      AS "OUTPUT_RESOURCE_ID"   
+			, relation_execute_id     AS "RELATION_EXECUTE_ID"  
+			, category1               AS "CATEGORY1"            
+			, category2               AS "CATEGORY2"            
+			, category3               AS "CATEGORY3"            
+			, category4               AS "CATEGORY4"            
+			, reserve                 AS "RESERVE"              
+			, data_nm                 AS "DATA_NAME"              
+			, data_storage_type       AS "DATA_STORAGE_TYPE"    
+			, action_type		      AS "ACTION_TYPE"		   
+			, execute_description	  AS "EXECUTE_DESCRIPTION"	
+			, workflow_execute_id     AS "WORKFLOW_EXECUTE_ID"  
+			, action_nm               AS "ACTION_NAME"            
+			, desc_nm                 AS "DESC_NAME"              
+		from
+			execute
+		where
+			execute_id = #{execute_id}
+	]]>
+ 	</select>
+				
+	<select id="executeQry" parameterType="hashMap" resultType="hashMap">
+	${ qry }
+	</select> 
+		
+	<!-- 
+		이력 생성 수행한다
+	 -->
+	<insert id="insertExecute" parameterType="Execute">
+	INSERT INTO execute ( 
+		execute_id
+		, workflow_id
+		, action_id
+		, user_id
+		, state
+		, start_time
+		, input_resource_id
+		, category1
+		, category2
+		, category3
+		, category4
+		, action_type
+		, data_nm
+		, desc_nm
+		, action_nm
+		, data_storage_type
+		, send_state
+		, execute_description
+		, execute_definition
+	) VALUES (
+		#{ execute_id }
+		,#{workflow_id}
+		, #{ action_id }
+		, #{ user_id }
+		<if test="state != null and state != ''">
+		, #{ state }
+		</if>
+		<if test="state == null or state == ''">
+		, 'STANDBY'
+		</if>
+		, NOW()
+		, #{ input_resource_id }
+		, #{ category1 }
+		, #{ category2 }
+		, #{ category3 }
+		, #{ category4 }
+		, #{ action_type }
+		, #{ data_name }
+		, #{ desc_nm }
+		, #{ action_name }
+		, #{ data_storage_type }
+		, 'STANDBY'
+		, #{ execute_description }
+		, #{ execute_definition }
+	)	
+	</insert>
+	
+	<insert id="insertExecuteAction" parameterType="java.util.HashMap">
+	INSERT INTO execute
+	SELECT #{EXECUTE_ID},#{WORKFLOW_ID},action_id, user_id, 'RUNNING', #{MAX_CNT},0,
+	now(),now(),null,null,null,null,null,category1,category2,category3,category4,
+	action_nm,null,data_nm,data_storage_type,action_type,action_description, #{WORKFLOW_EXECUTE_ID}
+	from action where action_id=#{ACTION_ID}
+	</insert>
+	
+	<insert id="insertExecuteWithMap" parameterType="hashMap">
+	INSERT INTO execute ( 
+		execute_id
+		, workflow_id
+		, action_id
+		, user_id
+		, state
+		, start_time
+		, input_resource_id
+		, category1
+		, category2
+		, category3
+		, category4
+		, action_type
+		, data_nm
+		, desc_nm
+		, action_nm
+		, data_storage_type
+		, send_state
+		, execute_description
+		, execute_definition
+		, output_resource_id
+	) VALUES (
+		#{ execute_id }
+		,#{workflow_id}
+		, #{ action_id }
+		, #{ user_id }
+		<if test="state != null and state != ''">
+		, #{ state }
+		</if>
+		<if test="state == null or state == ''">
+		, 'STANDBY'
+		</if>
+		, NOW()
+		, #{ input_resource_id }
+		, #{ category1 }
+		, #{ category2 }
+		, #{ category3 }
+		, #{ category4 }
+		, #{ action_type }
+		, #{ data_name }
+		, #{ desc_nm }
+		, #{ action_name }
+		, #{ data_storage_type }
+		, 'STANDBY'
+		, #{ execute_description }
+		, #{ execute_definition }
+		, #{ output_resource_id }
+	)	
+	</insert> 
+
+	 <!-- 
+	 	hts
+		schedule 시 execute table에 update 
+	 -->	
+	<insert id="insertSchduleExecute" parameterType="Execute">
+	INSERT INTO execute ( 
+		execute_id
+		, action_id
+		, user_id
+		, schedule_id
+		, state
+		, start_time
+		, input_resource_id
+		, category1
+		, category2
+		, category3
+		, category4
+		, action_type
+		, data_nm
+		, desc_nm
+		, send_state
+	) VALUES (
+		#{ execute_id }
+		, #{ action_id }
+		, #{ user_id }
+		, #{schedule_id}
+		, 'STANDBY'
+		, to_timestamp(#{start_time}, 'YYYY-MM-DD-HH24:MI')
+		, #{ input_resource_id }
+		, #{ category1 }
+		, #{ category2 }
+		, #{ category3 }
+		, #{ category4 }
+		, #{ action_type }
+		, #{ data_name }
+		, #{ desc_nm }
+		, 'STANDBY'
+	)	
+	</insert> 
+ 	 	
+ 	
+	<delete id="deleteExecute" parameterType="Execute">
+		DELETE FROM EXECUTE
+		WHERE EXECUTE_ID = #{ execute_id }
+	</delete>
+	
+	<!-- 
+		이력 수정
+	 -->
+	 <update id="updateExecute" parameterType="Execute">
+	 UPDATE EXECUTE SET
+	 	END_TIME = NOW()
+		, ALIVE_TIME = NOW()
+	 	<if test="state != null and state != ''">
+		, STATE = #{ state }
+		</if>
+		<if test="output_resource_id != null and output_resource_id != ''">
+		, OUTPUT_RESOURCE_ID = #{ output_resource_id }
+		</if>
+		<if test="data_name != null and data_name != ''">
+		, DATA_NM = #{ data_name }
+		</if>
+	WHERE EXECUTE_ID = #{ execute_id }
+	 </update>
+	 
+	 
+	 <!-- 
+	*  데이서 생성 위치 정보 생성 이력 조회  
+ 	*  수정 날자 2018.5.18
+ 		-->
+	 
+	 <select id="selectCategorize" parameterType="java.util.HashMap" resultType="hashMap">
+		SELECT 
+			execute_id 	
+			, workflow_id 	
+			, action_id	
+			, user_id 		
+			, state 		
+			, max_cnt 		
+			, cur_cnt 	
+			, to_char(start_time, 'YYYY-MM-DD hh24:mi:ss') AS "start_time" 
+			, to_char(end_time, 'YYYY-MM-DD hh24:mi:ss') AS "end_time"
+			, alive_time 	
+			, schedule_id 
+			, input_resource_id
+			, output_resource_id
+			, relation_execute_id
+			, category1
+			, category2
+			, category3
+			, category4
+			, action_nm
+			, reserve
+			, data_nm as data_name
+			, data_storage_type
+			, action_type
+			, execute_description
+			, workflow_execute_id
+			, send_state
+		FROM
+			execute
+		WHERE action_id is not null AND action_id != '' 
+		<if test="SEND_STATE != null and SEND_STATE != ''">
+			 AND send_state = #{SEND_STATE}  
+		</if>	
+	 	<if test="CATEGORY1 != null and CATEGORY1 != ''">
+	 		<bind name="category1" value="'%' + _parameter.get('CATEGORY1') + '%'" />
+	        AND category1 = #{category1}
+		</if>
+		<if test="CATEGORY2 != null and CATEGORY2 != ''">
+			<bind name="category2" value="'%' + _parameter.get('CATEGORY2') + '%'" />
+	        AND category2 = #{category2}
+		</if>
+		<if test="CATEGORY3 != null and CATEGORY3 != ''">
+			<bind name="category3" value="'%' + _parameter.get('CATEGORY3') + '%'" />
+	        AND category3 like #{category3}
+		</if>
+		<if test="CATEGORY4 != null and CATEGORY4 != ''">
+			<if test="CATEGORY4 == 'ANALYSIS'">
+				AND category4 = #{CATEGORY4}
+			</if>
+			<if test="CATEGORY4 != 'ANALYSIS'">
+				<bind name="category4" value="'%' + _parameter.get('CATEGORY4') + '%'" /> 
+	        	AND category4 like #{category4}
+			</if>
+		</if>
+		<if test="ACTION_TYPE != null and ACTION_TYPE != ''">
+			AND 
+			<foreach collection="ACTION_TYPE" item="item" index="index" separator="or" open="(" close=")">
+	   	    	action_type = #{item} 
+			</foreach> 
+		</if>
+		<if test="USER_ID != null and USER_ID != ''">
+	        <bind name="userId" value="'%' + _parameter.get('USER_ID') + '%'" />
+	        AND user_id LIKE #{userId}
+		</if>
+		<if test="ACTION_NAME != null and ACTION_NAME != ''">
+			<bind name="actionName" value="'%' + _parameter.get('ACTION_NAME') + '%'" />
+			AND action_nm like #{actionName}
+		</if>
+		<if test="DATA_NAME !=null and DATA_NAME !=''">
+			<bind name="dataName" value="'%' + _parameter.get('DATA_NAME') + '%'" />
+			AND data_nm like #{dataName}
+		</if>
+		<if test="STATE !=null and STATE !=''">
+			<bind name="state" value="'%' + _parameter.get('STATE') + '%'" />
+			AND state like #{state}
+		</if>
+		<if test="EXECUTE_ID != null and EXECUTE_ID != ''">
+	        AND execute_id = #{EXECUTE_ID}
+		</if>
+		<if test="EXECUTE_DESCRIPTION !=null and EXECUTE_DESCRIPTION !=''">
+			<bind name="executeDescription" value="'%' + _parameter.get('EXECUTE_DESCRIPTION') + '%'" />
+			AND execute_description = #{executeDescription}
+		</if>
+		
+		<if test="SELECT_START_TIME != null and SELECT_START_TIME != ''">
+			AND to_date(to_char(start_time, 'yyyy-mm-dd'), 'yyyy-mm-dd') >= to_date(#{SELECT_START_TIME}, 'yyyy-mm-dd')
+		</if>
+		
+		<if test="SELECT_END_TIME != null and SELECT_END_TIME != ''">
+			AND to_date(to_char(start_time, 'yyyy-mm-dd'), 'yyyy-mm-dd') <![CDATA[<=]]> to_date(#{SELECT_END_TIME}, 'yyyy-mm-dd') 
+		</if>
+			
+		<if test="SORT_COLUMN != null and SORT_COLUMN != ''">
+	        ORDER BY ${SORT_COLUMN} 
+	        <if test="SORT_TYPE == null and SORT_TYPE == ''">
+	        	ASC  
+			</if>
+			<if test="SORT_TYPE == 'ASC'">
+	        	ASC  
+			</if>
+			<if test="SORT_TYPE == 'DESC'">
+	        	DESC  
+			</if>
+		</if>
+		<if test="LIMIT != 0">
+			LIMIT #{LIMIT} 
+		</if>
+		<if test="OFFSET != 0">
+			OFFSET #{OFFSET}
+		</if>
+ 	</select>
+ 	
+ 	<!-- 
+ 	
+ 	* 데이서 생성 위치 정보 생성 총 갯수 조회  
+ 	* 수정 날자 2018.5.18
+ 	
+ 	-->
+ 	
+ 	<select id="selectCategorizeCount" parameterType="java.util.HashMap" resultType="int">
+ 		SELECT COUNT(execute_id) as COUNT from execute
+ 		WHERE action_id != ''
+		<if test="CATEGORY1 != null and CATEGORY1 != ''">
+			<bind name="category1" value="'%' + _parameter.get('CATEGORY1') + '%'" />
+	        and category1 = #{category1}
+		</if>
+		<if test="CATEGORY2 != null and CATEGORY2 != ''">
+			<bind name="category2" value="'%' + _parameter.get('CATEGORY2') + '%'" />
+	        and category2 = #{category2}
+		</if>
+		<if test="CATEGORY3 != null and CATEGORY3 != ''">
+			<bind name="category3" value="'%' + _parameter.get('CATEGORY3') + '%'" />
+	        and category3 like #{category3}
+		</if>
+		<if test="CATEGORY4 != null and CATEGORY4 != ''">
+			<if test="CATEGORY4 == 'ANALYSIS'">
+				AND category4 = #{CATEGORY4}
+			</if>
+			<if test="CATEGORY4 != 'ANALYSIS'">
+				<bind name="category4" value="'%' + _parameter.get('CATEGORY4') + '%'" />
+	        	and category4 like #{category4}
+			</if>
+		</if>
+		<if test="ACTION_TYPE != null and ACTION_TYPE != ''">
+			AND 
+			<foreach collection="ACTION_TYPE" item="item" index="index" separator="or" open="(" close=")">
+	   	    	action_type = #{item}
+			</foreach> 
+		</if>
+		<if test="USER_ID != null and USER_ID != ''">
+	        <bind name="userId" value="'%' + _parameter.get('USER_ID') + '%'" />
+	        AND user_id LIKE #{userId}
+		</if>
+		<if test="EXECUTE_ID != null and EXECUTE_ID != ''">
+	        AND execute_id = #{EXECUTE_ID}
+		</if>
+		<if test="ACTION_NAME != null and ACTION_NAME != ''">
+			<bind name="actionName" value="'%' + _parameter.get('ACTION_NAME') + '%'" />
+			AND action_nm like #{actionName}
+		</if>
+		<if test="DATA_NAME !=null and DATA_NAME !=''">
+			<bind name="dataName" value="'%' + _parameter.get('DATA_NAME') + '%'" />
+			AND data_nm like #{dataName}
+		</if>
+		
+		<if test="STATE !=null and STATE !=''">
+			<bind name="state" value="'%' + _parameter.get('STATE') + '%'" />
+			AND state like #{state}
+		</if>
+		<if test="EXECUTE_DESCRIPTION !=null and EXECUTE_DESCRIPTION !=''">
+			<bind name="executeDescription" value="'%' + _parameter.get('EXECUTE_DESCRIPTION') + '%'" />
+			AND execute_description like #{executeDescription}
+		</if>
+		<if test="SELECT_START_TIME != null and SELECT_START_TIME != ''">
+			AND to_date(to_char(end_time, 'yyyy-mm-dd'), 'yyyy-mm-dd') >= to_date(#{SELECT_START_TIME}, 'yyyy-mm-dd')
+		</if>
+		
+		<if test="SELECT_END_TIME != null and SELECT_END_TIME != ''">
+			AND to_date(to_char(end_time, 'yyyy-mm-dd'), 'yyyy-mm-dd') <![CDATA[<=]]> to_date(#{SELECT_END_TIME}, 'yyyy-mm-dd')
+		</if>
+		<if test="ACTION_NAME !=null and ACTION_NAME !=''">
+			<bind name="actionName" value="'%' + _parameter.get('ACTION_NAME') + '%'" />
+			 and action_nm like #{actionName}
+		</if>
+ 	</select>
+ 	
+	 <!-- 운영현황 실패 작업 내역 조회 -->
+ 	<select id="selectFailExecuteList" resultType="java.util.HashMap" parameterType="java.util.Map">
+		SELECT
+			a.execute_id,
+			a.workflow_id,
+			a.action_id,
+			a.user_id,
+			a.state,
+			a.max_cnt,
+			a.cur_cnt,
+			a.start_time,
+			a.alive_time,
+			a.end_time,
+			a.schedule_id,
+			a.input_resource_id,
+			a.output_resource_id,
+			a.relation_execute_id,
+			a.category1,
+			a.category2,
+			a.category3,
+			a.category4,
+			a.action_nm,
+			a.reserve,
+			a.data_nm,
+			a.data_storage_type,
+			a.action_type,
+			a.execute_description,
+			a.workflow_execute_id,
+			b.workflow_nm 
+		FROM 
+			execute AS a 
+		LEFT OUTER JOIN
+			workflow AS b
+		on
+			(a.workflow_id=b.workflow_id)
+		WHERE 
+			a.action_id != ''
+		AND 
+			state = 'FAIL'
+		AND 
+			a.action_nm != ''
+		<if test="ACTION_TYPE != null and ACTION_TYPE != ''" >
+			AND a.action_type = #{ACTION_TYPE}
+		</if>
+		<if test="USER_ID != null and USER_ID != ''">
+			AND a.user_id = #{USER_ID}
+		</if>
+		<if test="ACTION_NAME != null and ACTION_NAME != ''">
+			<bind name="actionName" value="'%' + _parameter.get('ACTION_NAME') + '%'" />
+			AND a.action_nm  LIKE #{actionName}
+		</if>
+		<if test="EXECUTE_DESCRIPTION != null and EXECUTE_DESCRIPTION != ''">
+			<bind name="executeDescription" value="'%' + _parameter.get('EXECUTE_DESCRIPTION') + '%'" />
+			AND a.execute_description LIKE #{executeDescription}
+		</if>
+		<if test="CATEGORY3 != null and CATEGORY3 != ''">
+			<bind name="category3" value="'%' + _parameter.get('CATEGORY3') + '%'" />
+			AND a.category3 LIKE #{category3}
+		</if>
+		<if test="SORT_COLUMN != null and SORT_COLUMN != ''">
+	        ORDER BY ${SORT_COLUMN} 
+	          <if test="SORT_TYPE == null and SORT_TYPE == ''">
+	        	ASC  
+			</if>
+			<if test="SORT_TYPE == 'ASC'">
+	        	ASC  
+			</if>
+			<if test="SORT_TYPE == 'DESC'">
+	        	DESC  
+			</if>
+		</if>
+		<if test="LIMIT != 0">
+			LIMIT #{LIMIT} 
+		</if>
+		<if test="OFFSET != 0">
+			OFFSET #{OFFSET}
+		</if>
+ 	</select>
+ 	
+ 	<!-- 운영현황 실패 총 개수 조회 -->
+ 	
+ 	<select id="selectFailExecuteListCount" resultType="int" parameterType="java.util.Map">
+ 		SELECT COUNT(*) 
+		FROM execute AS a LEFT OUTER JOIN
+		workflow AS b
+		on(a.workflow_id=b.workflow_id)
+		WHERE a.action_id != ''
+		AND state = 'FAIL'
+		<if test="ACTION_TYPE != NULL and ACTION_TYPE != ''">
+			AND a.action_type = #{ACTION_TYPE}
+		</if>
+		<if test="USER_ID != null and USER_ID != ''">
+			AND a.user_id = #{USER_ID}
+		</if>
+		<if test="ACTION_NAME != null and ACTION_NAME != ''">
+			<bind name="actionName" value="'%' + _parameter.get('ACTION_NAME') + '%'" />
+			AND a.action_nm  LIKE #{actionName}
+		</if>
+		<if test="EXECUTE_DESCRIPTION != null and EXECUTE_DESCRIPTION != ''">
+			<bind name="executeDescription" value="'%' + _parameter.get('EXECUTE_DESCRIPTION') + '%'" />
+			AND a.execute_description LIKE #{executeDescription}
+		</if>
+		<if test="CATEGORY3 != null and CATEGORY3 != ''">
+			<bind name="category3" value="'%' + _parameter.get('CATEGORY3') + '%'" />
+			AND a.category3 LIKE #{category3}
+		</if> 
+ 	</select>
+ 	
+ 	<!-- execute 상태 정보 수정 -->
+	<update id="updateExecuteState" parameterType="Execute">
+		UPDATE	execute 
+		SET	state = #{state}
+		  , send_state = #{send_state}
+		WHERE execute_id = #{execute_id} 
+		<if test="exe_state != null and exe_state != ''">
+			<if test='exe_state == "STOP" '>
+				AND ((state = 'STOP' AND send_state = 'STOP') OR state = 'FAIL')
+			</if>
+			<if test='exe_state == "RUNNING" '>
+				AND state = 'RUNNING' AND send_state = 'START'
+			</if>
+		</if>
+	</update>
+	
+	<select id="selectExecuteById" parameterType="hashMap" resultType="hashMap">
+		SELECT * FROM execute
+		WHERE
+			execute_id = #{projectResultId}
+	</select>
+	
+	<update id="changeExecuteActionType" parameterType="hashMap">
+		UPDATE execute
+		SET
+			action_type = #{actionType}
+		WHERE
+			execute_id = #{executeId}
+	</update>
+	
+	<update id="changeExecuteSingleToBundle" parameterType="string">
+		UPDATE execute
+		SET
+			action_type = null
+			, state = 'STANDBY'
+			, send_state = 'STANDBY'
+		WHERE
+			execute_id = #{executeId}
+	</update>
+	
+	<insert id="insertExecuteR" parameterType="java.util.HashMap">
+		INSERT INTO analysis_param(execute_id, user_id, analysis_type, bord_type, param)
+		SELECT #{EXECUTE_ID}, user_id, analysis_type, bord_type, param 
+		FROM analysis_param
+		WHERE execute_id = #{ORG_EXECUTE_ID};
+		
+		INSERT INTO execute (
+			execute_id
+			, user_id
+			, data_nm
+			, category4
+			,state
+		) values (
+			#{EXECUTE_ID}
+			, #{USER_ID}
+			, #{DATA_NAME}
+			, 'ANALYSIS_2016'
+			, #{STATE}
+		)
+	</insert>
+    
+</mapper>

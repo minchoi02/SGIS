@@ -1,0 +1,202 @@
+<%
+/**************************************************************************************************************************
+* Program Name  : 상단 Header JSP
+* File Name     : includeSearch.jsp
+* Comment       :
+* History       : 네이버시스템 김성현 2015-09-09
+*				: 웹 접근성 관련 tabindex 삭제 2016-12-08
+*
+**************************************************************************************************************************/
+%>
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<script src="/js/plugins/jquery.placeholder.min.js"></script> <!-- 2017.12.12 [개발팀] 접근성 점검 -->
+<script src="/js/common/includeSearch.js"></script> <!-- 2017.12.12 [개발팀] 접근성 점검 -->
+
+<script src="/publish_2018/include/plugin/slick/slick.min.js" ></script> <!-- djlee 수정 2019-07-15 -->
+<script src="/publish_2018/include/js/ui.js" ></script>
+
+<%
+String currentURL = request.getRequestURI();
+boolean mainYN = ( currentURL.indexOf("jsp/index.jsp") >= 0 );
+if( !mainYN ){
+%>
+
+<link href="/css/jquery-ui-1.10.4.custom.css" rel="stylesheet" type="text/css" />
+<script src="/js/plugins/keyboard/keyboard_layouts.js"></script>
+<script src="/js/plugins/keyboard/ohi.js"></script>
+<link href="/js/plugins/keyboard/keyboard.css" rel="stylesheet">
+<script type="text/javascript">
+	$(document).ready(function() {
+		show_keyboard_layout("2-KSX5002");
+		/* $("#vkey").draggable({
+			cursor:"pointer",
+			containment:"#wrap",
+			cancel : "#vkey .row > div"
+		}); */
+	});
+</script>
+<%
+}
+%>
+
+<div class="util">
+    <div class="inner">
+    	<!-- 2019.08.19[한광희] SGIS My통계로 관련 추가:탭메뉴 START -->
+		<div class="global_nav">
+			<ul>
+				<!-- 2020-01-31 [김남민] 통계Me => My통계로 명칭 변경. -->
+				<!-- 2020-02-17 [김남민] 변경 디자인안 반영. -->
+				<!-- 2020-02-18 [김남민] 탭 위치 변경 -->
+				<!-- 2020-08-11 [이금은] 탭 위치 변경 -->
+				<!-- 2020.09.29 [한광희] 총조사 시각화 메뉴 추가 START -->
+				<!-- 2021.06.15 [이진호] 웹 접근성 오류 수정 a 태그 text 제공(텍스트 크기를 0으로 해서 안보이게 처리) START -->
+				<li><a href="javascript:logWriteAndMove('N0', '01', '01', '00', '', '', '/view/statsMe/statsMeMain', false);" class="tm_my3" style="box-shadow:0px -3px 3px rgba(0, 0, 0, .4); background-color:#3e65b1; z-index:10; left:95px; width:150px; font-size: 0px;">My통계로 바로가기</a></li>
+				<li><a href="javascript:logWriteAndMove('N0', '01', '02', '00', '', '', '/view/index', false);" class="tm_sgis2" style="box-shadow:0px -3px 3px rgba(0, 0, 0, .4); z-index:20; font-size: 0px;">SGIS 홈</a></li>
+				<!-- <li><a href="/view/totSurv/totSurvMain" class="tm_totSurv02" style="box-shadow:0px -3px 3px rgba(0, 0, 0, .4); background-color:#3e65b1; z-index:0; left:239px; width:180px;"></a></li> 2020.10.13[한광희] 총조사 시각화 메뉴 삭제 -->
+				<!-- 2021.06.15 [이진호] 웹 접근성 오류 수정 END -->
+				<!-- 2020.09.29 [한광희] 총조사 시각화 메뉴 추가 END -->
+			</ul>
+		</div>
+		<!-- 2019.08.19[한광희] SGIS My통계로 관련 추가:탭메뉴 END -->
+        <ul class="clearFix headerEtc">
+<!--             <li><a href="/">English</a></li> -->
+<!--             <li><a href="/">SGS에듀</a></li> -->
+<!--             <li><a href="/">개발지원센터</a></li> -->
+<!--             <li><a href="/">사이트맵</a></li> -->
+<!--             <li><a href="/">도움말</a></li> -->
+<!--             <li><a href="/">회원가입</a></li> -->
+<!--             <li><a href="/">로그인</a></li> -->
+        </ul>
+    </div>
+</div>
+<!--inner-->
+<div class="headerDiv">
+	<div class="inner">
+	    <h1><a href="javascript:logWriteAndMove('A0', '02', '08', '00', '', '', '/', false);"><img src="/images/main/logo.png" alt="통계지리정보서비스"></a></h1>
+	    <!--gnb-->
+	    <div id="gnb">
+	        <ul class="clearFix">
+	            <li><a href="javascript:apiLogWrite2('F0','F10','Header 메뉴 클릭 로그','통계주제도','00','없음');logWriteAndMove('A0', '02', '09', '01', '', '', '/view/thematicMap/categoryList', false);" tabindex="11">통계주제도</a></li>	<!-- 미비 -->
+	            <li><a href="javascript:apiLogWrite2('F0','F20','Header 메뉴 클릭 로그','대화형통계지도','00','없음');logWriteAndMove('A0', '02', '10', '01', '', '', '/view/map/interactiveMapMain', false);" tabindex="21">대화형 통계지도</a></li>
+	            <li><a href="javascript:apiLogWrite2('F0','F30','Header 메뉴 클릭 로그','활용서비스','00','없음');logWriteAndMove('A0', '02', '11', '01', '', '', '/view/common/serviceMain', false);" tabindex="31">활용서비스</a></li>
+	            <li><a href="javascript:apiLogWrite2('F0','F40','Header 메뉴 클릭 로그','분석지도','00','없음');logWriteAndMove('A0', '02', '12', '01', '', '', '/view/common/analMapMain', false);" tabindex="41">분석지도</a></li>
+<!-- // (PM)로그는 추후에 진행키로 하심. 2020.07.23	             -->
+<!-- <li><a href="javascript:apiLogWrite2('F0','F**','Header 메뉴 클릭 로그','자료제공','00','없음');logWriteAndMove('A0', '02', '**', '01', '', '', '/contents/shortcut/shortcut_05_02.jsp', false);" tabindex="51">자료제공</a></li> -->
+                <!--20220627 주소변경 (주)아이티밴드 -->
+	            <!-- <li><a href="/contents/shortcut/shortcut_05_02.jsp" tabindex="51">자료제공</a></li> -->
+	            <li><a href="/view/pss/dataProvdIntrcn" tabindex="51">자료제공</a></li>
+	            <li><a href="javascript:apiLogWrite2('F0','F50','Header 메뉴 클릭 로그','알림마당','00','없음');logWriteAndMove('A0', '02', '13', '01', '', '', '/view/board/sopBoardMain', false);" tabindex="61">알림마당</a></li>
+	        </ul>
+	    </div>
+	    <!--//gnb-->
+	    <!--searchArea-->
+	    <div class="searchArea">
+	        <div class="inputTxt" style="display:none;">
+	        	<!-- mng_s 20210616 이진호, 웹 접근성 오류 (레이블 제공) label 추가  -->
+	        	<label>
+	            	<input type="text" id="searchKeyword" placeholder="통계정보검색" onblur="$includeSearch.ui.searchHide();" onkeydown="if(event.keyCode == 13) { $includeSearch.ui.moveSearchList(); return false; }">
+	        	</label>
+	        	<!-- mng_e 20210616 이진호 -->
+	            <% if( !mainYN ){ %>
+		            <a href="javascript:openKeyboard('searchKeyword', 'searchBtn');"><img class="keyimg" src="/js/plugins/keyboard/img/key_off.png" style="display:inline-block; width:20px; height:12px; vertical-align: middle;" alt="키보드 입력"></a>
+	            <% } %>
+	        </div>
+	        <div class="clearFix">
+	            <button type="submit" class="btn_submit" id="searchBtn" onclick="javascript:apiLogWrite2('F0','F60','Header 메뉴 클릭 로그','검색','00','없음');$includeSearch.ui.moveSearchList();">검색</button>
+	            <button type="button" class="btn_sizeCtr"><span class="hidden">검색창 확대/축소 버튼</span></button>
+	        </div>
+	    </div>
+	    <!--//searchArea-->
+	</div>
+	<!--//inner-->
+	<!--subMenu-->
+	<div class="subMenu" style="display:none;">
+	    <!--inner-->
+	    <div class="inner">
+	        <!-- <p>센서스 등 통계자료를 외부자료와<br />지도위에서 융합하여 사용 할 수 있는<br />SGIS의 새로운 서비스입니다.</p> -->
+	        <div class="clearFix">
+	            <ul>
+	                <li><a id="human" href="javascript:apiLogWrite2('F0','F11','Header 메뉴 클릭 로그','인구와가구','00','없음');logWriteAndMove('A0', '02', '09', '02', '', '', '/view/thematicMap/thematicMapMain?stat_thema_map_id=5FLM8BXNH320200521093949554ioKEsoOUGI&theme=CTGR_001&mapType=05', false);" tabindex="12">인구와 가구</a></li>
+					<li><a id="house" href="javascript:apiLogWrite2('F0','F15','Header 메뉴 클릭 로그','주거와교통','00','없음');logWriteAndMove('A0', '02', '09', '06', '', '', '/view/thematicMap/thematicMapMain?stat_thema_map_id=8mjCr1kWql20201123140825772vKMjQsNcRw&theme=CTGR_002&mapType=05', false);" tabindex="13">주거와 교통</a></li>
+					<li><a id="welfare" href="javascript:apiLogWrite2('F0','F12','Header 메뉴 클릭 로그','복지와문화','00','없음');logWriteAndMove('A0', '02', '09', '03', '', '', '/view/thematicMap/thematicMapMain?stat_thema_map_id=sFKoutEowH20201208140301610JputqDxrrK&theme=CTGR_003&mapType=13', false);" tabindex="14">복지와 문화</a></li>
+					<li><a id="work" href="javascript:apiLogWrite2('F0','F13','Header 메뉴 클릭 로그','노동과경제','00','없음');logWriteAndMove('A0', '02', '09', '04', '', '', '/view/thematicMap/thematicMapMain?stat_thema_map_id=njAEQxrh8y20191024164715457m1pHpdrBMn&theme=CTGR_004&mapType=03', false);" tabindex="15">노동과 경제</a></li>
+					<li><a id="fit" href="javascript:apiLogWrite2('F0','F14','Header 메뉴 클릭 로그','건강과안전','00','없음');logWriteAndMove('A0', '02', '09', '05', '', '', '/view/thematicMap/thematicMapMain?stat_thema_map_id=wPsSdFX8Wt20210520161423833UZjHClj5U3&theme=CTGR_005&mapType=05', false);" tabindex="16">건강과 안전</a></li>
+					<li><a id="envi" href="javascript:apiLogWrite2('F0','F16','Header 메뉴 클릭 로그','환경과기후','00','없음');logWriteAndMove('A0', '02', '09', '07', '', '', '/view/thematicMap/thematicMapMain?stat_thema_map_id=RZ3pr7Maou20201106160851389D0RGtYCGpW&theme=CTGR_006&mapType=05', false);" tabindex="17">환경과 기후</a></li>
+	            </ul>
+	            <ul>
+	                <li><a id="mainDex" href="javascript:apiLogWrite2('F0','F27','Header 메뉴 클릭 로그','총조사주요지표','00','없음');logWriteAndMove('A0', '02', '10', '02', '', '', '/view/map/interactiveMap/mainIndexView', false);" tabindex="22">총조사 주요지표</a></li>
+					<li><a id="popHouse" href="javascript:apiLogWrite2('F0','F28','Header 메뉴 클릭 로그','인구주택총조사','00','없음');logWriteAndMove('A0', '02', '10', '03', '', '', '/view/map/interactiveMap/populationHouseView', false);" tabindex="23">인구주택총조사</a></li>
+					<li><a id="3fv" href="javascript:apiLogWrite2('F0','F25','Header 메뉴 클릭 로그','농림어업총조사','00','없음');logWriteAndMove('A0', '02', '10', '04', '', '', '/view/map/interactiveMap/3fView', false);" tabindex="24">농림어업총조사</a></li>
+					<li><a id="comp" href="javascript:apiLogWrite2('F0','F24','Header 메뉴 클릭 로그','전국사업체조사','00','없음');logWriteAndMove('A0', '02', '10', '05', '', '', '/view/map/interactiveMap/companyView', false);" tabindex="25">전국사업체조사</a></li>
+					<li><a id="ecountry" href="javascript:apiLogWrite2('F0','F27','Header 메뉴 클릭 로그','e-지방지표','00','없음');logWriteAndMove('A0', '02', '10', '09', '', '', '/view/map/interactiveMap/ecountryView', false);" tabindex="26">e-지방지표</a></li>
+					<li><a id="pubData" href="javascript:apiLogWrite2('F0','F29','Header 메뉴 클릭 로그','공공데이터','00','없음');logWriteAndMove('A0', '02', '10', '07', '', '', '/view/map/interactiveMap/publicDataView', false);" tabindex="27">공공데이터</a></li>
+					<li><a id="uData" href="javascript:apiLogWrite2('F0','F2A','Header 메뉴 클릭 로그','나의데이터','00','없음');logWriteAndMove('A0', '02', '10', '08', '', '', '/view/map/interactiveMap/userDataView', false);" tabindex="28">나의 데이터</a></li>
+	            </ul>
+	            <ul>
+					<!-- 추가순서변경 -->
+					<li><a id="catchmentArea" href="javascript:apiLogWrite2('F0','F57','Header 메뉴 클릭 로그','생활권역 통계지도','00','없음');logWriteAndMove('A0', '02', '11', '09', '', '', '/view/catchmentArea/main', false);" tabindex="40">생활권역 통계지도</a></li><!-- 2020년 SGIS고도화 3차(생활권역) 추가  -->
+					<li><a id="MyTGR" href="javascript:apiLogWrite2('F0','F63','Header 메뉴 클릭 로그','My통계로','00','없음');logWriteAndMove('A0', '02', '11', '09', '', '', '/view/statsMe/statsMeMain', false);" tabindex="32">My통계로</a></li>
+					<li><a id="workRoad" href="javascript:apiLogWrite2('F0','F62','Header 메뉴 클릭 로그','일자리맵','00','없음');logWriteAndMove('A0', '02', '11', '02', '', '', '/view/workRoad/main', false);" tabindex="33">일자리 맵</a></li>
+					<li><a id="static" href="javascript:apiLogWrite2('F0','F56','Header 메뉴 클릭 로그','정책통계지도','00','없음');logWriteAndMove('A0', '02', '11', '03', '', '', '/view/map/policyStaticMap', false);" tabindex="34">정책통계지도</a></li>
+					<li><a id="houseAnal" href="javascript:apiLogWrite2('F0','F34','Header 메뉴 클릭 로그','살고싶은우리동네','00','없음');logWriteAndMove('A0', '02', '11', '04', '', '', '/view/house/houseAnalysisMap', false);" tabindex="35">살고싶은 우리동네</a></li>
+					<li><a id="bizMap" href="javascript:apiLogWrite2('F0','F61','Header 메뉴 클릭 로그','업종통계지도','00','없음');logWriteAndMove('A0', '02', '11', '05', '', '', '/view/bizStats/bizStatsMap?biz=0', false);" tabindex="36">업종통계지도</a></li><!--박길섭 수정  -->
+					<li><a id="comIntro" href="javascript:apiLogWrite2('F0','F35','Header 메뉴 클릭 로그','지역현안소통지도','00','없음');logWriteAndMove('A0', '02', '11', '06', '', '', '/view/community/intro', false);" tabindex="37">지역현안 소통지도</a></li>
+					<li><a id="statexp" href="javascript:apiLogWrite2('F0','F33','Header 메뉴 클릭 로그','통계지도체험','00','없음');logWriteAndMove('A0', '02', '11', '07', '', '', '/statexp/index.html', false);" tabindex="38">통계지도체험</a></li>
+					<li><a id="gallery" href="javascript:apiLogWrite2('F0','F57','Header 메뉴 클릭 로그','통계갤러리','00','없음');logWriteAndMove('A0', '02', '11', '08', '', '', '/view/gallery/resultGallery', false);" tabindex="39">통계갤러리</a></li>
+					
+					<!-- 추가순서변경 -->
+	            </ul>
+	            <ul>
+	<!--                 <li><a id="staMonth" href="javascript:void(0); alert('서비스점검1078px중입니다.');">월간통계</a></li>			 -->
+					<!-- SGIS4_220127_도시화분석지도 시작 -->
+					<li><a id="sbrMenu" href="javascript:apiLogWrite2('P0','F42','Header 메뉴 클릭 로그','기업생태지도','00','없음');logWriteAndMove('A0', '02', '10', '10', '', '', '/view/sbrStats/sbrStatsMain', false);" tabindex="28">기업생태지도</a><span class="subNewLabel">N</span></li>
+					<li><a id="lvsMenu" href="javascript:apiLogWrite2('P0','F42','Header 메뉴 클릭 로그','지역변화분석지도','00','없음');logWriteAndMove('A0', '02', '10', '10', '', '', '/view/lvs/main', false);" tabindex="28">지역변화분석지도</a><span class="subNewLabel">N</span></li>					
+					<li><a id="urban" href="javascript:apiLogWrite2('P0','F42','Header 메뉴 클릭 로그','도시화 분석 지도','00','없음');logWriteAndMove('A0', '02', '12', '09', '', '', '/view/urban/main', false);" tabindex="47">도시화 분석 지도</a></li>
+	                <!-- SGIS4_220127_도시화분석지도 끝 -->
+	                <li><a id="admSurv" href="javascript:apiLogWrite2('P0','F42','Header 메뉴 클릭 로그','행정통계 시각화 지도','00','없음');logWriteAndMove('A0', '02', '12', '08', '', '', '/view/administStats/newlyDash', false);" tabindex="41" style="letter-spacing:-2px;">행정통계 시각화 지도</a></li>
+	                <li><a id="totSurv" href="javascript:apiLogWrite2('P0','F42','Header 메뉴 클릭 로그','총조사 시각화 지도','00','없음');logWriteAndMove('A0', '02', '12', '07', '', '', '/view/totSurv/populationDash', false);" tabindex="41">총조사 시각화 지도</a></li>
+					<li><a id="staMonth" href="javascript:apiLogWrite2('F0','F42','Header 메뉴 클릭 로그','월간통계','00','없음');logWriteAndMove('A0', '02', '12', '02', '', '', '/funny_month/month/sta_month_main.do', false);" tabindex="42">월간통계</a></li>
+					<li><a id="pyra" href="javascript:apiLogWrite2('F0','F44','Header 메뉴 클릭 로그','인구피라미드','00','없음');logWriteAndMove('A0', '02', '12', '03', '', '', '/jsp/pyramid/pyramid1.jsp', false);" tabindex="43">인구피라미드</a></li>
+					<li><a id="pubModel" href="javascript:apiLogWrite2('F0','F43','Header 메뉴 클릭 로그','고령화현황보기','00','없음');logWriteAndMove('A0', '02', '12', '04', '', '', '/publicsmodel/', false);" tabindex="44">고령화 현황보기</a></li>
+					<li><a id="statbdFam" href="javascript:apiLogWrite2('F0','F45','Header 메뉴 클릭 로그','성씨분포','00','없음');logWriteAndMove('A0', '02', '12', '05', '', '', '/statbd/family_01.vw', false);" tabindex="45">성씨분포</a></li>
+					<li><a id="statbdFuture" href="javascript:apiLogWrite2('F0','F41','Header 메뉴 클릭 로그','지방의변화보기','00','없음');logWriteAndMove('A0', '02', '12', '06', '', '', '/statbd/future_01.vw', false);" tabindex="46">지방의 변화보기</a></li>
+	            </ul>
+
+<!-- // (PM)로그는 추후에 진행키로 하심. 2020.07.23 -->
+<!-- 	            <ul> -->
+<!-- 					<li><a id="sc0501" href="javascript:apiLogWrite2('F0','F*1','Header 메뉴 클릭 로그','자료제공소개'   ,'00','없음');logWriteAndMove('A0', '02', '**', '02', '', '', '/contents/shortcut/shortcut_05_02.jsp', false);" tabindex="52">자료제공 소개</a></li>	 -->
+<!-- 					<li><a id="sc0502" href="javascript:apiLogWrite2('F0','F*2','Header 메뉴 클릭 로그','자료제공목록'   ,'00','없음');logWriteAndMove('A0', '02', '**', '03', '', '', '/contents/shortcut/shortcut_05.jsp', false);" tabindex="53">자료제공 목록</a></li> -->
+<!-- 					<li><a id="sc0503" href="javascript:apiLogWrite2('F0','F*3','Header 메뉴 클릭 로그','자료신청'      ,'00','없음');logWriteAndMove('A0', '02', '**', '04', '', '', '/contents/shortcut/shortcut_05_03_step01.jsp', false);" tabindex="54">자료신청</a></li>	 -->
+<!-- 					<li><a id="sc0504" href="javascript:apiLogWrite2('F0','F*4','Header 메뉴 클릭 로그','신청자료다운로드','00','없음');logWriteAndMove('A0', '02', '**', '05', '', '', '/contents/shortcut/shortcut_05_01.jsp', false);" tabindex="55">신청자료 다운로드</a></li> -->
+<!-- 					<li><a id="sc0505" href="javascript:apiLogWrite2('F0','F*5','Header 메뉴 클릭 로그','신청내역'      ,'00','없음');logWriteAndMove('A0', '02', '**', '06', '', '', '/contents/shortcut/shortcut_05_03_01.jsp', false);" tabindex="56">신청내역</a></li> -->
+<!-- 	            </ul> -->
+	            <ul>
+	            	<!-- 20220627 탑메뉴 주소변경 (주)아이티밴드 -->
+	            	<li><a id="sc0501" href="/view/pss/dataProvdIntrcn" tabindex="52">자료제공 소개</a></li>
+					<li><a id="sc0502" href="/view/pss/openDataIntrcn" tabindex="53">자료제공 목록</a></li>
+					<li><a id="sc0503" href="/view/pss/requestData" tabindex="54">자료신청</a></li>
+					<li><a id="sc0504" href="/view/pss/downloadList" tabindex="55">신청자료 다운로드</a></li>
+					<li><a id="sc0505" href="/view/pss/requstDataList" tabindex="56">신청내역</a></li>
+	            
+	            	<!--  
+					<li><a id="sc0501" href="/contents/shortcut/shortcut_05_02.jsp" tabindex="52">자료제공 소개</a></li>
+					<li><a id="sc0502" href="/contents/shortcut/shortcut_05.jsp" tabindex="53">자료제공 목록</a></li>
+					<li><a id="sc0503" href="/contents/shortcut/shortcut_05_03_step01.jsp" tabindex="54">자료신청</a></li>
+					<li><a id="sc0504" href="/contents/shortcut/shortcut_05_01.jsp" tabindex="55">신청자료 다운로드</a></li>
+					<li><a id="sc0505" href="/contents/shortcut/shortcut_05_03_01.jsp" tabindex="56">신청내역</a></li>
+					-->
+	            </ul>
+
+	            <ul>
+	                <li><a id="sopIn" href="javascript:apiLogWrite2('F0','F51','Header 메뉴 클릭 로그','SGIS플러스소개','00','없음');logWriteAndMove('A0', '02', '13', '02', '', '', '/view/board/sopIntro01', false);" tabindex="62">SGIS플러스 소개</a></li>
+					<li><a id="ean" href="javascript:apiLogWrite2('F0','F52','Header 메뉴 클릭 로그','설명과공지','00','없음');logWriteAndMove('A0', '02', '13', '03', '', '', '/view/board/expAndNotice', false);" tabindex="63">설명과 공지</a></li>
+					<li><a id="eanotl" href="javascript:apiLogWrite2('F0','F$5','Header 메뉴 클릭 로그','자료신청','00','없음');logWriteAndMove('A0', '02', '$$', '04', '', '', '/view/board/expAndNoticeOfferTableList', false);" tabindex="64">자료 시점 현황</a></li>
+					<li><a id="qar" href="javascript:apiLogWrite2('F0','F53','Header 메뉴 클릭 로그','질문과개선요청','00','없음');logWriteAndMove('A0', '02', '13', '05', '', '', '/view/board/qnaAndRequestFaq', false);" tabindex="65">질문과 개선요청</a></li>
+	            </ul>
+	        </div>
+	    </div>
+	    <!--//inner-->
+	</div>
+	<!--//subMenu-->
+</div>

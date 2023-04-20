@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper	namespace="UrbanIdManage">
+    <!--2021년 SGIS4 도시화 시작  -->
+	<!--기본 리스트 OR 검색 리스트  -->
+	<select id="getIdSetInfoList"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		<choose>
+			<when test="type == 1">
+			      <include refid="pagingListHeader"/>
+			      <include refid="wordId"/>
+				  <include refid="pagingListFooter"/>	
+			</when>
+			<when test="type == 2">
+			 	  <include refid="pagingListHeader"/>
+				  <include refid="wordNm"/>
+				  <include refid="pagingListFooter"/>		
+			</when>
+			<otherwise>
+				  <include refid="pagingListHeader"/>
+				  <include refid="wordIdAndNm"/>
+				  <include refid="pagingListFooter"/>	
+			</otherwise>
+		</choose>       
+	</select>
+	<!--2021년 SGIS4 도시화 끝 -->
+	<!--2021년 SGIS4 도시화 시작  -->
+	<!-- TOTAL 갯수  -->
+	<select id="getIdTotal"  parameterType="java.util.HashMap" resultType="int">
+	     <choose>
+			<when test="type == 1">
+			    	<include refid="listCount"/>
+					<include refid="wordId"/>
+			</when>
+			<when test="type == 2">
+			    	<include refid="listCount"/>
+					<include refid="wordNm"/>	
+			</when>
+			<otherwise>
+					<include refid="listCount"/>
+					<include refid="wordIdAndNm"/>
+			</otherwise>
+		</choose>      
+	</select>
+	<!--2021년 SGIS4 도시화 끝 -->
+	<!--2021년 SGIS4 도시화 시작  -->
+	<!-- 시도 상세정보를 조회 -->
+	<select id="getIdDetailData" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+	   SELECT 
+			MAIN_URBAR_ID
+			, BASE_YEAR
+			, URBAR_ID
+			, URBAR_TYPE
+			, USE_YN
+		FROM SRV_DT_URBAR_MAIN_MAPPING		
+		<include refid="whereId"/>
+	</select>
+	<!--2021년 SGIS4 도시화 끝 -->
+	<!--2021년 SGIS4 도시화 시작  -->
+	<select id="getIdDetailDataCd" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+	   SELECT 
+			MAIN_URBAR_ID			
+		FROM SRV_DT_URBAR_MAIN_MAPPING		
+		<include refid="whereId"/>
+	</select>	
+	<!--2021년 SGIS4 도시화 끝 -->
+	<!--2021년 SGIS4 도시화 시작  -->
+	<!-- 대표 도시를 조회 -->
+	<select id="getMainIdDetailData" parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+	    SELECT 
+			MAIN_URBAR_ID 
+			, MAIN_URBAR_NM
+			, USE_YN			
+		FROM SRV_DT_URBAR_MAIN_LIST	
+		<include refid="whereId"/>
+	</select>
+	<!--2021년 SGIS4 도시화 끝 -->
+	<!--2021년 SGIS4 도시화 시작  -->
+	<!-- 도시ID 존재여부  -->
+	<select id="getMainIdExists"  parameterType="java.util.HashMap" resultType="int">
+	    <include refid="listCount"/>
+		<include refid="whereId"/>
+	</select>
+	<!--2021년 SGIS4 도시화 끝 -->
+	<!--2021년 SGIS4 도시화 시작  -->
+	<!-- 대표ID 저장 -->
+	<update id="registerMainIdMng" parameterType="java.util.HashMap" >
+	   INSERT INTO SRV_DT_URBAR_MAIN_LIST(
+			MAIN_URBAR_ID
+			, MAIN_URBAR_NM
+			, USE_YN
+			, MOD_TS			
+			, MOD_MANAGER_ID
+		) VALUES (
+			#{mainUrbarId}
+			, #{mainUrbarNm}
+			, #{useYn}
+			, SYSDATE			
+			, NUll			
+		)
+	</update>
+	<!--2021년 SGIS4 도시화 끝 -->
+	<!--2021년 SGIS4 도시화 시작  -->
+	<!-- 대표ID 저장 -->
+	<update id="updateMainIdMng" parameterType="java.util.HashMap" >
+	   UPDATE 	
+	 		SRV_DT_URBAR_MAIN_LIST
+	 	SET
+	 		  MAIN_URBAR_NM = #{mainUrbarNm}
+			, USE_YN = #{useYn}
+			, MOD_TS = SYSDATE
+			, MOD_MANAGER_ID =  NUll    
+		<include refid="whereId"/>
+	</update>	
+	<!--2021년 SGIS4 도시화 끝 -->
+	<!--2021년 SGIS4 도시화 시작  -->
+	<!-- ID 맵핑 선택버튼  -->
+	<select id="getMainIdDataByPk"  parameterType="java.util.HashMap" resultType="int">
+	   SELECT
+			MAIN_URBAR_ID
+			, BASE_YEAR
+			, URBAR_ID
+			, URBAR_TYPE
+			, USE_YN
+		FROM SRV_DT_URBAR_MAIN_MAPPING 
+		<include refid="whereId"/>
+		<include refid="andMapping"/>
+	</select>
+	<!--2021년 SGIS4 도시화 끝 -->
+	<!--2021년 SGIS4 도시화 시작  -->
+	<!-- ID 맵핑으로 조회  -->
+	<select id="checkMainIdByPk"  parameterType="java.util.HashMap" resultType="int">
+	   SELECT
+			COUNT(MAIN_URBAR_ID)
+		FROM SRV_DT_URBAR_MAIN_MAPPING 
+		<include refid="whereId"/>
+		<include refid="andMapping"/>
+	</select>	
+	<!--2021년 SGIS4 도시화 끝 -->
+	<!--2021년 SGIS4 도시화 시작  -->
+	<!-- 대표 ID 맵핑 저장  -->
+	<update id="registerMainIdMapping" parameterType="java.util.HashMap" >
+	   INSERT INTO SRV_DT_URBAR_MAIN_MAPPING(
+			MAIN_URBAR_ID
+			, BASE_YEAR
+			, URBAR_ID
+			, URBAR_TYPE
+			, USE_YN			
+			, MOD_TS
+			, MOD_MANAGER_ID
+		)VALUES(
+			  #{mainUrbarId}
+			, #{baseYear}
+			, #{urbarId}
+			, #{urbarType}
+			, #{useYn}
+			, SYSDATE		
+			, NUll    
+		)
+	</update>	
+	<!--2021년 SGIS4 도시화 끝 -->
+	<!--2021년 SGIS4 도시화 시작  -->
+	<!-- 대표 ID 맵핑 업데이트 저장 -->
+	<update id="updateMainIdMapping" parameterType="java.util.HashMap" >
+	   UPDATE 	
+	 		SRV_DT_URBAR_MAIN_MAPPING
+	 	SET
+	 		  USE_YN = #{useYn}
+			, MOD_TS = SYSDATE
+			, MOD_MANAGER_ID = NULL	
+		<include refid="whereId"/>
+		<include refid="andMapping"/>
+	</update>
+	<!--2021년 SGIS4 도시화 끝 -->
+	<!--2021년 SGIS4 도시화 시작  -->
+	<!-- 도시지역 ID 여부 -->
+	<select id="checkCityId"  parameterType="java.util.HashMap" resultType="int">
+	    SELECT COUNT(URBAR_ID)
+	    FROM SRV_DT_URBAR_MAIN_MAPPING
+		<include refid="whereId"/>
+	</select>
+	<!--2021년 SGIS4 도시화 끝 -->
+	<!--2021년 SGIS4 도시화 시작  -->
+	<!-- 메인 삭제 -->
+	<delete id="removeMainIdData" parameterType="java.util.HashMap" >
+		DELETE
+		FROM SRV_DT_URBAR_MAIN_LIST
+		<include refid="whereId"/>
+	</delete>
+	<!--2021년 SGIS4 도시화 끝 -->
+	<!--2021년 SGIS4 도시화 시작  -->
+	<!-- 맵핑 삭제  -->
+	<delete id="removeIdMapping" parameterType="java.util.HashMap" >
+		DELETE
+		FROM SRV_DT_URBAR_MAIN_MAPPING
+		<include refid="whereId"/>
+	</delete>
+	<!--2021년 SGIS4 도시화 끝 -->
+	<!--2021년 SGIS4 도시화 시작  -->
+	<!-- 맵핑 삭제(옵션) -->
+	<delete id="removeMainIdMappingByPk" parameterType="java.util.HashMap" >
+		DELETE
+		FROM SRV_DT_URBAR_MAIN_MAPPING
+		<include refid="whereId"/>
+		<include refid="andMapping"/>
+	</delete>
+	<!--2021년 SGIS4 도시화 끝 -->
+	<!--2021년 SGIS4 도시화 시작  -->
+	<!--sql 리팩토링  -->
+	<sql id="listCount">
+	    SELECT COUNT(MAIN_URBAR_ID) 
+					FROM SRV_DT_URBAR_MAIN_LIST
+	</sql>
+	<sql id="whereId">
+	    WHERE	MAIN_URBAR_ID = #{mainUrbarId}	    
+	</sql>
+	<sql id="andMapping">
+	    <if test="baseYear != null or baseYear !=''">
+		 AND BASE_YEAR = #{baseYear}
+		 </if>
+		<if test="urbarId != null or urbarId !=''">
+		 AND URBAR_ID = #{urbarId}
+		</if>
+		<if test="urbarType != null or urbarType !=''">
+		 AND URBAR_TYPE = #{urbarType}
+		</if>
+	</sql>
+	<sql id="pagingListHeader">
+	       SELECT
+			 	     	ROW_NUMBER() OVER(ORDER BY MAIN_URBAR_ID ASC) AS RNUM
+				    	, MAIN_URBAR_ID
+						, MAIN_URBAR_NM
+						, USE_YN
+				     FROM (
+						SELECT 
+							ROWNUM as RNUM, T1.*
+						FROM 
+							SRV_DT_URBAR_MAIN_LIST T1
+	</sql>
+	<sql id="pagingListFooter">
+	    ORDER BY MAIN_URBAR_ID
+							)					
+				   	 WHERE  RNUM BETWEEN (#{pageNo}-1) * (10) + 1 AND (#{pageNo} * 10)	
+	</sql>
+	<sql id="wordId">
+	    <if test="word != null and word !=''">
+							WHERE INSTR(MAIN_URBAR_ID ,#{word}) <![CDATA[>]]>  0						 
+		</if>
+	</sql>
+	<sql id="wordNm">
+	    <if test="word != null and word !=''">
+				 			WHERE INSTR(MAIN_URBAR_NM ,#{word}) <![CDATA[>]]> 0
+		</if>
+	</sql>
+	<sql id="wordIdAndNm">
+	     <if test="word != null and word !=''">
+	    					WHERE INSTR(MAIN_URBAR_ID ,#{word}) <![CDATA[>]]>  0
+	    					or INSTR(MAIN_URBAR_NM ,#{word}) <![CDATA[>]]> 0
+	    </if>	
+	</sql>
+	<!--2021년 SGIS4 도시화 끝 -->
+</mapper>

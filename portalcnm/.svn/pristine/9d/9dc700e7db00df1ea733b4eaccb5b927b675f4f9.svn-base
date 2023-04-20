@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>SGIS 관리자사이트(CNM)</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<link rel="stylesheet" href="./../include/css/login.css" />
+<link rel="stylesheet" href="./../include/css/default.css" />
+<script type="text/javascript"
+	src="./../include/js/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="./../include/js/default.js"></script>
+<script type="text/javascript" src="../../js/common/includeHead.js"></script>
+<script src="../../js/common/common.js"></script>
+<link rel="stylesheet" href="../../css/jquery-ui-1.10.4.custom.css" />
+<script type="text/javascript"
+	src="../../js/plugins/jquery-ui-1.10.3.custom.js"></script>
+<script type="text/javascript"
+	src="../../js/plugins/jquery-ui-timepicker-addon.js"></script>
+<script type="text/javascript" src="../../js/DT/KOSISMapping.js"></script>
+</head>
+
+<body style="overflow-Y: hideen">
+	<div class="wrapper1">
+		<div class="acticle1">
+		<!-- 2016. 07. 27 j.h.Seok -->
+			<p class="title01">KOSIS매핑 데이터</p>
+			<div class="tilte03">행정동 코드 검색</div>
+			<div>
+				<form id="resetForm" style="width: 500px; height: 100px;">
+					<div style="float: left;">
+						<table class="apiTable02" summary="조회조건" style="width: 400px;">
+							<caption>행정동 코드 검색</caption>
+							<colgroup>
+								<col width="141">
+								<col width="230">
+								<col width="141">
+								<col width="230">
+							</colgroup>
+							<tbody>
+								<tr>
+									<th>지역명</th>
+									<td colspan="3">
+									<select id="adm_area_type">
+										<option value="sido" selected="selected">시도</option>
+										<option value="sgg">시군구</option>
+										<option value="atdrc">자치구</option>
+										<option value="emdong">읍면동</option>
+									</select>
+									<input type="text" class="input_use03" id="SEARCH_WORD" maxlength="33" style="width: 158px"></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div
+						style="float: right; /* margin-left: 20px; */ margin-top: 20px;"
+						id="searchButton">
+						<a style="cursor: pointer"><img
+							src="./../include/img/btn/btn_search.png" alt="검색"></a>
+					</div>
+				</form>
+			</div>
+			<table class="apiTable03" summary="기본정보"></table>
+			<table summary="기본정보" id="searchResultTable0" style="width: 400px"></table>
+			<div class="searchWrapper02" id="noSearchResult0" style="margin-top: -98px; border-left: 0; border-top: 0; border-right: 0; 
+				position: absolute; width: 600px; height: 30px; padding-top: 0px; text-align: center">
+				검색 결과가 없습니다
+			</div>
+			<!-- 			<div style="margin-left:340px;" id="searchButton"> -->
+			<!-- 				<a style="cursor: pointer"><img -->
+			<!-- 					src="./../include/img/btn/btn_search.png" alt="검색" /></a> -->
+			<!-- 			</div> -->
+			<!-- 			<form id="resetForm"> -->
+			<!-- 				<table class="apiTable02" summary="조회조건" style="width: 400px;"> -->
+			<!-- 					<caption>조회조건</caption> -->
+			<!-- 					<colgroup> -->
+			<!-- 						<col width="141" /> -->
+			<!-- 						<col width="230" /> -->
+			<!-- 						<col width="141" /> -->
+			<!-- 						<col width="230" /> -->
+			<!-- 					</colgroup> -->
+			<!-- 					<tbody> -->
+			<!-- 						<tr> -->
+			<!-- 							<th>기준년도</th> -->
+			<!-- 							<td colspan="3"><input type="text" class="input_use03" -->
+			<!-- 								id="SEARCH_WORD" maxlength="33" style="width: 158px" /></td> -->
+			<!-- 						</tr> -->
+			<!-- 					</tbody> -->
+			<!-- 				</table> -->
+			<!-- 			</form> -->
+			
+			<div class="tilte03">연도별 검색</div>
+			<div style="margin-top: 45px;">
+				<form id="baseYearForm" style="width: 500px; height: 100px;">
+					<div style="float: left;">
+						<table class="apiTable02" summary="연도조회조건" style="width: 400px;">
+							<caption>조회조건</caption>
+							<colgroup>
+								<col width="141">
+								<col width="230">
+								<col width="141">
+								<col width="230">
+							</colgroup>
+							<tbody>
+								<tr>
+									<th>기준년도</th>
+									<td colspan="3">
+									<select id="base_year_select" name="기준년도 선택">
+									</select>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</form>
+			</div>
+			
+			
+			<div class="tilte03">시도</div>
+			<table class="apiTable03" summary="기본정보"></table>
+			<table summary="기본정보" id="searchResultTable1" style="width: 400px"></table>
+			<div class="searchWrapper02" id="noSearchResult1"
+				style="margin-top: -98px; border-left: 0; border-top: 0; border-right: 0; position: absolute; width: 600px; height: 30px; padding-top: 0px; text-align: center">
+				검색 결과가 없습니다</div>
+
+
+			<div class="tilte03">시군구</div>
+			<table class="apiTable03" summary="기본정보"></table>
+			<table summary="기본정보" id="searchResultTable2" style="width: 400px"></table>
+			<div class="searchWrapper02" id="noSearchResult2"
+				style="margin-top: -98px; border-left: 0; border-top: 0; border-right: 0; position: absolute; width: 600px; height: 30px; padding-top: 0px; text-align: center">
+				검색 결과가 없습니다</div>
+
+			<div class="tilte03">읍면동</div>
+			<table class="apiTable03" summary="기본정보"></table>
+			<table summary="기본정보" id="searchResultTable3" style="width: 400px"></table>
+			<div class="searchWrapper02" id="noSearchResult3"
+				style="margin-top: -98px; border-left: 0; border-top: 0; border-right: 0; position: absolute; width: 600px; height: 30px; padding-top: 0px; text-align: center">
+				검색 결과가 없습니다</div>
+		</div>
+	</div>
+	<!-- cls:footer start -->
+
+</body>
+</html>

@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="themeCdCommon">
+	
+	<!-- 생활업종 테마코드 대분류 조회 -->
+	<select id = "selectBigThemeCd" resultType="string">
+		select 
+			b_theme_cd 
+		from 
+			cmm_cd_theme 
+		where 
+			lifebiz_yn = 'Y' 
+			and theme_cd = #{theme_cd}
+	</select>
+	
+	<!-- 모든 생활업종 대분류 테마코드를 읽어온다. -->
+	<select id = "selectBigThemeCdList" resultType="string">
+		select distinct
+			b_theme_cd
+		from
+			CMM_CD_THEME
+		WHERE
+			LIFEBIZ_YN = 'Y'
+		ORDER BY 
+			B_THEME_CD
+	</select>
+	
+	
+	
+	<!-- 생활업종에서 사용하지 않는 제외한 테마코드 조회 -->
+	<sql id="filteredThemeCd">
+		select 
+			theme_cd 
+		from 
+			cmm_cd_theme
+		where 
+			lifebiz_yn = 'Y'
+	</sql>
+	
+	<!-- 생활업종에서 사용하지 않는 제외한 테마코드 조회 -->
+	<sql id="filteredThemeInfo">
+		select 
+			*
+		from 
+			cmm_cd_theme
+		where 
+			lifebiz_yn = 'Y'
+	</sql>
+	
+	<!-- [START] 대분류와 대분류의 소분류를 모두 포함한 쿼리 작성  -->
+	<select id="selectBigThemeInfo" resultType="hashmap">
+		SELECT 
+			b_theme_cd
+			, MIN(B_THEME_CD_NM) AS b_theme_cd_nm
+			, COUNT(*) AS s_theme_count
+			, SUBSTR(MIN(ORDER_NO),1,2) AS order_no
+		FROM 
+			CMM_CD_THEME
+		WHERE 
+			LIFEBIZ_YN = 'Y'
+		GROUP 
+			BY B_THEME_CD
+		ORDER BY 
+			ORDER_NO
+	</select>
+	
+	<select id="selectBigCensusThemeInfo" resultType="hashmap">
+		SELECT 
+			b_theme_cd
+			, MIN(B_THEME_CD_NM) AS b_theme_cd_nm
+			, COUNT(*) AS s_theme_count
+			, SUBSTR(MIN(ORDER_NO),1,2) AS order_no
+		FROM
+			CMM_CD_THEME
+		WHERE 
+			LENGTH(B_THEME_CD) > 0
+			AND THEME_CD NOT LIKE '%000'
+		GROUP 
+			BY B_THEME_CD
+		ORDER BY 
+			ORDER_NO
+	</select>
+	
+	<select id="selectSmallThemeInfo" resultType="hashmap">
+		SELECT 
+			THEME_CD, S_THEME_CD_NM
+		FROM 
+			CMM_CD_THEME
+		WHERE 
+			LIFEBIZ_YN = 'Y'
+			AND B_THEME_CD = #{b_theme_cd}
+		ORDER BY ORDER_NO
+	</select>
+	<!-- [END] 대분류와 대분류의 소분류를 모두 포함한 쿼리 작성  -->
+	
+	
+	<!-- 산업분류에 포함되는 모든 대분류 테마코드 정보를 조회한다, 전국사업체조사의 테마업종 및 interactiveMapBtn의 createPOIBtn 메서드에서 사용된다. -->
+	<select id = "selectCensusBigThemeInfo" resultType="hashmap">
+		SELECT 
+			B_THEME_CD
+			, MIN(B_THEME_CD_NM) AS B_THEME_CD_NM
+		FROM 
+			CMM_CD_THEME
+		WHERE 
+			/*B_THEME_CD != ''*/
+			LENGTH(B_THEME_CD) = '1'
+			AND B_THEME_CD != '99'
+		GROUP 
+			BY B_THEME_CD
+		ORDER BY 
+			B_THEME_CD
+	</select>
+	
+	<!-- 특정 산업분류의 대분류에 속하는 소분류 테마코드 정보를 조회한다, 전국사업체조사의 테마업종 및 interactiveMapBtn의 createPOIBtn 메서드에서 사용된다. -->
+	<select id="selectCensusSmallThemeInfo" resultType="hashmap">
+		SELECT 
+			THEME_CD
+			, S_THEME_CD_NM
+			, ORDER_NO
+		FROM 
+			CMM_CD_THEME
+		WHERE 
+			/*B_THEME_CD != '' 
+			AND B_THEME_CD != '99'*/
+			LENGTH(B_THEME_CD) = '1'
+			AND THEME_CD != #{b_theme_cd}||'000'
+			AND B_THEME_CD = #{b_theme_cd}
+		ORDER BY
+			ORDER_NO
+	</select>
+	
+	
+	<!-- 소분류에 대한 세세한 정보를 추출 -->
+	<select id="selectSmallThemeDetail" resultType="hashmap">
+		SELECT 
+			THEME_CD
+			, S_THEME_CD_NM
+			, B_THEME_CD
+			, B_THEME_CD_NM
+			, ORDER_NO
+		FROM
+			CMM_CD_THEME
+		WHERE
+			LIFEBIZ_YN = 'Y'
+		ORDER BY
+			ORDER_NO
+	</select>
+	
+	
+	<select id="selectSmallCensusThemeDetail" resultType="hashmap">
+		SELECT 
+			THEME_CD
+			, S_THEME_CD_NM
+			, B_THEME_CD
+			, B_THEME_CD_NM
+			, ORDER_NO
+		FROM
+			CMM_CD_THEME
+		WHERE
+			LENGTH(B_THEME_CD) > 0 
+			AND THEME_CD NOT LIKE '%000'
+		ORDER BY
+			ORDER_NO
+	</select>
+	
+	
+	<!-- 대분류에 대한 소분류 테마코드와 테마코드 이름을 조회하는 쿼리 -->
+	<select id="selectSmallThemeDetailGroupByBigThemeCd" resultType="hashmap">
+		SELECT 
+			THEME_CD, S_THEME_CD_NM
+		FROM 
+			CMM_CD_THEME
+		WHERE 
+			LIFEBIZ_YN = 'Y'
+			AND B_THEME_CD = #{b_theme_cd}
+		ORDER BY
+			ORDER_NO
+	</select>
+	
+	
+	<!-- 소분류 테마코드와 매핑되는 10차 산업분류에 대한 이름과 코드를 조회하는 쿼리 -->
+	<select id="selectCensusCdAndNmByThemeCd" resultType="hashmap">
+		SELECT 
+		    KSIC_5_NM, KSIC_5_CD
+		FROM 
+		    CMM_CD_CORPCLASS
+		WHERE
+		    CLASS_DEG = 10
+		    AND THEME_CD = #{theme_cd}
+		ORDER BY
+		    KSIC_5_CD
+	</select>
+	
+	
+</mapper>

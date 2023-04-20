@@ -1,0 +1,187 @@
+
+// 컬럼 차트 더미데이터
+let dummyData8 = [{"spaceName":"홍도동_1","spaceId":"2501068020201","spaceRank":"1","value":289,"rate":"6.1"},
+            {"spaceName":"홍도동_2","spaceId":"2501068010003","spaceRank":"2","value":244,"rate":"5.1"},
+            {"spaceName":"홍도동_3","spaceId":"2501068020102","spaceRank":"3","value":238,"rate":"5.0"},
+            {"spaceName":"홍도동_4","spaceId":"2501068020101","spaceRank":"4","value":231,"rate":"4.9"},
+            {"spaceName":"홍도동_5","spaceId":"2501068020401","spaceRank":"5","value":225,"rate":"4.7"},
+            {"spaceName":"홍도동_6","spaceId":"2501068020010","spaceRank":"6","value":222,"rate":"4.7"},
+            {"spaceName":"홍도동_7","spaceId":"2501068020012","spaceRank":"7","value":220,"rate":"4.6"},
+            {"spaceName":"홍도동_8","spaceId":"2501068010201","spaceRank":"8","value":209,"rate":"4.4"},
+            {"spaceName":"홍도동_9","spaceId":"2501068020004","spaceRank":"9","value":209,"rate":"4.4"},
+            {"spaceName":"홍도동_10","spaceId":"2501068020801","spaceRank":"10","value":187,"rate":"3.9"},
+            {"spaceName":"홍도동_11","spaceId":"2501068020402","spaceRank":"11","value":186,"rate":"3.9"},
+            {"spaceName":"홍도동_12","spaceId":"2501068020001","spaceRank":"12","value":185,"rate":"3.9"},
+            {"spaceName":"홍도동_13","spaceId":"2501068020003","spaceRank":"13","value":185,"rate":"3.9"},
+            {"spaceName":"홍도동_14","spaceId":"2501068020701","spaceRank":"14","value":183,"rate":"3.9"},
+            {"spaceName":"홍도동_15","spaceId":"2501068010002","spaceRank":"15","value":179,"rate":"3.8"},
+            {"spaceName":"홍도동_16","spaceId":"2501068020009","spaceRank":"16","value":178,"rate":"3.7"},
+            {"spaceName":"홍도동_17","spaceId":"2501068020007","spaceRank":"17","value":176,"rate":"3.7"},
+            {"spaceName":"홍도동_18","spaceId":"2501068020008","spaceRank":"18","value":174,"rate":"3.7"},
+            {"spaceName":"홍도동_19","spaceId":"2501068020006","spaceRank":"19","value":169,"rate":"3.6"},
+            {"spaceName":"홍도동_20","spaceId":"2501068010001","spaceRank":"20","value":167,"rate":"3.5"},
+            {"spaceName":"홍도동_21","spaceId":"2501068020702","spaceRank":"21","value":161,"rate":"3.4"},
+            {"spaceName":"홍도동_22","spaceId":"2501068010004","spaceRank":"22","value":152,"rate":"3.2"},
+            {"spaceName":"홍도동_23","spaceId":"2501068020005","spaceRank":"23","value":151,"rate":"3.2"},
+            {"spaceName":"홍도동_24","spaceId":"2501068020011","spaceRank":"24","value":147,"rate":"3.1"},
+            {"spaceName":"홍도동_25","spaceId":"2501068020002","spaceRank":"25","value":80,"rate":"1.7"}
+        ]
+
+// solidgauge 더미데이터             
+let dummyData9 = [{"title":"전국","data":70.5},
+                  {"title":"대전광역시","data":60.5},
+                  {"title":"대전광역시 서구","data":45.5},
+                  {"title":"대전광역시 서구 둔산동","data":30.5}]
+
+// 컬럼+라인 더미데이터                   
+let dummyData10 = {"category":[2000,2005,2010,2015,2016,2017,2018,2019,2020],
+                    "title":"다문화가구",
+                    "data":[1234,2314,2214,3142,1124,3254,4512,2152,1254]}
+
+// 모든지표보기 타입 실행 
+const excuteIndicator = (type) => {
+    indicatorMap[type](type);
+}
+
+
+
+// 모든지표보기 타입 별 정의
+/**
+ * A Type:     width: full,    콤비(컬럼+라인) 차트   / 시계열보기 X     / 데이터테이블 X
+ * B Type:     width: full,    바 차트             / 시계열보기 O     / 데이터테이블 O
+ * C Type:     width: half,    바 차트 + 게이지 차트  / 시계열보기 O     / 데이터테이블 O
+ * D Type:     width: full,    바 차트             / 시계열보기 X     / 데이터테이블 O
+ * @param {string} type 지표 타입 aType, bType, cType, dType
+ */
+const indicatorMap = {
+
+    async aType (type) {
+        await renderHtml(type)
+        columnLineLarge('aType_chart',dummyData10) // chartId , data
+    },
+
+    async bType (type) {
+        await renderHtml(type)
+
+        let modifyData = {"category":[],"data":[],"title":""}
+        dummyData8.forEach((item, index) => {
+            modifyData.category.push(item.spaceName)
+            modifyData.data.push(item.value)
+            modifyData.title = "타이틀" // 시리즈 타이틀
+        })
+
+
+        $("#bType_chart").css('height', dummyData8.length * 25) // 행 갯수에 따라 높이 조절 (고정폭 25 * 데이터 길이)
+
+        barLarge('bType_chart',modifyData)   // 바 차트 
+        makeEx3BoardTable1('bType_table',dummyData8) // 바 차트 테이블 
+        // solidgauge('bType_chart2',dummyData9)  // 서클 게이지 차트 
+        // makeEx3BoardTable2('bType_table1',dummyData9) // 서클 게이지 테이블
+    },
+
+    async cType (type) {
+
+        await renderHtml(type)
+
+        let modifyData = {"category":[],"data":[],"title":""}
+        dummyData8.forEach((item, index) => {
+            modifyData.category.push(item.spaceName)
+            modifyData.data.push(item.value)
+            modifyData.title = "타이틀" // 시리즈 타이틀
+        })
+
+        $("#cType_chart1").css('height', dummyData8.length * 25) // 행 갯수에 따라 높이 조절 (고정폭 25 * 데이터 길이)
+        $("#cType_chart2").css('height', dummyData8.length * 25) // 행 갯수에 따라 높이 조절 (고정폭 25 * 데이터 길이)
+        
+        barLarge('cType_chart1',modifyData)   // 바 차트 
+        makeEx3BoardTable1('cType_table1',dummyData8) // 바 차트 테이블 
+        solidgauge('cType_chart2',dummyData9)  // 서클 게이지 차트 
+        makeEx3BoardTable2('cType_table2',dummyData9) // 서클 게이지 테이블
+        
+    },
+
+    async dType (type) {
+        await renderHtml(type)
+
+        let modifyData = {"category":[],"data":[],"title":""}
+        dummyData8.forEach((item, index) => {
+            modifyData.category.push(item.spaceName)
+            modifyData.data.push(item.value)
+            modifyData.title = "타이틀" // 시리즈 타이틀
+        })
+
+        $("#dType_chart").css('height', dummyData8.length * 25) // 행 갯수에 따라 높이 조절 (고정폭 25 * 데이터 길이)
+        
+        barLarge('dType_chart',modifyData)   // 바 차트 
+        makeEx3BoardTable1('dType_table',dummyData8) // 바 차트 테이블 
+        
+    }
+
+}
+
+
+// html render 
+async function renderHtml(type) {
+    new Promise ((resolve) => {
+        $(".exboardType").hide();
+        $(".exboardType."+type).show();
+        return resolve();
+    })
+    await getBoardHeight(type);
+}
+
+// 차트, 테이블, 컨테이너 높이 
+const getBoardHeight = (type="") => {
+    return new Promise ((resolve) => {
+        let parentTarget = $(".extend_data_03 .main .main_wrap");
+        let conatinerHeight = $(parentTarget).height() - $(parentTarget).children('.headerWrap').outerHeight() - $(parentTarget).children('.text').outerHeight() - 15  // padding 15    
+        let sectionType = $('.main_wrap').find('.'+type); // sectionHeight
+        let headerHeight = $(sectionType).children('.section.chartArea').find('.accHeader').eq(0).outerHeight(true);
+        let tabHeight = $(sectionType).children('.section.chartArea').find('.tabCommon').eq(0).outerHeight(true);
+        let yearHeight = $(sectionType).children('.section.year').outerHeight(true);
+        let chartType = $(".exboardType."+type).find('.chart_wrap')
+        let tableType = $(".exboardType."+type).find('.table_wrap')
+        
+        let chartHeight = 0;
+
+        if(type == 'aType')                             chartHeight = conatinerHeight - headerHeight - 10 // padding
+        else if (type == 'bType' || type == 'cType')    chartHeight = conatinerHeight - headerHeight - tabHeight - yearHeight - 30 // margin
+        else if (type == 'dType')                       chartHeight = conatinerHeight - headerHeight - tabHeight - 20 // padding
+        
+        $(".exboardType."+type).css('height',conatinerHeight)
+        chartType.css('height',chartHeight)
+        tableType.css('height',chartHeight)
+        return resolve();
+    })
+    
+}
+
+
+
+
+// 전체지표 데이터보기 테이블 생성
+const makeEx3BoardTable1 = (id,data) => {
+    data.forEach(element => {
+        let html = "";
+        html += '<tr>'
+        html += '<td>'+element.spaceName+'</td>'
+        html += '<td>'+element.spaceId+'</td>'
+        html += '<td>'+element.spaceRank+'</td>'
+        html += '<td>'+element.value+'</td>'
+        html += '<td>'+element.rate+'</td>'
+        html += '</tr>'
+        $("#"+id).append(html)
+    });
+}
+
+// 전체지표 상위지역비교 데이터 보기 테이블 생성
+const makeEx3BoardTable2 = (id,data) => {
+    data.forEach(element => {
+        let html = "";
+        html += '<tr>'
+        html += '<td>'+element.title+'</td>'
+        html += '<td>'+element.data+'</td>'
+        html += '</tr>'
+        $("#"+id).append(html)
+    });
+}

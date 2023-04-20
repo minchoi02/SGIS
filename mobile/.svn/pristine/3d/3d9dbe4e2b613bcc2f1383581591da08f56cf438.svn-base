@@ -1,0 +1,108 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@include file="/WEB-INF/jsp/includes/taglib.jsp" %>
+<c:set var="introduction" value="${ctx }/WEB-INF/jsp/board/introduction.jsp"/>
+<%-- <c:set var="term" value="${ctx }/WEB-INF/jsp/board/term.jsp"/>
+<c:set var="notice" value="${ctx }/WEB-INF/jsp/board/notice.jsp"/>
+<c:set var="qna" value="${ctx }/WEB-INF/jsp/board/qna.jsp"/> --%>
+<script src="${ctx }/resources/plugins/jquery.heum.validation.js"></script>
+<script src="${ctx }/resources/m2020/js/board/board.js"></script>
+<link rel="stylesheet" href="${ctx }/resources/m2020/plugins/swiper.css" />
+<script src="${ctx }/resources/m2020/plugins/swiper.min.js" type="text/javascript"></script>
+<script src="${ctx }/resources/m2020/plugins/jquery.touchSwipe.min.js" type="text/javascript"></script>
+<script src="${ctx }/resources/m2020/js/jquery.touchFlow.js" type="text/javascript"></script>
+<div class="nav-2022">
+	<div class="leftCol">
+		<span class="btnNavThematic">SGIS 플러스 소개
+			<svg width="12" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 8C6.71875 8 6.46875 7.90625 6.28125 7.71875L1.28125 2.71875C0.875 2.34375 0.875 1.6875 1.28125 1.3125C1.65625 0.90625 2.3125 0.90625 2.6875 1.3125L7 5.59375L11.2812 1.3125C11.6562 0.90625 12.3125 0.90625 12.6875 1.3125C13.0938 1.6875 13.0938 2.34375 12.6875 2.71875L7.6875 7.71875C7.5 7.90625 7.25 8 7 8Z" /></svg>
+		</span>
+		<!-- <span class="maptit04">1인 가구 변화
+			<svg width="12" height="8" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 8C6.71875 8 6.46875 7.90625 6.28125 7.71875L1.28125 2.71875C0.875 2.34375 0.875 1.6875 1.28125 1.3125C1.65625 0.90625 2.3125 0.90625 2.6875 1.3125L7 5.59375L11.2812 1.3125C11.6562 0.90625 12.3125 0.90625 12.6875 1.3125C13.0938 1.6875 13.0938 2.34375 12.6875 2.71875L7.6875 7.71875C7.5 7.90625 7.25 8 7 8Z"/></svg>
+		</span> -->
+	</div>
+	<!-- <div class="">1인 가구 변호</div> -->
+</div>
+<div class="nav-layer">
+	<ul>
+		<li><a href="${ctx }/m2020/map/board/introduction.sgis" class="${pageContext.request.requestURI==introduction?'on2':''}" style="text-align:center;">SGIS 플러스 소개</a></li>
+		<li><a href="${ctx }/m2020/map/board/term.sgis" class="${pageContext.request.requestURI==term?'on2':''}" style="text-align:center;">통계용어설명</a></li>
+		<li><a href="${ctx }/m2020/map/board/notice.sgis" class="${pageContext.request.requestURI==notice?'on2':''}" style="text-align:center;">공지사항</a></li>
+	</ul>
+</div>
+<script>
+$(document).ready(function(){			
+	$(".leftCol .btnNavThematic").click(function(){
+		var svg = '<svg width="12" height="8" viewBox="0 0 14 8"   xmlns="http://www.w3.org/2000/svg"><path d="M7 8C6.71875 8 6.46875 7.90625 6.28125 7.71875L1.28125 2.71875C0.875 2.34375 0.875 1.6875 1.28125 1.3125C1.65625 0.90625 2.3125 0.90625 2.6875 1.3125L7 5.59375L11.2812 1.3125C11.6562 0.90625 12.3125 0.90625 12.6875 1.3125C13.0938 1.6875 13.0938 2.34375 12.6875 2.71875L7.6875 7.71875C7.5 7.90625 7.25 8 7 8Z" /></svg>';
+    	if(!$(this).hasClass('active')){
+       		$(this).addClass('active');
+       		$(".nav-layer").css("display","block");
+       	}else{
+       		$(this).removeClass('active');
+       		$(".nav-layer").css("display","none");
+       	}
+       });			
+});
+</script>
+<div class="statsMenuWrap2" style="display:none">
+	<!-- 메뉴 버튼 Swiper (스와이프 적용하기 위해 태그 변경) 박은식 20200709 START -->
+
+		
+		
+		
+		<%-- <div class="swiper-container">
+			<div class="swiper-wrapper">
+				<div class="swiper-slide" id="nav_introduction">
+					<a  href="${ctx }/m2020/map/board/introduction.sgis" class="${pageContext.request.requestURI==introduction?'on2':''}" style="text-align:center;">SGIS 플러스 소개</a>
+				</div>
+				<div class="swiper-slide" id="nav_term">
+					<a  href="${ctx }/m2020/map/board/term.sgis" class="${pageContext.request.requestURI==term?'on2':''}" style="text-align:center;">통계용어설명</a>
+				</div>
+				<div class="swiper-slide" id="nav_notice">
+					<a  href="${ctx }/m2020/map/board/notice.sgis" class="${pageContext.request.requestURI==notice?'on2':''}" style="text-align:center;">공지사항</a>
+				</div>
+				<!-- 20200915 박은식 개선사항 삭제  start  -->
+				<div class="swiper-slide" id="nav_qna"><!-- 박은식 -->
+					<a  href="${ctx }/m2020/map/board/qna.sgis" class="${pageContext.request.requestURI==qna?'on2':''}" style="text-align:center;">개선사항</a>
+				</div><!-- 박은식 -->
+				<!-- 20200915 박은식 개선사항 삭제  end  -->
+				
+				<!-- mng_s 20201123 이진호, W3C 웹 표준 오류 수정 -->
+				<!-- <div class="swiper-slide" id="nav_introduction" style="visibility:hidden"></div> -->
+				<!-- mng_e 20201123 이진호 -->
+			</div>
+		</div> --%>
+		<!-- 메뉴 버튼 Swiper END -->
+		
+		<script>
+		/*
+		* @name : swipePoint
+		* @description : 스와이프 기능 추가
+		* @date : 2020.07.09 
+		* @author : 박은식
+		* @history :
+		**/
+	 	 function swipePoint(){
+			 if((window.location.pathname).indexOf("introduction") > 0){
+		     	return 0;
+			 }else if((window.location.pathname).indexOf("term") > 0){
+			 	return 1;
+			 } else if((window.location.pathname).indexOf("notice") > 0){
+				return 2;
+			 }
+			 //20200915 박은식 개선사항 삭제 start
+			 /* else {
+				 return 3;
+			 } */
+			//20200915 박은식 개선사항 삭제 start
+		 } 
+		 var swiper = new Swiper('.swiper-container', {
+			 	slidesPerView: 3.7,
+		        spaceBetween: 10,
+		        initialSlide: swipePoint() ,
+		        pagination: {
+		          el: '.swiper-pagination',
+		          clickable: true,
+		        },
+		      });
+		</script>
+		
+</div>

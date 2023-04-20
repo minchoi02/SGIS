@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="USESRVStat">
+	<select id="getAccrueSum" resultType="Map">
+		select NVL(COUNT(SRV_ID),0) as CNT, API_AUTH_KEY_TYPE from SRV_DT_USESRVINFO
+		where GRANT_STATE = 'ASSENT' or grant_state = 'FINISH'
+		group by API_AUTH_KEY_TYPE
+	</select>
+	<select id="getThisMonthSum"  resultType="Map">
+		select NVL(COUNT(SRV_ID),0) as CNT, API_AUTH_KEY_TYPE from SRV_DT_USESRVINFO
+		where GRANT_STATE = 'ASSENT'
+		and 
+		SRV_GRANT_DT is not null
+		and 
+		SRV_GRANT_DT <![CDATA[>=]]>
+		(
+			select TRUNC(sysdate, 'month') as STARTDATE from dual
+		)
+		and 
+		SRV_GRANT_DT <![CDATA[<]]>
+		(
+			select  TRUNC(add_months(sysdate, 1), 'month') as ENDDATE from dual
+		)
+		group by API_AUTH_KEY_TYPE
+	</select>
+	<select id="getLastMonthSum" resultType="Map">
+		select NVL(COUNT(SRV_ID),0) as CNT, API_AUTH_KEY_TYPE from SRV_DT_USESRVINFO
+		where GRANT_STATE = 'ASSENT'
+		and 
+		SRV_GRANT_DT is not null
+		and 
+		SRV_GRANT_DT <![CDATA[>=]]>
+		(
+			select TRUNC(add_months(sysdate, -1), 'month') as STARTDATE from dual
+		)
+		and 
+		SRV_GRANT_DT <![CDATA[<]]>
+		(
+			select TRUNC(sysdate, 'month') as ENDDATE from dual
+		)
+		group by API_AUTH_KEY_TYPE
+	</select>
+	<select id="getStaySum" resultType="Map">
+		select NVL(COUNT(SRV_ID),0) as CNT, API_AUTH_KEY_TYPE from SRV_DT_USESRVINFO
+		where GRANT_STATE='APPLCT'
+		group by API_AUTH_KEY_TYPE
+	</select>
+	<select id="getUSESRVStat" parameterType="Map" resultType="Map">
+		select CALL_TS,NVL(sum(CALL_CNT),0) as CALL_CNT from 
+		(
+			select 
+			SUBSTR(TO_CHAR(SRV_GRANT_DT,'yyyy-MM'),0,7) as CALL_TS,
+			1 as CALL_CNT
+			from SRV_DT_USESRVINFO
+			where GRANT_STATE != 'APPLCT'
+			and SRV_GRANT_DT is not NULL
+			<if test="STARTDATE != null">
+			    	and SRV_GRANT_DT<![CDATA[>=]]> #{STARTDATE}
+			</if>
+			<if test="ENDDATE != null">
+		    		and SRV_GRANT_DT <![CDATA[<]]> #{ENDDATE}
+		    </if>
+		)
+ 		group by CALL_TS
+	</select>
+	
+	<insert id="mng_dt_workhistory"  parameterType="hashmap">
+       INSERT INTO mng_dt_workhistory (
+	       manager_id, 
+	       access_ts,
+	       work_serial,
+	       <!-- manager_nm, -->
+	       connect_ip,
+	       work_nm,
+	       work_content 
+       )
+	   VALUES 
+	   (
+		   #{manager_id},
+		   sysdate,
+		   #{work_serial},
+		   <!-- #{manager_nm}, -->
+		   #{connect_ip},
+		   #{work_nm},
+		   #{work_content}     
+	   )
+	</insert>  
+</mapper>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="survey">
+
+	<!-- 내용 등록 -->
+	<insert id="surveyInsert" parameterType="hashmap">
+		INSERT INTO survey(
+                seq     , 
+                sex     , name    , tel_no  , 
+                val1    , val2    , val3    , val4    , val5    , val6    , val7    , val8    , val9    , val10   , val11   , val12   , val13   , val14   , val15   , val16   , val17   , val18   , val19   , val20   , 
+                etc1    , etc2    , etc3    , etc4    , etc5    , etc6    , etc7    , etc8    , etc9    , etc10   , etc11   , etc12   , etc13   , etc14   , etc15   , etc16   , etc17   , etc18   , etc19   , etc20   , 
+                regdate   
+			
+			) VALUES (
+			
+                (SELECT NVL(MAX(seq)+1,0) FROM survey), 
+                #{sex     }, #{name    }, #{tel_no  }, 
+                #{val1    }, #{val2    }, #{val3    }, #{val4    }, #{val5    }, #{val6    }, #{val7    }, #{val8    }, #{val9    }, #{val10   }, #{val11   }, #{val12   }, #{val13   }, #{val14   }, #{val15   }, #{val16   }, #{val17   }, #{val18   }, #{val19   }, #{val20   }, 
+                #{etc1    }, #{etc2    }, #{etc3    }, #{etc4    }, #{etc5    }, #{etc6    }, #{etc7    }, #{etc8    }, #{etc9    }, #{etc10   }, #{etc11   }, #{etc12   }, #{etc13   }, #{etc14   }, #{etc15   }, #{etc16   }, #{etc17   }, #{etc18   }, #{etc19   }, #{etc20   }, 
+                SYSDATE   
+			)
+	</insert>
+	
+	<!-- 수정 -->
+	<update id="surveyModify" parameterType="hashmap">
+        UPDATE  survey
+           SET  sex    = #{sex   }, name   = #{name  }, 
+                val1   = #{val1  }, val2   = #{val2  }, val3   = #{val3  }, val4   = #{val4  }, val5   = #{val5  }, 
+                val6   = #{val6  }, val7   = #{val7  }, val8   = #{val8  }, val9   = #{val9  }, val10  = #{val10 }, 
+                val11  = #{val11 }, val12  = #{val12 }, val13  = #{val13 }, val14  = #{val14 }, val15  = #{val15 }, 
+                val16  = #{val16 }, val17  = #{val17 }, val18  = #{val18 }, val19  = #{val19 }, val20  = #{val20 }, 
+                etc1   = #{etc1  }, etc2   = #{etc2  }, etc3   = #{etc3  }, etc4   = #{etc4  }, etc5   = #{etc5  }, 
+                etc6   = #{etc6  }, etc7   = #{etc7  }, etc8   = #{etc8  }, etc9   = #{etc9  }, etc10  = #{etc10 }, 
+                etc11  = #{etc11 }, etc12  = #{etc12 }, etc13  = #{etc13 }, etc14  = #{etc14 }, etc15  = #{etc15 }, 
+                etc16  = #{etc16 }, etc17  = #{etc17 }, etc18  = #{etc18 }, etc19  = #{etc19 }, etc20  = #{etc20 }        
+        WHERE   tel_no = #{tel_no}
+	</update>
+	
+	<!-- 상세 조회 -->
+	<select id="get" parameterType="hashmap" resultType="hashmap">	
+		SELECT seq, sex, name, tel_no, 
+		       val1, val2, val3, val4, val5, val6, val7, val8, val9, val10, val11, val12, val13, val14, val15, val16, val17, val18, val19, val20,
+               etc1, etc2, etc3, etc4, etc5, etc6, etc7, etc8, etc9, etc10, etc11, etc12, etc13, etc14, etc15, etc16, etc17, etc18, etc19, etc20,
+               regdate 
+		  FROM survey
+		 WHERE tel_no = #{tel_no}
+	</select>
+	
+	<!-- 목록 조회 -->
+	<select id="list" parameterType="hashmap" resultType="hashmap">	
+		SELECT * FROM (	
+			SELECT ROWNUM AS RN, *
+			  FROM ( 	
+					SELECT row_number() over (order by regdate desc) as rowNum,
+					       seq, sex, name, tel_no, 
+					       val1, val2, val3, val4, val5, val6, val7, val8, val9, val10, val11, val12, val13, val14, val15, val16, val17, val18, val19, val20,
+			               etc1, etc2, etc3, etc4, etc5, etc6, etc7, etc8, etc9, etc10, etc11, etc12, etc13, etc14, etc15, etc16, etc17, etc18, etc19, etc20,
+			               regdate 
+					  FROM survey
+					 ORDER BY regdate desc
+			       ) 
+			ORDER BY regdate desc
+			) 		
+			WHERE RN BETWEEN #{firstNum} AND #{last_num} 
+	</select>
+	
+	<!-- 설문조사 갯수 조회 -->
+	<select id="totCnt" parameterType="hashmap" resultType="int">	
+		SELECT count(*) 
+		  FROM survey 
+	</select>
+
+		
+	<select id="existsTelNo" parameterType="hashmap" resultType="Integer">
+		select count(0) from survey
+		where tel_no = #{tel_no}
+	</select>
+		
+</mapper>

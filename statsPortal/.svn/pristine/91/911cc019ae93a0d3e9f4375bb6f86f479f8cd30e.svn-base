@@ -1,0 +1,398 @@
+<!-- 
+*
+* HTML입니다.
+* author : 정은우
+*
+//-->
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+	<meta charset="utf-8">
+	<title>통계지리정보서비스</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<script type="text/javascript" src="../../include/js/jquery.min.js"></script>
+	<script src="../../include/plugin/jquery-1.11.3.min.js" type="text/javascript"></script>
+
+	<link rel="stylesheet" type="text/css" href="../../include/css/legend.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/sop.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/common.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/default.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slick/slick.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slick/slick-theme.css">
+	<link rel="stylesheet" type="text/css" href="../../include/css/jquery.mCustomScrollbar.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slider-Pips/jquery-ui-slider-pips.min.css">
+	<link rel="stylesheet" type="text/css" href="../../include/plugin/slider-Pips/jqueryui.min.css">
+	
+	<!-- <link href="/css/jquery-ui-1.10.4.custom.css" rel="stylesheet" type="text/css" /> -->
+	<script type="text/javascript" src="../../include/js/analMapMainCustom.js"></script>
+	
+	<script type="text/javascript" src="../../include/js/jquery-ui-1.10.3.custom.js"></script>
+	<script type="text/javascript" src="../../include/js/jquery.mCustomScrollbar.concat.min.js"></script>
+	
+	<script type="text/javascript" src="../../include/js/legendInfo.js"></script>
+	<script type="text/javascript" src="../../include/js/sop-src.js"></script>
+
+	<script type="text/javascript" src="../../include/js/highchart/js/highcharts.js"></script>
+	<script type="text/javascript" src="../../include/js/highchart/js/modules/exporting.js"></script>
+</head>
+
+<body>
+	<!-- 스킵네비게이션 -->
+	<div class="accNav">
+		<p><a href="#gnb">주메뉴 바로가기</a></p>
+		<p><a href="#container">본문 바로가기</a></p>
+	</div>
+	<!-- 스킵네비게이션 -->
+	<!--wrap-->
+	<div id="wrap">
+		<!--header-->
+		<div id="header">
+			<div class="util"></div>
+		</div>
+		<!--//header-->
+		<hr class="hidden" />
+		<!--contents-->
+		<div class="containerBox">
+			<div class="rela">
+				<div class="sceneBox on" id="view1">
+					<div class="sceneRela">
+						<div class="toolBar clearfix">
+							<h2>지방의 변화보기</h2>
+							<div class="viewTitle"> </div>
+							<!-- 현재위치 네비게이션 -->
+							<div class="interactNavi" id="mapNavi">
+								<div class="interactiveSelect" id="location_mapNavi">조회중입니다...</div>
+								<img id="interactive_magni" src="../../include/images/magni_plus.png" alt="돋보기">
+							</div>
+							<!-- //현재위치 네비게이션 -->
+							<!-- 가로툴바 -->
+							<div class="tb_right" id="btnList_1">
+								<div class="left">
+									<button type="button" id="" onclick="" title="지표설명"><span>지표설명</span></button>
+									<button type="button" id="" onclick="" title="보도자료 다운로드"><span>보도자료 다운로드</span></button>
+									<button type="button" id="tuto_start_btn" onclick="readyTutorial();" title="사용법 따라하기"><span>튜토리얼</span></button>
+								</div>
+								<!--//튜토리얼 -->
+								<ul>
+									<li>
+										<a onclick="javascript:$interactiveMap.ui.doMaxSize(1);" class="tb_sizing" title="전체 화면 확대"><img src="../../include/images/ico_toolbars01.png" alt="전체 화면 확대"></a>
+									</li>
+									<li>
+										<a onclick="javascript:$interactiveMap.ui.doClearMap(1);" title="초기화"><img src="../../include/images/ico_toolbars02.png" alt="초기화"></a>
+									</li>
+									<li>
+										<a onclick="javascript:$interactiveMap.ui.doShare(1);" class="tb_share" title="URL 공유하기"><img src="../../include/images/ico_toolbars04.png" alt="URL 공유하기"></a>
+									</li>
+									<li>
+										<a onclick="javascript:$galleryAdd.interactiveGalleryPopOpen();" class="tb_bookmark" title="즐겨찾기로 저장하기"><img src="../../include/images/ico_toolbars05.png" alt="즐겨찾기로 저장하기"></a>
+									</li>
+									<li>
+										<a onclick="javascript:$interactiveMap.ui.reportDataSet(1);" class="tb_report" title="보고서 보기"><img src="../../include/images/ico_toolbars06.png" alt="보고서 보기"></a>
+									</li>
+								</ul>
+							</div>
+							<!-- //가로툴바  -->
+						</div>
+						<!-- 도움말 -->
+						<div class="interactiveBar">
+							<h3 class="h3">15세 미만인구<span>※ 산출식 : 15세 미만인구 = (15세미만인구 / 총인구) × 100</span></h3>
+						</div>
+
+						<div class="colorMapLegend">
+							<p>지도표시 영역</p>
+							<a href="javascript:void(0)" class="switchBox">
+								<span class="txt"></span>
+								<span class="ball"></span>
+							</a>
+						</div>
+						<!-- 분석지도 맵 컨텐츠 시작 -->
+						<div class="mapContents" style="position: relative;">
+							<img src="../../include/images/map_img.jpg">
+							<!-- right menu -->
+							<div class="sop-control-container">
+								<div class="sop-top sop-right">
+									<div class="info sop-control">
+										<div class="mapBtnWrapper"><a class="rightQuick rq01"><span>GPS</span></a></div>
+									</div>
+									<div class="info sop-control">
+										<div class="mapBtnWrapper"><a href="javascript:void(0)" class="rightQuick rq02"><span>맵기능설정</span></a></div>
+									</div>
+									<div class="info sop-control">
+										<div class="mapBtnWrapper"><a class="rightQuick rq06"><span>GPS</span></a></div>
+									</div>
+									<div class="info sop-control">
+										<div class="mapZoomWrapper"><a class="rightQuick rq03">확대하기</a><a class="rightQuick rq07">이동</a><a class="rightQuick rq04">읍면동</a><a class="rightQuick rq05">축소하기</a></div>
+									</div>
+								</div>
+								<div class="sop-bottom sop-left">
+									<div class="info sop-control" id="legend_20180803231959961">
+										<div data-html2canvas-ignore="true" class="legendRing legendBox max" id="legendBox_20180803231959961" data-ing="max">
+											<div class="color" id="typeArea_20180803231959961">
+												<ul class="colorbar" id="colorStatus_20180803231959961" style="font-family: Arial;">
+													<li style="background: rgb(205, 17, 3); border: 0px solid rgb(205, 17, 3); height: 31px; line-height: 31px;"><span>07Lv</span></li>
+													<li style="background: rgb(213, 50, 18); border: 0px solid rgb(213, 50, 18); height: 31px; line-height: 31px;"><span>06Lv</span></li>
+													<li style="background: rgb(221, 83, 33); border: 0px solid rgb(221, 83, 33); height: 31px; line-height: 31px;"><span>05Lv</span></li>
+													<li style="background: rgb(230, 116, 48); border: 0px solid rgb(230, 116, 48); height: 31px; line-height: 31px;"><span>04Lv</span></li>
+													<li style="background: rgb(238, 149, 63); border: 0px solid rgb(238, 149, 63); height: 31px; line-height: 31px;"><span>03Lv</span></li>
+													<li style="background: rgb(246, 182, 78); border: 0px solid rgb(246, 182, 78); height: 31px; line-height: 31px;"><span>02Lv</span></li>
+													<li style="background: rgb(255, 215, 93); border: 0px solid rgb(255, 215, 93); height: 31px; line-height: 31px;"><span>01Lv</span></li>
+												</ul>
+												<ul class="colorck" id="legendColor_20180803231959961">
+													<li><a id="grid_lg_color_0" href="javascript:void(0)" class="on" data-color="#cd1103" start-color="#ffd75d" style="background: rgb(205, 17, 3);">#cd1103</a></li>
+													<li><a id="grid_lg_color_1" href="javascript:void(0)" class="" data-color="#0e4000" start-color="#eaf5c0" style="background: rgb(14, 64, 0);">#0e4000</a></li>
+													<li><a id="grid_lg_color_2" href="javascript:void(0)" class="" data-color="#004574" start-color="#cccccc" style="background: rgb(0, 69, 116);">#004574</a></li>
+													<li><a id="grid_lg_color_3" href="javascript:void(0)" class="" data-color="#230064" start-color="#cccccc" style="background: rgb(35, 0, 100);">#230064</a></li>
+													<li><a id="grid_lg_color_4" href="javascript:void(0)" class="" data-color="#00076a" start-color="#cccccc" style="background: rgb(0, 7, 106);">#00076a</a></li>
+													<li><a id="grid_lg_color_5" href="javascript:void(0)" class="" data-color="#783300" start-color="#fdf3d6" style="background: rgb(120, 51, 0);">#783300</a></li>
+													<li id="combineColor_20180803231959961" style="display:none;"><a href="javascript:void(0)" class="combined" data-color="combined" start-color="combined" style="background: rgb(255, 255, 255);">#fff</a></li>
+													<li id="negativeDefaultColor_20180803231959961" class="negativeDefaultColor" style="display:none;"><a href="javascript:void(0)" class="" data-color="#cccccc" style="background: rgb(204, 204, 204);">#cccccc</a></li>
+												</ul>
+												<div class="heatMin" id="heatMinLegend_20180803231959961" style="display:none;"><img src="/img/ico/wheel.500.png" style="width:80px;height:80px;margin:14px 10px 10px 10px;"></div>
+												<ul class="legendLine" id="bubbleLegendLine_20180803231959961" style="display:none;">
+													<li><span style="margin-left: -30px; display: none;">10Lv</span></li>
+													<li><span style="margin-left: -30px; display: none;">09Lv</span></li>
+													<li><span style="margin-left: -30px; display: none;">08Lv</span></li>
+													<li><span style="margin-left:-30px;">07Lv</span></li>
+													<li><span style="margin-left:-30px;">06Lv</span></li>
+													<li><span style="margin-left:-30px;">05Lv</span></li>
+													<li><span style="margin-left:-30px;">04Lv</span></li>
+													<li><span style="margin-left:-30px;">03Lv</span></li>
+													<li><span style="margin-left:-30px;">02Lv</span></li>
+													<li><span style="margin-left:-30px;">01Lv</span></li>
+												</ul><a href="javascript:void(0)" id="reverseBtn_20180803231959961" class="legendRrefresh">새로고침</a>
+												<div class="jumArea">
+													<div class="jumText">점 크기 조절</div>
+													<ul class="jumGage">
+														<li>작게</li>
+														<li>중간</li>
+														<li>크게</li>
+													</ul>
+													<div class="jumSlide ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" aria-disabled="false"><a class="ui-slider-handle ui-state-default ui-corner-all" href="#" style="left: 0%;"></a></div>
+												</div>
+												<div class="heatArea">
+													<div style="height:15px;"></div><img src="/img/ico/ico_dbPlay.png" style="float:left;margin:4px 10px 0 10px;width:10px;height:10px;">
+													<div style="height:20px;font-size:11px;">반지름 조절 (Radius)</div>
+													<div style="height:50px;">
+														<div class="heatRadiusSlider heatSlider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" aria-disabled="false"><a class="ui-slider-handle ui-state-default ui-corner-all" href="#" style="left: 42.8571%;"></a></div>
+														<div class="heatRadiusText heatInputText">20</div>
+														<ul class="heatGuage" style="margin-top:5px;">
+															<li style="margin-top:5px;">5</li>
+															<li style="margin-right:10px;float:right;margin-top:5px;">40</li>
+														</ul>
+													</div><img src="/img/ico/ico_dbPlay.png" width="10" height="10" style="float:left;margin:4px 10px 0 10px;width:10px;height:10px;">
+													<div style="height:20px;font-size:11px;">흐림도 조절 (Blur)</div>
+													<div style="height:50px;">
+														<div class="heatBlurSlider heatSlider ui-slider ui-slider-horizontal ui-widget ui-widget-content ui-corner-all" aria-disabled="false"><a class="ui-slider-handle ui-state-default ui-corner-all" href="#" style="left: 10%;"></a></div>
+														<div class="heatBlurText heatInputText">30</div>
+														<ul class="heatGuage">
+															<li style="margin-top:5px;">20</li>
+															<li style="margin-top:5px;">120</li>
+														</ul>
+													</div>
+												</div>
+											</div>
+											<div class="legendRound"><a href="javascript:void(0)" id="btn_legend_20180803231959961" class="btn_legend">데이터 시각화</a><a href="javascript:void(0)" id="btn_legendSetting_20180803231959961" class="btn_legendSetting on">설정</a>
+											</div>
+										</div>
+										<ul class="lgListBox" id="lgListBox_20180803231959961" style="left: 220px;">
+											<li><a href="javascript:void(0)" id="legendPopEvent00_20180803231959961"><span>타입<br>설정</span></a></li>
+											<li><a href="javascript:void(0)" id="legendPopEvent01_20180803231959961" class="legendPopEvent" data-id="guganSettingLayer"><span>단계<br>설정</span></a></li>
+											<li><a href="javascript:void(0)" id="legendPopEvent02_20180803231959961" class="legendPopEvent" data-id="colorSettingLayer"><span>색상<br>설정</span></a></li>
+											<li><a href="javascript:void(0)" id="initButton_20180803231959961"><span>초기화</span></a></li>
+											<li><a href="javascript:void(0)" id="" class="legendPopEvent"><span>투명도<br>설정</span></a></li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+						<!-- right menu -->
+					</div>
+				</div>
+				<!-- //분석지도 맵 컨텐츠 끝 -->
+				<a href="javascript:void(0)" class="sideQuick sq02" id="map_left_btn" tabindex="97">
+					<span>통계메뉴</span><img src="../../include/images/ico_totalmenu.gif"alt="통계메뉴"/>
+				</a>
+				<div class="buttonBar ui-draggable">
+					<a href="javascript:void(0)" class="sideQuick sq03 result xw"><span>선택항목</span></a>
+					<div class="sqListBox sq03" id="sqlListBox">
+						<div class="sqTabs">
+							<div id="gridHideShowNumberBtn" style="float:right">
+								<span>통계표출</span>
+								<a href="javascript:void(0)" id="showNumberBtn">off</a>
+							</div>
+							<div style="float:right">
+								<div id="dataSlider_item"></div> 
+							</div>	
+						</div>
+						<div id="searchBtnResultRgn" class="sqList result">
+							<ul>
+								<li class="dragItem ui-draggable">
+									<a href="javascript:void(0)" class="ellipsis drag on M_on" title="노인인구비율">
+										<div class="text">노인인구비율</div>
+										<div class="atdrc_yn" style="display:none;"></div>
+									</a><a href="javascript:$interactiveLeftMenu.ui.deleteSearchBtn(0);" class="sqdel"><img src="../../include/images/btn_closel01.png" alt="삭제" class="mCS_img_loaded"></a>
+								</li>
+								<li class="dragItem ui-draggable">
+									<a href="javascript:void(0)" class="ellipsis drag on " title="노인인구">
+										<div class="text">노인인구</div>
+										<div class="atdrc_yn" style="display:none;"></div>
+									</a><a href="javascript:$interactiveLeftMenu.ui.deleteSearchBtn(0);" class="sqdel"><img src="../../include/images/btn_closel01.png" alt="삭제" class="mCS_img_loaded"></a>
+								</li>
+								<li class="dragItem ui-draggable">
+									<a href="javascript:void(0)" class="ellipsis drag on " title="노령화지수">
+										<div class="text">노령화지수</div>
+										<div class="atdrc_yn" style="display:none;"></div>
+									</a><a href="javascript:$interactiveLeftMenu.ui.deleteSearchBtn(0);" class="sqdel"><img src="../../include/images/btn_closel01.png" alt="삭제" class="mCS_img_loaded"></a>
+								</li>
+								<li class="dragItem ui-draggable">
+									<a href="javascript:void(0)" class="ellipsis drag on " title="고령인구비율">
+										<div class="text">고령인구비율</div>
+										<div class="atdrc_yn" style="display:none;"></div>
+									</a><a href="javascript:$interactiveLeftMenu.ui.deleteSearchBtn(0);" class="sqdel"><img src="../../include/images/btn_closel01.png" alt="삭제" class="mCS_img_loaded"></a>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+				<!-- 왼쪽메뉴  -->
+				<div class="leftArea">
+					<div class="shadow"></div>
+					<div class="quickBox step01">
+						<div class="subj">
+							<h2>지방의 변화보기</h2>
+						</div>
+						<div class="scrollBox">
+							<ul class="futul ul-area">
+								<li><a href="javascript:void(0)">가구/인구비율</a></li>
+								<li><a href="javascript:void(0)">사회비율</a></li>
+								<li><a href="javascript:void(0)">주택비율</a></li>
+								<li><a href="javascript:void(0)">교통비율</a></li>
+								<li><a href="javascript:void(0)">종교비율</a></li>
+								<li><a href="javascript:void(0)">사업체비율</a></li>
+							</ul>
+							<ol class="stat-infor">
+								<li><a href="/">보고서 보기</a></li>
+								<li><a href="/">도움말 보기</a></li>
+								<li><a href="/">전체 확면 확대</a></li>
+							</ol>
+						</div>
+						<div class="menuAutoClose">
+							<input type="radio " name="menuAutoClose_radio " id="menuAutoClose_radio " onclick="$interactiveLeftMenu.ui.sqlListBoxPosition( '244px'); ">
+							<label for="menuAutoClose_radio " class="on ">메뉴 자동닫기</label>
+						</div>
+						<div class="bottom "><a href="javascript:void(0) " class="buttom stepClose ">닫기</a></div>
+					</div>
+					<div class="nav-sidebar">
+						<ul class="future nav-list ">
+							<li><a href="javascript:void(0)" title="가구/인구비율"><span>가구/인구비율</span></a></li>
+							<li><a href="javascript:void(0)" title="사회비율"><span>사회비율</span></a></li>
+							<li><a href="javascript:void(0)" title="주택비율"><span>주택비율</span></a></li>
+							<li><a href="javascript:void(0)" title="교통비율"><span>교통비율</span></a></li>
+							<li><a href="javascript:void(0)" title="종교비율"><span>종교비율</span></a></li>
+							<li><a href="javascript:void(0)" title="사업체비율"><span>사업체비율</span></a></li>
+						</ul>
+					</div>
+					<div class="quickBox step02">
+						<div class="subj">
+							<h2>가구/인주비율 상세지표 선택<a href="javascript:void(0)" class="ar" ><!-- <img src="../../include/images/ico/ico_tooltip01.png" alt="물음표" > --></a></h2>
+							<a href="javascript:void(0)"></a>
+						</div>
+						<div class="normalBox">
+							<div class="stepBox group">
+								<ul class="radioType">
+									<li>
+										<input type="radio" name=" " id=" " value=" " /><label id=" " for=" ">공동주택물음표</label>
+										<a href="javascript:void(0)" class="ar" ><img src="../../include/images/ico/ico_tooltip01.png" alt="물음표" ></a>
+									</li>
+									<li>
+										<input type="radio " name=" " id=" " value=" " />	<label id=" " for=" ">아파트물음표</label>
+										<a href="javascript:void(0)" class="ar" ><img src="../../include/images/ico/ico_tooltip01.png" alt="물음표" ></a>
+									</li>
+									<li>
+										<input type="radio" name=" " id=" " value=" " /><label id=" " for=" ">단독주택물음표</label>
+										<a href="javascript:void(0)" class="ar" ><img src="../../include/images/ico/ico_tooltip01.png" alt="물음표" ></a>
+									</li>
+									<li>
+										<input type="radio " name=" " id=" " value=" " /><label id=" " for=" ">  비거주용 건물내 주택</label>
+										<a href="javascript:void(0)" class="ar" ><img src="../../include/images/ico/ico_tooltip01.png" alt="물음표" ></a>
+									</li>
+									<li>
+										<input type="radio" name=" " id=" " value=" " /><label id=" " for=" "> 아파트 100㎡ 이상</label>
+										<a href="javascript:void(0)" class="ar" ><img src="../../include/images/ico/ico_tooltip01.png" alt="물음표" ></a>
+									</li>
+									<li>
+										<input type="radio " name=" " id=" " value=" " /><label id=" " for=" "> 아파트 165㎡ 이상(천분율)</label>
+										<a href="javascript:void(0)" class="ar" ><img src="../../include/images/ico/ico_tooltip01.png" alt="물음표" ></a>
+									</li>
+																		<li>
+										<input type="radio " name=" " id=" " value=" " /><label id=" " for=" ">소형주택 60㎡ 이하</label>
+										<a href="javascript:void(0)" class="ar" ><img src="../../include/images/ico/ico_tooltip01.png" alt="물음표" ></a>
+									</li>
+								</ul>
+							</div>
+						</div>
+						<div class="bottom "><a href="javascript:void(0) " class="stepClose ">닫기</a></div>
+					</div>
+				</div>
+				<!-- 왼쪽메뉴  end -->
+				<!-- 데이터보드 -->
+				<div id="dataBoard">
+					<a href="javascript:void(0)" class="interactiveDataBoard pacific-Blue ">데이터보드</a>
+					<div class="dataSideBox pacific-Blue">
+						<div class="bar ">
+							<div id="dataSlider" class="dataSlider"></div>
+							<a href="javascript:void(0)" class="stepClose-data">데이터보드 닫기</a>
+						</div>
+						<div class="dataSideContents">
+							<div class="dataSideScroll">
+								<div class="data-archive">
+									<dl>
+										<dt>제&nbsp;&nbsp;&nbsp;&nbsp;목<span>:</span></dt>
+										<dd>성씨 인구분포-강(姜)</dd>
+										<dt>출&nbsp;&nbsp;&nbsp;&nbsp;처<span>:</span></dt>
+										<dd>통계청</dd>
+									</dl>
+								</div>
+								<div class="please-check">
+								<h3>잠깐! 확인해주세요.</h3>
+								<p>소수점 셋째자리에서 반올림 되었습니다.<br />
+										경기도 수원, 용인시. 고양시, 안산시, 경상남도 창원시, 울산광역시,  제주특별자치의 제주시, 
+										서귀포시는 신규 비자치 및 승격 등의 변동사항으로 인해 합산결과를 반영하였습니다.</p>
+								</div>
+								<dl class="dscList">
+									<dt class="area-tit"><a href="javascript:void(0)"><span>데이터 보기</span></a></dt>
+									<dd>
+									<dl class="choice-area">
+										<dt class="none">선택지역 : </dt>
+										<dd>
+											<div class="select-box">
+												<select class="select"title="선택지역">
+													<option>전국</option>
+													<option>서울특별시</option>
+													<option>부산광역시</option>
+												</select>
+											</div>
+										</dd>
+										</dl>
+										<div class="select-cont">
+										<div class="dataSlide-contents dataSideScroll"></div>
+										</div>
+									</dd>
+								</dl>
+							</div>
+						</div>
+					</div>
+					<form id="excelDownForm" name="excelDownForm" method="post"></form>
+				</div>
+				<!-- //데이터보드 end -->
+			</div>
+			<!--//rela-->
+		</div>
+		<!--//containerBox-->
+	</div>
+	<!--//wrap-->
+
+</body>
+
+</html>

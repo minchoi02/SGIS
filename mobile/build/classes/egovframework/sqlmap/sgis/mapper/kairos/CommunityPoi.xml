@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.sgis.map.service.mapper.kairos.CommunityPoiMapper">
+	<resultMap id="AtchmnflListForPoi" type="communityPoiVO">
+		<id property="cmmnty_poi_id" column="cmmnty_poi_id"/>
+		<result property="cmmnty_map_id" column="cmmnty_map_id"/>
+		<result property="title" column="title"/>
+		<result property="reg_lc" column="reg_lc"/>
+		<result property="opinion_state" column="opinion_state"/>
+		<result property="usr_id" column="usr_id"/>
+		<result property="cmmnty_usr_data_pt_id" column="cmmnty_usr_data_pt_id"/>
+		<result property="symbol" column="symbol"/>
+		<result property="symbol_id" column="symbol_id"/>
+		<result property="is_register" column="is_register"/>
+		<result property="is_master" column="is_master"/>
+		<result property="x_loc" column="x_loc"/>
+		<result property="y_loc" column="y_loc"/>
+		<result property="reply_cnt" column="reply_cnt"/>
+		<result property="sttemnt_cnt" column="sttemnt_cnt"/>
+		<result property="reg_date" column="reg_date"/>
+		<collection property="image_list" column="{cmmnty_poi_id=cmmnty_poi_id}" ofType="java.lang.String" javaType="java.util.ArrayList" select="selectPoiAtchImageList"/>
+	</resultMap>
+	<sql id="mineWhere">
+		<choose>
+			<when test="member_id != null and member_id != '' and poi_reply_id != null and poi_reply_id != ''">
+					USR_ID = #{member_id}
+				AND POI_REPLY_ID = #{poi_reply_id}
+			</when>
+			<otherwise>
+				1!=1
+			</otherwise>
+		</choose>
+	</sql>
+	
+	<!-- 20200901 박은식 POI 등록 정보 삭제  조건문 start-->
+	<sql id="poiWhere">
+		<choose>
+			<when test="member_id != null and member_id != '' and cmmnty_poi_id != null and cmmnty_poi_id != ''">
+					USR_ID = #{member_id}
+				AND CMMNTY_POI_ID = #{cmmnty_poi_id}
+			</when>
+			<otherwise>
+				1!=1
+			</otherwise>
+		</choose>
+	</sql>
+	<!-- 20200901 박은식 POI 등록 정보 삭제  조건문 end-->
+	
+	<sql id="cmmntyPoiItem">
+		SRV_DT_CMMNTY_POI.cmmnty_map_id, 
+		SRV_DT_CMMNTY_POI.cmmnty_poi_id, 
+		SRV_DT_CMMNTY_POI.title, 
+		SRV_DT_CMMNTY_POI.reg_lc, 
+		SRV_DT_CMMNTY_POI.opinion_state,
+		<choose>
+			<when test='replace_member_id!=null and replace_member_id!="" and "Y".equals(replace_member_id.toString())'>
+				CASE 
+					<!-- 2017. 07. 06 j.h.Seok DB 패치로 인한 수정 -->
+					WHEN SRV_DT_CMMNTY_MAP.CMMNTY_PARTCPTN_GRANT_YN = 'P' THEN
+						CASE WHEN  SRV_DT_CMMNTY_MAP.USR_ID = #{member_id} THEN SRV_DT_CMMNTY_POI.USR_ID
+						ELSE SUBSTRING(SRV_DT_CMMNTY_POI.USR_ID,0,2)||LPAD('*',LENGTH(SRV_DT_CMMNTY_POI.USR_ID)-2,'*') END
+					ELSE SRV_DT_CMMNTY_POI.USR_ID
+				END USR_ID,
+			</when>
+			<otherwise>
+				SRV_DT_CMMNTY_POI.USR_ID,
+			</otherwise>
+		</choose> 
+		SRV_DT_CMMNTY_POI.usr_id,
+		SRV_DT_CMMNTY_POI.pw,
+		SRV_DT_CMMNTY_POI.cmmnty_usr_data_pt_id,
+		CASE 
+			WHEN SRV_DT_CMMNTY_MAP.REG_SYMBOL is null THEN
+				(SELECT PATH_NM||SAVE_FILE_NM FROM SRV_DT_CMMNTY_CUSTOM_SYMBOL_ATCH_IMAGE WHERE SRV_DT_CMMNTY_CUSTOM_SYMBOL_ATCH_IMAGE.CUSTOM_SYMBOL_ID = SRV_DT_CMMNTY_POI.SYMBOL)
+			ELSE 
+				''
+		END AS symbol,
+		TRIM(SRV_DT_CMMNTY_POI.symbol) symbol_id,
+		SRV_DT_CMMNTY_MAP.reg_symbol,
+		CASE WHEN SRV_DT_CMMNTY_MAP.USR_ID = #{member_id} 
+			 THEN 'Y' ELSE 'N'
+		 END AS IS_MASTER,
+		CASE WHEN SRV_DT_CMMNTY_POI.USR_ID = #{member_id} 
+			 THEN 'Y' ELSE 'N'
+		 END AS is_register,
+		ST_X(SRV_PT_CMMNTY_USR_DATA_PT.GEOM) AS x_loc,
+		ST_Y(SRV_PT_CMMNTY_USR_DATA_PT.GEOM) AS y_loc,
+		(SELECT COUNT(1) FROM SRV_DT_POI_REPLY WHERE SRV_DT_POI_REPLY.CMMNTY_POI_ID = SRV_DT_CMMNTY_POI.CMMNTY_POI_ID) AS reply_cnt,
+		(SELECT COUNT(1) FROM SRV_DT_POI_STTEMNT WHERE SRV_DT_POI_STTEMNT.CMMNTY_POI_ID = SRV_DT_CMMNTY_POI.CMMNTY_POI_ID) AS sttemnt_cnt,
+		TO_CHAR(SRV_DT_CMMNTY_POI.REG_DATE,'YYYY.MM.DD') AS reg_date
+	</sql>
+	<sql id="cmmntyPoiJoin">
+		INNER JOIN SRV_DT_CMMNTY_MAP ON SRV_DT_CMMNTY_MAP.CMMNTY_MAP_ID = SRV_DT_CMMNTY_POI.CMMNTY_MAP_ID
+		INNER JOIN SRV_PT_CMMNTY_USR_DATA_PT ON SRV_PT_CMMNTY_USR_DATA_PT.CMMNTY_USR_DATA_PT_ID = SRV_DT_CMMNTY_POI.CMMNTY_USR_DATA_PT_ID
+	</sql>
+	<sql id="cmmntyPoiListWhere">
+		<where>
+				SRV_DT_CMMNTY_POI.CMMNTY_MAP_ID = #{id}
+			AND SRV_DT_CMMNTY_POI.DEL_YN = 'N'
+			<if test="keywords != null and keywords != ''">
+				AND UPPER(SRV_DT_CMMNTY_POI.TITLE) LIKE '%' || UPPER(#{keywords}) || '%'
+			</if>
+			<if test="type == 'my'">
+				<choose>
+					<when test="member_id != null and member_id != ''">
+						AND SRV_DT_CMMNTY_POI.USR_ID = #{member_id}
+					</when>
+					<otherwise>
+						AND 1!=1
+					</otherwise>
+				</choose>
+			</if>
+		</where>
+	</sql>
+	<select id="selectCmmntyPoiCount" resultType="int">
+		SELECT 
+			COUNT(1)
+		FROM SRV_DT_CMMNTY_POI
+		<include refid="cmmntyPoiJoin"/>
+		<include refid="cmmntyPoiListWhere"/>
+	</select>
+	<select id="selectCmmntyPoiList" resultType="communityPoiVO">
+		SELECT 
+			<include refid="cmmntyPoiItem"/>
+		FROM SRV_DT_CMMNTY_POI
+		<include refid="cmmntyPoiJoin"/>
+		<include refid="cmmntyPoiListWhere"/>
+		
+		<!-- poi List 검색 조건 추가 박은식 20200709 start -->
+		<if test="title != '' and title != null">
+			AND SRV_DT_CMMNTY_POI.title like '%' || #{title} || '%'
+		</if>
+		<!-- poi List 검색 조건 추가 박은식 20200709 end -->
+		
+		<if test="type != 'markers'">
+			ORDER BY REG_DATE DESC,SRV_DT_CMMNTY_POI.CMMNTY_POI_ID DESC
+		<!-- 
+			LIMIT ${pageSize*(page-1)+1},${pageSize}
+		 -->	
+		</if>
+	</select>
+	<select id="selectCmmntyPoi" resultMap="AtchmnflListForPoi">
+		SELECT 
+			<include refid="cmmntyPoiItem"/>
+		FROM SRV_DT_CMMNTY_POI
+		<include refid="cmmntyPoiJoin"/>
+		<where>
+			<choose>
+				<when test="id!=null and id!=''">
+					SRV_DT_CMMNTY_POI.cmmnty_poi_id = #{id}
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose>
+		</where>
+	</select>
+	<insert id="insertPoiPoint">
+		<selectKey keyProperty="cmmnty_usr_data_pt_id" resultType="String" order="BEFORE">
+			<!-- mng_s 20171031_주용민, 이중화 관련 sequence 삭제 -->
+			<!-- SELECT SRV_PT_CMMNTY_USR_DATA_PT_ID.nextval FROM DUAL -->
+			SELECT MAX(CMMNTY_USR_DATA_PT_ID)+1 FROM SRV_PT_CMMNTY_USR_DATA_PT
+			<!-- mng_e 20171031_주용민-->   
+		</selectKey>
+		INSERT INTO SRV_PT_CMMNTY_USR_DATA_PT(
+			CMMNTY_USR_DATA_PT_ID, 
+			GEOM
+		)VALUES(
+			#{cmmnty_usr_data_pt_id}, 
+			#{geom}
+		)
+	</insert>
+	
+	<delete id="updatePoiPoint" parameterType="communityPoiVO">
+		UPDATE SRV_PT_CMMNTY_USR_DATA_PT
+		   SET GEOM = st_pointfromtext ('point('||to_char(#{x_loc})||' '||to_char(#{y_loc})||')', 0 ) 
+		 WHERE CMMNTY_USR_DATA_PT_ID = #{cmmnty_usr_data_pt_id}
+	</delete>
+	
+	<insert id="insertPoi">
+		<selectKey keyProperty="cmmnty_poi_id" resultType="String" order="BEFORE">
+			<!-- mng_s 20171031_주용민, 이중화 관련 sequence 삭제 -->
+			<!-- SELECT SRV_DT_CMMNTY_POI_ID.nextval FROM DUAL -->   
+			SELECT MAX(CMMNTY_POI_ID)+1 FROM SRV_DT_CMMNTY_POI
+			<!-- mng_e 20171031_주용민-->   
+		</selectKey>
+		INSERT INTO SRV_DT_CMMNTY_POI(
+			CMMNTY_POI_ID, 
+			CMMNTY_USR_DATA_PT_ID, 
+			CMMNTY_MAP_ID, 
+			TITLE, 
+			REG_LC, 
+			OPINION_STATE, 
+			DEL_YN, 
+			USR_ID, 
+			PW,
+			SYMBOL,
+			REG_DATE 
+		)VALUES(
+			#{cmmnty_poi_id}, 
+			#{cmmnty_usr_data_pt_id}, 
+			#{cmmnty_map_id}, 
+			#{title}, 
+			#{reg_lc}, 
+			#{opinion_state}, 
+			'N', 
+			#{usr_id}, 
+			#{pw}, 
+			#{symbol},
+			SYSDATE 
+		)
+	</insert>
+	
+	<update id="updatePoi" parameterType="communityPoiCommand">
+		UPDATE SRV_DT_CMMNTY_POI
+		   SET TITLE          = #{title}
+		     , REG_LC         = #{reg_lc}
+		     , OPINION_STATE  = #{opinion_state}
+		     , SYMBOL         = #{symbol}
+		     , MOD_MEMBER_ID  = #{usr_id}
+		     , MOD_TS         = SYSDATE
+		 WHERE CMMNTY_MAP_ID = #{cmmnty_map_id}
+		   AND CMMNTY_POI_ID = #{cmmnty_poi_id}
+	</update>
+	
+	<insert id="insertPoiImage">
+		INSERT INTO SRV_DT_POI_ATCH_IMAGE(
+			POI_ATCH_IMAGE_ID, 
+			CMMNTY_USR_DATA_PT_ID, 
+			CMMNTY_POI_ID, 
+			PATH_NM,
+			ORI_FILE_NM,
+			SAVE_FILE_NM,
+			FILE_EXTN,
+			FILE_TYPE
+		)VALUES(
+			<!-- mng_s 20171031_주용민, 이중화 관련 sequence 삭제 -->
+			<!-- SRV_DT_POI_ATCH_IMAGE_ID.nextval, --> 
+			(SELECT MAX(POI_ATCH_IMAGE_ID)+1 FROM SRV_DT_POI_ATCH_IMAGE),
+			<!-- mng_e 20171031_주용민-->
+			#{cmmnty_usr_data_pt_id}, 
+			#{cmmnty_poi_id}, 
+			#{path_nm},
+			#{ori_file_nm},
+			#{save_file_nm},
+			#{file_extn},
+			#{file_type}
+		)
+	</insert>
+	
+	<delete id="deletePoiImage" parameterType="communityPoiVO">
+		DELETE SRV_DT_POI_ATCH_IMAGE
+		 WHERE CMMNTY_POI_ID = #{cmmnty_poi_id}
+		   AND CMMNTY_USR_DATA_PT_ID = #{cmmnty_usr_data_pt_id}
+		   AND POI_ATCH_IMAGE_ID = #{poi_atch_image_id}
+	</delete>
+	
+	<select id="selectPoiAtchImageList" resultType="egovMap">
+		SELECT 
+			CMMNTY_POI_ID,
+			POI_ATCH_IMAGE_ID,
+			REPLACE(PATH_NM,'\','/') AS PATH_NM,
+			ORI_FILE_NM,
+			SAVE_FILE_NM,
+			FILE_EXTN,
+			FILE_TYPE
+		FROM SRV_DT_POI_ATCH_IMAGE
+		<where>
+			<choose>
+				<when test="cmmnty_poi_id != null and cmmnty_poi_id != ''">
+					CMMNTY_POI_ID = #{cmmnty_poi_id}
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose>
+		</where>
+	</select>
+	<select id="selectPoiAtchImageListForCommunity" resultType="egovMap">
+		SELECT
+			CMMNTY_POI_ID,
+			POI_ATCH_IMAGE_ID,
+			REPLACE(PATH_NM,'\','/') AS PATH_NM,
+			ORI_FILE_NM,
+			SAVE_FILE_NM,
+			FILE_EXTN,
+			FILE_TYPE
+		FROM SRV_DT_POI_ATCH_IMAGE
+		<where>
+			<choose>
+				<when test="cmmnty_map_id != null and cmmnty_map_id != ''">
+					CMMNTY_POI_ID IN (SELECT CMMNTY_POI_ID FROM SRV_DT_CMMNTY_POI WHERE CMMNTY_MAP_ID = #{cmmnty_map_id})
+				</when>
+				<otherwise>
+					1!=1
+				</otherwise>
+			</choose>
+		</where>
+	</select>
+	
+		
+	<update id="deleteCmntyPoi">
+		UPDATE srv_dt_cmmnty_poi
+		<set>
+			del_yn = 'N'
+		</set>
+		<where>
+			<include refid="mineWhere"/>
+		</where>
+	</update>
+	
+	<!-- 20200901 박은식 poi 등록정보 삭제 start -->
+	<update id="deletePoiList">
+		UPDATE srv_dt_cmmnty_poi
+		<set>
+			del_yn = 'Y'
+		</set>
+		<where>
+			<include refid="poiWhere"/>
+		</where>
+	</update>
+	<!-- 20200901 박은식 poi 등록정보 삭제 end -->
+</mapper>

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="THBookManage"> 
+	<select id="getSearchREL"  parameterType="Map" resultType="Map">
+		SELECT * FROM 
+		(
+			SELECT ROWNUM R, A.* FROM 
+			( 
+				SELECT 
+					A.STAT_ID, 
+					A.TITLE, 
+					A.URL, 
+					A.SRV_YN, 
+					A.MANAGER_ID, 
+					A.REG_TS, 
+					A.THEMA_MAP_CATEGORY, 
+					A.HOT_ICON_YN, 
+					A.RANK, 
+					B.CATEGORY_NM
+	            FROM MNG_DT_THEMAMAPBOOKMARK AS A LEFT OUTER JOIN MNG_DT_THEMAMAPCATEGORY AS B 
+	            	ON A.THEMA_MAP_CATEGORY = B.THEMA_MAP_CATEGORY
+	            WHERE A.STAT_ID LIKE '%'||#{STAT_ID}||'%'
+					<if test="SRV_YN != null and SRV_YN != 'ALL'">
+				    	AND A.SRV_YN like  #{SRV_YN} 
+					</if>
+					<if test="SEARCH_WORD != null">
+				    	AND A.TITLE like  #{SEARCH_WORD} 
+					</if>
+					<if test="CATEGORY_NM != null and CATEGORY_NM != 'ALL'">
+				    	AND A.THEMA_MAP_CATEGORY = #{CATEGORY_NM} 
+					</if>
+					<if test="HOT_ICON_YN != null and HOT_ICON_YN != 'ALL'">
+				    	AND A.HOT_ICON_YN = #{HOT_ICON_YN} 
+					</if>
+						AND A.TITLE IS NOT NULL
+				ORDER BY A.STAT_ID DESC
+			) A
+			WHERE ROWNUM <![CDATA[<=]]> #{END_INDEX}
+		)
+		WHERE R <![CDATA[>=]]> #{START_INDEX}
+	</select>
+	
+	<select id="getSearchRELCount"  parameterType="hashmap" resultType="int">
+			SELECT COUNT(A.TITLE) AS CNT
+            FROM MNG_DT_THEMAMAPBOOKMARK AS A LEFT OUTER JOIN MNG_DT_THEMAMAPCATEGORY AS B 
+            	ON A.THEMA_MAP_CATEGORY = B.THEMA_MAP_CATEGORY
+            WHERE A.STAT_ID LIKE '%'||#{STAT_ID}||'%'
+				<if test="SRV_YN != null and SRV_YN != 'ALL'">
+			    	AND A.SRV_YN like  #{SRV_YN} 
+				</if>
+				<if test="SEARCH_WORD != null">
+			    	AND A.TITLE like  #{SEARCH_WORD} 
+				</if>
+				<if test="CATEGORY_NM != null and CATEGORY_NM != 'ALL'">
+			    	AND A.THEMA_MAP_CATEGORY = #{CATEGORY_NM} 
+				</if>
+				<if test="HOT_ICON_YN != null and HOT_ICON_YN != 'ALL'">
+			    	AND A.HOT_ICON_YN = #{HOT_ICON_YN} 
+				</if>
+	</select>
+	
+	<select id="getSearchIDCount"  parameterType="hashmap" resultType="int">
+		
+			SELECT STAT_ID
+			FROM MNG_DT_THEMAMAPBOOKMARK ORDER BY REG_TS DESC LIMIT 1
+	</select>
+	
+	<insert id="addTHBook" parameterType="Map">
+		insert into MNG_DT_THEMAMAPBOOKMARK
+			(STAT_ID,TITLE,URL,SRV_YN,MANAGER_ID,REG_TS
+			<if test="HOT_ICON_YN != null">
+		    	,HOT_ICON_YN 
+			</if>
+			<if test="CATEGORY_NM != null">
+		    	,THEMA_MAP_CATEGORY 
+			</if>
+			<if test="RANK != null">
+		    	,RANK 
+			</if>
+			)
+		values 
+			(#{STAT_ID},#{TITLE},#{URL},#{SRV_YN},#{MEMBER_ID},NOW()
+			<if test="HOT_ICON_YN != null">
+		    	,#{HOT_ICON_YN} 
+			</if>
+			<if test="CATEGORY_NM != null">
+		    	,#{CATEGORY_NM} 
+			</if>
+			<if test="RANK != null">
+		    	,TO_NUMBER(#{RANK})
+			</if>
+			)
+	</insert>
+	
+	<update id="updateTHBook" parameterType="Map" >
+		UPDATE MNG_DT_THEMAMAPBOOKMARK SET 
+			URL = #{URL},
+			SRV_YN = #{SRV_YN}
+			<if test="HOT_ICON_YN != null">
+		    	,HOT_ICON_YN = #{HOT_ICON_YN} 
+			</if>
+			<if test="CATEGORY_NM != null">
+		    	,THEMA_MAP_CATEGORY = #{CATEGORY_NM} 
+			</if>
+			<if test="RANK != null">
+		    	,RANK = TO_NUMBER(#{RANK})
+			</if>
+		WHERE STAT_ID = #{STAT_ID}
+	</update>
+	
+	<select id="checkREL" parameterType="String" resultType="int">
+		select NVL(COUNT(SEARCH_WORD),0) as CNT from SRV_DT_RELSEARCHWORD  
+		where SEARCH_WORD = #{SEARCH_WORD}
+	</select>
+	
+	<delete id="deleteTHBook" >
+		delete from MNG_DT_THEMAMAPBOOKMARK where STAT_ID in
+		<foreach collection="array" index="index" item="item" open="(" separator="," close=")">   
+        		#{item}   
+   		</foreach> 
+	</delete>
+	
+	<select id="selectID" parameterType="hashmap" resultType="String">
+		select TRIM(TO_CHAR(NVL(MAX(SUBSTR(stat_id,4,2)) + 1, 1), '00')) as ID
+		from MNG_DT_THEMAMAPBOOKMARK
+		WHERE STAT_ID LIKE '%'||#{STAT_ID}||'%'
+	</select>
+	
+	<select id="getSearchRELCount2"  parameterType="hashmap" resultType="int">
+		SELECT COUNT(TITLE) AS CNT
+        FROM MNG_DT_THEMAMAPBOOKMARK 
+        WHERE STAT_ID LIKE '%'||#{STAT_ID}||'%'
+	</select>
+	
+</mapper>

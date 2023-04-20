@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ststisticsUsSynonym"> <!-- 유의어 기반 메인키워드 등록 페이지에서 필요한 SQL을 모아놓은 MyBatis XML 파일입니다 -->
+
+
+	<!-- 조회조건에서 "그룹명" selectBox의 option으로 들어갈 값들을 선정한다 -->
+	<select id="getStstisticsUsGroupNm"  resultType="StastisticsCamelcase">
+		SELECT 
+			DISTINCT B_CLASS_NM 
+		FROM 
+			SRV_DT_CTLG_DATA_LIST
+		WHERE
+			B_CLASS_NM IS NOT NULL
+	</select>
+	
+	
+	
+	<!-- 대표키워드를 검색 조건에 따라 조회한다. -->
+	<select id="getDelegatedKwrds"  resultType="StastisticsCamelcase">
+	SELECT
+		STAT_DATA_ID
+		, MAIN_KWRD
+		, STAT_DATA_SRV_NM
+	FROM
+		SRV_DT_CTLG_DATA_LIST
+	<where>
+		<if test="null != BClassNm and BClassNm != ''">
+			AND B_CLASS_NM = #{BClassNm}
+		</if>
+		<if test="null != delegateKwrd and delegateKwrd != ''">
+			AND MAIN_KWRD LIKE '%'||#{delegateKwrd}||'%'
+		</if>
+	</where>
+	ORDER BY MAIN_KWRD <include refid="search_Nm_sort"/><!-- 20201127 2020년 SGIS고도화 3차 수정 -->
+	</select>
+	
+	<!-- mainKwrdInsert 쿼리를 수행하기 앞서 기존에 이미 존재하는 데이터인지 확인한다. -->
+	<select id="mainKwrdDuplicateCk" resultType="StastisticsCamelcase">
+	SELECT
+		CTLG_MAIN_KWRD_SERIAL
+ 		, CTLG_MAIN_KWRD
+	FROM
+		SRV_DT_CTLG_MAIN_KWRD_LIST
+	WHERE
+		CTLG_MAIN_KWRD = #{mainKwrd}
+	</select>
+	
+	<!-- 메인키워드를 등록한다. -->
+	<insert id="mainKwrdInsert">
+	<selectKey keyProperty="serialNumber" resultType="int" order="BEFORE">
+		/* 카이로스는 시퀀스가 없다. */
+		SELECT NVL(MAX(ctlg_main_kwrd_serial),0)+1 FROM SRV_DT_CTLG_MAIN_KWRD_LIST
+	</selectKey>
+	INSERT INTO SRV_DT_CTLG_MAIN_KWRD_LIST(CTLG_MAIN_KWRD_SERIAL, CTLG_MAIN_KWRD, USE_YN, REG_TS, REG_MANAGER_ID, MOD_TS, MOD_MANAGER_ID)
+	VALUES (#{serialNumber},#{mainKwrd},'Y',sysdate,'',sysdate,'')
+	</insert>
+	
+	<!-- 대표키워드와 메인키워드의 매핑을 하기에 앞서, 이미 매핑된 데이터가 있는지 확인한다. -->
+	<select id="mappingDataDuplicateCk" resultType="int">
+	SELECT
+		count(*)
+	FROM
+		SRV_DT_CTLG_MAIN_KWRD_DATA
+	WHERE
+		 CTLG_MAIN_KWRD_SERIAL = #{serialNumber}
+		 AND STAT_DATA_ID = #{statDataId}
+	</select>
+	
+	<!-- 대표키워드와 메인키워드의 매핑한다. -->
+	<insert id="mappingDataInsert">
+	INSERT INTO SRV_DT_CTLG_MAIN_KWRD_DATA(CTLG_MAIN_KWRD_SERIAL, STAT_DATA_ID, REG_TS, REG_MANAGER_ID)
+	VALUES (#{serialNumber},#{statDataId},sysdate,'')
+	</insert>
+	
+	<!-- 20201127 2020년 SGIS고도화 3차 시작 -->
+	<sql id="search_Nm_sort">
+		<if test='searchNmSort != null and searchNmSort !="" '>
+			<if test='searchNmSort == "asc"'>
+				asc
+			</if>
+			<if test='searchNmSort == "desc"'>
+				desc
+			</if>
+		</if>
+	</sql>
+	<!-- 20201127 2020년 SGIS고도화 3차 끝 -->
+</mapper>

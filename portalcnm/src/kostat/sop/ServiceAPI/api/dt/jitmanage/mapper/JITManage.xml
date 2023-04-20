@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="JTIManage">
+	<select id="searchJIT"  parameterType="Map" resultType="Map">
+		select * from
+		(
+			select 
+			API_B_CLASS_NM,
+			SRV_ATTR,
+			NM,
+			API_B_CLASS_CD,
+			API_M_CLASS_CD,
+			ACTIVE_YN,
+			REG_MEMBER_ID,
+			SUBSTR(TO_CHAR(REG_TS,'yyyy-MM-dd'),0,10) as REG_TS,
+			SEQ,
+			ROWNUM R 
+			from
+			(
+				select 
+				b.API_B_CLASS_NM,
+				b.SRV_ATTR,
+				a.NM, 
+				a.API_B_CLASS_CD,
+				a.API_M_CLASS_CD,
+				UPPER(a.ACTIVE_YN) as ACTIVE_YN, 
+				a.REG_MEMBER_ID,
+				a.REG_TS,
+				a.SEQ
+				FROM  SRV_DT_JITINFO a
+				INNER JOIN 
+				(
+					select DISTINCT API_B_CLASS_CD,API_B_CLASS_NM,SRV_ATTR from SRV_CD_APICLASS
+				) b
+				ON a.API_B_CLASS_CD = b.API_B_CLASS_CD
+				where 1=1
+				<if test="ACTIVE_YN != null">  
+		                	and a.ACTIVE_YN = #{ACTIVE_YN}
+		        </if>
+		  		<if test="API_B_CLASS_NM != null">  
+		                	and b.API_B_CLASS_NM like  '%' || #{API_B_CLASS_NM} || '%'
+		        </if>
+		        <if test="sort=='REG_MEMBER_ID' and order == 'desc'">
+				    order by REG_MEMBER_ID desc
+				</if>
+				<if test="sort=='REG_TS' and order == 'desc'">
+				    order by REG_TS desc
+				</if>
+				<if test="sort=='REG_MEMBER_ID' and order == 'asc'">
+				    order by REG_MEMBER_ID asc
+				</if>
+				<if test="sort=='REG_TS' and order == 'asc'">
+				    order by REG_TS asc
+				</if>
+			) c 
+			where ROWNUM <![CDATA[<=]]> #{END_INDEX}
+		 )
+		 where R <![CDATA[>=]]> #{START_INDEX}
+	</select>
+	<select id="searchJITCount" parameterType="Map" resultType="int">
+			SELECT 
+			NVL(count(b.API_B_CLASS_CD),0) as CNT
+			FROM SRV_DT_JITINFO 
+			INNER JOIN 
+			(
+				select DISTINCT API_B_CLASS_CD,API_B_CLASS_NM from SRV_CD_APICLASS
+			) b 
+			ON SRV_DT_JITINFO.API_B_CLASS_CD = b.API_B_CLASS_CD
+			where 1=1
+			<if test="ACTIVE_YN != null and  ACTIVE_YN != 'ALL' ">  
+	                	and SRV_DT_JITINFO.ACTIVE_YN = #{ACTIVE_YN}
+	        </if>
+	        <if test="API_B_CLASS_NM != null">  
+	                	and b.API_B_CLASS_NM like '%' || #{API_B_CLASS_NM} || '%'
+	        </if>
+	</select>
+	<select id="getAPI_B_CLASS" parameterType="Map" resultType="Map">
+		select 
+		DISTINCT 
+		API_B_CLASS_CD,API_B_CLASS_NM from
+		SRV_CD_APICLASS 
+		where SRV_ATTR = #{SRV_ATTR} and API_B_CLASS_CD !='04'
+	</select>
+	<select id="getAPI_URL" parameterType="Map" resultType="Map">
+		select  
+		DISTINCT
+		a.API_B_CLASS_CD,a.API_M_CLASS_CD,b.API_CALL_URL
+		from
+		SRV_CD_APICLASS a ,SRV_DT_APIINFO b
+		where a.API_B_CLASS_CD = b.API_B_CLASS_CD and a.API_M_CLASS_CD = b.API_M_CLASS_CD
+		and a.API_B_CLASS_CD = #{API_B_CLASS_CD}
+		and a.SRV_ATTR = #{SRV_ATTR}
+		order by API_M_CLASS_CD
+	</select>
+	<delete id="deleteJIT">
+		delete from SRV_DT_JITINFO  where 
+		 <foreach collection="list" separator="or" item="i" index="index" >
+            (
+				API_B_CLASS_CD = #{i.API_B_CLASS_CD}
+				and API_M_CLASS_CD = #{i.API_M_CLASS_CD}
+				and SEQ = #{i.SEQ}
+			)
+        	 </foreach>
+	</delete>
+	<delete id="deleteAPIPARAM">
+		delete from SRV_DT_APIPARAMINFO  where 
+		 <foreach collection="list" separator="or" item="i" index="index" >
+            (
+				API_B_CLASS_CD = #{i.API_B_CLASS_CD}
+				and API_M_CLASS_CD = #{i.API_M_CLASS_CD}
+				and SEQ = #{i.SEQ}
+			)
+        	 </foreach>
+	</delete>
+	<update id="updateActiveState" parameterType="Map"> 
+		<!-- begin  
+        		<foreach collection="list" item="i" index="index" separator=";" > 
+	            update SRV_DT_JITINFO 
+	            set ACTIVE_YN = #{i.ACTIVE_YN},
+	            MOD_TS=SYSDATE,
+	            MOD_MEMBER_ID= #{i.MEMBER_ID}
+	            where 
+	            API_B_CLASS_CD = #{i.API_B_CLASS_CD}
+				and API_M_CLASS_CD = #{i.API_M_CLASS_CD}
+				and SEQ = #{i.SEQ}  
+            </foreach>
+        ;end; -->
+        update 
+        SRV_DT_JITINFO 
+        set ACTIVE_YN = #{ACTIVE_YN},
+            MOD_TS=SYSDATE,
+            MOD_MEMBER_ID= #{MEMBER_ID}
+        where 
+            API_B_CLASS_CD = #{API_B_CLASS_CD}
+			and API_M_CLASS_CD = #{API_M_CLASS_CD}
+			and SEQ = #{SEQ}  
+	</update>
+	<select id="getSEQ" parameterType="Map" resultType="int">
+		select NVL(MAX(SEQ)+1,1) as SEQ from SRV_DT_JITINFO  where API_B_CLASS_CD = #{API_B_CLASS_CD} and API_M_CLASS_CD = #{API_M_CLASS_CD}
+	</select>
+	<insert id="addDATAJITInfo" parameterType="Map">
+		insert into SRV_DT_JITINFO 
+			(
+				NM,
+				API_B_CLASS_CD,
+				API_M_CLASS_CD,
+				SEQ,
+				API_CALL_URL,
+				API_CONTENT_TYPE,
+				API_METHOD_TYPE,
+				REG_MEMBER_ID,
+				MOD_MEMBER_ID,
+				REG_TS,
+				MOD_TS,
+				ACTIVE_YN
+			)
+		values
+			(
+				#{NM},
+				#{API_B_CLASS_CD},
+				#{API_M_CLASS_CD},
+				#{SEQ},
+				#{API_CALL_URL},
+				#{API_CONTENT_TYPE},
+				#{API_METHOD_TYPE},
+				#{MEMBER_ID},
+				#{MEMBER_ID},
+				sysdate,
+				sysdate,
+				'N'
+			)
+	</insert>
+	<insert id="addDATAJITParam" parameterType="Map">
+		insert into SRV_DT_APIPARAMINFO 
+			(
+				API_B_CLASS_CD,
+				API_M_CLASS_CD,
+				SEQ,
+				PARAM_NM,
+				PARAM_VALUE,
+				PARAM_MUST_YN,
+				PARAM_EXP
+			)
+		values
+			(
+				#{API_B_CLASS_CD},
+				#{API_M_CLASS_CD},
+				#{SEQ},
+				#{PARAM_NM},
+				#{PARAM_VALUE},
+				#{PARAM_MUST_YN},
+				#{PARAM_EXP}
+			)
+	</insert>
+	<insert id="addMAPJITInfo" parameterType="Map">
+		insert into SRV_DT_JITINFO 
+			(
+				NM,
+				API_B_CLASS_CD,
+				API_M_CLASS_CD,
+				SEQ,
+				API_CALL_URL,
+				REG_MEMBER_ID,
+				MOD_MEMBER_ID,
+				REG_TS,
+				MOD_TS,
+				ACTIVE_YN
+			)
+				
+		values
+			(
+				#{NM},
+				#{API_B_CLASS_CD},
+				'01',
+				#{SEQ},
+				'MAP-SAMPLE',
+				#{MEMBER_ID},
+				#{MEMBER_ID},
+				sysdate,
+				sysdate,
+				'N'
+			)
+	</insert>
+	<insert id="addMAPJITParam" parameterType="Map">
+		insert into SRV_DT_APIPARAMINFO 
+			(
+				API_B_CLASS_CD,
+				API_M_CLASS_CD,
+				SEQ,
+				PARAM_NM,
+				PARAM_VALUE,
+				PARAM_MUST_YN
+			)
+		values
+			(
+				#{API_B_CLASS_CD},
+				'01',
+				#{SEQ},
+				'MAP-SAMPLE',
+				#{PARAM_VALUE},
+				'Y'
+			)
+	</insert>
+	<select id="loadJIT" parameterType="Map" resultType="Map">
+		select 
+		NM,API_B_CLASS_CD,API_M_CLASS_CD,SEQ,API_CALL_URL,API_CONTENT_TYPE,API_METHOD_TYPE
+		from SRV_DT_JITINFO
+		where API_B_CLASS_CD = #{API_B_CLASS_CD} and API_M_CLASS_CD = #{API_M_CLASS_CD} and SEQ = #{SEQ}
+	</select>
+	<select id="loadJITParam"  parameterType="Map" resultType="Map">
+		select * from SRV_DT_APIPARAMINFO
+		where API_B_CLASS_CD = #{API_B_CLASS_CD} and API_M_CLASS_CD = #{API_M_CLASS_CD} and SEQ = #{SEQ}
+	</select>
+	<update id="updateMAPJIT" parameterType="Map" >
+		update SRV_DT_JITINFO
+		set 
+		NM = #{NM},
+		MOD_MEMBER_ID = #{MEMBER_ID},
+		MOD_TS = sysdate
+		where 
+		API_B_CLASS_CD = #{API_B_CLASS_CD} and API_M_CLASS_CD = #{API_M_CLASS_CD} and SEQ = #{SEQ}
+	</update>
+	<update id="updateMAPJITParam" parameterType="Map" >
+		update SRV_DT_APIPARAMINFO 
+		set PARAM_VALUE = #{PARAM_VALUE}
+		where 
+		API_B_CLASS_CD = #{API_B_CLASS_CD} and API_M_CLASS_CD = #{API_M_CLASS_CD} and SEQ = #{SEQ}
+	</update>
+	<delete id="deleteJITParam" parameterType="Map">
+	 	delete from SRV_DT_APIPARAMINFO 
+	 	where API_B_CLASS_CD = #{API_B_CLASS_CD} and API_M_CLASS_CD = #{API_M_CLASS_CD} and SEQ = #{SEQ}
+	</delete>
+	<update id="updateDATAJIT" parameterType="Map" >
+		update SRV_DT_JITINFO
+		set 
+		NM = #{NM},
+		API_CONTENT_TYPE = #{API_CONTENT_TYPE},
+		API_METHOD_TYPE = #{API_METHOD_TYPE},
+		MOD_MEMBER_ID = #{MEMBER_ID},
+		MOD_TS = sysdate
+		where 
+		API_B_CLASS_CD = #{API_B_CLASS_CD} and API_M_CLASS_CD = #{API_M_CLASS_CD} and SEQ = #{SEQ}
+	</update>
+</mapper>

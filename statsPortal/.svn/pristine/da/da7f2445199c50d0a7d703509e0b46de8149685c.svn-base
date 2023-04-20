@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="statsMeMap_BizStatsMap_Tchnlgy">
+<!-- My통계로 데이터 수집 업종통계지도: 기술업종통계지도 -->	
+	
+	<!-- Select One 기술업종 코드정의 -->
+	<select id="selectOneCmmCdTechbizCd" parameterType="hashmap" resultType="hashmap">
+		select
+			top 1
+			a.techbiz_m_class_cd
+			,a.techbiz_m_class_cd_nm
+		from
+			cmm_cd_techbiz_cd a with(nolock)
+		where
+			trim(a.techbiz_m_class_cd_nm) = #{techbiz_m_class_cd_nm}
+	</select>
+	
+	<!-- Insert 카탈로그 데이터마트 업종통계지도: 기술업종통계지도 1 -->
+	<insert id="insertSrvDtCtlgDtwrh_BizStatsMap_Tchnlgy_1" parameterType="hashmap">
+		insert into srv_dt_ctlg_dtwrh
+		(
+			stat_data_id
+			,stats_dta_sn
+			,map_ty
+			,area_bndry_se
+			,base_year
+			,adm_cd
+			,adm_nm
+			,sido_cd
+			,sgg_cd
+			,emdong_cd
+			,x_coor
+			,y_coor
+			,poi_se_nm
+			,poi_nm
+			,unit
+			,unit_nm
+			,tooltip_cn
+			,stats_dta_co
+		)
+		select
+			#{stat_data_id} as stat_data_id
+			,${stats_dta_sn}+rownum as stats_dta_sn
+			,'color' as map_ty
+			,case a.region_div
+				when '1' then 'sido'
+				when '2' then 'sgg'
+				when '3' then 'emdong'
+			 end as area_bndry_se
+			,a.base_year as base_year
+			,trim(a.adm_cd) as adm_cd
+			,null as adm_nm
+			,substr(trim(a.adm_cd), 1, 2) as sido_cd
+			,substr(trim(a.adm_cd), 3, 3) as sgg_cd
+			,substr(trim(a.adm_cd), 6, 2) as emdong_cd
+			,null as x_coor
+			,null as y_coor
+			,null as poi_se_nm
+			,null as poi_nm
+			,'개' as unit
+			,'사업체 수' as unit_nm
+			,trim(a.base_year||'년 사업체 수') as tooltip_cn
+			,a.corp_cnt as stats_dta_co
+		from
+			srv_dt_techbiz_chartrinfo a with(nolock)
+		where 1=1
+			and a.base_year = #{stat_data_base_year}
+			and a.techbiz_class_cd = #{techbiz_class_cd}
+			and a.region_div in ('1','2','3')
+	</insert>
+	
+</mapper>

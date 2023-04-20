@@ -1,0 +1,500 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="metamng">
+<!-- 
+===================================================================
+표준용어사전
+===================================================================
+-->
+	<!-- 단위업무 정렬 -->
+	<sql id="orderMetaWordMngSql">
+		<choose>
+			<when test="sort == '' || sort == null">
+				ORDER BY job_setup_seq DESC
+			</when>
+			<otherwise>
+				ORDER BY ${sort} ${order}
+			</otherwise>
+		</choose>
+	</sql>
+	
+	<!-- 단위업무 목록 정보 가져오기 -->
+	<select id="metaWordList" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				  job_setup_seq
+				, job_setup_seq AS id
+				, ROW_NUMBER() OVER (<include refid="orderMetaWordMngSql" />) AS row
+				, job_nm
+				, cl_nm
+				, TO_CHAR(reg_ts,'YYYY-MM-DD') AS reg_ts
+				, COUNT(*) OVER() AS total
+		FROM prj_unit
+		<where>
+			1=1
+			<if test="searchText != null">
+				AND 
+				(
+					cl_nm LIKE '%'||#{searchText}||'%'
+					OR 
+					job_nm LIKE '%'||#{searchText}||'%'
+				)
+			</if>
+		</where>
+		<include refid="orderMetaWordMngSql" />
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+	
+	<!-- 단위업무 상세정보 조회 -->
+    <select id="metaWordDetail" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			job_setup_seq, job_step, job_nm, cl_nm, storage_div_nm, schema_nm, 
+			tbl_nm, tgt_schema_nm, tgt_tbl_nm, qry_txt, geo_method, geo_depth, 
+			geo_key_fld, geo_fld, geo_fld_sido, geo_fld_sgg, geo_fld_emd, geo_fld_ri, 
+       		geo_fld_road, geo_fld_mn, geo_fld_sn, geo_fld_base, geo_fld_bd, geo_fld_bd_sub, 
+       		col_cd, x_fld, y_fld, coord_type, shell_cmd, reg_ts, reg_user_id
+		FROM prj_unit
+		WHERE job_setup_seq = #{job_setup_seq}
+    </select>  
+    
+    <!-- 단위업무를 등록 -->
+    <insert id="metaWordAdd" parameterType="hashmap">
+	    INSERT INTO prj_unit(
+            job_setup_seq, job_step, job_nm, cl_nm, storage_div_nm, 
+            schema_nm, tbl_nm, tgt_schema_nm, tgt_tbl_nm, qry_txt, geo_method, geo_depth, 
+            geo_key_fld, geo_fld, geo_fld_sido, geo_fld_sgg, geo_fld_emd, geo_fld_ri, 
+       		geo_fld_road, geo_fld_mn, geo_fld_sn, geo_fld_base, geo_fld_bd, geo_fld_bd_sub, col_cd,  
+            x_fld, y_fld, coord_type, shell_cmd, reg_ts, reg_user_id
+	    ) VALUES (
+	    	nextval('prj_unit_seq'), #{job_step}, #{job_nm}, #{cl_nm}, #{storage_div_nm}, 
+	    	#{schema_nm}, #{tbl_nm}, #{tgt_schema_nm}, #{tgt_tbl_nm}, #{qry_txt}, #{geo_method}, #{geo_depth}, 
+	    	#{geo_key_fld}, #{geo_fld}, #{geo_fld_sido}, #{geo_fld_sgg}, #{geo_fld_emd}, #{geo_fld_ri}, 
+       		#{geo_fld_road}, #{geo_fld_mn}, #{geo_fld_sn}, #{geo_fld_base}, #{geo_fld_bd}, #{geo_fld_bd_sub},#{col_cd}, 
+	    	#{x_fld}, #{y_fld}, #{coord_type}, #{shell_cmd}, now(), #{user_id}
+	    )
+    </insert>
+    
+<!-- 단위업무를 수정 -->
+    <update id="metaWordEdit" parameterType="hashmap">
+	    UPDATE prj_unit SET
+            job_step = #{job_step}, job_nm = #{job_nm}, cl_nm = #{cl_nm}, storage_div_nm = #{storage_div_nm}, 
+            schema_nm = #{schema_nm}, tbl_nm = #{tbl_nm}, tgt_schema_nm = #{tgt_schema_nm}, tgt_tbl_nm = #{tgt_tbl_nm}, 
+            qry_txt = #{qry_txt}, geo_method = #{geo_method}, geo_key_fld = #{geo_key_fld}, geo_depth = #{geo_depth}, geo_fld = #{geo_fld}, 
+            geo_fld_sido = #{geo_fld_sido}, geo_fld_sgg = #{geo_fld_sgg}, geo_fld_emd = #{geo_fld_emd}, geo_fld_ri = #{geo_fld_ri}, 
+       		geo_fld_road = #{geo_fld_road}, geo_fld_mn = #{geo_fld_mn}, geo_fld_sn = #{geo_fld_sn},
+       		geo_fld_base = #{geo_fld_base}, geo_fld_bd = #{geo_fld_bd}, geo_fld_bd_sub = #{geo_fld_bd_sub}, col_cd = #{col_cd}, 
+            x_fld = #{x_fld}, y_fld = #{y_fld}, coord_type = #{coord_type}, shell_cmd = #{shell_cmd}, mod_ts = now(), mod_user_id = #{user_id}
+	    WHERE job_setup_seq = CAST(#{job_setup_seq} AS int)
+    </update>
+
+	<!-- 단위업무 삭제 -->
+    <delete id="metaWordDel" parameterType="hashmap">
+		DELETE 
+		FROM prj_unit
+		WHERE job_setup_seq IN
+        <foreach collection="jsonArr" item="type"  open="(" close=")" separator=",">
+            CAST(#{type.job_setup_seq} AS int)
+        </foreach>
+    </delete>
+        
+	<!-- 프로젝트 아이디 조회 -->
+    <select id="metaWordID" resultType="string">
+		SELECT cast(nextval('prj_master_hst_seq'::regclass) as character varying)
+    </select>
+<!-- 
+===================================================================
+도메인
+===================================================================
+-->
+
+	<!-- 단위업무 정렬 -->
+	<sql id="orderMetaDomainMngSql">
+		<choose>
+			<when test="sort == '' || sort == null">
+				ORDER BY job_setup_seq DESC
+			</when>
+			<otherwise>
+				ORDER BY ${sort} ${order}
+			</otherwise>
+		</choose>
+	</sql>
+	
+	<!-- 단위업무 목록 정보 가져오기 -->
+	<select id="metaDomainList" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				  job_setup_seq
+				, job_setup_seq AS id
+				, ROW_NUMBER() OVER (<include refid="orderMetaDomainMngSql" />) AS row
+				, job_nm
+				, cl_nm
+				, TO_CHAR(reg_ts,'YYYY-MM-DD') AS reg_ts
+				, COUNT(*) OVER() AS total
+		FROM prj_unit
+		<where>
+			1=1
+			<if test="searchText != null">
+				AND 
+				(
+					cl_nm LIKE '%'||#{searchText}||'%'
+					OR 
+					job_nm LIKE '%'||#{searchText}||'%'
+				)
+			</if>
+		</where>
+		<include refid="orderMetaDomainMngSql" />
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+	
+	<!-- 단위업무 상세정보 조회 -->
+    <select id="metaDomainDetail" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			job_setup_seq, job_step, job_nm, cl_nm, storage_div_nm, schema_nm, 
+			tbl_nm, tgt_schema_nm, tgt_tbl_nm, qry_txt, geo_method, geo_depth, 
+			geo_key_fld, geo_fld, geo_fld_sido, geo_fld_sgg, geo_fld_emd, geo_fld_ri, 
+       		geo_fld_road, geo_fld_mn, geo_fld_sn, geo_fld_base, geo_fld_bd, geo_fld_bd_sub, 
+       		col_cd, x_fld, y_fld, coord_type, shell_cmd, reg_ts, reg_user_id
+		FROM prj_unit
+		WHERE job_setup_seq = #{job_setup_seq}
+    </select>  
+    
+    <!-- 단위업무를 등록 -->
+    <insert id="metaDomainAdd" parameterType="hashmap">
+	    INSERT INTO prj_unit(
+            job_setup_seq, job_step, job_nm, cl_nm, storage_div_nm, 
+            schema_nm, tbl_nm, tgt_schema_nm, tgt_tbl_nm, qry_txt, geo_method, geo_depth, 
+            geo_key_fld, geo_fld, geo_fld_sido, geo_fld_sgg, geo_fld_emd, geo_fld_ri, 
+       		geo_fld_road, geo_fld_mn, geo_fld_sn, geo_fld_base, geo_fld_bd, geo_fld_bd_sub, col_cd,  
+            x_fld, y_fld, coord_type, shell_cmd, reg_ts, reg_user_id
+	    ) VALUES (
+	    	nextval('prj_unit_seq'), #{job_step}, #{job_nm}, #{cl_nm}, #{storage_div_nm}, 
+	    	#{schema_nm}, #{tbl_nm}, #{tgt_schema_nm}, #{tgt_tbl_nm}, #{qry_txt}, #{geo_method}, #{geo_depth}, 
+	    	#{geo_key_fld}, #{geo_fld}, #{geo_fld_sido}, #{geo_fld_sgg}, #{geo_fld_emd}, #{geo_fld_ri}, 
+       		#{geo_fld_road}, #{geo_fld_mn}, #{geo_fld_sn}, #{geo_fld_base}, #{geo_fld_bd}, #{geo_fld_bd_sub},#{col_cd}, 
+	    	#{x_fld}, #{y_fld}, #{coord_type}, #{shell_cmd}, now(), #{user_id}
+	    )
+    </insert>
+    
+<!-- 단위업무를 수정 -->
+    <update id="metaDomainEdit" parameterType="hashmap">
+	    UPDATE prj_unit SET
+            job_step = #{job_step}, job_nm = #{job_nm}, cl_nm = #{cl_nm}, storage_div_nm = #{storage_div_nm}, 
+            schema_nm = #{schema_nm}, tbl_nm = #{tbl_nm}, tgt_schema_nm = #{tgt_schema_nm}, tgt_tbl_nm = #{tgt_tbl_nm}, 
+            qry_txt = #{qry_txt}, geo_method = #{geo_method}, geo_key_fld = #{geo_key_fld}, geo_depth = #{geo_depth}, geo_fld = #{geo_fld}, 
+            geo_fld_sido = #{geo_fld_sido}, geo_fld_sgg = #{geo_fld_sgg}, geo_fld_emd = #{geo_fld_emd}, geo_fld_ri = #{geo_fld_ri}, 
+       		geo_fld_road = #{geo_fld_road}, geo_fld_mn = #{geo_fld_mn}, geo_fld_sn = #{geo_fld_sn},
+       		geo_fld_base = #{geo_fld_base}, geo_fld_bd = #{geo_fld_bd}, geo_fld_bd_sub = #{geo_fld_bd_sub}, col_cd = #{col_cd}, 
+            x_fld = #{x_fld}, y_fld = #{y_fld}, coord_type = #{coord_type}, shell_cmd = #{shell_cmd}, mod_ts = now(), mod_user_id = #{user_id}
+	    WHERE job_setup_seq = CAST(#{job_setup_seq} AS int)
+    </update>
+
+	<!-- 단위업무 삭제 -->
+    <delete id="metaDomainDel" parameterType="hashmap">
+		DELETE 
+		FROM prj_unit
+		WHERE job_setup_seq IN
+        <foreach collection="jsonArr" item="type"  open="(" close=")" separator=",">
+            CAST(#{type.job_setup_seq} AS int)
+        </foreach>
+    </delete>
+        
+	<!-- 프로젝트 아이디 조회 -->
+    <select id="metaDomainID" resultType="string">
+		SELECT cast(nextval('prj_master_hst_seq'::regclass) as character varying)
+    </select>
+<!-- 
+===================================================================
+코드
+===================================================================
+-->
+	<!-- 단위업무 정렬 -->
+	<sql id="orderMetaCodeMngSql">
+		<choose>
+			<when test="sort == '' || sort == null">
+				ORDER BY job_setup_seq DESC
+			</when>
+			<otherwise>
+				ORDER BY ${sort} ${order}
+			</otherwise>
+		</choose>
+	</sql>
+	
+	<!-- 단위업무 목록 정보 가져오기 -->
+	<select id="metaCodeList" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				  job_setup_seq
+				, job_setup_seq AS id
+				, ROW_NUMBER() OVER (<include refid="orderMetaCodeMngSql" />) AS row
+				, job_nm
+				, cl_nm
+				, TO_CHAR(reg_ts,'YYYY-MM-DD') AS reg_ts
+				, COUNT(*) OVER() AS total
+		FROM prj_unit
+		<where>
+			1=1
+			<if test="searchText != null">
+				AND 
+				(
+					cl_nm LIKE '%'||#{searchText}||'%'
+					OR 
+					job_nm LIKE '%'||#{searchText}||'%'
+				)
+			</if>
+		</where>
+		<include refid="orderMetaCodeMngSql" />
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+	
+	<!-- 단위업무 상세정보 조회 -->
+    <select id="metaCodeDetail" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			job_setup_seq, job_step, job_nm, cl_nm, storage_div_nm, schema_nm, 
+			tbl_nm, tgt_schema_nm, tgt_tbl_nm, qry_txt, geo_method, geo_depth, 
+			geo_key_fld, geo_fld, geo_fld_sido, geo_fld_sgg, geo_fld_emd, geo_fld_ri, 
+       		geo_fld_road, geo_fld_mn, geo_fld_sn, geo_fld_base, geo_fld_bd, geo_fld_bd_sub, 
+       		col_cd, x_fld, y_fld, coord_type, shell_cmd, reg_ts, reg_user_id
+		FROM prj_unit
+		WHERE job_setup_seq = #{job_setup_seq}
+    </select>  
+    
+    <!-- 단위업무를 등록 -->
+    <insert id="metaCodeAdd" parameterType="hashmap">
+	    INSERT INTO prj_unit(
+            job_setup_seq, job_step, job_nm, cl_nm, storage_div_nm, 
+            schema_nm, tbl_nm, tgt_schema_nm, tgt_tbl_nm, qry_txt, geo_method, geo_depth, 
+            geo_key_fld, geo_fld, geo_fld_sido, geo_fld_sgg, geo_fld_emd, geo_fld_ri, 
+       		geo_fld_road, geo_fld_mn, geo_fld_sn, geo_fld_base, geo_fld_bd, geo_fld_bd_sub, col_cd,  
+            x_fld, y_fld, coord_type, shell_cmd, reg_ts, reg_user_id
+	    ) VALUES (
+	    	nextval('prj_unit_seq'), #{job_step}, #{job_nm}, #{cl_nm}, #{storage_div_nm}, 
+	    	#{schema_nm}, #{tbl_nm}, #{tgt_schema_nm}, #{tgt_tbl_nm}, #{qry_txt}, #{geo_method}, #{geo_depth}, 
+	    	#{geo_key_fld}, #{geo_fld}, #{geo_fld_sido}, #{geo_fld_sgg}, #{geo_fld_emd}, #{geo_fld_ri}, 
+       		#{geo_fld_road}, #{geo_fld_mn}, #{geo_fld_sn}, #{geo_fld_base}, #{geo_fld_bd}, #{geo_fld_bd_sub},#{col_cd}, 
+	    	#{x_fld}, #{y_fld}, #{coord_type}, #{shell_cmd}, now(), #{user_id}
+	    )
+    </insert>
+    
+<!-- 단위업무를 수정 -->
+    <update id="metaCodeEdit" parameterType="hashmap">
+	    UPDATE prj_unit SET
+            job_step = #{job_step}, job_nm = #{job_nm}, cl_nm = #{cl_nm}, storage_div_nm = #{storage_div_nm}, 
+            schema_nm = #{schema_nm}, tbl_nm = #{tbl_nm}, tgt_schema_nm = #{tgt_schema_nm}, tgt_tbl_nm = #{tgt_tbl_nm}, 
+            qry_txt = #{qry_txt}, geo_method = #{geo_method}, geo_key_fld = #{geo_key_fld}, geo_depth = #{geo_depth}, geo_fld = #{geo_fld}, 
+            geo_fld_sido = #{geo_fld_sido}, geo_fld_sgg = #{geo_fld_sgg}, geo_fld_emd = #{geo_fld_emd}, geo_fld_ri = #{geo_fld_ri}, 
+       		geo_fld_road = #{geo_fld_road}, geo_fld_mn = #{geo_fld_mn}, geo_fld_sn = #{geo_fld_sn},
+       		geo_fld_base = #{geo_fld_base}, geo_fld_bd = #{geo_fld_bd}, geo_fld_bd_sub = #{geo_fld_bd_sub}, col_cd = #{col_cd}, 
+            x_fld = #{x_fld}, y_fld = #{y_fld}, coord_type = #{coord_type}, shell_cmd = #{shell_cmd}, mod_ts = now(), mod_user_id = #{user_id}
+	    WHERE job_setup_seq = CAST(#{job_setup_seq} AS int)
+    </update>
+
+	<!-- 단위업무 삭제 -->
+    <delete id="metaCodeDel" parameterType="hashmap">
+		DELETE 
+		FROM prj_unit
+		WHERE job_setup_seq IN
+        <foreach collection="jsonArr" item="type"  open="(" close=")" separator=",">
+            CAST(#{type.job_setup_seq} AS int)
+        </foreach>
+    </delete>
+        
+	<!-- 프로젝트 아이디 조회 -->
+    <select id="metaCodeID" resultType="string">
+		SELECT cast(nextval('prj_master_hst_seq'::regclass) as character varying)
+    </select>
+<!-- 
+===================================================================
+정보시스템
+===================================================================
+-->
+	<!-- 단위업무 정렬 -->
+	<sql id="orderMetaSysInfoMngSql">
+		<choose>
+			<when test="sort == '' || sort == null">
+				ORDER BY job_setup_seq DESC
+			</when>
+			<otherwise>
+				ORDER BY ${sort} ${order}
+			</otherwise>
+		</choose>
+	</sql>
+	
+	<!-- 단위업무 목록 정보 가져오기 -->
+	<select id="metaSysInfoList" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				  job_setup_seq
+				, job_setup_seq AS id
+				, ROW_NUMBER() OVER (<include refid="orderMetaSysInfoMngSql" />) AS row
+				, job_nm
+				, cl_nm
+				, TO_CHAR(reg_ts,'YYYY-MM-DD') AS reg_ts
+				, COUNT(*) OVER() AS total
+		FROM prj_unit
+		<where>
+			1=1
+			<if test="searchText != null">
+				AND 
+				(
+					cl_nm LIKE '%'||#{searchText}||'%'
+					OR 
+					job_nm LIKE '%'||#{searchText}||'%'
+				)
+			</if>
+		</where>
+		<include refid="orderMetaSysInfoMngSql" />
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+	
+	<!-- 단위업무 상세정보 조회 -->
+    <select id="metaSysInfoDetail" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			job_setup_seq, job_step, job_nm, cl_nm, storage_div_nm, schema_nm, 
+			tbl_nm, tgt_schema_nm, tgt_tbl_nm, qry_txt, geo_method, geo_depth, 
+			geo_key_fld, geo_fld, geo_fld_sido, geo_fld_sgg, geo_fld_emd, geo_fld_ri, 
+       		geo_fld_road, geo_fld_mn, geo_fld_sn, geo_fld_base, geo_fld_bd, geo_fld_bd_sub, 
+       		col_cd, x_fld, y_fld, coord_type, shell_cmd, reg_ts, reg_user_id
+		FROM prj_unit
+		WHERE job_setup_seq = #{job_setup_seq}
+    </select>  
+    
+    <!-- 단위업무를 등록 -->
+    <insert id="metaSysInfoAdd" parameterType="hashmap">
+	    INSERT INTO prj_unit(
+            job_setup_seq, job_step, job_nm, cl_nm, storage_div_nm, 
+            schema_nm, tbl_nm, tgt_schema_nm, tgt_tbl_nm, qry_txt, geo_method, geo_depth, 
+            geo_key_fld, geo_fld, geo_fld_sido, geo_fld_sgg, geo_fld_emd, geo_fld_ri, 
+       		geo_fld_road, geo_fld_mn, geo_fld_sn, geo_fld_base, geo_fld_bd, geo_fld_bd_sub, col_cd,  
+            x_fld, y_fld, coord_type, shell_cmd, reg_ts, reg_user_id
+	    ) VALUES (
+	    	nextval('prj_unit_seq'), #{job_step}, #{job_nm}, #{cl_nm}, #{storage_div_nm}, 
+	    	#{schema_nm}, #{tbl_nm}, #{tgt_schema_nm}, #{tgt_tbl_nm}, #{qry_txt}, #{geo_method}, #{geo_depth}, 
+	    	#{geo_key_fld}, #{geo_fld}, #{geo_fld_sido}, #{geo_fld_sgg}, #{geo_fld_emd}, #{geo_fld_ri}, 
+       		#{geo_fld_road}, #{geo_fld_mn}, #{geo_fld_sn}, #{geo_fld_base}, #{geo_fld_bd}, #{geo_fld_bd_sub},#{col_cd}, 
+	    	#{x_fld}, #{y_fld}, #{coord_type}, #{shell_cmd}, now(), #{user_id}
+	    )
+    </insert>
+    
+<!-- 단위업무를 수정 -->
+    <update id="metaSysInfoEdit" parameterType="hashmap">
+	    UPDATE prj_unit SET
+            job_step = #{job_step}, job_nm = #{job_nm}, cl_nm = #{cl_nm}, storage_div_nm = #{storage_div_nm}, 
+            schema_nm = #{schema_nm}, tbl_nm = #{tbl_nm}, tgt_schema_nm = #{tgt_schema_nm}, tgt_tbl_nm = #{tgt_tbl_nm}, 
+            qry_txt = #{qry_txt}, geo_method = #{geo_method}, geo_key_fld = #{geo_key_fld}, geo_depth = #{geo_depth}, geo_fld = #{geo_fld}, 
+            geo_fld_sido = #{geo_fld_sido}, geo_fld_sgg = #{geo_fld_sgg}, geo_fld_emd = #{geo_fld_emd}, geo_fld_ri = #{geo_fld_ri}, 
+       		geo_fld_road = #{geo_fld_road}, geo_fld_mn = #{geo_fld_mn}, geo_fld_sn = #{geo_fld_sn},
+       		geo_fld_base = #{geo_fld_base}, geo_fld_bd = #{geo_fld_bd}, geo_fld_bd_sub = #{geo_fld_bd_sub}, col_cd = #{col_cd}, 
+            x_fld = #{x_fld}, y_fld = #{y_fld}, coord_type = #{coord_type}, shell_cmd = #{shell_cmd}, mod_ts = now(), mod_user_id = #{user_id}
+	    WHERE job_setup_seq = CAST(#{job_setup_seq} AS int)
+    </update>
+
+	<!-- 단위업무 삭제 -->
+    <delete id="metaSysInfoDel" parameterType="hashmap">
+		DELETE 
+		FROM prj_unit
+		WHERE job_setup_seq IN
+        <foreach collection="jsonArr" item="type"  open="(" close=")" separator=",">
+            CAST(#{type.job_setup_seq} AS int)
+        </foreach>
+    </delete>
+        
+	<!-- 프로젝트 아이디 조회 -->
+    <select id="metaSysInfoID" resultType="string">
+		SELECT cast(nextval('prj_master_hst_seq'::regclass) as character varying)
+    </select>
+<!-- 
+===================================================================
+테이블
+===================================================================
+-->
+	<!-- 단위업무 정렬 -->
+	<sql id="orderMetaTblMngSql">
+		<choose>
+			<when test="sort == '' || sort == null">
+				ORDER BY job_setup_seq DESC
+			</when>
+			<otherwise>
+				ORDER BY ${sort} ${order}
+			</otherwise>
+		</choose>
+	</sql>
+	
+	<!-- 단위업무 목록 정보 가져오기 -->
+	<select id="metaTblList" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+				  job_setup_seq
+				, job_setup_seq AS id
+				, ROW_NUMBER() OVER (<include refid="orderMetaTblMngSql" />) AS row
+				, job_nm
+				, cl_nm
+				, TO_CHAR(reg_ts,'YYYY-MM-DD') AS reg_ts
+				, COUNT(*) OVER() AS total
+		FROM prj_unit
+		<where>
+			1=1
+			<if test="searchText != null">
+				AND 
+				(
+					cl_nm LIKE '%'||#{searchText}||'%'
+					OR 
+					job_nm LIKE '%'||#{searchText}||'%'
+				)
+			</if>
+		</where>
+		<include refid="orderMetaTblMngSql" />
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+	
+	<!-- 단위업무 상세정보 조회 -->
+    <select id="metaTblDetail" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+			job_setup_seq, job_step, job_nm, cl_nm, storage_div_nm, schema_nm, 
+			tbl_nm, tgt_schema_nm, tgt_tbl_nm, qry_txt, geo_method, geo_depth, 
+			geo_key_fld, geo_fld, geo_fld_sido, geo_fld_sgg, geo_fld_emd, geo_fld_ri, 
+       		geo_fld_road, geo_fld_mn, geo_fld_sn, geo_fld_base, geo_fld_bd, geo_fld_bd_sub, 
+       		col_cd, x_fld, y_fld, coord_type, shell_cmd, reg_ts, reg_user_id
+		FROM prj_unit
+		WHERE job_setup_seq = #{job_setup_seq}
+    </select>  
+    
+    <!-- 단위업무를 등록 -->
+    <insert id="metaTblAdd" parameterType="hashmap">
+	    INSERT INTO prj_unit(
+            job_setup_seq, job_step, job_nm, cl_nm, storage_div_nm, 
+            schema_nm, tbl_nm, tgt_schema_nm, tgt_tbl_nm, qry_txt, geo_method, geo_depth, 
+            geo_key_fld, geo_fld, geo_fld_sido, geo_fld_sgg, geo_fld_emd, geo_fld_ri, 
+       		geo_fld_road, geo_fld_mn, geo_fld_sn, geo_fld_base, geo_fld_bd, geo_fld_bd_sub, col_cd,  
+            x_fld, y_fld, coord_type, shell_cmd, reg_ts, reg_user_id
+	    ) VALUES (
+	    	nextval('prj_unit_seq'), #{job_step}, #{job_nm}, #{cl_nm}, #{storage_div_nm}, 
+	    	#{schema_nm}, #{tbl_nm}, #{tgt_schema_nm}, #{tgt_tbl_nm}, #{qry_txt}, #{geo_method}, #{geo_depth}, 
+	    	#{geo_key_fld}, #{geo_fld}, #{geo_fld_sido}, #{geo_fld_sgg}, #{geo_fld_emd}, #{geo_fld_ri}, 
+       		#{geo_fld_road}, #{geo_fld_mn}, #{geo_fld_sn}, #{geo_fld_base}, #{geo_fld_bd}, #{geo_fld_bd_sub},#{col_cd}, 
+	    	#{x_fld}, #{y_fld}, #{coord_type}, #{shell_cmd}, now(), #{user_id}
+	    )
+    </insert>
+    
+<!-- 단위업무를 수정 -->
+    <update id="metaTblEdit" parameterType="hashmap">
+	    UPDATE prj_unit SET
+            job_step = #{job_step}, job_nm = #{job_nm}, cl_nm = #{cl_nm}, storage_div_nm = #{storage_div_nm}, 
+            schema_nm = #{schema_nm}, tbl_nm = #{tbl_nm}, tgt_schema_nm = #{tgt_schema_nm}, tgt_tbl_nm = #{tgt_tbl_nm}, 
+            qry_txt = #{qry_txt}, geo_method = #{geo_method}, geo_key_fld = #{geo_key_fld}, geo_depth = #{geo_depth}, geo_fld = #{geo_fld}, 
+            geo_fld_sido = #{geo_fld_sido}, geo_fld_sgg = #{geo_fld_sgg}, geo_fld_emd = #{geo_fld_emd}, geo_fld_ri = #{geo_fld_ri}, 
+       		geo_fld_road = #{geo_fld_road}, geo_fld_mn = #{geo_fld_mn}, geo_fld_sn = #{geo_fld_sn},
+       		geo_fld_base = #{geo_fld_base}, geo_fld_bd = #{geo_fld_bd}, geo_fld_bd_sub = #{geo_fld_bd_sub}, col_cd = #{col_cd}, 
+            x_fld = #{x_fld}, y_fld = #{y_fld}, coord_type = #{coord_type}, shell_cmd = #{shell_cmd}, mod_ts = now(), mod_user_id = #{user_id}
+	    WHERE job_setup_seq = CAST(#{job_setup_seq} AS int)
+    </update>
+
+	<!-- 단위업무 삭제 -->
+    <delete id="metaTblDel" parameterType="hashmap">
+		DELETE 
+		FROM prj_unit
+		WHERE job_setup_seq IN
+        <foreach collection="jsonArr" item="type"  open="(" close=")" separator=",">
+            CAST(#{type.job_setup_seq} AS int)
+        </foreach>
+    </delete>
+        
+	<!-- 프로젝트 아이디 조회 -->
+    <select id="metaTblID" resultType="string">
+		SELECT cast(nextval('prj_master_hst_seq'::regclass) as character varying)
+    </select>
+</mapper>

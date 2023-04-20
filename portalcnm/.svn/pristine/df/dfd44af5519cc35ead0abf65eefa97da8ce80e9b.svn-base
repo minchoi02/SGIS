@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="USESRVSearch">
+	<select id="getUSESRV_CNT" parameterType="String"  resultType="int">
+		select NVL(count(*),0) as CNT from SRV_DT_USESRVINFO where 1=1
+		<if test="_parameter!=null and _parameter!=''">and GRANT_STATE = #{GRANT_STATE}</if>
+	</select>
+	<select id="searchUSERSERV" parameterType="Map"  resultType="Map">
+		select * from
+		(
+		select
+		ROWNUM r,
+		a.SRV_ID,
+		a.API_AUTH_KEY_TYPE,
+		a.SRV_NM,
+		a.CASE_APP_OPEN_YN,
+		a.CASE_APP_SHARE_YN,
+		SUBSTR(TO_CHAR(a.SRV_APPLY_DT,'yyyy-MM-dd'),0,10) as SRV_APPLY_DT,
+		SUBSTR(TO_CHAR(a.SRV_GRANT_DT,'yyyy-MM-dd'),0,10) as SRV_GRANT_DT,
+		a.GRANT_STATE,
+		a.MEMBER_ID
+		FROM
+		(
+		select
+		SRV_ID,
+		API_AUTH_KEY_TYPE,
+		SRV_NM,
+		CASE_APP_OPEN_YN,
+		CASE_APP_SHARE_YN,
+		SRV_APPLY_DT,
+		SRV_GRANT_DT,
+		GRANT_STATE,
+		MEMBER_ID
+		from SRV_DT_USESRVINFO
+		where 1=1
+		<if test="API_AUTH_KEY_TYPE != null and  API_AUTH_KEY_TYPE != 'ALL' ">and API_AUTH_KEY_TYPE = #{API_AUTH_KEY_TYPE}</if>
+		<if test="GRANT_STATE != null and GRANT_STATE != 'ALL'">and GRANT_STATE=#{GRANT_STATE}</if>
+		<if test="CASE_APP_OPEN_YN != null and CASE_APP_OPEN_YN !='ALL' ">and CASE_APP_OPEN_YN=#{CASE_APP_OPEN_YN}</if>
+		<if test="CASE_APP_SHARE_YN != null and CASE_APP_SHARE_YN !='ALL' ">and CASE_APP_SHARE_YN=#{CASE_APP_SHARE_YN}</if>
+		<if test="SEARCHTYPE == 'SRV_APPLY_DT'">
+			and TO_CHAR(SRV_APPLY_DT,'yyyy-MM-dd') <![CDATA[>=]]> #{STARTDATE} and TO_CHAR(SRV_APPLY_DT,'yyyy-MM-dd') <![CDATA[<=]]> #{ENDDATE}
+		</if>
+		<if test="SEARCHTYPE == 'SRV_GRANT_DT'">
+			and TO_CHAR(SRV_GRANT_DT,'yyyy-MM-dd') <![CDATA[>=]]> #{STARTDATE} and TO_CHAR(SRV_GRANT_DT,'yyyy-MM-dd') <![CDATA[<=]]> #{ENDDATE}
+		</if>
+		<if test="sort=='SRV_GRANT_DT'and order == 'desc'">
+		    order by SRV_GRANT_DT desc
+		</if>
+		<if test="sort=='SRV_GRANT_DT'and order == 'asc'">
+		    order by SRV_GRANT_DT asc
+		</if>
+		<if test="sort=='SRV_APPLY_DT'and order == 'desc'">
+		    order by SRV_APPLY_DT desc
+		</if>
+		<if test="sort=='SRV_APPLY_DT'and order == 'asc'">
+		    order by SRV_APPLY_DT asc
+		</if>		
+		
+		) a
+		where ROWNUM <![CDATA[<=]]> #{END_INDEX}
+		)
+		where r <![CDATA[>=]]> #{START_INDEX}
+	</select>
+	<select id="searchTotalCount" parameterType="Map"  resultType="int">
+		select NVL(count(*),0) as CNT from SRV_DT_USESRVINFO
+		where 1=1
+		<if test="API_AUTH_KEY_TYPE != null and  API_AUTH_KEY_TYPE != 'ALL' ">and API_AUTH_KEY_TYPE = #{API_AUTH_KEY_TYPE}</if>
+		<if test="GRANT_STATE != null and GRANT_STATE != 'ALL'">and GRANT_STATE=#{GRANT_STATE}</if>
+		<if test="CASE_APP_OPEN_YN != null and CASE_APP_OPEN_YN !='ALL' ">and CASE_APP_OPEN_YN=#{CASE_APP_OPEN_YN}</if>
+		<if test="CASE_APP_SHARE_YN != null and CASE_APP_SHARE_YN !='ALL' ">and CASE_APP_SHARE_YN=#{CASE_APP_SHARE_YN}</if>
+		<if test="SEARCHTYPE == 'SRV_APPLY_DT'">
+			and TO_CHAR(SRV_APPLY_DT,'yyyy-MM-dd') <![CDATA[>=]]> #{STARTDATE} and TO_CHAR(SRV_APPLY_DT,'yyyy-MM-dd') <![CDATA[<=]]> #{ENDDATE}
+		</if>
+		<if test="SEARCHTYPE == 'SRV_GRANT_DT'">
+			and TO_CHAR(SRV_GRANT_DT,'yyyy-MM-dd') <![CDATA[>=]]> #{STARTDATE} and TO_CHAR(SRV_GRANT_DT,'yyyy-MM-dd') <![CDATA[<=]]> #{ENDDATE}
+		</if>
+	</select>
+	<select id="getUSESRVDetail" parameterType="String"  resultType="Map">SELECT
+		a.SRV_NM,
+		SUBSTR(TO_CHAR(a.SRV_APPLY_DT,'yyyy-MM-dd'),0,10) as SRV_APPLY_DT,
+		a.SRV_EXP,
+		a.SRV_ID,
+		a.SECRET_KEY,
+		a.MEMBER_ID,
+		FN_GET_MEMBERNM( a.MEMBER_ID ) as MEMBER_NM,
+		a.API_AUTH_KEY_TYPE,
+		SUBSTR(TO_CHAR(a.SRV_START_DT,'yyyy-MM-dd'),0,10) as SRV_START_DT,
+		SUBSTR(TO_CHAR(a.SRV_END_DT,'yyyy-MM-dd'),0,10) as SRV_END_DT,
+		a.SRV_APPLY_URL,
+		a.CASE_APP_OPEN_YN,
+		a.CASE_APP_SHARE_YN,
+		a.GRANT_STATE
+		FROM SRV_DT_USESRVINFO a
+		where SRV_ID = #{SRV_ID}</select>
+	<select id="getUSESRVChangeHistory" parameterType="String"  resultType="Map">select
+        CHG_STATE,
+        SUBSTR(CHG_TS,0,16) as CHG_TS,
+        CHG_REASON
+        from SRV_DT_CHANGEHISTORY
+        where SRV_ID = #{SRV_ID}
+        order by CHG_TS DESC</select>
+	<delete id="deleteUSESRV">
+		delete from SRV_DT_USESRVINFO where SRV_ID in
+		<foreach collection="array" index="index" item="item" open="(" separator="," close=")">#{item}</foreach>
+	</delete>
+	<update id="updateUSESRV" parameterType="Map">
+		update SRV_DT_USESRVINFO set
+		<if test="SRV_END_DT != null">SRV_END_DT= #{SRV_END_DT},</if>
+		CASE_APP_OPEN_YN = #{CASE_APP_OPEN_YN},
+		CASE_APP_SHARE_YN = #{CASE_APP_SHARE_YN},
+		GRANT_STATE = #{GRANT_STATE}
+		where SRV_ID = #{SRV_ID}
+	</update>
+	<insert id="addUSESRVChangeHistory" parameterType="Map">insert into  SRV_DT_CHANGEHISTORY
+		(
+		CHG_TS,
+		SRV_ID,
+		API_AUTH_KEY_TYPE,
+		CHG_STATE,
+		CHG_REASON
+		)
+		values
+		(
+		sysdate,
+		#{SRV_ID},
+		#{API_AUTH_KEY_TYPE},
+		#{GRANT_STATE},
+		#{CHG_REASON}
+		)</insert>
+</mapper>

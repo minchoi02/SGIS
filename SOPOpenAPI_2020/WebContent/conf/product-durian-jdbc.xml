@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns:p="http://www.springframework.org/schema/p"
+xsi:schemaLocation="http://www.springframework.org/schema/beans    
+http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+
+	<beans profile="product">
+		<!-- SGIS+ 제우스 Pool 설정 -->
+		<!-- 제우스 Pool Name = jdbc/sgis2015 -->
+		<bean id="dataSource-kairos" class="org.springframework.jndi.JndiObjectFactoryBean">
+	     	<property name="jndiName" value="jdbc/sgis" />
+	     	<property name="lookupOnStartup" value="false" />
+	     	<property name="cache" value="true" />
+	     	<property name="proxyInterface" value="javax.sql.DataSource" />
+		</bean>
+	     
+		<bean id="db.dataSource" class="org.mybatis.spring.SqlSessionFactoryBean">
+			<property name="dataSource" ref="dataSource-kairos"/>
+			<property name="configLocation" value="/conf/dbms-config.xml"/>
+			<property name="mapperLocations" value="classpath*:kostat/**/*.xsql"/>
+		</bean>
+		
+		<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+	  		<constructor-arg index="0" ref="db.dataSource" />
+		</bean>
+
+		<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+	  		<constructor-arg index="0" ref="db.dataSource" />
+		</bean>
+	</beans>
+
+</beans>

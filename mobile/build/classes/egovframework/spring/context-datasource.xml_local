@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans 
+	xmlns="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/jdbc  http://www.springframework.org/schema/jdbc/spring-jdbc-4.0.xsd
+	">
+	<bean id="propertyPlaceholderConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<value>classpath:globals.properties</value>
+		</property>
+	</bean>
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${Globals.Config.kairos.jdbc.driverClassName}"/>
+		<property name="url" value="${Globals.Config.kairos.jdbc.url}" />
+		<property name="username" value="${Globals.Config.kairos.jdbc.username}"/>
+		<property name="password" value="${Globals.Config.kairos.jdbc.password}"/>
+		<property name="validationQuery" value="SELECT 1 FROM DUAL"/>
+		<property name="initialSize" value="1" />
+		<property name="maxActive" value="2" />
+		<property name="maxIdle" value="2" />
+		<property name="minIdle" value="1" />
+		<property name="minEvictableIdleTimeMillis" value="300000" />	
+		<property name="timeBetweenEvictionRunsMillis" value="300000" />
+		<property name="numTestsPerEvictionRun" value="5" />
+		<property name="testOnBorrow" value="true" />
+		<property name="testWhileIdle" value="true" />
+		<property name="testOnReturn" value="false" />
+	</bean>
+</beans>

@@ -1,0 +1,648 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="statsMeCatalog">
+	
+	<!-- 통계지리 정보 목록 조회 -->
+	<select id="selectStatsGrphInfoList" parameterType="hashmap" resultType="hashmap">
+		<if test='searchKwrd != null or recomendKwrd != null'>
+			WITH W_CTLG_KWRD AS (SELECT CTLG_MAIN_KWRD_SERIAL
+								   FROM SRV_DT_CTLG_MAIN_KWRD_LIST WITH(NOLOCK)
+								  WHERE USE_YN = 'Y'
+								  <if test='searchKwrd != null and searchKwrd != ""'>
+									AND REPLACE(CTLG_MAIN_KWRD, ' ', '') = REPLACE('${searchKwrd}', ' ', '')
+								  </if>
+								  <if test='recomendKwrd != null and recomendKwrd != ""'>
+									AND REPLACE(CTLG_MAIN_KWRD, ' ', '') = REPLACE('${recomendKwrd}', ' ', '')
+								  </if>
+								)
+		</if>
+		SELECT CASE
+			   <if test='lifeCycleItemIdList != null'>
+				  WHEN A.STAT_DATA_NM = '영유아/어린이' THEN 0
+				  WHEN A.STAT_DATA_NM = '영유아/어린이(남자)' THEN 1
+				  WHEN A.STAT_DATA_NM = '영유아/어린이(여자)' THEN 2
+				  WHEN A.STAT_DATA_NM = '청소년' THEN 3
+				  WHEN A.STAT_DATA_NM = '청소년(남자)' THEN 4
+				  WHEN A.STAT_DATA_NM = '청소년(여자)' THEN 5
+				  WHEN A.STAT_DATA_NM = '청년' THEN 6
+				  WHEN A.STAT_DATA_NM = '청년(남자)' THEN 7
+				  WHEN A.STAT_DATA_NM = '청년(여자)' THEN 8
+				  /* 2020.08.19[한광희] My통계로 청년/장년 기준나이 및 명칭 변경으로 인한 수정 START */
+				  WHEN A.STAT_DATA_NM = '중장년' THEN 9
+				  WHEN A.STAT_DATA_NM = '중장년(남자)' THEN 10
+				  WHEN A.STAT_DATA_NM = '중장년(여자)' THEN 11
+				  /* 2020.08.19[한광희] My통계로 청년/장년 기준나이 및 명칭 변경으로 인한 수정 END */
+				  WHEN A.STAT_DATA_NM = '노년' THEN 12
+				  WHEN A.STAT_DATA_NM = '노년(남자)' THEN 13
+				  WHEN A.STAT_DATA_NM = '노년(여자)' THEN 14
+				  /* 2020.08.20[한광희] My통계로 1인가구 수,1인가구(남성) 인구 현황,1인가구(여성) 인구 현황 카탈로그 목록 1인가구 선택시 상단 표출 수정 START */
+				  WHEN A.STAT_DATA_NM = '1인가구수' THEN 15
+				  WHEN A.STAT_DATA_NM = '1인가구(남성) 인구 현황' THEN 16
+				  WHEN A.STAT_DATA_NM = '1인가구(여성) 인구 현황' THEN 17
+				  /* 2020.08.20[한광희] My통계로 1인가구 수,1인가구(남성) 인구 현황,1인가구(여성) 인구 현황 카탈로그 목록 1인가구 선택시 상단 표출 수정 END */
+			   </if>
+				  WHEN A.MAIN_KWRD IS NULL OR A.MAIN_KWRD = '' THEN 101		/* 추천(메인)키워드가 NULL인 경우 정렬 순서상 마지막 순위임. */
+			   ELSE 100 END AS SEQ
+			 , A.STAT_DATA_ID
+			 , A.STAT_DATA_NM
+			 , A.STAT_DATA_EXP
+			 , A.MENU_NM
+			 , A.SRV_NM
+			 , A.RANK
+			 , A.ACC_CNT
+			 , A.MAIN_KWRD
+			 , A.STAT_DATA_SRV_NM	/* 2019.12.03[한광희] 통계자료서비스명 컬럼 추가 */
+		  FROM (SELECT DISTINCT(X.STAT_DATA_ID) AS STAT_DATA_ID
+					 , X.STAT_DATA_NM
+					 , X.STAT_DATA_EXP
+					 , X.MENU_NM
+					 , X.SRV_NM
+					 , X.RANK
+					 , X.ACC_CNT
+					 , X.MAIN_KWRD
+					 , X.STAT_DATA_SRV_NM	/* 2019.12.03[한광희] 통계자료서비스명 컬럼 추가 */
+				  FROM (SELECT XA.*
+						  FROM SRV_DT_CTLG_DATA_LIST XA WITH(NOLOCK)
+							 , (SELECT STAT_DATA_ID
+								  FROM SRV_DT_CTLG_DISTANCE_DATA WITH(NOLOCK)
+								 WHERE 1=1
+								 <if test='lifeCycleItemIdList != null and lifeCycleItemIdList != ""'>
+									AND LFE_CYCLE_ID IN 
+									 <foreach collection="lifeCycleItemIdList" item="items" open="(" separator="," close=")"> 
+										#{items}
+									 </foreach>
+								 </if>
+								 <if test='interestRealmItemIdList != null and interestRealmItemIdList != ""'>
+									AND STAT_DISTANCE_ID IN 
+									 <foreach collection="interestRealmItemIdList" item="items" open="(" separator="," close=")"> 
+										#{items}
+									 </foreach>
+								 </if>
+								 GROUP BY STAT_DATA_ID
+							   ) XB
+						 WHERE XA.STAT_DATA_ID = XB.STAT_DATA_ID
+						   AND XA.SRV_YN = 'Y'
+					   ) X
+				<if test='searchKwrd != null or recomendKwrd != null'>
+					 , SRV_DT_CTLG_MAIN_KWRD_DATA Y WITH(NOLOCK)
+					 , W_CTLG_KWRD Z
+				 WHERE X.STAT_DATA_ID = Y.STAT_DATA_ID
+				   AND Y.CTLG_MAIN_KWRD_SERIAL = Z.CTLG_MAIN_KWRD_SERIAL
+				</if>
+				<if test='lifeCycleItemIdList == null and interestRealmItemIdList == null and searchKwrd == null and recomendKwrd == null'>
+				 WHERE 1=1 
+				   AND X.MAIN_KWRD IN (SELECT RECMD_KWRD_1 AS RECMD_KWRD
+				   						 FROM SRV_DT_CTLG_CYCLE_RECMD_KWRD WITH(NOLOCK)
+										WHERE 1=1
+										  AND RECMD_KWRD_1 IS NOT NULL
+										  AND LEN(RECMD_KWRD_1) > 0
+										UNION
+									   SELECT RECMD_KWRD_2 AS RECMD_KWRD
+										 FROM SRV_DT_CTLG_CYCLE_RECMD_KWRD WITH(NOLOCK)
+										WHERE 1=1
+										  AND RECMD_KWRD_2 IS NOT NULL
+										  AND LEN(RECMD_KWRD_2) > 0
+										UNION
+									   SELECT RECMD_KWRD_3 AS RECMD_KWRD
+										 FROM SRV_DT_CTLG_CYCLE_RECMD_KWRD WITH(NOLOCK)
+										WHERE 1=1
+										  AND RECMD_KWRD_3 IS NOT NULL
+										  AND LEN(RECMD_KWRD_3) > 0
+										UNION
+									   SELECT RECMD_KWRD_4 AS RECMD_KWRD
+										 FROM SRV_DT_CTLG_CYCLE_RECMD_KWRD WITH(NOLOCK)
+										WHERE 1=1
+										  AND RECMD_KWRD_4 IS NOT NULL
+										  AND LEN(RECMD_KWRD_4) > 0
+										UNION
+									   SELECT RECMD_KWRD_5 AS RECMD_KWRD
+										 FROM SRV_DT_CTLG_CYCLE_RECMD_KWRD WITH(NOLOCK)
+										WHERE 1=1
+										  AND RECMD_KWRD_5 IS NOT NULL
+										  AND LEN(RECMD_KWRD_5) > 0
+									  )
+				</if>
+			   ) A
+		 GROUP BY A.STAT_DATA_ID
+				, A.STAT_DATA_NM
+				, A.STAT_DATA_EXP
+				, A.MENU_NM
+				, A.SRV_NM
+				, A.RANK
+				, A.ACC_CNT
+				, A.MAIN_KWRD
+				, A.STAT_DATA_SRV_NM	/* 2019.12.03[한광희] 통계자료서비스명 컬럼 추가 */
+		<choose>
+			<when test='orderType == "statDataNm"'>
+				/* 2019.12.03[한광희] 통계자료서비스명 컬럼 추가로 인한 변경 START */
+				/* ORDER BY A.STAT_DATA_NM */
+				ORDER BY A.STAT_DATA_SRV_NM
+				/* 2019.12.03[한광희] 통계자료서비스명 컬럼 추가로 인한 변경 END */
+			</when>
+			<when test='orderType == "accCnt"'>
+				/* 2019.12.03[한광희] 통계자료서비스명 컬럼 추가로 인한 변경 START */
+				/* ORDER BY A.ACC_CNT DESC, STAT_DATA_NM */
+				ORDER BY A.ACC_CNT DESC, A.STAT_DATA_SRV_NM
+				/* 2019.12.03[한광희] 통계자료서비스명 컬럼 추가로 인한 변경 END */
+			</when>
+			<otherwise>
+				/* 2019.12.03[한광희] 통계자료서비스명 컬럼 추가로 인한 변경 START */
+				/* ORDER BY SEQ, A.STAT_DATA_NM */
+				ORDER BY SEQ, A.STAT_DATA_SRV_NM
+				/* 2019.12.03[한광희] 통계자료서비스명 컬럼 추가로 인한 변경 END */
+			</otherwise>
+		</choose>	
+	</select>
+	
+	<!-- 통계지리 정보 관련 SGIS 서비스 목록 조회 -->
+	<select id="selectStatsGrphInfoSgisSrvList" parameterType="hashmap" resultType="hashmap">
+		<if test='searchKwrd != null or recomendKwrd != null'>
+			WITH W_CTLG_KWRD AS (SELECT CTLG_MAIN_KWRD_SERIAL
+								   FROM SRV_DT_CTLG_MAIN_KWRD_LIST WITH(NOLOCK)
+								  WHERE USE_YN = 'Y'
+								  <if test='searchKwrd != null and searchKwrd != ""'>
+									AND REPLACE(CTLG_MAIN_KWRD, ' ', '') = REPLACE('${searchKwrd}', ' ', '')
+								  </if>
+								  <if test='recomendKwrd != null and recomendKwrd != ""'>
+									AND REPLACE(CTLG_MAIN_KWRD, ' ', '') = REPLACE('${recomendKwrd}', ' ', '')
+								  </if>
+								)
+		</if>
+		SELECT DISTINCT(REPLACE(A.MENU_NM, ' ', '') || REPLACE(A.SRV_NM, ' ', '')) AS SGIS_SRV_NM
+		  FROM (SELECT DISTINCT(X.STAT_DATA_ID) AS STAT_DATA_ID
+					 , X.STAT_DATA_NM
+					 , X.STAT_DATA_EXP
+					 , X.MENU_NM
+					 , X.SRV_NM
+					 , X.RANK
+					 , X.ACC_CNT
+					 , X.MAIN_KWRD
+					 , X.STAT_DATA_SRV_NM	/* 2019.12.03[한광희] 통계자료서비스명 컬럼 추가 */
+				  FROM (SELECT XA.*
+						  FROM SRV_DT_CTLG_DATA_LIST XA WITH(NOLOCK)
+							 , (SELECT STAT_DATA_ID
+								  FROM SRV_DT_CTLG_DISTANCE_DATA WITH(NOLOCK)
+								 WHERE 1=1
+								 <if test='lifeCycleItemIdList != null and lifeCycleItemIdList != ""'>
+									AND LFE_CYCLE_ID IN 
+									 <foreach collection="lifeCycleItemIdList" item="items" open="(" separator="," close=")"> 
+										#{items}
+									 </foreach>
+								 </if>
+								 <if test='interestRealmItemIdList != null and interestRealmItemIdList != ""'>
+									AND STAT_DISTANCE_ID IN 
+									 <foreach collection="interestRealmItemIdList" item="items" open="(" separator="," close=")"> 
+										#{items}
+									 </foreach>
+								 </if>
+								 GROUP BY STAT_DATA_ID
+							   ) XB
+						 WHERE XA.STAT_DATA_ID = XB.STAT_DATA_ID
+						   AND XA.SRV_YN = 'Y'
+					   ) X
+				<if test='searchKwrd != null or recomendKwrd != null'>
+					 , SRV_DT_CTLG_MAIN_KWRD_DATA Y WITH(NOLOCK)
+					 , W_CTLG_KWRD Z
+				 WHERE X.STAT_DATA_ID = Y.STAT_DATA_ID
+				   AND Y.CTLG_MAIN_KWRD_SERIAL = Z.CTLG_MAIN_KWRD_SERIAL
+				</if>
+			   ) A
+		 GROUP BY A.STAT_DATA_ID
+				, A.STAT_DATA_NM
+				, A.STAT_DATA_EXP
+				, A.MENU_NM
+				, A.SRV_NM
+				, A.RANK
+				, A.ACC_CNT
+				, A.MAIN_KWRD
+				, A.STAT_DATA_SRV_NM	/* 2019.12.03[한광희] 통계자료서비스명 컬럼 추가 */
+	</select>
+	
+	<!-- 카탈로그 1,2차 키워드검색 목록 조회 -->
+	<select id="selectCtlgKwrdList" parameterType="hashmap" resultType="string">
+		<!-- 2020-02-17 [김남민] 서비스 목록에서 빠진 검색 키워드 제외 START -->
+		SELECT DISTINCT
+			   A.CTLG_MAIN_KWRD AS CTLG_KWRD
+		  FROM SRV_DT_CTLG_MAIN_KWRD_LIST A WITH(NOLOCK)
+		       INNER JOIN SRV_DT_CTLG_MAIN_KWRD_DATA B WITH(NOLOCK) ON B.CTLG_MAIN_KWRD_SERIAL = A.CTLG_MAIN_KWRD_SERIAL
+		       INNER JOIN SRV_DT_CTLG_DATA_LIST C WITH(NOLOCK) ON C.STAT_DATA_ID = B.STAT_DATA_ID
+		       <if test='(lifeCycleItemIdList != null and lifeCycleItemIdList != "") or (interestRealmItemIdList != null and interestRealmItemIdList != "")'>
+			   INNER JOIN SRV_DT_CTLG_DISTANCE_DATA D WITH(NOLOCK) ON D.STAT_DATA_ID = C.STAT_DATA_ID
+		       </if>
+		 WHERE A.USE_YN = 'Y'
+		   AND C.SRV_YN = 'Y'
+		   AND LEN(A.CTLG_MAIN_KWRD) > 0
+		<if test='lifeCycleItemIdList != null and lifeCycleItemIdList != ""'>
+		   AND D.LFE_CYCLE_ID IN 
+			<foreach collection="lifeCycleItemIdList" item="items" open="(" separator="," close=")"> 
+				#{items}
+			</foreach>
+		</if>
+		<if test='interestRealmItemIdList != null and interestRealmItemIdList != ""'>
+		   AND D.STAT_DISTANCE_ID IN 
+ 			<foreach collection="interestRealmItemIdList" item="items" open="(" separator="," close=")"> 
+				#{items}
+			</foreach>
+		</if>
+		<!-- 2020-02-17 [김남민] 서비스 목록에서 빠진 검색 키워드 제외 END -->
+	</select>
+	
+	<!-- 카탈로그 누적횟수 증가  -->
+	<update id="updateStatDataAccCnt" parameterType="hashmap">
+		UPDATE SRV_DT_CTLG_DATA_LIST
+		   SET ACC_CNT = ACC_CNT + 1
+		 WHERE STAT_DATA_ID IN
+		 <foreach collection="statDataIdList" item="items" open="(" separator="," close=")">
+		 	#{items}
+		 </foreach>
+	</update>
+	
+	<!-- 검색누적키워드 저장 -->
+	<update id="updateCtlgSearchAccKwrd" parameterType="hashmap">
+		MERGE 
+		 INTO SRV_DT_CTLG_SEARCH_ACC_KWRD_LIST
+		USING DUAL
+		   ON SEARCH_ACC_KWRD = #{searchKwrd}
+		 WHEN MATCHED THEN
+		UPDATE 
+		   SET SEARCH_ACC_CNT = SEARCH_ACC_CNT + 1
+		 WHERE SEARCH_ACC_KWRD = #{searchKwrd}
+		 WHEN NOT MATCHED THEN
+		INSERT (
+				SEARCH_ACC_KWRD
+			  , SEARCH_ACC_CNT
+			   )
+		VALUES (
+				#{searchKwrd}
+			  , 1
+			   )
+	</update>
+	
+	<!-- 위치동의에 따른 키워드 저장을 위한 키워드 조회 -->
+	<select id="selectCtlgDataMainKwrdList" parameterType="hashmap" resultType="hashmap">
+		SELECT MAIN_KWRD
+		  FROM SRV_DT_CTLG_DATA_LIST WITH(NOLOCK)
+		 WHERE STAT_DATA_ID IN
+		 <foreach collection="statDataIdList" item="items" open="(" separator="," close=")">
+		 	#{items}
+		 </foreach>
+		   AND MAIN_KWRD != NULL	<!-- 2020.05.12[한광희] My통계로 통계주제도 신규 지표 추가 -->
+	</select>
+	
+	<!-- 위치동의에 따른 키워드 저장 -->
+	<update id="updateCtlgAccKwrdCnt" parameterType="hashmap">
+		MERGE
+		 INTO SRV_DT_CTLG_ACC_KWRD_LIST
+		USING DUAL
+		   ON (
+		   	   SIDO_CD = #{my_sido_cd}
+		   AND SGG_CD = #{my_sgg_cd}
+		   AND EMDONG_CD = #{my_emdong_cd}
+		   AND ACC_KWRD = #{main_kwrd}
+		   	  )
+		 WHEN MATCHED THEN
+	   UPDATE 
+		  SET ACC_CNT = ACC_CNT + 1
+		WHERE SIDO_CD = #{my_sido_cd}
+		  AND SGG_CD = #{my_sgg_cd}
+		  AND EMDONG_CD = #{my_emdong_cd}
+		  AND ACC_KWRD = #{main_kwrd}
+		 WHEN NOT MATCHED THEN
+	   INSERT (
+			   SIDO_CD
+			 , SGG_CD
+			 , EMDONG_CD
+			 , ACC_KWRD
+			 , ACC_CNT
+			  )
+	   VALUES (
+			   #{my_sido_cd}
+			 , #{my_sgg_cd}
+			 , #{my_emdong_cd}
+			 , #{main_kwrd}
+			 , 1
+			  ) 
+	</update>
+	
+	<!-- 추천키워드 목록 조회 -->
+	<select id="selectRecmdKwrdList" parameterType="hashmap" resultType="hashmap">
+		SELECT RECMD_KWRD_1 AS RECMD_KWRD
+		  FROM SRV_DT_CTLG_CYCLE_RECMD_KWRD WITH(NOLOCK)
+		 WHERE 1=1
+		   AND RECMD_KWRD_1 IS NOT NULL
+		   AND LEN(RECMD_KWRD_1) > 0
+		 <if test='lifeCycleItemIdList != null and lifeCycleItemIdList != ""'>
+			AND LFE_CYCLE_ID IN 
+			 <foreach collection="lifeCycleItemIdList" item="items" open="(" separator="," close=")"> 
+				#{items}
+			 </foreach>
+		 </if>
+		 <if test='lifeCycleItemIdList == undefined'>
+		 	AND LFE_CYCLE_ID IS NULL
+		 </if>
+		 <if test='interestRealmItemIdList != null and interestRealmItemIdList != ""'>
+			AND STAT_DISTANCE_ID IN 
+			 <foreach collection="interestRealmItemIdList" item="items" open="(" separator="," close=")"> 
+				#{items}
+			 </foreach>
+		 </if>
+		 <if test='interestRealmItemIdList == undefined'>
+		 	AND STAT_DISTANCE_ID IS NULL
+		 </if>
+		 UNION
+		SELECT RECMD_KWRD_2 AS RECMD_KWRD
+		  FROM SRV_DT_CTLG_CYCLE_RECMD_KWRD WITH(NOLOCK)
+		 WHERE 1=1
+		   AND RECMD_KWRD_2 IS NOT NULL
+		   AND LEN(RECMD_KWRD_2) > 0
+		 <if test='lifeCycleItemIdList != null and lifeCycleItemIdList != ""'>
+			AND LFE_CYCLE_ID IN 
+			 <foreach collection="lifeCycleItemIdList" item="items" open="(" separator="," close=")"> 
+				#{items}
+			 </foreach>
+		 </if>
+		 <if test='lifeCycleItemIdList == undefined'>
+		 	AND LFE_CYCLE_ID IS NULL
+		 </if>
+		 <if test='interestRealmItemIdList != null and interestRealmItemIdList != ""'>
+			AND STAT_DISTANCE_ID IN 
+			 <foreach collection="interestRealmItemIdList" item="items" open="(" separator="," close=")"> 
+				#{items}
+			 </foreach>
+		 </if>
+		 <if test='interestRealmItemIdList == undefined'>
+		 	AND STAT_DISTANCE_ID IS NULL
+		 </if>
+		 UNION
+		SELECT RECMD_KWRD_3 AS RECMD_KWRD
+		  FROM SRV_DT_CTLG_CYCLE_RECMD_KWRD WITH(NOLOCK)
+		 WHERE 1=1
+		   AND RECMD_KWRD_3 IS NOT NULL
+		   AND LEN(RECMD_KWRD_3) > 0
+		 <if test='lifeCycleItemIdList != null and lifeCycleItemIdList != ""'>
+			AND LFE_CYCLE_ID IN 
+			 <foreach collection="lifeCycleItemIdList" item="items" open="(" separator="," close=")"> 
+				#{items}
+			 </foreach>
+		 </if>
+		 <if test='lifeCycleItemIdList == undefined'>
+		 	AND LFE_CYCLE_ID IS NULL
+		 </if>
+		 <if test='interestRealmItemIdList != null and interestRealmItemIdList != ""'>
+			AND STAT_DISTANCE_ID IN 
+			 <foreach collection="interestRealmItemIdList" item="items" open="(" separator="," close=")"> 
+				#{items}
+			 </foreach>
+		 </if>
+		 <if test='interestRealmItemIdList == undefined'>
+		 	AND STAT_DISTANCE_ID IS NULL
+		 </if>
+		 UNION
+		SELECT RECMD_KWRD_4 AS RECMD_KWRD
+		  FROM SRV_DT_CTLG_CYCLE_RECMD_KWRD WITH(NOLOCK)
+		 WHERE 1=1
+		   AND RECMD_KWRD_4 IS NOT NULL
+		   AND LEN(RECMD_KWRD_4) > 0
+		 <if test='lifeCycleItemIdList != null and lifeCycleItemIdList != ""'>
+			AND LFE_CYCLE_ID IN 
+			 <foreach collection="lifeCycleItemIdList" item="items" open="(" separator="," close=")"> 
+				#{items}
+			 </foreach>
+		 </if>
+		 <if test='lifeCycleItemIdList == undefined'>
+		 	AND LFE_CYCLE_ID IS NULL
+		 </if>
+		 <if test='interestRealmItemIdList != null and interestRealmItemIdList != ""'>
+			AND STAT_DISTANCE_ID IN 
+			 <foreach collection="interestRealmItemIdList" item="items" open="(" separator="," close=")"> 
+				#{items}
+			 </foreach>
+		 </if>
+		 <if test='interestRealmItemIdList == undefined'>
+		 	AND STAT_DISTANCE_ID IS NULL
+		 </if>
+		 UNION
+		SELECT RECMD_KWRD_5 AS RECMD_KWRD
+		  FROM SRV_DT_CTLG_CYCLE_RECMD_KWRD WITH(NOLOCK)
+		 WHERE 1=1
+		   AND RECMD_KWRD_5 IS NOT NULL
+		   AND LEN(RECMD_KWRD_5) > 0
+		 <if test='lifeCycleItemIdList != null and lifeCycleItemIdList != ""'>
+			AND LFE_CYCLE_ID IN 
+			 <foreach collection="lifeCycleItemIdList" item="items" open="(" separator="," close=")"> 
+				#{items}
+			 </foreach>
+		 </if>
+		 <if test='lifeCycleItemIdList == undefined'>
+		 	AND LFE_CYCLE_ID IS NULL
+		 </if>
+		 <if test='interestRealmItemIdList != null and interestRealmItemIdList != ""'>
+			AND STAT_DISTANCE_ID IN 
+			 <foreach collection="interestRealmItemIdList" item="items" open="(" separator="," close=")"> 
+				#{items}
+			 </foreach>
+		 </if>
+		 <if test='interestRealmItemIdList == undefined'>
+		 	AND STAT_DISTANCE_ID IS NULL
+		 </if>
+	</select>
+	
+	<!-- 추천키워드 목록 조회 -->
+	<select id="selectCtlgAccKwrdList" parameterType="hashmap" resultType="hashmap">
+		<!-- 2020-02-18 [김남민] 우리동 키워드 및 누적키워드 표출 기준 확인 START -->
+		SELECT DISTINCT TOP 10
+			   TRIM(A.CTLG_MAIN_KWRD) AS ACC_KWRD
+			   ,ISNULL(E.ACC_CNT, 0) AS ACC_CNT
+		  FROM SRV_DT_CTLG_MAIN_KWRD_LIST A WITH(NOLOCK)
+		       INNER JOIN SRV_DT_CTLG_MAIN_KWRD_DATA B WITH(NOLOCK) ON B.CTLG_MAIN_KWRD_SERIAL = A.CTLG_MAIN_KWRD_SERIAL
+		       INNER JOIN SRV_DT_CTLG_DATA_LIST C WITH(NOLOCK) ON C.STAT_DATA_ID = B.STAT_DATA_ID
+		       <if test='(lifeCycleItemIdList != null and lifeCycleItemIdList != "") or (interestRealmItemIdList != null and interestRealmItemIdList != "")'>
+			   INNER JOIN SRV_DT_CTLG_DISTANCE_DATA D WITH(NOLOCK) ON D.STAT_DATA_ID = C.STAT_DATA_ID
+		       </if>
+		       LEFT OUTER JOIN (
+					SELECT TRIM(ACC_KWRD) AS ACC_KWRD
+						 , SUM(ACC_CNT) AS ACC_CNT
+					  FROM SRV_DT_CTLG_ACC_KWRD_LIST WITH(NOLOCK)
+					 WHERE 1=1
+					 <if test='sido_cd != null and sido_cd != ""'>
+					   AND SIDO_CD = #{sido_cd}
+					 </if>
+					 <if test='sgg_cd != null and sgg_cd != ""'>
+					   AND SGG_CD = #{sgg_cd}
+					 </if>
+					 <if test='emdong_cd != null and emdong_cd != ""'>
+					   AND EMDONG_CD = #{emdong_cd}
+					 </if>
+					 GROUP BY ACC_KWRD
+		       ) E ON E.ACC_KWRD = TRIM(A.CTLG_MAIN_KWRD)
+		 WHERE A.USE_YN = 'Y'
+		   AND C.SRV_YN = 'Y'
+		   AND LEN(A.CTLG_MAIN_KWRD) > 0
+		<if test='lifeCycleItemIdList != null and lifeCycleItemIdList != ""'>
+		   AND D.LFE_CYCLE_ID IN 
+			<foreach collection="lifeCycleItemIdList" item="items" open="(" separator="," close=")"> 
+				#{items}
+			</foreach>
+		</if>
+		<if test='interestRealmItemIdList != null and interestRealmItemIdList != ""'>
+		   AND D.STAT_DISTANCE_ID IN 
+ 			<foreach collection="interestRealmItemIdList" item="items" open="(" separator="," close=")"> 
+				#{items}
+			</foreach>
+		</if>
+		ORDER BY
+			 ISNULL(E.ACC_CNT, 0) DESC
+		<!-- 2020-02-18 [김남민] 우리동 키워드 및 누적키워드 표출 기준 확인 END -->
+	</select>
+	
+	<!-- 2020년 SGIS고도화 3차(My로그) 수정 시작 (ggm) -->
+	<insert id="insertCtlgSearchKwrdUsgHist" parameterType="hashmap">
+		<selectKey keyProperty="seq" resultType="int" order="BEFORE">
+			select nvl(max(seq), 0) + 1 from SRV_DT_CTLG_SEARCH_KWRD_LIST with (nolock)
+		</selectKey>	
+		insert into SRV_DT_CTLG_SEARCH_KWRD_LIST
+		(
+			SEQ,
+			SEARCH_WORD,
+			LFE_CYCLE_1_ID,
+			LFE_CYCLE_2_ID,
+			STAT_DSTNC_1_ID,
+			STAT_DSTNC_2_ID,
+			SEARCH_TS,
+			REL_SEARCH_WORD,
+			SIDO_CD,
+			SGG_CD,
+			EMDONG_CD
+		)
+		values(
+			#{seq},
+			#{searchKwrd},			
+			#{lifeCycleItem1Id},
+			#{lifeCycleItem2Id},
+			#{interestRealmItem1Id},
+			#{interestRealmItem2Id},
+			sysdate,
+			#{recomendKwrd},
+			#{my_sido_cd},
+			#{my_sgg_cd},
+			#{my_emdong_cd}
+		)
+	</insert>
+	
+	<insert id="insertCtlgSrvUsgHist" parameterType="hashmap">
+		<selectKey keyProperty="seq" resultType="int" order="BEFORE">
+			select nvl(max(seq), 0) + 1 from SRV_DT_CTLG_SLCTN_KWRD_LIST with (nolock)
+		</selectKey>	
+		insert into SRV_DT_CTLG_SLCTN_KWRD_LIST
+		(
+			SEQ,
+			SLCTN_KWRD,
+			STAT_DATA_ID,
+			LFE_CYCLE_1_ID,
+			LFE_CYCLE_2_ID,
+			STAT_DSTNC_1_ID,
+			STAT_DSTNC_2_ID,
+			USE_TS,
+			SIDO_CD,
+			SGG_CD,
+			EMDONG_CD,
+			CNTNTS_TYPE,
+			SEARCH_KWRD_SEQ,
+			LFE_CYCLE_SLCTN_CNT,
+			STAT_DSTNC_SLCTN_CNT
+		)
+		values(
+			#{seq},
+			(select top 1 MAIN_KWRD from SRV_DT_CTLG_DATA_LIST where STAT_DATA_ID = #{statDataId}),
+			#{statDataId},			
+			#{lifeCycleItem1Id},
+			#{lifeCycleItem2Id},
+			#{interestRealmItem1Id},
+			#{interestRealmItem2Id},
+			sysdate,
+			#{my_sido_cd},
+			#{my_sgg_cd},
+			#{my_emdong_cd},			
+			#{cntntsType},
+			#{searchKwrdSeq},
+			#{lfeCycleSlctnCnt},
+			#{statDstncSlctnCnt}			
+		)
+	</insert>
+	
+	<insert id="insertCtlgRecmdSrvUsgHist" parameterType="hashmap">
+		<selectKey keyProperty="seq" resultType="int" order="BEFORE">
+			select nvl(max(seq), 0) + 1 from SRV_DT_CTLG_RECMD_SRV_LIST with (nolock)
+		</selectKey>	
+		insert into SRV_DT_CTLG_RECMD_SRV_LIST
+		(
+			SEQ,
+			SLCTN_KWRD_SEQ,
+			STAT_DATA_ID,
+			USE_TS
+		)
+		values(
+			#{seq},
+			#{slctnKwrdSeq},	
+			#{statDataId},			
+			sysdate
+		)
+	</insert>
+	
+	<insert id="insertCtlgMapSrvUsgHist" parameterType="hashmap">
+		<selectKey keyProperty="seq" resultType="int" order="BEFORE">
+			select nvl(max(seq), 0) + 1 from SRV_DT_CTLG_MAP_SRV_LIST with (nolock)
+		</selectKey>	
+		insert into SRV_DT_CTLG_MAP_SRV_LIST
+		(
+			SEQ,
+			SLCTN_KWRD_SEQ,
+			RECMD_SRV_SEQ,
+			AREA_BORD_TYPE,
+			MAP_TYPE,
+			USE_TS
+		)
+		values(
+			#{seq},
+			#{slctnKwrdSeq},	
+			#{recmdSrvSeq},
+			#{areaBordType},
+			#{mapType},
+			sysdate
+		)
+	</insert>
+	
+	<insert id="insertCtlgMapSrvUsgHistDirectly" parameterType="hashmap">
+		<selectKey keyProperty="seq" resultType="int" order="BEFORE">
+			select nvl(max(seq), 0) + 1 from SRV_DT_CTLG_MAP_SRV_LIST with (nolock)
+		</selectKey>	
+		insert into SRV_DT_CTLG_MAP_SRV_LIST
+		(
+			SEQ,
+			SLCTN_KWRD_SEQ,
+			AREA_BORD_TYPE,
+			MAP_TYPE,
+			USE_TS
+		)
+		values(
+			#{seq},
+			#{slctnKwrdSeq},
+			(select
+				case when tot_reg_disp_yn = 'Y' then '04'
+						when emdong_disp_yn = 'Y' then '03'
+						when sgg_disp_yn = 'Y' then '02'
+						else '01' end as areaBordType			
+				from SRV_DT_CTLG_DATA_LIST where stat_data_id = #{statDataId}),
+			(select
+				case when color_disp_yn = 'Y' then '01'
+						when balln_disp_yn = 'Y' then '02'
+						when tp_disp_yn = 'Y' then '03'
+						when poi_disp_yn = 'Y' then '04'
+						when grid_disp_yn = 'Y' then '05'
+						else null end as mapType		
+				from SRV_DT_CTLG_DATA_LIST where stat_data_id = #{statDataId}),
+			sysdate
+		)
+	</insert>			
+	<!-- 2020년 SGIS고도화 3차(My로그) 수정 끝 -->	
+</mapper>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="AccessManage"> 
+	<select id="searchAccess"  parameterType="Map" resultType="Map">
+		select * from
+		(
+			select A.IP, A.MANAGER_ID, A.PERMIT_YN, ROWNUM R,
+				   B.MANAGER_NM, B.DEPT, B.TEL_NO, B.EXT_NO	   
+			from MNG_DT_ACCESSMNG A, MNG_DT_MANAGERINFO B
+			where A.MANAGER_ID = B.MANAGER_ID
+			<if test="SEARCH_WORD != null">
+			    	and B.MANAGER_NM like  #{SEARCH_WORD} 
+			</if>
+			and  ROWNUM <![CDATA[<=]]> #{END_INDEX}
+		)
+		where R <![CDATA[>=]]> #{START_INDEX}
+		order by MANAGER_NM
+	</select>
+	<select id="searchAccessCount"  parameterType="hashmap" resultType="int">
+			SELECT COUNT(A.IP) AS CNT
+			from MNG_DT_ACCESSMNG A, MNG_DT_MANAGERINFO B
+			where A.MANAGER_ID = B.MANAGER_ID
+			<if test="SEARCH_WORD != null">
+			    	and B.MANAGER_NM like  #{SEARCH_WORD} 
+			</if>
+	</select>
+	<update id="updateAccess" parameterType="Map" >
+		update MNG_DT_ACCESSMNG 
+		set PERMIT_YN = #{PERMIT_YN}
+		where IP = #{IP}
+	</update>
+	<insert id="addAccess" parameterType="Map">
+		insert into MNG_DT_ACCESSMNG 
+			(IP,MANAGER_ID,PERMIT_YN)
+		values 
+			(#{IP},#{MANAGER_ID},#{PERMIT_YN})
+	</insert>
+	<delete id="deleteAccess" >
+		delete from MNG_DT_ACCESSMNG where IP in
+		<foreach collection="array" index="index" item="item" open="(" separator="," close=")">   
+        		#{item}   
+   		</foreach> 
+	</delete>		
+	<select id="searchManagerInfo"  parameterType="Map" resultType="Map">
+		select * from
+		(
+			select B.MANAGER_ID, ROWNUM R,
+				   B.MANAGER_NM, B.DEPT, B.TEL_NO, B.EXT_NO	   
+			from MNG_DT_MANAGERINFO B
+			where 1=1
+			<if test="SEARCH_WORD != null">
+			    	and B.MANAGER_NM like  #{SEARCH_WORD} 
+			</if>
+			and  ROWNUM <![CDATA[<=]]> #{END_INDEX}
+		)
+		where R <![CDATA[>=]]> #{START_INDEX}
+	</select>
+	<select id="searchManagerInfoCount"  parameterType="hashmap" resultType="int">
+		select count(B.MANAGER_ID) AS CNT	   
+		from MNG_DT_MANAGERINFO B
+		where 1=1
+		<if test="SEARCH_WORD != null">
+		    	and B.MANAGER_NM like  #{SEARCH_WORD} 
+		</if>
+	</select>
+</mapper>

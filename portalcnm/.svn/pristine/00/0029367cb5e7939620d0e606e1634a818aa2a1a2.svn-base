@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ststistics"> 
+	
+	<!-- 2020년 SGIS고도화 3차 시작 - sql 변경을 위한 기존 sql 주석처리 -->
+	<!-- 	
+	<select id="getStstisticsUSKeyWordMng"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		/** getStstisticsUSKeyWordMng start ... **/
+		<include refid="ststisticsCmmn.pageHeader" />
+		<include refid="body"/>
+		<include refid="where" />
+		ORDER BY CTLG_MAIN_KWRD_SERIAL DESC
+		<include refid="ststisticsCmmn.pageFotter" />
+	</select>
+	-->
+	<!-- 2020년 SGIS고도화 3차 끝 - sql 변경을 위한 기존 sql 주석처리 -->
+	
+	<!-- 2020년 SGIS고도화 3차 시작 - 변경된  getStstisticsUSKeyWordMng 쿼리 추가-->
+	<select id="getStstisticsUSKeyWordMng"  parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		<include refid="ststisticsCmmn.pageHeader" />
+		SELECT 
+			ROW_NUMBER() OVER(ORDER BY 
+				<choose>
+			    	<when test=" sortType =='date'">
+			    	    REG_TS <include refid="reg_date_sort"/>
+			    	</when>
+			    	<otherwise>
+			    	    ctlg_main_kwrd <include refid="search_Nm_sort"/>
+			    	</otherwise>
+				</choose>
+				) AS RNUM<!-- 201127 2020년 SGIS고도화 3차 수정 -->
+			,CTLG_MAIN_KWRD_SERIAL
+			,CTLG_MAIN_KWRD
+			,USE_YN
+			, DECODE(USE_YN , 'Y' , '활성' ,'비활성')  AS USE_YN_VALUE
+			,(SELECT COUNT(SUB.STAT_DATA_ID) FROM SRV_DT_CTLG_MAIN_KWRD_DATA SUB WHERE SUB.CTLG_MAIN_KWRD_SERIAL = TB001.CTLG_MAIN_KWRD_SERIAL) AS SUM_CNT
+			,TO_CHAR(DECODE(MOD_TS , null , REG_TS , MOD_TS), 'YYYY-MM-DD') AS REG_TS
+			,REG_MANAGER_ID
+			,MOD_MANAGER_ID
+			,nvl(SEARCH_CNT,0) SEARCH_CNT
+		FROM 
+			SRV_DT_CTLG_MAIN_KWRD_LIST TB001
+		left join
+			(
+			select 
+				search_word, count(search_word) SEARCH_CNT 
+			from 
+				SRV_DT_CTLG_SEARCH_KWRD_LIST 
+			group by search_word
+			) TB002
+		on TB001.CTLG_MAIN_KWRD = TB002.search_word
+		<include refid="where" />
+		<include refid="ststisticsCmmn.pageFotter" />
+		order by RNUM
+	</select>
+	<!-- 2020년 SGIS고도화 3차 끝 - 변경된  getStstisticsUSKeyWordMng 쿼리 추가 -->
+	
+	<select id="getStstisticsUSKeyWordMngTotal"  parameterType="java.util.HashMap" resultType="int">
+		/** getStstisticsUSKeyWordMngTotal start ... **/
+		SELECT COUNT(<include refid="pk" />) FROM <include refid="table" />
+		<include refid="where" />
+	</select>
+	
+	<select id="getStstisticsUSKeyWordIsExists"  parameterType="java.util.HashMap" resultType="int">
+		/** getStstisticsUSKeyWordIsExists start ... **/
+		SELECT COUNT(<include refid="pk" />) FROM <include refid="table" />
+		WHERE	CTLG_MAIN_KWRD_SERIAL = #{ctlgMainKwrdSerial}
+	</select>
+	
+	<sql id="body">
+		SELECT 
+			ROW_NUMBER() OVER(ORDER BY CTLG_MAIN_KWRD_SERIAL DESC) AS RNUM
+			,CTLG_MAIN_KWRD_SERIAL
+			,CTLG_MAIN_KWRD
+			,USE_YN
+			, DECODE(USE_YN , 'Y' , '활성' ,'비활성')  AS USE_YN_VALUE
+			,(SELECT COUNT(SUB.STAT_DATA_ID) FROM SRV_DT_CTLG_MAIN_KWRD_DATA SUB WHERE SUB.CTLG_MAIN_KWRD_SERIAL = TB001.CTLG_MAIN_KWRD_SERIAL) AS SUM_CNT
+			,TO_CHAR(DECODE(MOD_TS , null , REG_TS , MOD_TS), 'YYYY-MM-DD') AS REG_TS
+			,REG_MANAGER_ID
+			,MOD_MANAGER_ID
+		FROM 
+			<include refid="table" /> TB001
+	</sql>
+	
+	<sql id="where">
+		<where>
+			1 = 1
+			<if test='useYn != "" and useYn != null'>		
+				AND	USE_YN = #{useYn}
+			</if>
+			<if test='ctlgMainKwrd != "" and ctlgMainKwrd != null'>		
+				AND	INSTR(CTLG_MAIN_KWRD , #{ctlgMainKwrd} ) <![CDATA[>]]> 0
+			</if>
+		</where>
+	</sql>
+	
+	<sql id="table">
+		SRV_DT_CTLG_MAIN_KWRD_LIST
+	</sql>
+	
+	<sql id="pk">
+		CTLG_MAIN_KWRD_SERIAL
+	</sql>
+	
+	<!-- 2020년 SGIS고도화 3차 시작 - getStstisticsUSKeyWordMng 쿼리에 필요한 정렬 조건문 추가 -->
+	<sql id="search_cnt_sort">
+		<if test='searchCntSort != null and searchCntSort !="" '>
+			<if test='searchCntSort == "asc"'>
+				asc
+			</if>
+			<if test='searchCntSort == "desc"'>
+				desc
+			</if>
+		</if>
+	</sql>
+	
+	<sql id="reg_date_sort">
+		<if test='registerDateSort != null and registerDateSort !="" '>
+			<if test='registerDateSort == "asc"'>
+				asc
+			</if>
+			<if test='registerDateSort == "desc"'>
+				desc
+			</if>
+		</if>
+	</sql>
+	<!-- 2020년 SGIS고도화 3차 끝 - getStstisticsUSKeyWordMng 쿼리에 필요한 정렬 조건문 추가 -->
+	<!-- 20201127 2020년 SGIS고도화 3차 시작 -->
+	<sql id="search_Nm_sort">
+		<if test='searchNmSort != null and searchNmSort !="" '>
+			<if test='searchNmSort == "asc"'>
+				asc
+			</if>
+			<if test='searchNmSort == "desc"'>
+				desc
+			</if>
+		</if>
+	</sql>
+	<!-- 20201127 2020년 SGIS고도화 3차 시작 -->
+	<update id="editStstisticsUSKeyWordMng" parameterType="java.util.HashMap">
+		/** editStstisticsUSKeyWordMng start ... **/
+		UPDATE <include refid="table" /> SET 
+             	CTLG_MAIN_KWRD = #{ctlgMainKwrd}
+				,USE_YN = #{useYn}
+				,MOD_TS =SYSDATE
+				,MOD_MANAGER_ID = #{modManagerId}
+		WHERE 	CTLG_MAIN_KWRD_SERIAL = #{ctlgMainKwrdSerial}
+	</update>
+	
+	<insert id="registerStstisticsUSKeyWordMng" parameterType="java.util.HashMap">
+		/** registerStstisticsUSKeyWordMng start ... **/
+        INSERT INTO <include refid="table" /> (
+        	CTLG_MAIN_KWRD_SERIAL
+			,CTLG_MAIN_KWRD
+			,USE_YN
+			,REG_TS
+			,REG_MANAGER_ID
+			,MOD_TS
+			,MOD_MANAGER_ID
+		) VALUES (
+			(SELECT NVL(MAX(CTLG_MAIN_KWRD_SERIAL),0)+1 FROM SRV_DT_CTLG_MAIN_KWRD_LIST)
+			,#{ctlgMainKwrd}
+			,#{useYn}
+			,SYSDATE
+			,#{regManagerId}
+			,SYSDATE
+			,#{modManagerId}
+        )
+	</insert>
+	
+	<select id="registerStstisticsUSKeyWordMngConfirm" parameterType="java.util.HashMap" resultType="int">
+		/** registerStstisticsUSKeyWordMngConfirm start ...  **/
+		SELECT COUNT(1) FROM <include refid="table" /> WHERE CTLG_MAIN_KWRD = #{ctlgMainKwrd}
+	</select>
+	
+	<!-- 2020년 SGIS고도화 3차 시작 -->
+	<delete id="removeKeyword" parameterType="java.util.HashMap" >
+		DELETE 
+		FROM SRV_DT_CTLG_MAIN_KWRD_LIST
+		WHERE CTLG_MAIN_KWRD_SERIAL = #{ctlgMainKwrdSerial}
+	</delete>
+	<delete id="removeKeywordMapping" parameterType="java.util.HashMap" >
+		DELETE 
+		FROM SRV_DT_CTLG_MAIN_KWRD_DATA
+		WHERE CTLG_MAIN_KWRD_SERIAL = #{ctlgMainKwrdSerial}
+	</delete>
+	<!-- 2020년 SGIS고도화 3차 끝 -->
+</mapper>

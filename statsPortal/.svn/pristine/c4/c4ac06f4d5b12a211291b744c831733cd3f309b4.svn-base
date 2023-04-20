@@ -1,0 +1,33 @@
+package kostat.sop.ServiceAPI.lvs.mapper;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import egovframework.rte.psl.dataaccess.EgovAbstractMapper;
+import kostat.sop.ServiceAPI.lvs.vo.LvsVO;
+import kostat.sop.ServiceAPI.sbr.vo.SbrVo;
+
+/**
+ *  2022년 SGIS고도화 5차 
+ *  @Description 지역변화분석지도
+ *  @author 조세진
+ */
+@Repository( "lvsStatsMapper" )
+public class LvsStatsMapper extends EgovAbstractMapper
+{
+	public List<Map<String, Object>> selectTotPpltn(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectMainDataInfo_tot_ppltn", vo);
+	}
+	
+	public List<Map<String, Object>> selectTotPpltnYear(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectMainDataInfo_tot_ppltn_year", vo);
+	}
+	
+	public List<Map<String, Object>> selectCensusIndex(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectCensusIndex", vo);
+	}
+	
+}

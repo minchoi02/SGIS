@@ -1,0 +1,87 @@
+const colorPl = ['#05A8F5','#FF5F5F','#3ECF9A','#E0E0E0']
+
+Highcharts.setOptions({
+
+    
+    title: {text: ''},
+    subtitle: {text: ''},
+    yAxis: {
+        title: {text: ''},
+        labels: {enabled : false},
+    },
+    credits: {enabled: false},
+    exporting : {enabled : false},
+    xAxis: {
+        labels: {
+            style: {
+                color: '#666',
+                fontSize:'10px',
+                fontWeight: '400',
+                letterSpacing: '-1px',
+            }
+        },
+        categories: ["",""]
+    },
+    legend: {
+        layout: "horizontal",
+        verticalAlign: "bottom",
+        align: "center",
+        // itemWidth: 200,
+        symbolWidth: 8,
+        symbolHight: 8,
+        floating: false,
+        borderWidth: 0,
+        backgroundColor: "#FFFFFF",
+        shadow: false,
+        itemStyle: {
+            color: "#333",
+            align: "center"
+        }
+    },
+    plotOptions: {
+        series: {
+            marker: {
+                enabled: true, //마커 보이기 / 안보이기 [true : 보이기, false : 안보이기]
+            },
+            dataLabels: {
+                enabled: true, //데이터레이블 보이기/안보이기 [true : 보이기, false : 안보이기]
+                allowOverlap: true //데이터레이블 겹치기/안겹치기 (안겹치기시 겹치는 데이터레이블 안보임) [true : 겹치다, false : 안겹치다]
+            }
+        }
+    }
+})
+
+// 우리동네 상황판 콤비네이션 차트 (라인 + 컬럼)
+let tabContent2_chart = Highcharts.chart('tab_content2_chart', {
+    chart : {
+        height : '140px',
+        marginTop: 0
+    },
+    legend: {enabled:true},
+    plotOptions: {
+        series: {
+            dataLabels: {
+                enabled:false
+            }
+        }
+    },
+    xAxis:{
+            categories: ["2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021"]
+    },
+    
+    series: [{
+                type:'column',
+                data:[100, 100,100,100,100,100,100,100,100,100,100,100],
+                color:colorPl[0]
+            },{
+                type: 'spline',
+                data:[200, 200,200,200,200,200,200,200,200,300,300,300],
+                color: colorPl[2],
+                marker: {
+                    lineWidth: 2,
+                    lineColor: colorPl[2],
+                    fillColor: 'white'
+                }
+            }
+        ]
+});

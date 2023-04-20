@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="lvsStatsXsql3">
+
+	<!-- 행정코드에 해당하는 총인구에 대한 데이터를 가져온다.  -->
+	<select id = "selectMainDataInfo_tot_ppltn" resultType="hashmap">
+	  <bind name="table1" value="'SRV_DT_POPSGG_'+thisYear"/>
+	  <bind name="table2" value="'SRV_DT_POPSGG_'+lastYear"/>
+	  	  
+		SELECT A.*, B.*, C.* FROM (	
+		   SELECT
+			   '총인구' AS NAME
+			   ,'명' AS UNIT
+			   , #{thisYear}||'년' AS thisYear
+			   , SUM(A.MALE) + SUM(A.FEMALE) AS thisYearVal
+			   , '남' AS thisYearKey1   
+			   , SUM(A.MALE)  AS thisYearVal1
+			   , '여' AS thisYearKey2   
+			   , SUM(A.FEMALE)  AS thisYearVal2
+			FROM (	
+				SELECT GENDER
+				   , CASE GENDER  WHEN '1' THEN SUM(PPLTN_CNT) ELSE 0 END AS MALE
+				   , CASE GENDER  WHEN '2' THEN SUM(PPLTN_CNT) ELSE 0 END AS FEMALE
+				FROM ${table1}  
+				WHERE SIDO_CD = #{sidoCd}
+				  <if test='viewCd != "sido"'>
+					AND SGG_CD= #{sggCd}
+				 </if>	
+				GROUP BY GENDER 
+			) A 
+		) A INNER JOIN (
+		   SELECT
+			     #{lastYear}||'년' AS lastYear		   
+			   , SUM(A.MALE) + SUM(A.FEMALE) AS lastYearVal
+			   , '남' AS lastYearKey1   
+			   , SUM(A.MALE)  AS lastYearVal1
+			   , '여' AS lastYearKey2   
+			   , SUM(A.FEMALE)  AS lastYearVal2
+			FROM (	
+				SELECT GENDER
+				   , CASE GENDER  WHEN '1' THEN SUM(PPLTN_CNT) ELSE 0 END AS MALE
+				   , CASE GENDER  WHEN '2' THEN SUM(PPLTN_CNT) ELSE 0 END AS FEMALE
+				FROM ${table2}  
+				WHERE SIDO_CD = #{sidoCd} 
+				  <if test='viewCd != "sido"'>
+					AND SGG_CD= #{sggCd}
+				 </if>	
+
+				GROUP BY GENDER 
+			) A 
+		) B ON 1=1
+		INNER JOIN (
+			SELECT 
+			     TEXT1 || TEXT2 AS LARGER
+			   , TEXT3 || TEXT4 AS LARGER2
+			   , TEXT5 || TEXT6 AS SMALLER
+			   , TEXT7 || TEXT8 AS SMALLER2   
+			FROM 
+			(
+				SELECT 
+				     MAX(A.TEXT1) AS TEXT1
+				   , MAX(A.TEXT2) AS TEXT2
+				   , MAX(A.TEXT3) AS TEXT3   
+				   , MAX(A.TEXT4) AS TEXT4
+				   , MAX(A.TEXT5) AS TEXT5   
+				   , MAX(A.TEXT6) AS TEXT6
+				   , MAX(A.TEXT7) AS TEXT7   
+				   , MAX(A.TEXT8) AS TEXT8
+				FROM (    
+				
+
+				   SELECT
+				       <!-- 시도모드라면 -->				   
+					   <if test='viewCd == "sido"'> 
+						    CASE  RN1 WHEN 1 THEN SIDO_NM||' '||SGG_NM||'('||DIFFER||'명),'	ELSE ''  END AS TEXT1
+						  , CASE  RN1 WHEN 2 THEN SIDO_NM||' '||SGG_NM||'('||DIFFER||'명)'	ELSE ''  END AS TEXT2
+						  , CASE  RN2 WHEN 1 THEN SIDO_NM||' '||SGG_NM||'('||DIFFER_RT||'%),'	ELSE ''  END AS TEXT3
+						  , CASE  RN2 WHEN 2 THEN SIDO_NM||' '||SGG_NM||'('||DIFFER_RT||'%)'	ELSE ''  END AS TEXT4
+						  , CASE  RN3 WHEN 1 THEN SIDO_NM||' '||SGG_NM||'('||DIFFER||'명),'	ELSE ''  END AS TEXT5
+						  , CASE  RN3 WHEN 2 THEN SIDO_NM||' '||SGG_NM||'('||DIFFER||'명)'	ELSE ''  END AS TEXT6
+						  , CASE  RN4 WHEN 1 THEN SIDO_NM||' '||SGG_NM||'('||DIFFER_RT||'%),'	ELSE ''  END AS TEXT7
+						  , CASE  RN4 WHEN 2 THEN SIDO_NM||' '||SGG_NM||'('||DIFFER_RT||'%)'	ELSE ''  END AS TEXT8
+					   </if>
+				       <!-- 시군구모드라면 -->					   
+					   <if test='viewCd != "sido"'> 
+						    CASE  RN1 WHEN 1 THEN SIDO_NM||' '||SGG_NM||' '||EMDONG_NM||'('||DIFFER||'명),'	ELSE ''  END AS TEXT1
+						  , CASE  RN1 WHEN 2 THEN SIDO_NM||' '||SGG_NM||' '||EMDONG_NM||'('||DIFFER||'명)'	ELSE ''  END AS TEXT2
+						  , CASE  RN2 WHEN 1 THEN SIDO_NM||' '||SGG_NM||' '||EMDONG_NM||'('||DIFFER_RT||'%),'	ELSE ''  END AS TEXT3
+						  , CASE  RN2 WHEN 2 THEN SIDO_NM||' '||SGG_NM||' '||EMDONG_NM||'('||DIFFER_RT||'%)'	ELSE ''  END AS TEXT4
+						  , CASE  RN3 WHEN 1 THEN SIDO_NM||' '||SGG_NM||' '||EMDONG_NM||'('||DIFFER||'명),'	ELSE ''  END AS TEXT5
+						  , CASE  RN3 WHEN 2 THEN SIDO_NM||' '||SGG_NM||' '||EMDONG_NM||'('||DIFFER||'명)'	ELSE ''  END AS TEXT6
+						  , CASE  RN4 WHEN 1 THEN SIDO_NM||' '||SGG_NM||' '||EMDONG_NM||'('||DIFFER_RT||'%),'	ELSE ''  END AS TEXT7
+						  , CASE  RN4 WHEN 2 THEN SIDO_NM||' '||SGG_NM||' '||EMDONG_NM||'('||DIFFER_RT||'%)'	ELSE ''  END AS TEXT8
+					   </if>
+				    
+					FROM (
+				
+						SELECT A.*, B.SIDO_NM , B.SGG_NM , B.EMDONG_NM  FROM (
+							SELECT A.* FROM (
+								SELECT A.* 
+								  , ROW_NUMBER() OVER(ORDER BY A.DIFFER DESC) AS RN1
+								  , ROW_NUMBER() OVER(ORDER BY A.DIFFER_RT DESC) AS RN2
+								  , ROW_NUMBER() OVER(ORDER BY A.DIFFER ASC) AS RN3
+								  , ROW_NUMBER() OVER(ORDER BY A.DIFFER_RT ASC) AS RN4
+								FROM ( 
+									SELECT A.REGION_CD
+										,  (A.TOT_PPLTN-B.TOT_PPLTN) AS DIFFER
+										, ROUND(((A.TOT_PPLTN-B.TOT_PPLTN)/B.TOT_PPLTN),2) AS DIFFER_RT 
+									FROM (
+										SELECT
+										  BASE_YEAR, REGION_CD, TOT_PPLTN   
+										FROM  SRV_DT_CENSUS_INDEX
+										WHERE 1=1
+										 AND BASE_YEAR =#{thisYear}
+										 AND REGION_CD LIKE #{regionCd}||'%'
+										 AND INFO_DIV = #{infoDiv}
+									) A INNER JOIN (
+										SELECT
+										  BASE_YEAR, REGION_CD, TOT_PPLTN 
+										FROM  SRV_DT_CENSUS_INDEX
+										WHERE 1=1
+										 AND BASE_YEAR =#{lastYear}
+										 AND REGION_CD LIKE #{regionCd}||'%'
+										 AND INFO_DIV = #{infoDiv}   <!-- 읍면동기준 -->
+									) B ON A.REGION_CD = B.REGION_CD
+								   ORDER BY DIFFER DESC 	
+								) A 
+							)  A WHERE RN1=1 OR RN2=1 OR RN3=1 OR RN4=1	OR RN1=2 OR RN2=2 OR RN3=2 OR RN4=2
+						) A INNER JOIN SRV_PG_ADMBORD B ON 1=1
+					   		   <if test='viewCd == "sido"'> 
+									AND A.REGION_CD = B.SIDO_CD||B.SGG_CD
+							   </if>
+					   			<if test='viewCd != "sido"'> 
+									AND A.REGION_CD = B.SIDO_CD||B.SGG_CD||B.EMDONG_CD
+							   </if>
+								AND B.BASE_YEAR = #{baseYear}
+					) A
+					
+					
+					
+				) A	
+			) A 		
+		) C ON 1=1
+	  </select>
+	  		
+		
+	<!-- 총인구에 대한  연도별 데이터를 가져온다.  -->
+	<select id = "selectMainDataInfo_tot_ppltn_year" resultType="hashmap">
+
+			SELECT
+			   C.* 
+			FROM (
+			
+			  <foreach collection="yearList" item="year" index="index" open="" close="" separator=" UNION ALL ">
+			  
+				SELECT B.* FROM (	
+				   SELECT
+				   
+					    #{year}||'년' AS year
+					   , SUM(A.MALE) + SUM(A.FEMALE) AS val
+					   , '남자' AS key1   
+					   , SUM(A.MALE)  AS val1
+					   , '여자' AS key2   
+					   , SUM(A.FEMALE)  AS val2
+					FROM (	
+						SELECT GENDER
+						   , CASE GENDER  WHEN '1' THEN SUM(PPLTN_CNT) ELSE 0 END AS MALE
+						   , CASE GENDER  WHEN '2' THEN SUM(PPLTN_CNT) ELSE 0 END AS FEMALE
+						   
+			   		    <if test='viewCd == "sido"'> 
+						 	  FROM SRV_DT_POPSGG_${year}
+						 	  
+							 WHERE 1=1 					 	 
+							    AND SIDO_CD = #{sidoCd}
+					    </if>
+					    
+			   		    <if test='viewCd == "sgg"'> 
+						 	  FROM SRV_DT_POPSGG_${year}
+						 	  
+							 WHERE 1=1 					 	 
+							    AND SIDO_CD = #{sidoCd}
+							    AND SGG_CD = #{sggCd}
+					    </if>
+					    
+			   		    <if test='viewCd == "emdong"'> 
+						 	  FROM SRV_DT_POPSREG_${year}
+						 	  
+							 WHERE 1=1 					 	 
+							    AND TOT_REG_CD LIKE #{regionCd}||'%'
+					    </if>
+						GROUP BY GENDER 
+					) A 
+				) B
+			  </foreach>
+			  	
+			) C WHERE C.VAL IS NOT NULL 
+	
+	 </select>
+	 
+	<!-- 행정코드에 해당하는 총가구에 대한 데이터를 가져온다.  -->
+	<select id = "selectMainDataInfo_tot_family" resultType="hashmap">
+	  <bind name="table1" value="'SRV_DT_FAMILYSGG_'+thisYear"/>
+	  <bind name="table2" value="'SRV_DT_FAMILYSGG_'+lastYear"/>
+	  
+			SELECT A.*, B.* , C.* from (	
+			   SELECT
+				   '총가구' AS name
+				   ,'호수' AS unit
+				   , #{thisYear}||'년' as thisYear
+				   , SUM(FAMILY_CNT) AS thisYearVal
+			   FROM  ${table1} A	
+				WHERE SIDO_CD = #{sidoCd} 
+				  <if test='viewCd != "sido"'>
+					AND SGG_CD= #{sggCd}
+				 </if>	
+
+				 
+			) A inner join (
+			   SELECT
+				     #{lastYear}||'년' as lastYear			   
+				   , SUM(FAMILY_CNT) AS lastYearVal
+			   FROM  ${table2} A	
+				WHERE SIDO_CD = #{sidoCd} 
+				  <if test='viewCd != "sido"'>
+					AND SGG_CD= #{sggCd}
+				 </if>	
+
+			) B on 1=1
+			
+			inner join (
+				select 
+				     text1 || text2 as larger
+				   , text3 || text4 as larger2
+				   , text5 || text6 as smaller
+				   , text7 || text8 as smaller2   
+				from 
+				(
+					select 
+					     max(a.text1) as text1
+					   , max(a.text2) as text2
+					   , max(a.text3) as text3   
+					   , max(a.text4) as text4
+					   , max(a.text5) as text5   
+					   , max(a.text6) as text6
+					   , max(a.text7) as text7   
+					   , max(a.text8) as text8
+					from (    
+					   select 
+						    case  rn1 when 1 then sido_nm||' '||sgg_nm||' '||emdong_nm||'('||differ||'명),'	else ''  end as text1
+						  , case  rn1 when 2 then sido_nm||' '||sgg_nm||' '||emdong_nm||'('||differ||'명),'	else ''  end as text2
+						  , case  rn2 when 1 then sido_nm||' '||sgg_nm||' '||emdong_nm||'('||differ_rt||'%),'	else ''  end as text3
+						  , case  rn2 when 2 then sido_nm||' '||sgg_nm||' '||emdong_nm||'('||differ_rt||'%),'	else ''  end as text4
+						  , case  rn3 when 1 then sido_nm||' '||sgg_nm||' '||emdong_nm||'('||differ||'명),'	else ''  end as text5
+						  , case  rn3 when 2 then sido_nm||' '||sgg_nm||' '||emdong_nm||'('||differ||'명),'	else ''  end as text6
+						  , case  rn4 when 1 then sido_nm||' '||sgg_nm||' '||emdong_nm||'('||differ_rt||'%),'	else ''  end as text7
+						  , case  rn4 when 2 then sido_nm||' '||sgg_nm||' '||emdong_nm||'('||differ_rt||'%),'	else ''  end as text8
+						from (
+					
+							select a.*, b.sido_nm , b.sgg_nm , b.emdong_nm  from (
+								select a.* from (
+									select a.* 
+									  , row_number() over(order by a.differ desc ) as rn1
+									  , row_number() over(order by a.differ_rt desc ) as rn2
+									  , row_number() over(order by a.differ asc ) as rn3
+									  , row_number() over(order by a.differ_rt asc ) as rn4
+									from ( 
+										select a.region_cd
+											,  (a.tot_family-b.tot_family) as differ
+											, round(((a.tot_family-b.tot_family)/b.tot_family),2) as differ_rt 
+											
+											from (
+											select
+											  base_year, region_cd, tot_family   
+											from  SRV_DT_CENSUS_INDEX
+											where 1=1
+											 AND BASE_YEAR =#{thisYear}
+											 AND REGION_CD LIKE #{regionCd}||'%'
+											 AND INFO_DIV = #{infoDiv}
+											
+										) a inner join (
+											select
+											  base_year, region_cd, tot_family 
+											from  SRV_DT_CENSUS_INDEX
+											where 1=1
+											 AND BASE_YEAR =#{lastYear}
+											 AND REGION_CD LIKE #{regionCd}||'%'
+											 AND INFO_DIV = #{infoDiv}   <!-- 읍면동기준 -->
+										) b on a.region_cd = b.region_cd
+									   order by differ desc 	
+									) a 
+								)  a where rn1=1 or rn2=1 or rn3=1 or rn4=1	or rn1=2 or rn2=2 or rn3=2 or rn4=2
+							) a left join SRV_PG_ADMBORD b 
+							  on 1=1
+					   		   <if test='viewCd == "sido"'> 
+									AND A.REGION_CD = B.SIDO_CD||B.SGG_CD
+							   </if>
+					   			<if test='viewCd != "sido"'> 
+									AND A.REGION_CD = B.SIDO_CD||B.SGG_CD||B.EMDONG_CD
+							   </if>
+								AND B.BASE_YEAR = #{baseYear}
+						) a
+					) a	
+				) a 		
+			) C on 1=1 
+	  	  
+	  </select>
+	  
+	<!-- 총인구에 대한  연도별 데이터를 가져온다.  -->
+	<select id = "selectMainDataInfo_tot_family_year" resultType="hashmap">
+
+			SELECT
+			   B.* 
+			FROM (
+			
+			  <foreach collection="yearList" item="year" index="index" open="" close="" separator=" UNION ALL ">
+				SELECT A.* FROM (	
+				   SELECT
+					    #{year}||'년' AS year
+					   , SUM(family_cnt) AS val
+ 
+			   		    <if test='viewCd == "sido"'> 
+						 	  FROM SRV_DT_FAMILYSGG_${year}
+						 	  
+							 WHERE 1=1 					 	 
+							    AND SIDO_CD = #{sidoCd}
+					    </if>
+					    
+			   		    <if test='viewCd == "sgg"'> 
+						 	  FROM SRV_DT_FAMILYSGG_${year}
+						 	  
+							 WHERE 1=1 					 	 
+							    AND SIDO_CD = #{sidoCd}
+							    AND SGG_CD = #{sggCd}
+					    </if>
+					    
+			   		    <if test='viewCd == "emdong"'> 
+						 	  FROM SRV_DT_FAMILYREG_${year}
+						 	  
+							 WHERE 1=1 					 	 
+							    AND TOT_REG_CD LIKE #{regionCd}||'%'
+					    </if>
+				   ) A
+			  </foreach>
+			  	
+			) B WHERE B.VAL IS NOT NULL 
+	
+	 </select>
+	  
+	 
+	 
+	<!-- 행정코드에 해당하는센서스 데이터 가져온다.  -->
+	<!-- SRV_DT_CENSUS_INDEX -->
+	
+	<select id = "selectCensusIndex" resultType="hashmap">
+		SELECT 
+		      A.base_year                                    
+			, A.info_div                                  
+			, A.region_cd                                 
+			, A.bord_base_year                            
+			, A.tot_ppltn                                 
+			, A.avg_age                                   
+			, A.ppltn_dnsty                               
+			, A.aged_child_idx                            
+			, A.oldage_suprt_per                          
+			, A.juv_suprt_per                             
+			, A.tot_family                                
+			, A.avg_fmember_cnt                           
+			, A.tot_house                                 
+			, A.nongga_cnt                                
+			, A.nongga_ppltn                              
+			, A.imga_cnt                                  
+			, A.imga_ppltn                                
+			, A.naesuoga_cnt                              
+			, A.naesuoga_ppltn                            
+			, A.haesuoga_cnt                              
+			, A.haesuoga_ppltn
+	   	   <if test='viewCd == "sido"'> 
+			 , B.SGG_NM as adm_nm
+		   </if>
+		   
+	   	  <if test='viewCd != "sido"'> 
+			,  B.EMDONG_NM as adm_nm
+	      </if>
+			                    
+		FROM SRV_DT_CENSUS_INDEX  A 
+					INNER JOIN SRV_PG_ADMBORD B 
+					     ON 1=1
+					   		   <if test='viewCd == "sido"'> 
+									AND A.REGION_CD = B.SIDO_CD||B.SGG_CD
+							   </if>
+					   			<if test='viewCd != "sido"'> 
+									AND A.REGION_CD = B.SIDO_CD||B.SGG_CD||B.EMDONG_CD
+							   </if>
+								AND B.BASE_YEAR = #{baseYear}		
+		WHERE A.BASE_YEAR = #{baseYear} 
+		 AND  A.REGION_CD LIKE #{regionCd}||'%'
+		 AND  A.INFO_DIV = #{infoDiv}  
+	</select>
+	
+</mapper>

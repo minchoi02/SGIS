@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 2021.06.09[hjh] 행정구역 목록 -->
+<mapper namespace="WorkRoadMnbyStatsAddress">
+
+	<!-- 시도 목록 조회 -->
+	<select id="getSidoList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			sido_cd AS cd
+			, sido_nm AS nm
+		FROM
+			srv_pg_sidobord WITH (nolock)
+		WHERE
+			1 = 1
+			<choose>
+				<when test='BASE_YEAR != null and BASE_YEAR != ""'>
+					AND base_year = #{BASE_YEAR}
+				</when>
+				<otherwise>
+					AND base_year = (
+						SELECT
+							max(base_year)
+						FROM
+							srv_pg_sidobord WITH (nolock)
+					)
+				</otherwise>
+			</choose>
+	</select>
+
+	<!-- 시군구 목록 조회 -->
+	<select id="getSggList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			sgg_cd AS cd
+			, sgg_nm AS nm
+		FROM
+			srv_pg_sggbord WITH (nolock)
+		WHERE
+			1 = 1
+			<choose>
+				<when test='BASE_YEAR != null and BASE_YEAR != ""'>
+					AND base_year = #{BASE_YEAR}
+				</when>
+				<otherwise>
+					AND base_year = (
+						SELECT
+							max(base_year)
+						FROM
+							srv_pg_sggbord WITH (nolock)
+					)
+				</otherwise>
+			</choose>
+			AND sido_cd = #{SIDO_CD}
+		ORDER BY
+			sgg_nm
+	</select>
+
+	<!-- 읍면동 목록 조회 -->
+	<select id="getEmdongList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			emdong_cd AS cd
+			, emdong_nm AS nm
+		FROM
+			srv_pg_admbord WITH (nolock)
+		WHERE
+			1 = 1
+			<choose>
+				<when test='BASE_YEAR != null and BASE_YEAR != ""'>
+					AND base_year = #{BASE_YEAR}
+				</when>
+				<otherwise>
+					AND base_year = (
+						SELECT
+							max(base_year)
+						FROM
+							srv_pg_admbord WITH (nolock)
+					)
+				</otherwise>
+			</choose>
+			AND sido_cd = #{SIDO_CD}
+			AND sgg_cd = #{SGG_CD}
+		ORDER BY
+			emdong_nm
+	</select>
+
+</mapper>

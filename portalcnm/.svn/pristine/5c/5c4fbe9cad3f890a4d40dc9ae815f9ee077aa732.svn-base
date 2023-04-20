@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="QAManage">
+	<!-- <select id="searchQA" parameterType="Map" resultType="Map">
+		SELECT ALL_DATA.*
+		FROM
+		(
+		SELECT ROWNUM AS R, ROW_DATA.*
+		FROM
+		(
+		SELECT
+		bd.BOARD_CD,
+		bd.POST_NO,
+		bd.PARENT_POST_ID,
+		bd.POST_DEPTH,
+		bd.POST_ORDER,
+		bd.PRIORITY_DISP_YN,
+		UPPER(bd.FILE_YN) as FILE_YN,
+		bd.REG_MEMBER_ID,
+		bd.LOW_RANK_S_CLASS_CD,
+		bc.COMMENT_REG_YN,
+		cd.S_CLASS_CD_NM,
+		NVL(bd.POST_HITS,0) as POST_HITS,
+		bd.POST_TITLE,
+		SUBSTR(TO_CHAR(bd.REG_TS,'yyyy-MM-dd'),0,10) as REG_TS,
+		(select count(post_depth) from SRV_DT_BOARD 
+		where parent_post_id = bd.post_no) as yn
+		FROM
+		SRV_DT_BOARD bd LEFT OUTER JOIN SRV_CD_BOARDCLASS bc ON bd.BOARD_CD = bc.BOARD_CD
+		LEFT OUTER JOIN CMM_CD_COMCD cd ON bd.LOW_RANK_S_CLASS_CD =
+		cd.S_CLASS_CD AND bc.LOW_RANK_B_CLASS_CD = cd.B_CLASS_CD
+		WHERE bd.board_cd = #{BOARD_CD}
+		and bd.PARENT_POST_ID is not NULL
+		and bd.POST_DEPTH = 0
+		     <if test="POST_CD == 'N'.toString()">
+		    and POST_NO NOT IN(SELECT PARENT_POST_ID
+				FROM SRV_DT_BOARD
+				WHERE POST_DEPTH==1)
+			</if>
+			
+		     <if test="POST_CD =='Y'.toString()">
+		 		and POST_NO IN(SELECT PARENT_POST_ID
+				FROM SRV_DT_BOARD
+				WHERE POST_DEPTH==1)        
+		     </if>
+		<if test="BOARD_S_CLASS_CD != null">
+			and LOW_RANK_S_CLASS_CD = #{BOARD_S_CLASS_CD}
+		</if>
+		<if test="POST_TITLE != null">
+			and POST_TITLE like '%' || #{POST_TITLE}|| '%'
+		</if>
+		<if test="POST_CONTENT != null">
+			and POST_CONTENT like '%' || #{POST_CONTENT}|| '%'
+		</if>
+		<if test="REG_MEMBER_ID != null">
+			and REG_MEMBER_ID like '%' || #{REG_MEMBER_ID}|| '%'
+		</if>
+		ORDER BY parent_post_id DESC, post_depth ASC, post_order ASC
+		) ROW_DATA
+		) ALL_DATA
+		WHERE R  <![CDATA[>=]]>
+		#{START_INDEX} AND R <![CDATA[<=]]>
+		#{END_INDEX}
+	</select>
+	<select id="searchQACount" parameterType="Map" resultType="int">
+		SELECT
+		NVL(COUNT(bd.BOARD_CD),0) as CNT
+		FROM srv_dt_board bd
+		WHERE bd.board_cd = #{BOARD_CD} and bd.PARENT_POST_ID is not NULL
+		AND bd.POST_DEPTH = 0
+		 <if test ="POST_CD != null and POST_CD =='N'.toString()">
+		    and POST_NO NOT IN(SELECT PARENT_POST_ID
+				FROM SRV_DT_BOARD
+				WHERE POST_DEPTH==1)
+		</if>
+		<if test="POST_CD != null and POST_CD == 'Y'.toString()">
+		    and POST_NO IN(SELECT PARENT_POST_ID
+				FROM SRV_DT_BOARD
+				WHERE POST_DEPTH==1)
+		</if> 
+		<if test="BOARD_S_CLASS_CD != null">
+			and LOW_RANK_S_CLASS_CD = #{BOARD_S_CLASS_CD}
+		</if>
+		<if test="POST_TITLE != null">
+			and POST_TITLE like '%' || #{POST_TITLE} ||'%'
+		</if>
+		<if test="POST_CONTENT != null">
+			and POST_CONTENT like '%' || #{POST_CONTENT} ||'%'
+		</if>
+		<if test="REG_MEMBER_ID != null">
+			and REG_MEMBER_ID like '%' || #{REG_MEMBER_ID}|| '%'
+		</if>
+	</select> -->
+	<select id="searchQA"  parameterType="Map" resultType="Map">
+		SELECT  ALL_DATA.*
+		FROM   
+		(
+            SELECT  ROWNUM AS R, ROW_DATA.*
+            FROM
+            		(
+                      SELECT  
+	                      bd.BOARD_CD,
+	                      bd.POST_NO,
+	                      bd.PARENT_POST_ID,
+	                      bd.POST_DEPTH,
+	                      bd.POST_ORDER,
+	                      bd.PRIORITY_DISP_YN,
+	                      UPPER(bd.FILE_YN) as FILE_YN,
+	                      bd.REG_MEMBER_ID,
+	                      bd.LOW_RANK_S_CLASS_CD,
+	                      cd.S_CLASS_CD_NM,
+	                      NVL(bd.POST_HITS,0) as POST_HITS,
+	                      bd.POST_TITLE,
+	                      SUBSTR(TO_CHAR(bd.REG_TS,'yyyy-MM-dd'),0,10) as REG_TS
+                      FROM    
+                      SRV_DT_BOARD bd LEFT OUTER JOIN SRV_CD_BOARDCLASS bc ON bd.BOARD_CD = bc.BOARD_CD
+	 				  LEFT OUTER JOIN CMM_CD_COMCD cd ON bd.LOW_RANK_S_CLASS_CD = cd.S_CLASS_CD AND bc.LOW_RANK_B_CLASS_CD = cd.B_CLASS_CD
+                      WHERE  bd.board_cd = #{BOARD_CD}
+                      and bd.PARENT_POST_ID is not NULL
+                      <if test="BOARD_S_CLASS_CD != null">  
+				  		and LOW_RANK_S_CLASS_CD = #{BOARD_S_CLASS_CD}
+					 </if>
+					 <if test="POST_TITLE != null">  
+					    and POST_TITLE like '%' || #{POST_TITLE}|| '%'
+					 </if>
+					 <if test="POST_CONTENT != null">  
+					    and POST_CONTENT like '%' || #{POST_CONTENT}|| '%'
+					 </if>
+					 <if test="REG_MEMBER_ID != null">  
+					    and REG_MEMBER_ID like '%' || #{REG_MEMBER_ID}|| '%'
+					 </if>
+					 <if test ="POST_CD != null and POST_CD =='N'.toString()">
+					 	and parent_post_id not in (select parent_post_id from SRV_DT_BOARD where post_depth = '1' and board_cd = 'BOARD_003' and PARENT_POST_ID is not NULL)
+					 </if>
+					 <if test ="POST_CD != null and POST_CD =='Y'.toString()">
+					 	and parent_post_id in (select parent_post_id from SRV_DT_BOARD where post_depth = '1' and board_cd = 'BOARD_003' and PARENT_POST_ID is not NULL)
+					 </if>
+                      ORDER BY parent_post_id DESC, post_depth ASC, post_order ASC
+                 ) ROW_DATA
+        ) ALL_DATA
+		WHERE   R  <![CDATA[>=]]> #{START_INDEX}  AND     R <![CDATA[<=]]> #{END_INDEX}
+	</select>
+	<select id="searchQACount"  parameterType="Map" resultType="int">
+		 SELECT  
+				NVL(COUNT(bd.BOARD_CD),0) as CNT
+         FROM   srv_dt_board bd
+         WHERE  bd.board_cd = #{BOARD_CD} and bd.PARENT_POST_ID is not NULL
+			<if test="BOARD_S_CLASS_CD != null">  
+			   and LOW_RANK_S_CLASS_CD = #{BOARD_S_CLASS_CD}
+			</if>
+			<if test="POST_TITLE != null">  
+			   and POST_TITLE like '%' || #{POST_TITLE} ||'%'
+			</if>
+			<if test="POST_CONTENT != null">  
+			   and POST_CONTENT like '%' || #{POST_CONTENT} ||'%'
+			</if>
+			<if test="REG_MEMBER_ID != null">  
+			   and REG_MEMBER_ID like '%' || #{REG_MEMBER_ID}|| '%'
+			</if>
+	</select>
+	<!-- mng_s 20171109_김건민 -->
+	<select id="searchAPI"  parameterType="Map" resultType="Map">
+		SELECT  ALL_DATA.*
+		FROM   
+		(
+            SELECT  ROWNUM AS R, ROW_DATA.*
+            FROM
+            		(
+                      SELECT  
+	                      bd.BOARD_CD,
+	                      bd.POST_NO,
+	                      bd.PARENT_POST_ID,
+	                      bd.POST_DEPTH,
+	                      bd.POST_ORDER,
+	                      bd.PRIORITY_DISP_YN,
+	                      UPPER(bd.FILE_YN) as FILE_YN,
+	                      bd.REG_MEMBER_ID,
+	                      NVL(bd.POST_HITS,0) as POST_HITS,
+	                      bd.POST_TITLE,
+	                      SUBSTR(TO_CHAR(bd.REG_TS,'yyyy-MM-dd'),0,10) as REG_TS
+                      FROM    
+                      SRV_DT_APIBOARD bd LEFT OUTER JOIN SRV_CD_BOARDCLASS bc ON bd.BOARD_CD = bc.BOARD_CD
+                      WHERE  bd.board_cd = #{BOARD_CD}
+                      and bd.PARENT_POST_ID is not NULL
+					 <if test="POST_TITLE != null">  
+					    and POST_TITLE like '%' || #{POST_TITLE}|| '%'
+					 </if>
+					 <if test="POST_CONTENT != null">  
+					    and POST_CONTENT like '%' || #{POST_CONTENT}|| '%'
+					 </if>
+					 <if test="REG_MEMBER_ID != null">  
+					    and REG_MEMBER_ID like '%' || #{REG_MEMBER_ID}|| '%'
+					 </if>
+                      ORDER BY parent_post_id DESC, post_depth ASC, post_order ASC
+                 ) ROW_DATA
+        ) ALL_DATA
+		WHERE   R  <![CDATA[>=]]> #{START_INDEX}  AND     R <![CDATA[<=]]> #{END_INDEX}
+	</select>
+	
+	<select id="searchAPICount"  parameterType="Map" resultType="int">
+		 SELECT  
+				NVL(COUNT(bd.BOARD_CD),0) as CNT
+         FROM   srv_dt_apiboard bd
+         WHERE  bd.board_cd = #{BOARD_CD} and bd.PARENT_POST_ID is not NULL
+			<if test="POST_TITLE != null">  
+			   and POST_TITLE like '%' || #{POST_TITLE} ||'%'
+			</if>
+			<if test="POST_CONTENT != null">  
+			   and POST_CONTENT like '%' || #{POST_CONTENT} ||'%'
+			</if>
+			<if test="REG_MEMBER_ID != null">  
+			   and REG_MEMBER_ID like '%' || #{REG_MEMBER_ID}|| '%'
+			</if>
+	</select>
+	<!-- mng_e 20171109_김건민 -->
+	
+	<select id="getType" parameterType="String" resultType="Map">
+		select
+		a.S_CLASS_CD,a.S_CLASS_CD_NM, a.S_CLASS_CD_ORDER
+		from CMM_CD_COMCD
+		a,SRV_CD_BOARDCLASS b
+		where a.B_CLASS_CD = b.LOW_RANK_B_CLASS_CD
+		and b.BOARD_CD = #{BOARD_CD}
+		order by a.S_CLASS_CD_ORDER asc
+	</select>
+	<select id="getPost_NO" parameterType="ArrayList" resultType="Map">
+		select BOARD_CD,POST_NO from SRV_DT_BOARD where
+		<foreach collection="list" separator="or" item="i" index="index">
+			(
+			BOARD_CD = #{i.BOARD_CD}
+			and PARENT_POST_ID = #{i.PARENT_POST_ID}
+			and POST_DEPTH = #{i.POST_DEPTH}
+			<if test="i.POST_ORDER == 0 ">
+				and POST_ORDER  <![CDATA[>=]]>
+				0
+			</if>
+			<if test="i.POST_ORDER != 0 ">
+				and POST_ORDER = #{i.POST_ORDER}
+			</if>
+			)
+		</foreach>
+	</select>
+	<delete id="deleteQA">
+		delete from SRV_DT_BOARD where
+		<foreach collection="list" separator="or" item="i" index="index">
+			(
+			BOARD_CD = #{i.BOARD_CD}
+			and POST_NO = #{i.POST_NO}
+			)
+		</foreach>
+	</delete>
+	<delete id="deleteFiles">
+		delete from SRV_DT_FILE where
+		<foreach collection="list" separator="or" item="i" index="index">
+			(
+			BOARD_CD = #{i.BOARD_CD}
+			and POST_NO = #{i.POST_NO}
+			)
+		</foreach>
+	</delete>
+	<select id="getQuestion" parameterType="Map" resultType="Map">
+		SELECT DISTINCT SUBSTR(TO_CHAR(a.REG_TS,'yyyy-MM-dd'),0,10) as REG_TS
+			 , a.BOARD_CD
+			 , a.POST_NO
+			 , a.POST_DEPTH
+			 , a.POST_ORDER
+			 , a.PARENT_POST_ID
+			 , a.POST_CONTENT
+			 , a.LOW_RANK_S_CLASS_CD
+			 , NVL(a.POST_HITS,0) as POST_HITS
+			 , UPPER(a.FILE_YN) as FILE_YN
+			 , d.S_CLASS_CD_NM
+			 , NVL(c.MEMBER_NM,e.MEMBER_NM) AS MEMBER_NM
+			 , NVL(c.EMAIL,e.EMAIL) AS EMAIL
+			 , NVL(c.CP_NO,e.CP_NO) AS CP_NO
+			 , a.POST_TITLE
+		  FROM SRV_DT_BOARD a LEFT OUTER JOIN SRV_CD_BOARDCLASS b
+			ON a.BOARD_CD = b.BOARD_CD
+		  LEFT OUTER JOIN SRV_DT_MEMBERINFO c
+			ON a.REG_MEMBER_ID = c.MEMBER_ID
+		  LEFT OUTER JOIN SRV_DT_DMNT_MEMBER e
+		    ON a.REG_MEMBER_ID = e.MEMBER_ID
+		  LEFT OUTER JOIN CMM_CD_COMCD d
+			ON a.LOW_RANK_S_CLASS_CD = d.S_CLASS_CD 
+		   AND b.LOW_RANK_B_CLASS_CD = d.B_CLASS_CD
+		 WHERE a.BOARD_CD = #{BOARD_CD} 
+		   AND a.POST_NO = #{POST_NO}
+	</select>
+	<select id="getQuestionFile" parameterType="Map" resultType="Map">
+		select
+		DISTINCT
+		a.FILE_PATH,
+		a.FILE_NM,
+		a.FILE_EXTN AS FILE_EXTENSION,
+		a.FILE_ID
+		from SRV_DT_FILE a, SRV_DT_BOARD b
+		where
+		a.BOARD_CD = b.BOARD_CD and a.POST_NO = b.POST_NO and
+		a.BOARD_CD = #{BOARD_CD} and a.POST_NO = #{POST_NO}
+	</select>
+	<select id="getAnswer" parameterType="Map" resultType="Map">
+		select
+		DISTINCT
+		BOARD_CD,
+		POST_NO,
+		POST_CONTENT
+		from
+		SRV_DT_BOARD
+		where
+		BOARD_CD = #{BOARD_CD} and POST_NO = #{POST_NO}
+	</select>
+	<select id="getQuestionOfAnswer" parameterType="Map" resultType="Map">
+		select
+		DISTINCT
+		BOARD_CD,
+		POST_NO,
+		POST_TITLE,
+		POST_CONTENT,
+		POST_DEPTH,
+		POST_ORDER,
+		PARENT_POST_ID,
+		LOW_RANK_S_CLASS_CD
+		from
+		SRV_DT_BOARD
+		where
+		BOARD_CD = #{BOARD_CD}
+		and PARENT_POST_ID = #{PARENT_POST_ID}
+		and POST_DEPTH =0 and POST_ORDER = 0
+	</select>
+	<select id="getAnswerOrder" parameterType="Map" resultType="int">
+		select NVL(MAX(POST_ORDER),0)+1 as POST_ORDER from SRV_DT_BOARD
+		where BOARD_CD = #{BOARD_CD}
+		and PARENT_POST_ID = #{PARENT_POST_ID}
+		and POST_DEPTH = #{POST_DEPTH}
+	</select>
+	<insert id="replyQuestion" parameterType="Map">
+		insert into
+		SRV_DT_BOARD
+		(
+		BOARD_CD,
+		POST_NO,
+		POST_TITLE,
+		POST_CONTENT,
+		POST_DEPTH,
+		POST_ORDER,
+		PARENT_POST_ID,
+		REG_MEMBER_ID,
+		REG_TS,
+		MOD_TS,
+		FILE_YN,
+		PRIORITY_DISP_YN,
+		LOW_RANK_S_CLASS_CD
+		)
+		values
+		(
+		#{BOARD_CD},
+		(
+		select NVL(MAX(POST_NO),0)+1 from SRV_DT_BOARD where BOARD_CD = #{BOARD_CD}
+		),
+		#{POST_TITLE},
+		#{POST_CONTENT},
+		#{POST_DEPTH},
+		#{POST_ORDER},
+		#{PARENT_POST_ID},
+		#{MEMBER_ID},
+		sysdate,
+		sysdate,
+		'N',
+		'N',
+		#{LOW_RANK_S_CLASS_CD}
+		)
+	</insert>
+	<update id="updateAnswer" parameterType="Map">
+		update SRV_DT_BOARD
+		set
+		POST_TITLE = #{POST_TITLE},
+		POST_CONTENT = #{POST_CONTENT},
+		MOD_TS = sysdate
+		where
+		BOARD_CD = #{BOARD_CD} and POST_NO = #{POST_NO}
+	</update>
+	<!-- mng_s 20171113_김건민 -->
+	<select id="getAPIQuestion" parameterType="Map" resultType="Map">
+		SELECT DISTINCT SUBSTR(TO_CHAR(a.REG_TS,'yyyy-MM-dd'),0,10) as REG_TS
+			 , a.BOARD_CD
+			 , a.POST_NO
+			 , a.POST_DEPTH
+			 , a.POST_ORDER
+			 , a.PARENT_POST_ID
+			 , a.POST_CONTENT
+			 , NVL(a.POST_HITS,0) as POST_HITS
+			 , UPPER(a.FILE_YN) as FILE_YN
+			 , NVL(c.MEMBER_NM,d.MEMBER_NM) AS MEMBER_NM
+			 , NVL(c.EMAIL,d.EMAIL) AS EMAIL
+			 , NVL(c.CP_NO,d.CP_NO) AS CP_NO
+			 , a.POST_TITLE
+		  FROM SRV_DT_APIBOARD a LEFT OUTER JOIN SRV_CD_BOARDCLASS b
+			ON a.BOARD_CD = b.BOARD_CD
+		  LEFT OUTER JOIN SRV_DT_MEMBERINFO c
+			ON a.REG_MEMBER_ID = c.MEMBER_ID
+		  LEFT OUTER JOIN SRV_DT_DMNT_MEMBER d
+		    ON a.REG_MEMBER_ID = d.MEMBER_ID
+		 WHERE a.BOARD_CD = #{BOARD_CD} 
+		   AND a.POST_NO = #{POST_NO}
+	</select>
+	<select id="getAPIQuestionFile" parameterType="Map" resultType="Map">
+		select
+		DISTINCT
+		a.FILE_PATH,
+		a.FILE_NM,
+		a.FILE_EXTN AS FILE_EXTENSION,
+		a.FILE_ID
+		from SRV_DT_FILE a, SRV_DT_APIBOARD b
+		where
+		a.BOARD_CD = b.BOARD_CD and a.POST_NO = b.POST_NO and
+		a.BOARD_CD = #{BOARD_CD} and a.POST_NO = #{POST_NO}
+	</select>
+	<!-- mng_e 20171113_김건민 -->
+</mapper>

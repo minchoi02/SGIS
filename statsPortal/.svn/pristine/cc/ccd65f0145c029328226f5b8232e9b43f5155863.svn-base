@@ -1,0 +1,95 @@
+@charset "utf-8";
+html,body {	overflow-y: visible;}
+
+body {	min-width: 750px;letter-spacing: -0.75px;}
+
+/* floor-Info*/
+.by-floor{position:relative;height:100%;border:1px solid #1b3453;background:#f5f5f5;}
+.floor-Info{height:40px;line-height:40px;background:#1b3453;}
+.view-title{color:#fff;font-family:'Nanum Gothic Bold';padding-left:14px;font-size:15px;letter-spacing:-0.75px;}
+.title-address{position:relative;font-size:14px;color:#bac9e5;font-family:'Nanum Gothic';}
+.title-address:before{position:relative;content:'';display:inline-block;vertical-align:top;width:0;height:14px;margin:0px 7px 0;border-left:1px solid #526a98;top:13px;}
+.btn-floor{border-radius:3px;display:block;width:100px;height:34px;border:1px solid #1778cc;background-color:#1778cc;box-sizing:border-box;overflow:hidden;margin-bottom:30px;}
+.btn-floor span{position:relative;padding-left:25px;text-align:center;font-size:14px;color:#fff;line-height: 32px;vertical-align: middle;}
+.btn-floor span:before{position:absolute;content:'';background-image:url(/images/idm/floor-marker.png);display:block;width:11px;height:15px;top:1px;left:9px;}
+
+/* floor-Info layout*/
+#floor-map{position:absolute;top:40px;right:0;bottom:0;left:0;z-index:20;}
+#floor-map-aside{z-index:40;position:absolute;top:0;right:0;bottom:0;left:0;border-color:#b6b8ba;-webkit-box-shadow:1px 0 0 rgba(0,0,0,.2);background:#fff;width:250px;}
+.panel-content{overflow:hidden;height:100%;width:100%;}
+#inside{position:absolute;top:0;right:0;bottom:0;left:0;background-color:#fff;}
+#inside .header{height:35px;line-height:35px;background:#eaebed;border-bottom:1px solid #d8dade;text-align:center;}
+#inside .header h3{color:#454545;font-size:15px;}
+#content{position:absolute;top:0;right:0;bottom:0;left:250px;height:100%;background:#fff;-webkit-transition:left 0.2s ease-out;}/*2019-03-15 박길섭 */
+.floor-map-area{overflow:hidden;position:absolute;top:0;right:0;bottom:0;left:0;z-index:1;}
+
+/*사업체 리스트 */
+.infor-list-box{padding-bottom:60px;}
+.infor-list-box ul li{padding:10px 0 8px;height:54px;margin:0 20px 0 10px;border-bottom:1px solid #dadbdd;box-sizing:border-box;}
+.infor-list-box ul li a{font-family:'Nanum Gothic';display:block;color:#888;font-size:12px;}
+.infor-list-box ul li a span{display:block;font-family:'Nanum Gothic';font-size:14px;margin-bottom:5px;text-overflow:ellipsis;overflow:hidden;height:18px;width:215px;white-space:nowrap;color:555;font-weight:bold;}/*2019-04-08 박길섭 */
+.infor-list-box ul li:hover span{background:transparent;color:#1778cc;}
+.infor-list-box ul li span:hover{color:#1778cc;}
+.infor-list-box ul li span.on{color:#1778cc;}
+
+.sop-infowindow-content ul li{padding:10px 0 8px;height:54px;margin:0 20px 0 10px;box-sizing:border-box;}
+.sop-infowindow-content ul li span{display:block;font-family:'Nanum Gothic';font-size:14px;margin-bottom:5px;text-overflow:ellipsis;overflow:hidden;height:18px;width:215px;white-space:nowrap;color:555;font-weight:bold;}/*2019-04-08 박길섭 */
+
+/*리스트 nav*/
+.aside-line{position:absolute;top:0;bottom:0;right:0px;z-index:2;width:1px;height:100%;background:#b6b8ba;opacity:.06;filter:alpha(opacity=6);}
+.aside_close,.spmh_aside_open{position:absolute;top:50%;right:-11px;margin-top:-28px;z-index:3;}
+.aside-close{position:absolute;width:25px;height:68px;display:inline-block;overflow:hidden;background:url(/images/idm/nav-close.png) no-repeat;line-height:999px;vertical-align:top;top:50%;right:-25px;z-index:10;}
+
+/* controler 위치 */
+.indoor-topleft{position:absolute;top:10px;left:10px;}
+.indoor-topright{position:absolute;top:10px;right:10px;z-index:4;}/*2019-03-15 박길섭 */
+.indoor-middleright{position:absolute;top:145px;right:10px;z-index:4;}/*2019-03-15 박길섭 */
+.indoor-bottomleft{position:absolute;bottom:10px;left:10px;}
+.indoor-bottomright{position:absolute;top:10px;right:10px;}
+
+/* floor */
+.indoor-floor-controler li.on{border:1px solid #1778cc; background-color:#fff;}
+.indoor-floor-controler .floor-list{list-style-type:none;margin:0;padding:0;}
+.indoor-floor-controler .floor-list li{margin:1px 0;padding:4px 16px;background-color:#959595;border:1px solid #959595;height:28px;width:54px;box-sizing:border-box;cursor:pointer;}
+.indoor-floor-controler .floor-list li.on{position:relative;border:1px solid #1778cc !important;background-color:#1778cc !important;}/*2019-03-20 박길섭 */
+.indoor-floor-controler .floor-list li a{display:block;font-family:'Nanum Gothic Bold';color:#fff;text-align:center;font-weight:bold;font-size:13px;}
+.indoor-floor-controler .floor-list li:hover{position:relative;border:1px solid #1778cc !important;background-color:#1778cc !important;}/*2019-03-20 박길섭 */
+.indoor-floor-controler .floor-list li:hover:after{position:absolute;content:"";display:block;border-width:6px 5px 6px 0px;border-style:solid;border-color:transparent #1778cc transparent transparent;width:0;height:0;margin:0;padding:0;left:-6px;top:8px;}
+.indoor-floor-controler a.floor-arrow{width:54px;height:19px;display:inline-block;border:1px solid #d2d2d2;background-image:url(/images/idm/floor-arr.png);background-repeat:no-repeat;background-position:center;background-color:#fff;box-sizing:border-box;border-radius:3px 3px 0 0;}
+.indoor-floor-controler a.floor-prev.on,.indoor-floor-controler a.floor-prev:hover{border:1px solid #1778cc;background-image:url(/images/idm/floor-arr_on.png);}
+.indoor-floor-controler a.floor-next{-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-ms-transform:rotate(180deg);-o-transform:rotate(180deg);transform:rotate(180deg);}
+.indoor-floor-controler a.floor-next.on,.indoor-floor-controler a.floor-next:hover{border:1px solid #1778cc;background-image:url(/images/idm/floor-arr_on.png);}
+
+/* 확대축소 */
+.indoor-zoom-controler{display:block;float:right;overflow:hidden;}
+.indoor-zoom-controler button,.indoor-zoom-controler button:hover,.indoor-zoom-controler button.gguk{background-color:#fff;width:54px;height:30px;text-align:center;text-decoration:none;font-size:0;}
+.indoor-zoom-controler button{background-position:50% 50%;background-repeat:no-repeat;display:block;cursor:pointer;border:1px solid #b5b5b5;}
+.indoor-zoom-controler button:hover{background-color:#fff;border:1px solid #1778cc;}
+.indoor-zoom-controler button.indoor-disabled{cursor:default;background-color:#f4f4f4;color:#bbb;}
+.indoor-zoom-controler-in{background-image:url(/images/idm/icon_map_ui_zoonin.png);background-size:15px 15px;}
+.indoor-zoom-controler-out{background-image:url(/images/idm/icon_map_ui_zoonout.png);background-size:15px 3px;}
+.indoor-zoom-controler button:first-child{margin-bottom:-1px;}
+
+/* 임시 평면도 이미지 */
+.floor-plan-area{position:relative;width:580px;line-height:580px;height:580px;text-align:center;display:block;vertical-align:middle;}
+.floor-plan-area > img{position:absolute;max-width:100%;max-height:100%;width:auto;height:auto;margin:auto;top:0;bottom:0;left:0;right:0;}
+
+/* 평면도 없을때 */
+.msg-box{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);}
+.msg-box > dl{text-align:center;letter-spacing: -0.75px;}
+.msg-box > dl dd:first-of-type{font-size:15px;line-height:100%;color:#555;font-weight: bold;margin-bottom: 10px;padding-top: 13px;font-family: 'Nanum Gothic';}
+.msg-box > dl dd:last-of-type{font-size:13px;line-height:18px;color:#888;}
+
+
+/* infor-tooltip */
+#pointer.infor-box{position:absolute;top: 40%;left: 110px;z-index:999;margin:0px;padding:0px;border:0px none;overflow:visible;cursor:default;display:block;}
+.tooltip-layer{position:relative;top:0px;left:0px;z-index:1;margin:0px;padding:0px;border:0px none;overflow:visible;width:200px;height:auto;background-color:#fff;border:1px solid #213967;}
+.tooltip-layer.arrow{position:relative;}
+.tooltip-layer.arrow:after{position:absolute;content:'';background-image:url(/images/idm/bottom.png);width:27px;height:23px;left:45%;bottom:-23px;display:block;}
+.infor-content{padding:19px 15px;}
+.infor-content dl{line-height:20px;text-align:  left;}
+.infor-content dl  dt{font-family:'Nanum Gothic';font-size:15px;color:#333;font-weight:bold;}
+.infor-content dl dd{font-size:13px;color:#888;}
+.infor-close{position:absolute;top:5px;right:5px;padding:5px;z-index:1;}
+.infor.layer-close{width:13px;height:13px;display:inline-block;overflow:hidden;background:url(/images/idm/layer_close.png) no-repeat;white-space:nowrap;line-height:999px;vertical-align:top;}
+.mCSB_container_wrapper{position:relative !important; height:1000px !important;}/* 2019-03-15 박길섭*/

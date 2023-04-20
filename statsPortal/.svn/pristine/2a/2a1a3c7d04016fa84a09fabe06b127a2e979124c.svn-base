@@ -1,0 +1,227 @@
+package kostat.sop.ServiceAPI.lvs.mapper;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import egovframework.rte.psl.dataaccess.EgovAbstractMapper;
+import kostat.sop.ServiceAPI.lvs.vo.LvsSeekVO;
+import kostat.sop.ServiceAPI.lvs.vo.LvsVO;
+import kostat.sop.ServiceAPI.sbr.vo.SbrVo;
+
+/**
+ *  2022년 SGIS고도화 5차 
+ *  @Description 지역변화분석지도
+ *  @author 조세진
+ */
+@Repository( "lvsStatsMapper" )
+public class LvsStatsMapper extends EgovAbstractMapper
+{
+	public List<Map<String, Object>> selectTotPpltn(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectMainDataInfo_tot_ppltn", vo);
+	}
+	
+	public List<Map<String, Object>> selectCensusIndex_with_story(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectCensusIndex_with_story", vo);
+	}
+	
+	public List<Map<String, Object>> selectTotPpltnYear(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectMainDataInfo_tot_ppltn_year", vo);
+	}
+	
+	public List<Map<String, Object>> selectTotFmly(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectMainDataInfo_tot_family", vo);
+	}
+	
+	public List<Map<String, Object>> selectTotFmlyYear(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectMainDataInfo_tot_family_year", vo);
+	}
+	
+	//총주택 정보
+	public List<Map<String, Object>> selectTotHouse(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectMainDataInfo_tot_house", vo);
+	}
+	
+	
+	//
+	public List<Map<String, Object>> selectTotHouseYear(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectMainDataInfo_tot_house_year", vo);
+	}
+	
+	
+	public List<Map<String, Object>> selectCensusIndex(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectCensusIndex", vo);
+	}
+	
+	
+	//우리동네상황판  이지방지표관련 데이터모두가져옴.
+	public List<Map<String, Object>> selectEcountryWithAllData(LvsVO vo) {
+		//return selectList("lvsStatsXsql.selectMainDataInfo_tot_ppltn", vo);
+		return selectList("lvsStatsXsql.selectEcountryWithAllData", vo);		
+	}
+	
+	//추천지표 총인구
+	public List<Map<String, Object>> selectRecIndex_tot_ppltn(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectRecIndex_tot_ppltn", vo);
+	}
+	
+	public List<Map<String, Object>> selectRecIndex_tot_ppltn_region(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectRecIndex_tot_ppltn_region", vo);
+	}
+	
+	public List<Map<String, Object>> selectCensusRecIndexYear(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectCensusRecIndexYear", vo);
+	}
+	
+	//추천지표 사업체수 종업원수
+	public List<Map<String, Object>> selectRecIndex_corpcensus_index(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectRecIndex_corpcensus_index", vo);
+	}
+	public List<Map<String, Object>> selectRecIndex_corpcensus_index_year(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectRecIndex_corpcensus_index_year", vo);
+	}
+	public List<Map<String, Object>> selectRecIndex_corpcensus_index_updata(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectRecIndex_corpcensus_index_updata", vo);
+	}
+	public List<Map<String, Object>> selectRecIndex_corpcensus_index_region(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectRecIndex_corpcensus_index_region", vo);
+	}
+	public List<Map<String, Object>> selectRecIndex_corpcensus_index_subdiv(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectRecIndex_corpcensus_index_subdiv", vo);
+	}
+	
+	// 추천지표 집계구 통계
+	public List<Map<String, Object>> selectRecIndex_popsreg(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectRecIndex_popsreg", vo);
+	}
+	
+	//추천지표 남자인구 여자인구 step1 selectRecIndex_tot_man tot_woman
+	public List<Map<String, Object>> selectRecIndex_tot_man(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectRecIndex_tot_man", vo);
+	}
+	
+	//추천지표 남자인구 여자인구  step2   행정구역의 연도별 정보
+	public List<Map<String, Object>> selectRecIndex_tot_manYear(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectRecIndex_tot_manYear", vo);
+	}
+	
+	//추천지표 남자인구 여자인구  step3  상위 행정구역의 연도별 정보
+	public List<Map<String, Object>> selectRecIndex_tot_man_updata(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectRecIndex_tot_man_updata", vo);
+	}
+	
+	//추천지표 남자인구 여자인구  step4  행정구역별 정보
+	public List<Map<String, Object>> selectRecIndex_tot_man_region(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectRecIndex_tot_man_region", vo);
+	}
+	
+	//추천지표 남자인구 여자인구  step5 하위 지표  selectRecIndex_tot_man tot_woman
+	public List<Map<String, Object>> selectRecIndex_tot_man_subdiv(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectRecIndex_tot_man_subdiv", vo);
+	}
+	
+	//추천지표 테마맵데이터 step1 selectRecIndex_themaMapData
+	public List<Map<String, Object>> selectRecIndex_themaMapData(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectRecIndex_themaMapData", vo);
+	}
+	
+	//추천지표 남자인구 여자인구  step2   행정구역의 연도별 정보
+	public List<Map<String, Object>> selectRecIndex_themaMapData_year(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectRecIndex_themaMapData_year", vo);
+	}
+	
+	//추천지표 남자인구 여자인구  step3  상위 행정구역의 연도별 정보
+	public List<Map<String, Object>> selectRecIndex_themaMapData_updata(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectRecIndex_themaMapData_updata", vo);
+	}
+	
+	//추천지표 남자인구 여자인구  step4  행정구역별 정보
+	public List<Map<String, Object>> selectRecIndex_themaMapData_region(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectRecIndex_themaMapData_region", vo);
+	}
+	
+	//추천지표 남자인구 여자인구  step5 하위 지표  selectRecIndex_tot_man tot_woman
+	public List<Map<String, Object>> selectRecIndex_themaMapData_subdiv(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectRecIndex_themaMapData_subdiv", vo);
+	}
+	
+	
+	// 총가구 총주택에 대한 기본정보 
+	public List<Map<String, Object>> selectMainDataInfo_tot_family_house(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectMainDataInfo_tot_family_house", vo);
+	}
+	
+	//인구  하위지역 행정구역  데이터 (총가구, 총주택)
+	public List<Map<String, Object>> selectCensusIndexSubDiv(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectCensusIndexSubDiv", vo);
+	}
+	
+	//인구 년도별 데이터 ((총가구, 총주택)
+	public List<Map<String, Object>> selectCensusIndexYear(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectCensusIndexYear", vo);
+	}
+	
+	
+	// 사업체수, 종업원수에 대한 기본정보 
+	public List<Map<String, Object>> selectMainDataInfo_corp_employee_cnt(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectMainDataInfo_corp_employee_cnt", vo);
+	}
+	
+	//사업체 년도별 데이터 (종업원수, 사업체수)
+	public List<Map<String, Object>> selectCorpCensusIndexYear(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectCorpCensusIndexYear", vo);
+	}
+	
+	//사업체 하위지역 행정구역  데이터 (종업원수, 사업체수)
+	public List<Map<String, Object>> selectCorpCensusIndexSubDiv(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectCorpCensusIndexSubDiv", vo);
+	}
+	
+	//1인가구 등 테마통계 기본정보
+	public List<Map<String, Object>> selectMainDataInfo_themaMapData(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectMainDataInfo_themaMapData", vo);
+	}
+	
+	//1인가구 등 테마통계 연도별 정보
+	public List<Map<String, Object>> selectMainDataInfo_themaMapDataYear(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectMainDataInfo_themaMapDataYear", vo);
+	}
+	
+	//1인가구 등 테마통계 하위지역정보
+	public List<Map<String, Object>> selectMainDataInfo_themaMapDataSubDiv(LvsVO vo) {
+		return selectList("lvsStatsXsql.selectMainDataInfo_themaMapDataSubDiv", vo);
+	}
+	
+	
+	public List<Map<String, Object>> select_mng_dt_themamapdata(LvsSeekVO vo) {
+		return selectList("lvsStatsXsql.select_mng_dt_themamapdata", vo);
+	}
+	
+	public List<Map<String, Object>> select_mng_dt_themamapdata_with_admboard(LvsSeekVO vo) {
+		return selectList("lvsStatsXsql.select_mng_dt_themamapdata_with_admboard", vo);
+	}
+	
+	
+	//센스 총인구, 인구밀도, 평균나이 하위지역합산 순위, 비율 데이터
+	public List<Map<String, Object>> select_allstat_srv_dt_census_index(LvsSeekVO vo) {
+		return selectList("lvsStatsXsql.select_allstat_srv_dt_census_index", vo);
+	}
+	
+	//센스 총인구, 인구밀도, 평균나이 하위지역합산 순위, 비율 데이터 - 년도리스트
+	public List<Map<String, Object>> select_allstat_srv_dt_census_index_yearlist(LvsSeekVO vo) {
+		return selectList("lvsStatsXsql.select_allstat_srv_dt_census_index_yearlist", vo);
+	}
+	
+	//센스 총인구, 인구밀도, 평균나이 하위지역합산 순위, 비율 데이터 - 년도리스트
+	public List<Map<String, Object>> select_allstat_srv_dt_popsreg(LvsSeekVO vo) {
+		return selectList("lvsStatsXsql.select_allstat_srv_dt_popsreg", vo);
+	}
+	
+	//센스 총인구, 인구밀도, 평균나이 하위지역합산 순위, 비율 데이터 - 년도리스트 상위지역요약
+	public List<Map<String, Object>> select_allstat_srv_dt_popsreg_up_area(LvsSeekVO vo) {
+		return selectList("lvsStatsXsql.select_allstat_srv_dt_popsreg_up_area", vo);
+	}
+	
+}

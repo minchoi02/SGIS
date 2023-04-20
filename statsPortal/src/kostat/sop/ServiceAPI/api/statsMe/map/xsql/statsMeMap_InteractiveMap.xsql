@@ -1,0 +1,954 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="statsMeMap_InteractiveMap">
+<!-- My통계로 데이터 수집 대화형 통계지도 -->	
+	
+	<!-- Select One 테마코드 -->
+	<select id="selectOneCmmCdTheme" parameterType="hashmap" resultType="hashmap">
+		select
+			a.*
+		from
+			cmm_cd_theme a with(nolock)
+		where 1=1
+			and trim(a.b_theme_cd_nm) = #{b_theme_cd_nm}
+			and trim(a.s_theme_cd_nm) = #{s_theme_cd_nm}
+	</select>
+	
+	<!-- Select One 산업체분류 -->
+	<select id="selectOneCmmCdCorpclass" parameterType="hashmap" resultType="hashmap">
+		select
+			top 1
+			a.ksic_1_cd
+			,a.ksic_4_cd
+		from
+			cmm_cd_corpclass a with(nolock)
+		where 1=1
+			and trim(a.class_deg) = #{class_deg}
+			and trim(a.ksic_1_nm) = #{ksic_1_nm}
+			and trim(a.ksic_2_nm) = #{ksic_2_nm}
+			and trim(a.ksic_3_nm) = #{ksic_3_nm}
+			and trim(a.ksic_4_nm) = #{ksic_4_nm}
+	</select>
+	
+	<!-- Insert 카탈로그 데이터마트 대화형 통계지도 1 -->
+	<!-- 전국 사업체조사: 테마업종 색상 시도/시군구/읍면동/소지역 -->
+	<insert id="insertSrvDtCtlgDtwrh_InteractiveMap_1" parameterType="hashmap">
+		insert into srv_dt_ctlg_dtwrh
+		(
+			stat_data_id
+			,stats_dta_sn
+			,map_ty
+			,area_bndry_se
+			,base_year
+			,adm_cd
+			,adm_nm
+			,sido_cd
+			,sgg_cd
+			,emdong_cd
+			,x_coor
+			,y_coor
+			,poi_se_nm
+			,poi_nm
+			,unit
+			,unit_nm
+			,tooltip_cn
+			,stats_dta_co
+		)
+		select
+			#{stat_data_id} as stat_data_id
+			,${stats_dta_sn}+rownum as stats_dta_sn
+			,m.map_ty
+			,m.area_bndry_se
+			,m.base_year
+			,m.adm_cd
+			,m.adm_nm
+			,m.sido_cd
+			,m.sgg_cd
+			,m.emdong_cd
+			,m.x_coor
+			,m.y_coor
+			,m.poi_se_nm
+			,m.poi_nm
+			,m.unit
+			,m.unit_nm
+			,m.tooltip_cn
+			,m.stats_dta_co
+		from
+			(
+				<!-- 시도 -->
+				select
+					<choose>
+						<when test='map_ty != null and map_ty != "" and map_ty != undefined'>
+							#{map_ty} AS MAP_TY
+						</when>
+						<otherwise>
+							'color' as map_ty						
+						</otherwise>
+					</choose>
+					,'sido' as area_bndry_se
+					,a.base_year as base_year
+					,a.sido_cd as adm_cd
+					,null as adm_nm
+					,a.sido_cd as sido_cd
+					,null as sgg_cd
+					,null as emdong_cd
+					,null as x_coor
+					,null as y_coor
+					,null as poi_se_nm
+					,null as poi_nm
+					,'개' as unit
+					,'사업체수' as unit_nm
+					<choose>
+						<when test='tooltip_cn != null and tooltip_cn != "" and tooltip_cn != undefined'>
+							, #{tooltip_cn} AS tooltip_cn						
+						</when>
+						<otherwise>
+							,a.base_year||'년 사업체수' as tooltip_cn
+						</otherwise>
+					</choose>
+					,cast(sum(a.corp_cnt) as number) as stats_dta_co
+				from
+					srv_dt_corpthemesgg a with(nolock)
+				where 1=1
+					and a.base_year = #{stat_data_base_year}
+					and a.theme_cd = #{theme_cd}
+				group by
+					a.base_year
+					,a.sido_cd
+				<!-- 시군구 -->
+				union all
+				select
+					<choose>
+						<when test='map_ty != null and map_ty != "" and map_ty != undefined'>
+							#{map_ty} AS MAP_TY
+						</when>
+						<otherwise>
+							'color' as map_ty						
+						</otherwise>
+					</choose>
+					,'sgg' as area_bndry_se
+					,a.base_year as base_year
+					,a.sido_cd||a.sgg_cd as adm_cd
+					,null as adm_nm
+					,a.sido_cd as sido_cd
+					,a.sgg_cd as sgg_cd
+					,null as emdong_cd
+					,null as x_coor
+					,null as y_coor
+					,null as poi_se_nm
+					,null as poi_nm
+					,'개' as unit
+					,'사업체수' as unit_nm
+					<choose>
+						<when test='tooltip_cn != null and tooltip_cn != "" and tooltip_cn != undefined'>
+							, #{tooltip_cn} AS tooltip_cn						
+						</when>
+						<otherwise>
+							,a.base_year||'년 사업체수' as tooltip_cn
+						</otherwise>
+					</choose>
+					,cast(sum(a.corp_cnt) as number) as stats_dta_co
+				from
+					srv_dt_corpthemesgg a with(nolock)
+				where 1=1
+					and a.base_year = #{stat_data_base_year}
+					and a.theme_cd = #{theme_cd}
+				group by
+					a.base_year
+					,a.sido_cd
+					,a.sgg_cd
+				<!-- 읍면동 -->
+				union all
+				select
+					<choose>
+						<when test='map_ty != null and map_ty != "" and map_ty != undefined'>
+							#{map_ty} AS MAP_TY
+						</when>
+						<otherwise>
+							'color' as map_ty						
+						</otherwise>
+					</choose>
+					,'emdong' as area_bndry_se
+					,a.base_year as base_year
+					,substr(a.tot_reg_cd, 1, 7) as adm_cd
+					,null as adm_nm
+					,substr(substr(a.tot_reg_cd, 1, 7), 1, 2) as sido_cd
+					,substr(substr(a.tot_reg_cd, 1, 7), 3, 3) as sgg_cd
+					,substr(substr(a.tot_reg_cd, 1, 7), 6, 2) as emdong_cd
+					,null as x_coor
+					,null as y_coor
+					,null as poi_se_nm
+					,null as poi_nm
+					,'개' as unit
+					,'사업체수' as unit_nm
+					<choose>
+						<when test='tooltip_cn != null and tooltip_cn != "" and tooltip_cn != undefined'>
+							, #{tooltip_cn} AS tooltip_cn						
+						</when>
+						<otherwise>
+							,a.base_year||'년 사업체수' as tooltip_cn
+						</otherwise>
+					</choose>
+					,cast(sum(a.corp_cnt) as number) as stats_dta_co
+				from
+					srv_dt_corpthemereg a with(nolock)
+				where 1=1
+					and a.base_year = #{stat_data_base_year}
+					and a.theme_cd = #{theme_cd}
+				group by
+					a.base_year
+					,substr(a.tot_reg_cd, 1, 7)
+				<!-- 소지역 -->
+				union all
+				select
+					<choose>
+						<when test='map_ty != null and map_ty != "" and map_ty != undefined'>
+							#{map_ty} AS MAP_TY
+						</when>
+						<otherwise>
+							'color' as map_ty						
+						</otherwise>
+					</choose>
+					,'totreg' as area_bndry_se
+					,a.base_year as base_year
+					,a.tot_reg_cd as adm_cd
+					,null as adm_nm
+					,substr(a.tot_reg_cd, 1, 2) as sido_cd
+					,substr(a.tot_reg_cd, 3, 3) as sgg_cd
+					,substr(a.tot_reg_cd, 6, 2) as emdong_cd
+					,null as x_coor
+					,null as y_coor
+					,null as poi_se_nm
+					,null as poi_nm
+					,'개' as unit
+					,'사업체수' as unit_nm
+					<choose>
+						<when test='tooltip_cn != null and tooltip_cn != "" and tooltip_cn != undefined'>
+							, #{tooltip_cn} AS tooltip_cn						
+						</when>
+						<otherwise>
+							,a.base_year||'년 사업체수' as tooltip_cn
+						</otherwise>
+					</choose>
+					,cast(sum(a.corp_cnt) as number) as stats_dta_co
+				from
+					srv_dt_corpthemereg a with(nolock)
+				where 1=1
+					and a.base_year = #{stat_data_base_year}
+					and a.theme_cd = #{theme_cd}
+				group by
+					a.base_year
+					,a.tot_reg_cd
+			) m
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 대화형 통계지도 2 -->
+	<!-- 전국 사업체조사: 테마업종 색상 100k/10k/1k/100m -->
+	<insert id="insertSrvDtCtlgDtwrh_InteractiveMap_2" parameterType="hashmap">
+		insert into srv_dt_ctlg_dtwrh
+		(
+			stat_data_id
+			,stats_dta_sn
+			,map_ty
+			,area_bndry_se
+			,base_year
+			,adm_cd
+			,adm_nm
+			,sido_cd
+			,sgg_cd
+			,emdong_cd
+			,x_coor
+			,y_coor
+			,poi_se_nm
+			,poi_nm
+			,unit
+			,unit_nm
+			,tooltip_cn
+			,stats_dta_co
+		)
+		with w_srv_dt_corpcensus as (
+			select
+				a.base_year
+				,case trunc(st_x(b.pt), -5)
+					when 700000 then '가' when 800000 then '나' when 900000 then '다' when 1000000 then '라' when 1100000 then '마' when 1200000 then '바' when 1300000 then '사' when 1400000 then '아' when 1500000 then '자' else '가'
+				end as x_text
+				,case trunc(st_y(b.pt), -5)
+					when 1300000 then '가' when 1400000 then '나' when 1500000 then '다' when 1600000 then '라' when 1700000 then '마' when 1800000 then '바' when 1900000 then '사' when 2000000 then '아' when 2100000 then '자' else '가'
+				end as y_text
+				,left(right(trunc(st_x(b.pt), -2),5),3) as x_num_100m
+				,left(right(trunc(st_y(b.pt), -2),5),3) as y_num_100m
+				,left(right(trunc(st_x(b.pt), -3),5),2) as x_num_1k
+				,left(right(trunc(st_y(b.pt), -3),5),2) as y_num_1k
+				,left(right(trunc(st_x(b.pt), -4),5),1) as x_num_10k
+				,left(right(trunc(st_y(b.pt), -4),5),1) as y_num_10k
+			from
+				<choose>
+					<when test='stat_data_base_year != null and stat_data_base_year lte "2005"'>
+						srv_dt_corpcensus_8 a with(nolock)
+					</when>
+					<when test='stat_data_base_year != null and stat_data_base_year lte "2016"'>
+						srv_dt_corpcensus_9 a with(nolock)
+					</when>
+					<otherwise>
+						srv_dt_corpcensus_10 a with(nolock)
+					</otherwise>
+				</choose>
+				inner join srv_pt_bd b with(nolock) on b.sufid = a.sufid
+			where 1=1
+				and a.base_year = '${stat_data_base_year}'
+				and a.theme_cd = '${theme_cd}'
+		)
+		select
+			#{stat_data_id} as stat_data_id
+			,${stats_dta_sn}+rownum as stats_dta_sn
+			,m.map_ty
+			,m.area_bndry_se
+			,m.base_year
+			,m.adm_cd
+			,m.adm_nm
+			,m.sido_cd
+			,m.sgg_cd
+			,m.emdong_cd
+			,m.x_coor
+			,m.y_coor
+			,m.poi_se_nm
+			,m.poi_nm
+			,m.unit
+			,m.unit_nm
+			,m.tooltip_cn
+			,m.stats_dta_co
+		from
+			(
+				<!-- 100k -->
+				select
+					<choose>
+						<when test='map_ty != null and map_ty != "" and map_ty != undefined'>
+							#{map_ty} AS MAP_TY
+						</when>
+						<otherwise>
+							'color' as map_ty						
+						</otherwise>
+					</choose>
+					,'100k' as area_bndry_se
+					,a.base_year as base_year
+					,a.x_text||a.y_text as adm_cd
+					,a.x_text||a.y_text as adm_nm
+					,null as sido_cd
+					,null as sgg_cd
+					,null as emdong_cd
+					,null as x_coor
+					,null as y_coor
+					,null as poi_se_nm
+					,null as poi_nm
+					,'개' as unit
+					,'사업체수' as unit_nm
+					<choose>
+						<when test='tooltip_cn != null and tooltip_cn != "" and tooltip_cn != undefined'>
+							, #{tooltip_cn} AS TOOLTIP_CN						
+						</when>
+						<otherwise>
+							,a.base_year||'년 사업체수' as tooltip_cn
+						</otherwise>
+					</choose>
+					,count(*) as stats_dta_co
+				from
+					w_srv_dt_corpcensus a
+				group by
+					a.base_year
+					,a.x_text
+					,a.y_text
+				<!-- 10k -->
+				union all
+				select
+					<choose>
+						<when test='map_ty != null and map_ty != "" and map_ty != undefined'>
+							#{map_ty} AS MAP_TY
+						</when>
+						<otherwise>
+							'color' as map_ty						
+						</otherwise>
+					</choose>
+					,'10k' as area_bndry_se
+					,a.base_year as base_year
+					,a.x_text||a.y_text||a.x_num_10k||a.y_num_10k as adm_cd
+					,a.x_text||a.y_text||a.x_num_10k||a.y_num_10k as adm_nm
+					,null as sido_cd
+					,null as sgg_cd
+					,null as emdong_cd
+					,null as x_coor
+					,null as y_coor
+					,null as poi_se_nm
+					,null as poi_nm
+					,'개' as unit
+					,'사업체수' as unit_nm
+					<choose>
+						<when test='tooltip_cn != null and tooltip_cn != "" and tooltip_cn != undefined'>
+							, #{tooltip_cn} AS TOOLTIP_CN						
+						</when>
+						<otherwise>
+							,a.base_year||'년 사업체수' as tooltip_cn
+						</otherwise>
+					</choose>
+					,count(*) as stats_dta_co
+				from
+					w_srv_dt_corpcensus a
+				group by
+					a.base_year
+					,a.x_text
+					,a.y_text
+					,a.x_num_10k
+					,a.y_num_10k
+				<!-- 1k -->
+				union all
+				select
+					<choose>
+						<when test='map_ty != null and map_ty != "" and map_ty != undefined'>
+							#{map_ty} AS MAP_TY
+						</when>
+						<otherwise>
+							'color' as map_ty						
+						</otherwise>
+					</choose>
+					,'1k' as area_bndry_se
+					,a.base_year as base_year
+					,a.x_text||a.y_text||a.x_num_1k||a.y_num_1k as adm_cd
+					,a.x_text||a.y_text||a.x_num_1k||a.y_num_1k as adm_nm
+					,null as sido_cd
+					,null as sgg_cd
+					,null as emdong_cd
+					,null as x_coor
+					,null as y_coor
+					,null as poi_se_nm
+					,null as poi_nm
+					,'개' as unit
+					,'사업체수' as unit_nm
+					<choose>
+						<when test='tooltip_cn != null and tooltip_cn != "" and tooltip_cn != undefined'>
+							, #{tooltip_cn} AS TOOLTIP_CN						
+						</when>
+						<otherwise>
+							,a.base_year||'년 사업체수' as tooltip_cn
+						</otherwise>
+					</choose>
+					,count(*) as stats_dta_co
+				from
+					w_srv_dt_corpcensus a
+				group by
+					a.base_year
+					,a.x_text
+					,a.y_text
+					,a.x_num_1k
+					,a.y_num_1k
+				<!-- 100m -->
+				union all
+				select
+					<choose>
+						<when test='map_ty != null and map_ty != "" and map_ty != undefined'>
+							#{map_ty} AS MAP_TY
+						</when>
+						<otherwise>
+							'color' as map_ty						
+						</otherwise>
+					</choose>
+					,'100m' as area_bndry_se
+					,a.base_year as base_year
+					,a.x_text||a.y_text||a.x_num_100m||a.y_num_100m as adm_cd
+					,a.x_text||a.y_text||a.x_num_100m||a.y_num_100m as adm_nm
+					,null as sido_cd
+					,null as sgg_cd
+					,null as emdong_cd
+					,null as x_coor
+					,null as y_coor
+					,null as poi_se_nm
+					,null as poi_nm
+					,'개' as unit
+					,'사업체수' as unit_nm
+					<choose>
+						<when test='tooltip_cn != null and tooltip_cn != "" and tooltip_cn != undefined'>
+							, #{tooltip_cn} AS TOOLTIP_CN						
+						</when>
+						<otherwise>
+							,a.base_year||'년 사업체수' as tooltip_cn
+						</otherwise>
+					</choose>
+					,count(*) as stats_dta_co
+				from
+					w_srv_dt_corpcensus a
+				group by
+					a.base_year
+					,a.x_text
+					,a.y_text
+					,a.x_num_100m
+					,a.y_num_100m
+			) m
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 대화형 통계지도 3 -->
+	<!-- 전국 사업체조사: 산업분류 색상 시도/시군구/읍면동/소지역 -->
+	<insert id="insertSrvDtCtlgDtwrh_InteractiveMap_3" parameterType="hashmap">
+		insert into srv_dt_ctlg_dtwrh
+		(
+			stat_data_id
+			,stats_dta_sn
+			,map_ty
+			,area_bndry_se
+			,base_year
+			,adm_cd
+			,adm_nm
+			,sido_cd
+			,sgg_cd
+			,emdong_cd
+			,x_coor
+			,y_coor
+			,poi_se_nm
+			,poi_nm
+			,unit
+			,unit_nm
+			,tooltip_cn
+			,stats_dta_co
+		)
+		select
+			#{stat_data_id} as stat_data_id
+			,${stats_dta_sn}+rownum as stats_dta_sn
+			,m.map_ty
+			,m.area_bndry_se
+			,m.base_year
+			,m.adm_cd
+			,m.adm_nm
+			,m.sido_cd
+			,m.sgg_cd
+			,m.emdong_cd
+			,m.x_coor
+			,m.y_coor
+			,m.poi_se_nm
+			,m.poi_nm
+			,m.unit
+			,m.unit_nm
+			,m.tooltip_cn
+			,m.stats_dta_co
+		from
+			(
+				<!-- 시도 -->
+				select
+					<choose>
+						<when test='map_ty != null and map_ty != "" and map_ty != undefined'>
+							#{map_ty} AS MAP_TY
+						</when>
+						<otherwise>
+							'color' as map_ty						
+						</otherwise>
+					</choose>
+					,'sido' as area_bndry_se
+					,a.base_year as base_year
+					,a.sido_cd as adm_cd
+					,null as adm_nm
+					,a.sido_cd as sido_cd
+					,null as sgg_cd
+					,null as emdong_cd
+					,null as x_coor
+					,null as y_coor
+					,null as poi_se_nm
+					,null as poi_nm
+					,'개' as unit
+					,'사업체수' as unit_nm
+					<choose>
+						<when test='tooltip_cn != null and tooltip_cn != "" and tooltip_cn != undefined'>
+							, #{tooltip_cn} AS tooltip_cn						
+						</when>
+						<otherwise>
+							,a.base_year||'년 사업체수' as tooltip_cn
+						</otherwise>
+					</choose>
+					,cast(sum(a.corp_cnt) as number) as stats_dta_co
+				from
+					srv_dt_corpclasssgg a with(nolock)
+				where 1=1
+					and a.base_year = #{stat_data_base_year}
+					and a.ksic_1_cd = #{ksic_1_cd}
+				<if test='ksic_4_cd != null and ksic_4_cd != "" and ksic_4_cd != undefined'>
+					and a.ksic_5_cd like #{ksic_4_cd} || '%'
+				</if>
+				group by
+					a.base_year
+					,a.sido_cd
+				<!-- 시군구 -->
+				union all
+				select
+					<choose>
+						<when test='map_ty != null and map_ty != "" and map_ty != undefined'>
+							#{map_ty} AS MAP_TY
+						</when>
+						<otherwise>
+							'color' as map_ty						
+						</otherwise>
+					</choose>
+					,'sgg' as area_bndry_se
+					,a.base_year as base_year
+					,a.sido_cd||a.sgg_cd as adm_cd
+					,null as adm_nm
+					,a.sido_cd as sido_cd
+					,a.sgg_cd as sgg_cd
+					,null as emdong_cd
+					,null as x_coor
+					,null as y_coor
+					,null as poi_se_nm
+					,null as poi_nm
+					,'개' as unit
+					,'사업체수' as unit_nm
+					<choose>
+						<when test='tooltip_cn != null and tooltip_cn != "" and tooltip_cn != undefined'>
+							, #{tooltip_cn} AS tooltip_cn						
+						</when>
+						<otherwise>
+							,a.base_year||'년 사업체수' as tooltip_cn
+						</otherwise>
+					</choose>
+					,cast(sum(a.corp_cnt) as number) as stats_dta_co
+				from
+					srv_dt_corpclasssgg a with(nolock)
+				where 1=1
+					and a.base_year = #{stat_data_base_year}
+					and a.ksic_1_cd = #{ksic_1_cd}
+				<if test='ksic_4_cd != null and ksic_4_cd != "" and ksic_4_cd != undefined'>
+					and a.ksic_5_cd like #{ksic_4_cd} || '%'
+				</if>
+				group by
+					a.base_year
+					,a.sido_cd
+					,a.sgg_cd
+				<!-- 읍면동 -->
+				union all
+				select
+					<choose>
+						<when test='map_ty != null and map_ty != "" and map_ty != undefined'>
+							#{map_ty} AS MAP_TY
+						</when>
+						<otherwise>
+							'color' as map_ty						
+						</otherwise>
+					</choose>
+					,'emdong' as area_bndry_se
+					,a.base_year as base_year
+					,substr(a.tot_reg_cd, 1, 7) as adm_cd
+					,null as adm_nm
+					,substr(substr(a.tot_reg_cd, 1, 7), 1, 2) as sido_cd
+					,substr(substr(a.tot_reg_cd, 1, 7), 3, 3) as sgg_cd
+					,substr(substr(a.tot_reg_cd, 1, 7), 6, 2) as emdong_cd
+					,null as x_coor
+					,null as y_coor
+					,null as poi_se_nm
+					,null as poi_nm
+					,'개' as unit
+					,'사업체수' as unit_nm
+					<choose>
+						<when test='tooltip_cn != null and tooltip_cn != "" and tooltip_cn != undefined'>
+							, #{tooltip_cn} AS tooltip_cn						
+						</when>
+						<otherwise>
+							,a.base_year||'년 사업체수' as tooltip_cn
+						</otherwise>
+					</choose>
+					,cast(sum(a.corp_cnt) as number) as stats_dta_co
+				from
+					srv_dt_corpclassreg a with(nolock)
+				where 1=1
+					and a.base_year = #{stat_data_base_year}
+					and a.ksic_1_cd = #{ksic_1_cd}
+				<if test='ksic_4_cd != null and ksic_4_cd != "" and ksic_4_cd != undefined'>
+					and a.ksic_5_cd like #{ksic_4_cd} || '%'
+				</if>
+				group by
+					a.base_year
+					,substr(a.tot_reg_cd, 1, 7)
+				<!-- 소지역 -->
+				union all
+				select
+					<choose>
+						<when test='map_ty != null and map_ty != "" and map_ty != undefined'>
+							#{map_ty} AS MAP_TY
+						</when>
+						<otherwise>
+							'color' as map_ty						
+						</otherwise>
+					</choose>
+					,'totreg' as area_bndry_se
+					,a.base_year as base_year
+					,a.tot_reg_cd as adm_cd
+					,null as adm_nm
+					,substr(a.tot_reg_cd, 1, 2) as sido_cd
+					,substr(a.tot_reg_cd, 3, 3) as sgg_cd
+					,substr(a.tot_reg_cd, 6, 2) as emdong_cd
+					,null as x_coor
+					,null as y_coor
+					,null as poi_se_nm
+					,null as poi_nm
+					,'개' as unit
+					,'사업체수' as unit_nm
+					<choose>
+						<when test='tooltip_cn != null and tooltip_cn != "" and tooltip_cn != undefined'>
+							, #{tooltip_cn} AS tooltip_cn						
+						</when>
+						<otherwise>
+							,a.base_year||'년 사업체수' as tooltip_cn
+						</otherwise>
+					</choose>
+					,cast(sum(a.corp_cnt) as number) as stats_dta_co
+				from
+					srv_dt_corpclassreg a with(nolock)
+				where 1=1
+					and a.base_year = #{stat_data_base_year}
+					and a.ksic_1_cd = #{ksic_1_cd}
+				<if test='ksic_4_cd != null and ksic_4_cd != "" and ksic_4_cd != undefined'>
+					and a.ksic_5_cd like #{ksic_4_cd} || '%'
+				</if>
+				group by
+					a.base_year
+					,a.tot_reg_cd
+			) m
+	</insert>
+	
+	<!-- Insert 카탈로그 데이터마트 대화형 통계지도 4 -->
+	<!-- 전국 사업체조사: 산업분류 색상 100k/10k/1k/100m -->
+	<insert id="insertSrvDtCtlgDtwrh_InteractiveMap_4" parameterType="hashmap">
+		insert into srv_dt_ctlg_dtwrh
+		(
+			stat_data_id
+			,stats_dta_sn
+			,map_ty
+			,area_bndry_se
+			,base_year
+			,adm_cd
+			,adm_nm
+			,sido_cd
+			,sgg_cd
+			,emdong_cd
+			,x_coor
+			,y_coor
+			,poi_se_nm
+			,poi_nm
+			,unit
+			,unit_nm
+			,tooltip_cn
+			,stats_dta_co
+		)
+		with w_srv_dt_corpcensus as (
+			select
+				a.base_year
+				,case trunc(st_x(b.pt), -5)
+					when 700000 then '가' when 800000 then '나' when 900000 then '다' when 1000000 then '라' when 1100000 then '마' when 1200000 then '바' when 1300000 then '사' when 1400000 then '아' when 1500000 then '자' else '가'
+				end as x_text
+				,case trunc(st_y(b.pt), -5)
+					when 1300000 then '가' when 1400000 then '나' when 1500000 then '다' when 1600000 then '라' when 1700000 then '마' when 1800000 then '바' when 1900000 then '사' when 2000000 then '아' when 2100000 then '자' else '가'
+				end as y_text
+				,left(right(trunc(st_x(b.pt), -2),5),3) as x_num_100m
+				,left(right(trunc(st_y(b.pt), -2),5),3) as y_num_100m
+				,left(right(trunc(st_x(b.pt), -3),5),2) as x_num_1k
+				,left(right(trunc(st_y(b.pt), -3),5),2) as y_num_1k
+				,left(right(trunc(st_x(b.pt), -4),5),1) as x_num_10k
+				,left(right(trunc(st_y(b.pt), -4),5),1) as y_num_10k
+			from
+				<choose>
+					<when test='stat_data_base_year != null and stat_data_base_year lte "2005"'>
+						srv_dt_corpcensus_8 a with(nolock)
+					</when>
+					<when test='stat_data_base_year != null and stat_data_base_year lte "2016"'>
+						srv_dt_corpcensus_9 a with(nolock)
+					</when>
+					<otherwise>
+						srv_dt_corpcensus_10 a with(nolock)
+					</otherwise>
+				</choose>
+				inner join srv_pt_bd b on b.sufid = a.sufid
+			where 1=1
+				and a.base_year = '${stat_data_base_year}'
+				and a.ksic_1_cd = '${ksic_1_cd}'
+			<if test='ksic_4_cd != null and ksic_4_cd != "" and ksic_4_cd != undefined'>
+				and a.ksic_4_cd = '${ksic_4_cd}'
+			</if>
+		)
+		select
+			#{stat_data_id} as stat_data_id
+			,${stats_dta_sn}+rownum as stats_dta_sn
+			,m.map_ty
+			,m.area_bndry_se
+			,m.base_year
+			,m.adm_cd
+			,m.adm_nm
+			,m.sido_cd
+			,m.sgg_cd
+			,m.emdong_cd
+			,m.x_coor
+			,m.y_coor
+			,m.poi_se_nm
+			,m.poi_nm
+			,m.unit
+			,m.unit_nm
+			,m.tooltip_cn
+			,m.stats_dta_co
+		from
+			(
+				<!-- 100k -->
+				select
+					<choose>
+						<when test='map_ty != null and map_ty != "" and map_ty != undefined'>
+							#{map_ty} AS MAP_TY
+						</when>
+						<otherwise>
+							'color' as map_ty						
+						</otherwise>
+					</choose>
+					,'100k' as area_bndry_se
+					,a.base_year as base_year
+					,a.x_text||a.y_text as adm_cd
+					,a.x_text||a.y_text as adm_nm
+					,null as sido_cd
+					,null as sgg_cd
+					,null as emdong_cd
+					,null as x_coor
+					,null as y_coor
+					,null as poi_se_nm
+					,null as poi_nm
+					,'개' as unit
+					,'사업체수' as unit_nm
+					<choose>
+						<when test='tooltip_cn != null and tooltip_cn != "" and tooltip_cn != undefined'>
+							, #{tooltip_cn} AS TOOLTIP_CN						
+						</when>
+						<otherwise>
+							,a.base_year||'년 사업체수' as tooltip_cn
+						</otherwise>
+					</choose>
+					,count(*) as stats_dta_co
+				from
+					w_srv_dt_corpcensus a
+				group by
+					a.base_year
+					,a.x_text
+					,a.y_text
+				<!-- 10k -->
+				union all
+				select
+					<choose>
+						<when test='map_ty != null and map_ty != "" and map_ty != undefined'>
+							#{map_ty} AS MAP_TY
+						</when>
+						<otherwise>
+							'color' as map_ty						
+						</otherwise>
+					</choose>
+					,'10k' as area_bndry_se
+					,a.base_year as base_year
+					,a.x_text||a.y_text||a.x_num_10k||a.y_num_10k as adm_cd
+					,a.x_text||a.y_text||a.x_num_10k||a.y_num_10k as adm_nm
+					,null as sido_cd
+					,null as sgg_cd
+					,null as emdong_cd
+					,null as x_coor
+					,null as y_coor
+					,null as poi_se_nm
+					,null as poi_nm
+					,'개' as unit
+					,'사업체수' as unit_nm
+					<choose>
+						<when test='tooltip_cn != null and tooltip_cn != "" and tooltip_cn != undefined'>
+							, #{tooltip_cn} AS TOOLTIP_CN						
+						</when>
+						<otherwise>
+							,a.base_year||'년 사업체수' as tooltip_cn
+						</otherwise>
+					</choose>
+					,count(*) as stats_dta_co
+				from
+					w_srv_dt_corpcensus a
+				group by
+					a.base_year
+					,a.x_text
+					,a.y_text
+					,a.x_num_10k
+					,a.y_num_10k
+				<!-- 1k -->
+				union all
+				select
+					<choose>
+						<when test='map_ty != null and map_ty != "" and map_ty != undefined'>
+							#{map_ty} AS MAP_TY
+						</when>
+						<otherwise>
+							'color' as map_ty						
+						</otherwise>
+					</choose>
+					,'1k' as area_bndry_se
+					,a.base_year as base_year
+					,a.x_text||a.y_text||a.x_num_1k||a.y_num_1k as adm_cd
+					,a.x_text||a.y_text||a.x_num_1k||a.y_num_1k as adm_nm
+					,null as sido_cd
+					,null as sgg_cd
+					,null as emdong_cd
+					,null as x_coor
+					,null as y_coor
+					,null as poi_se_nm
+					,null as poi_nm
+					,'개' as unit
+					,'사업체수' as unit_nm
+					<choose>
+						<when test='tooltip_cn != null and tooltip_cn != "" and tooltip_cn != undefined'>
+							, #{tooltip_cn} AS TOOLTIP_CN						
+						</when>
+						<otherwise>
+							,a.base_year||'년 사업체수' as tooltip_cn
+						</otherwise>
+					</choose>
+					,count(*) as stats_dta_co
+				from
+					w_srv_dt_corpcensus a
+				group by
+					a.base_year
+					,a.x_text
+					,a.y_text
+					,a.x_num_1k
+					,a.y_num_1k
+				<!-- 100m -->
+				union all
+				select
+					<choose>
+						<when test='map_ty != null and map_ty != "" and map_ty != undefined'>
+							#{map_ty} AS MAP_TY
+						</when>
+						<otherwise>
+							'color' as map_ty						
+						</otherwise>
+					</choose>
+					,'100m' as area_bndry_se
+					,a.base_year as base_year
+					,a.x_text||a.y_text||a.x_num_100m||a.y_num_100m as adm_cd
+					,a.x_text||a.y_text||a.x_num_100m||a.y_num_100m as adm_nm
+					,null as sido_cd
+					,null as sgg_cd
+					,null as emdong_cd
+					,null as x_coor
+					,null as y_coor
+					,null as poi_se_nm
+					,null as poi_nm
+					,'개' as unit
+					,'사업체수' as unit_nm
+					<choose>
+						<when test='tooltip_cn != null and tooltip_cn != "" and tooltip_cn != undefined'>
+							, #{tooltip_cn} AS TOOLTIP_CN						
+						</when>
+						<otherwise>
+							,a.base_year||'년 사업체수' as tooltip_cn
+						</otherwise>
+					</choose>
+					,count(*) as stats_dta_co
+				from
+					w_srv_dt_corpcensus a
+				group by
+					a.base_year
+					,a.x_text
+					,a.y_text
+					,a.x_num_100m
+					,a.y_num_100m
+			) m
+	</insert>
+	
+</mapper>

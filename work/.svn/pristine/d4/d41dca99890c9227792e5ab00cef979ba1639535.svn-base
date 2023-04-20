@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="stsMapper">
+
+    <resultMap id="download" type="Download">
+        <id property="download_seq" column="download_seq"/>
+        <result property="user_id" column="user_id"/>
+        <result property="resource_id" column="resource_id"/>
+        <result property="create_time" column="create_time"/>
+        <result property="resource_user_id" column="resource_user_id"/>
+        <result property="data_nm" column="data_nm"/>
+    </resultMap>
+
+
+    <!-- 사용자 서포트영역 출력 데이터 조회 -->
+    <select id="getUserManageStatusCount" resultType="hashMap">
+		SELECT ntc_cnt
+		FROM
+		(
+			-- 최근 3일 내에 올라온 글의 카운팅
+			SELECT COUNT(1) AS ntc_cnt FROM notice
+			WHERE reg_ts::date > ( CURRENT_DATE - INTERVAL '3 day')::date
+			
+		) a 
+    </select>
+
+    <select id="getManageStatusCount" resultType="hashMap">
+		SELECT qna_cnt, down_cnt, dat_cnt, join_cnt, reserve
+		  FROM (
+				SELECT COUNT(*) AS qna_cnt
+				  FROM QNA
+				 WHERE ANS_ID IS NULL 
+			   ) QNA,
+		       (
+				SELECT COUNT(*) AS down_cnt
+				  FROM data_trans_req
+				 WHERE procs_state_cd = 'REQ' 
+			   ) DOWN,
+		       (
+				SELECT COUNT(*) AS dat_cnt
+				  FROM REQUEST_GRANT
+				 WHERE ( GRANT_YN = 'N' OR (GRANT_YN != 'Y' AND GRANT_YN != 'T' AND GRANT_YN != 'X') )
+			   ) DAT,
+		       (
+				SELECT COUNT(*) AS join_cnt
+				  FROM MEMBER
+				 WHERE GRANT_YN = 'O' AND delete_yn = 'N' 
+			   ) MEM,
+			   (
+			   SELECT reserve
+                 FROM restriction
+                WHERE restriction_cd = 'USER_DAUM_MAPPNIG_YN'
+			   ) DAUM
+    </select>
+
+    <select id="selectGrantCnt" resultType="hashMap" parameterType="String">
+    	SELECT DAT.DATA_REQ_CNT, DOWN.DOWN_REQ_CNT
+    	  FROM (
+    	  		SELECT COUNT(*) AS DATA_REQ_CNT
+				  FROM REQUEST_GRANT
+				 WHERE GRANT_USER = #{ user_id }
+			   ) DAT,
+			   (
+			    SELECT COUNT(*) AS DOWN_REQ_CNT
+				  FROM DOWNLOAD_REQ
+				 WHERE GRANT_USER = #{ user_id }
+			   ) DOWN
+    </select>
+
+    <!-- 다운로드 목록 조회 -->
+    <!-- 2017.07.13 ischoi 추가 -->
+    <select id="selectDownloadList" resultMap="download" parameterType="java.util.Map">
+        SELECT
+        a.user_id
+        , a.resource_id
+        , COALESCE(to_char(a.create_time, 'YYYY-MM-DD HH24:MI:SS')) as create_time
+        , a.resource_user_id
+        , a.download_seq
+        , b.data_nm
+        FROM DOWNLOAD_LIST a
+        LEFT OUTER JOIN resource b
+        ON a.resource_id = b.resource_id
+        WHERE 1 = 1
+        <if test="searchValue != null and searchValue != ''">
+            <if test='searchType == "userId"'>
+                AND a.user_id ~* #{searchValue}
+            </if>
+        </if>
+        <if test="SELECT_START_TIME != null and SELECT_START_TIME != '' and SELECT_END_TIME != null and SELECT_END_TIME != ''">
+            AND a.create_time BETWEEN to_date(#{SELECT_START_TIME}, 'YYYY-MM-DD') AND to_date(#{SELECT_END_TIME},
+            'YYYY-MM-DD')
+        </if>
+        ORDER BY a.download_seq DESC
+        OFFSET #{start} LIMIT #{display}
+    </select>
+
+    <!-- 다운로드 목록 총 갯수 조회 -->
+    <!-- 2017.07.13 ischoi 추가 -->
+    <select id="selectDownloadListTotalCount" resultType="Integer" parameterType="java.util.Map">
+        SELECT
+        COUNT(*)
+        FROM DOWNLOAD_LIST
+        WHERE 1 = 1
+        <if test="searchValue != null and searchValue != ''">
+            <if test='searchType == "userId"'>
+                AND user_id ~* #{searchValue}
+            </if>
+        </if>
+        <if test="SELECT_START_TIME != null and SELECT_START_TIME != '' and SELECT_END_TIME != null and SELECT_END_TIME != ''">
+            AND create_time BETWEEN to_date(#{SELECT_START_TIME}, 'YYYY-MM-DD') AND to_date(#{SELECT_END_TIME},
+            'YYYY-MM-DD')
+        </if>
+    </select>
+
+    <update id="updateDaumApiUseYn" parameterType="string">
+		UPDATE restriction
+		SET reserve = #{value}
+		WHERE restriction_cd = 'USER_DAUM_MAPPNIG_YN'
+	</update>
+
+    <select id="selectDaumApiUseYn" resultType="string">
+        SELECT reserve
+        FROM restriction
+        WHERE restriction_cd = 'USER_DAUM_MAPPNIG_YN'
+    </select>
+
+    <select id="selectDataUsedCategory" resultType="java.util.Map">
+        SELECT
+            summary
+        FROM census_mapping
+        GROUP BY summary
+        ORDER BY summary
+    </select>
+
+    <select id="selectDataUsedTotalCount" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT 
+		count(log_seq) as totCnt,
+		summary as summary
+		FROM (
+		SELECT 
+		case 
+		when depth2 = 'POPULATION' then '인구'
+		when depth2 = 'INDUSTRY' or depth2 = 'THEME' then '사업체'
+		when depth2 = 'HOUSE1'  then '가구'
+		when depth2 = 'HOUSE2'  then '주택'
+		when depth2 = 'UOGA_HAESU' then '해수면'
+		when depth2 = 'UOGA_NAESU' then '내수면'
+		when depth2 = 'NONGGA' then '농가'
+		when depth2 = 'IMGA' then '임가'
+		else ''
+		end summary, log_seq
+		FROM public.sgis_use_log  where depth2 is not null and length(depth2) <![CDATA[>]]> 2 and req_year is not null and req_year <![CDATA[<>]]> 'null' 
+        AND TO_CHAR(a.reg_ts, 'YYYY-mm-dd') <![CDATA[>=]]> #{startDate}
+        AND TO_CHAR(a.reg_ts, 'YYYY-mm-dd') <![CDATA[<=]]> #{endDate}
+		) b 
+		GROUP BY summary
+        ORDER BY summary
+    </select>
+    
+    <select id="selectDataUsedCount" parameterType="java.util.Map" resultType="java.util.Map">
+		 SELECT 
+			count(log_seq) as cnt,
+			inst_nm,
+			summary as summary
+			FROM (
+			SELECT 
+			case 
+			when depth2 = 'POPULATION' then '인구'
+			when depth2 = 'INDUSTRY' or depth2 = 'THEME' then '사업체'
+			when depth2 = 'HOUSE1'  then '가구'
+			when depth2 = 'HOUSE2'  then '주택'
+			when depth2 = 'UOGA_HAESU' then '해수면'
+			when depth2 = 'UOGA_NAESU' then '내수면'
+			when depth2 = 'NONGGA' then '농가'
+			when depth2 = 'IMGA' then '임가'
+			else ''
+			end summary, 
+			(SELECT inst_nm FROM institution WHERE inst_seq = B.inst_seq) inst_nm,	
+			log_seq
+			FROM public.sgis_use_log A
+			LEFT JOIN member B ON reg_user_id = user_id
+			where depth2 is not null and length(depth2) <![CDATA[>]]> 2 and req_year is not null and req_year <![CDATA[<>]]> 'null' 
+	        AND TO_CHAR(a.reg_ts, 'YYYY-mm-dd') <![CDATA[>=]]> #{startDate}
+	        AND TO_CHAR(a.reg_ts, 'YYYY-mm-dd') <![CDATA[<=]]> #{endDate}
+			) b 
+			GROUP BY inst_nm, summary
+		ORDER BY inst_nm, summary
+    </select>
+
+
+
+</mapper>

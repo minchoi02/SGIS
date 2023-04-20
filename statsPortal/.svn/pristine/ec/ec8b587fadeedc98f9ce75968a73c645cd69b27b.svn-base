@@ -1,0 +1,192 @@
+<link href="/css/common.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="/js/plugins/jquery.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/SgisProject_Publisher/include/css/siteMap-popup.css">
+<script>
+$(document).ready(function(){
+	srvLogWrite('A0', '13', '01', '00', '', '');
+});
+$("body").on("click" , "#close-button" , function(){
+	$('.popup-layer-contents').hide();
+});
+</script>
+<div id="select_site_popup_layer" class="popup-layer-contents open">
+	<!-- mng_s 20200117 이진호 / 메인 화면의 최상단 메뉴에서 사이트맵 클릭시 팝업 레이어 위치 수정 -->
+	<div class="directionsdetail"style="margin-top: -23.5%; position: relative; overflow: auto; width: 1000px;" >
+	<!-- mng_e 20200117 이진호 -->
+		<div class="popheader" >
+			<h2>사이트맵</h2>
+			<button id="close-button"  class="Btn-close" type="button">닫기</button>
+		</div>
+		<div class="contentsBox">
+			<div class="contentsWraps">
+				<div class="sitecontents">			
+					<div class="mapSiteContentsWrap">
+						<div class="mapSiteContents ">
+							<div class="mapSiteTitle"><img onclick="javascript:location.href='/view/board/sopIntro01';" src="/img/newhelp/maplogo1.png" alt="SGIS plus" style="cursor: pointer;"><span><a href="/view/board/sopIntro01">소개</a></span></div>
+							<ul>
+								<li><a href="/view/board/sopIntro01">SGIS 플러스란</a></li>
+								<li>서비스 소개
+									<ul class="list">
+										<!-- 
+										<li><a href="/view/thematicMap/categoryList">ㆍ통계주제도</a></li>
+										<li><a href="/view/map/interactiveMapMain">ㆍ대화형 통계지도</a></li>
+										<li><a href="/view/common/serviceMain">ㆍ활용서비스</a></li>
+										<li><a href="/view/common/analMapMain">ㆍ분석지도</a></li>
+										<li><a href="/view/board/sopBoardMain">ㆍ알림마당</a></li>
+										 -->
+										<li><a href="/view/newhelp/us_help_20_0">ㆍ통계주제도</a></li>
+										<li><a href="/view/newhelp/us_help_20_1">ㆍ대화형 통계지도</a></li>
+										<li><a href="/view/newhelp/us_help_20_17">ㆍ활용서비스</a></li>
+										<li><a href="/view/newhelp/us_help_20_6">ㆍ분석지도</a></li>
+										<li><a href="/view/board/sopBoardMain">ㆍ알림마당</a></li>
+									</ul>
+								</li>
+								<li><a href="/view/board/expAndNoticeStatsWord">용어설명</a></li>
+							</ul>
+						</div>
+						<div class="mapSiteContents">
+							<div class="mapSiteTitle"><a href="/view/common/analMapMain">분석지도</a></div>
+							<ul>
+								<li><a href="https://sgis.kostat.go.kr/funny_month/month/sta_month_main.do">월간통계</a></li>
+								<li><a href="/jsp/pyramid/pyramid1.jsp">인구피라미드</a></li>
+								<li><a href="https://sgis.kostat.go.kr/publicsmodel/">고령화현황보기</a></li>
+								<li><a href="https://sgis.kostat.go.kr/statbd/family_01.vw">성씨분포</a></li>
+								<!-- mng_s 20170913_김건민 -->
+								<li><a href="https://sgis.kostat.go.kr/statbd/future_01.vw">지방의 변화보기</a></li>
+							</ul>
+						</div>
+						
+						<!-- mng_s 20200723 이진호 / 자료제공 서비스 개편으로 인한 위치 수정 -->
+						<div class="mapSiteContents" style="margin-top: -85px;">
+							<div class="mapSiteTitle"><a href="https://kosis.kr/oneid/cmmn/login/MemberType.do">회원가입</a></div>
+							<ul>
+								<li><a href="https://kosis.kr/oneid/cmmn/login/MemberType.do">회원가입</a></li>
+								<!-- mng_s 20200117 이진호 /  기존 아이디 및 패스워드 찾기를 통계청 ONE ID,PW 찾기로 변경-->
+								<!-- <li><a href="/view/member/IDFind">아이디/패스워드 찾기</a></li> -->
+								<li><a href="https://kosis.kr/oneid/cmmn/login/UserIDSearchView.do" onclick="window.open(this.href, '', 'width=900 , height=650'); return false;">아이디 찾기</a></li>
+								<li><a href="https://kosis.kr/oneid/cmmn/login/UserPWResissued.do" onclick="window.open(this.href, '', 'width=900 , height=650'); return false;">비밀번호 찾기</a></li>
+								<!-- mng_e 20200117 이진호 -->
+							</ul>
+						</div>
+						<!-- mng_e 20200723 이진호 -->
+						
+					</div>
+					<div class="mapSiteContentsWrap">
+						<div class="mapSiteContents">
+							<div class="mapSiteTitle"><a href="/view/thematicMap/categoryList">통계주제도</a></div>
+							<ul>
+								<li><a href="/view/thematicMap/categoryListHuman" >인구와 가구</a></li>
+								<li><a href="/view/thematicMap/categoryListHouse" >주거와 교통</a></li>
+								<li><a href="/view/thematicMap/categoryListWelfare" >복지와 문화</a></li>
+								<li><a href="/view/thematicMap/categoryListWork" >노동과 경제</a></li>
+								<li><a href="/view/thematicMap/categoryListEnvironment" >환경과 안전</a></li>
+							</ul>
+						</div>
+					
+						<!-- mng_s 20200723 이진호/ 자료제공 서비스 개편으로 인한 위치 이동 및 자료제공 서비스 메뉴 생성 -->						
+						<div class="mapSiteContents">
+							<div class="mapSiteTitle"><a href="/contents/shortcut/shortcut_05_02.jsp">자료제공</a></div>
+							<ul>
+								<li><a href="/contents/shortcut/shortcut_05_02.jsp" >자료제공 소개</a></li>
+								<li><a href="/contents/shortcut/shortcut_05.jsp" >자료제공 목록</a></li>
+								<li><a href="/contents/shortcut/shortcut_05_03_step01.jsp" >자료신청</a></li>
+								<li><a href="/contents/shortcut/shortcut_05_01.jsp" >신청자료 다운로드</a></li>
+								<li><a href="/contents/shortcut/shortcut_05_03_01.jsp" >신청내역</a></li>
+							</ul>
+						</div>
+						<!-- <div class="mapSiteContents"> -->
+							<!-- <div class="mapSiteTitle"><a href="/view/board/sopBoardMain">알림마당</a></div> -->
+							<!-- <ul> -->
+								<!-- <li><a href="/view/board/sopIntro01">SGIS 플러스 소개</a></li> -->
+									<!-- <li><a href="/view/board/expAndNotice">설명과 공지</a></li> -->
+									<!-- <li><a href="/contents/shortcut/shortcut_05_02.jsp">자료신청</a></li> -->
+									<!-- <li><a href="/view/board/qnaAndRequestFaq">질문과 개선요청</a></li> -->
+							<!-- </ul> -->
+						<!-- </div> -->
+						<!-- mng_e 20200723 이진호 -->
+
+					</div>
+					<div class="mapSiteContentsWrap">
+						<div class="mapSiteContents">
+							<div class="mapSiteTitle"><a href="/view/map/interactiveMapMain">대화형 통계지도</a></div>
+							<ul>
+								<li><a href="/view/map/interactiveMap/mainIndexView" >총조사 주요지표</a></li>
+								<li><a href="/view/map/interactiveMap/populationHouseView" >인구주택총조사</a></li>
+								<li><a href="/view/map/interactiveMap/3fView" >농림어업총조사</a></li>
+								<li><a href="/view/map/interactiveMap/companyView" >전국사업체조사</a></li>
+								<li><a href="/view/map/interactiveMap/ecountryView" >e-지방지표</a></li>
+								<li><a href="/view/map/interactiveMap/publicDataView" >공공데이터</a></li>
+								<li><a href="/view/map/interactiveMap/userDataView" >나의 데이터</a></li>					
+							</ul>
+						</div>
+						
+						<!-- mng_s 20200723 이진호 / 자료제공 서비스 개편으로 인한 위치 이동 -->
+						<div class="mapSiteContents">
+							<div class="mapSiteTitle"><a href="/view/board/sopBoardMain">알림마당</a></div>
+							<ul>
+								<li><a href="/view/board/sopIntro01">SGIS 플러스 소개</a></li>
+								<li><a href="/view/board/expAndNotice">설명과 공지</a></li>
+								<!-- <li><a href="/contents/shortcut/shortcut_05_02.jsp">자료신청</a></li> -->
+								<li><a href="/view/board/expAndNoticeOfferTableList">자료 시점 현황</a></li>
+								<li><a href="/view/board/qnaAndRequestFaq">질문과 개선요청</a></li>
+							</ul>
+						</div>
+						<!-- <div class="mapSiteContents"> -->
+						<!-- 190312 방민정 수정 시작 -->
+							<!-- <div class="mapSiteTitle"><a href="/developer/html/home.html" target="_blank">개발지원센터</a></div> -->
+							<!-- <ul> -->
+								<!-- <li><a href="/developer/html/openApi/api/intro.html" target="_blank">OpenAPI소개</a></li> -->
+								<!-- <li><a href="/developer/html/openApi/api/map.html" target="_blank">API목록</a></li> -->
+								<!-- <li><a href="/developer/html/develop/dvp.html" target="_blank">체험하기</a></li> -->
+								<!-- <li><a href="/developer/html/community/qna/list.html" target="_blank">알림마당</a></li> -->
+						<!-- 190312 방민정 수정 끝 -->
+							<!-- </ul> -->
+						<!-- </div> -->
+						<!-- mng_e 20207023 이진호 -->
+					</div>
+						<div class="mapSiteContentsWrap">
+							<div class="mapSiteContents">
+								<div class="mapSiteTitle"><a href="/view/common/serviceMain">활용서비스</a></div>
+								<ul>
+									<li><a href="/view/statsMe/statsMeMain">My통계로</a></li>	<!-- 20200925 이금은 추가 -->
+									<li><a href="/view/workRoad/main">일자리 맵</a></li>
+									<li><a href="/view/map/policyStaticMap">정책통계지도</a></li>
+									<li><a href="/view/house/houseAnalysisMap">살고싶은 우리동네</a></li>
+									<li><a href="/view/bizStats/bizStatsMap?biz=0">업종통계지도</a></li>
+									<li><a href="/view/community/intro">지역현안 소통지도</a></li>
+									<li><a href="/statexp/index.html">통계지도체험</a></li>
+									<li><a href="/view/gallery/resultGallery">통계갤러리</a></li>
+								</ul>
+							</div>
+							
+							<!-- mng_s 20200723 이진호 / 자료제공 서비스 개편으로 인한 위치 이동 -->
+							<div class="mapSiteContents">
+							<!-- 190312 방민정 수정 시작 -->
+							<div class="mapSiteTitle"><a href="/developer/html/home.html" target="_blank">개발지원센터</a></div>
+								<ul>
+									<li><a href="/developer/html/openApi/api/intro.html" target="_blank">OpenAPI소개</a></li>
+									<li><a href="/developer/html/openApi/api/map.html" target="_blank">API목록</a></li>
+									<li><a href="/developer/html/develop/dvp.html" target="_blank">체험하기</a></li>
+									<li><a href="/developer/html/community/qna/list.html" target="_blank">알림마당</a></li>
+							<!-- 190312 방민정 수정 끝 -->
+								</ul>
+							</div>
+							<!-- <div class="mapSiteContents"> -->
+								<!-- <div class="mapSiteTitle"><a href="https://kosis.kr/oneid/cmmn/login/MemberType.do">회원가입</a></div> -->
+								<!-- <ul> -->
+									<!-- <li><a href="https://kosis.kr/oneid/cmmn/login/MemberType.do">회원가입</a></li> -->
+									<!-- mng_s 20200117 이진호 /  기존 아이디 및 패스워드 찾기를 통계청 ONE ID,PW 찾기로 변경-->
+									<!-- <li><a href="/view/member/IDFind">아이디/패스워드 찾기</a></li> -->
+									<!-- <li><a href="https://kosis.kr/oneid/cmmn/login/UserIDSearchView.do" onclick="window.open(this.href, '', 'width=900 , height=650'); return false;">아이디 찾기</a></li> -->
+									<!-- <li><a href="https://kosis.kr/oneid/cmmn/login/UserPWResissued.do" onclick="window.open(this.href, '', 'width=900 , height=650'); return false;">비밀번호 찾기</a></li> -->
+									<!-- mng_e 20200117 이진호 -->
+								<!-- </ul> -->
+							<!-- </div> -->
+							<!-- mng_e 20200723 이진호 -->
+							
+						</div>					
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>

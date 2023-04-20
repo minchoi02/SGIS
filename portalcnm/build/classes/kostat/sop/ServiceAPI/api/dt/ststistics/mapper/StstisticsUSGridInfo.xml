@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ststistics">
+	<select id="getStstisticsUSGridInfo"
+		parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT * FROM 
+		(
+			SELECT
+			ROW_NUMBER() OVER(ORDER BY WORK_NO desc) AS RNUM
+			,WORK_NO
+			,WORK_NM
+			,DATA_TYPE
+			,BASE_YEAR
+			,GRID_TYPE
+			,SELECT_CODE
+			,QUERY
+			,TO_CHAR(START_DT,'YYYY-MM-DD HH24:MI') as START_DT
+			,TO_CHAR(STOP_DT,'YYYY-MM-DD HH24:MI') as STOP_DT
+			FROM
+			SRV_DT_INFO_SUPPLY_DETAIL_MNG
+			<where>
+				<if test="word != null and word != ''">
+					AND INSTR(WORK_NM, #{word}) <![CDATA[>]]>
+					0
+				</if>
+			</where>
+			ORDER BY WORK_NO DESC
+		)
+		WHERE RNUM BETWEEN #{paging.startRows} AND #{paging.endRows}	
+	</select>
+
+	<select id="getStstisticsUSGridInfoTotal"
+		parameterType="java.util.HashMap" resultType="int">
+		SELECT COUNT(WORK_NO)
+		FROM SRV_DT_INFO_SUPPLY_DETAIL_MNG
+		<where>
+			<if test="word != null and word != ''">
+				AND INSTR(WORK_NM, #{word}) <![CDATA[>]]>
+				0
+			</if>
+		</where>
+	</select>
+
+	<select id="getStstisticsUSGridInfoCode"
+		parameterType="java.util.HashMap" resultType="StastisticsCamelcase">
+		SELECT
+		DESCRIPTION,
+		INFO_CD
+		FROM
+		SRV_DT_INFO_SUPPLY_DETAIL_CD
+		WHERE
+		DEPTH_NO = #{depthNo} AND DATA_TYPE = #{dataType}
+	</select>
+
+	<select id="getStstisticsUSGridInfoIsExists"
+		parameterType="java.util.HashMap" resultType="int">
+		SELECT COUNT(WORK_NO)
+		FROM SRV_DT_INFO_SUPPLY_DETAIL_MNG
+		WHERE WORK_NO = #{workNo}
+	</select>
+
+	<insert id="registerStstisticsUSGridInfo"
+		parameterType="java.util.HashMap">
+		INSERT INTO SRV_DT_INFO_SUPPLY_DETAIL_MNG(
+		WORK_NO
+		, WORK_NM
+		, DATA_TYPE
+		, BASE_YEAR
+		, GRID_TYPE
+		, SELECT_CODE
+		, QUERY
+		)
+		SELECT
+		DECODE(MAX(WORK_NO),NULL,0,MAX(WORK_NO)) + 1
+		, #{workNm}
+		, #{dataType}
+		, #{baseYear}
+		, #{gridType}
+		, #{selectCode}
+		, #{query}
+		FROM SRV_DT_INFO_SUPPLY_DETAIL_MNG
+
+	</insert>
+
+	<update id="editStstisticsUSGridInfo"
+		parameterType="java.util.HashMap">
+		UPDATE
+		SRV_DT_INFO_SUPPLY_DETAIL_MNG
+		SET
+		WORK_NM = #{workNm}
+		, DATA_TYPE = #{dataType}
+		, BASE_YEAR = #{baseYear}
+		, GRID_TYPE = #{gridType}
+		, SELECT_CODE = #{selectCode}
+		, QUERY = #{query}
+		WHERE WORK_NO = #{workNo}
+	</update>
+
+	<delete id="removeGridInfo" parameterType="java.util.HashMap">
+		DELETE
+		FROM SRV_DT_INFO_SUPPLY_DETAIL_MNG
+		WHERE WORK_NO = #{workNo}
+	</delete>
+</mapper>

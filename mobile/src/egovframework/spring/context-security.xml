@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans 
+	xmlns="http://www.springframework.org/schema/beans" 
+	xmlns:security="http://www.springframework.org/schema/security" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.0.xsd
+">
+	<bean id="accessDeniedImpl" class="egovframework.sgis.member.service.impl.AccessDeniedImpl" />
+	<bean id="loginServiceImpl" class="egovframework.sgis.member.service.impl.LoginServiceImpl" />
+	<bean id="encoder" class="egovframework.sgis.member.service.impl.MemberPasswordImpl" />
+	
+	<security:http pattern="/resources/**" security="none"/>
+	<security:http pattern="/popup/**" security="none"/>
+	<security:http pattern="/kosis/pwencoding.json" security="none"/>
+	<security:http pattern="/kosis/loginprocess.sgis" security="none"/>
+	<!-- 2019-07-03 [김남민] 2019 모바일 로그인. START -->
+	<security:http pattern="/m2019/login/loginprocess.sgis" security="none"/>
+	<!-- 2019-07-03 [김남민] 2019 모바일 로그인. END -->
+	<!-- 2020-09-02 [박은식] 2020 모바일 지역현안 소통지도 로그인. START -->
+	<security:http pattern="/m2020/login/loginprocess.sgis" security="none"/>
+	<!-- 2020-09-02 [박은식] 2020 모바일 지역현안 소통지도 로그인. END -->
+	<security:http auto-config="true" use-expressions="true">
+		<security:intercept-url pattern="/choose/login.sgis" access="hasRole('ROLE_ANONYMOUS')" />
+		<security:intercept-url pattern="/kosis/login.sgis" access="hasRole('ROLE_ANONYMOUS')" />
+		<security:intercept-url pattern="/login.sgis" access="hasRole('ROLE_ANONYMOUS')" />
+		<security:intercept-url pattern="/mypage.sgis" access="isAuthenticated()" />
+		<security:access-denied-handler ref="accessDeniedImpl"/>
+		<security:form-login 
+		username-parameter="id"
+		password-parameter="password"
+		login-page="/choose/login.sgis" 
+		login-processing-url="/loginprocess.sgis"
+		always-use-default-target="false" 
+		authentication-success-handler-ref="loginServiceImpl"
+		authentication-failure-handler-ref="loginServiceImpl"
+		default-target-url="/" />
+		<!-- 2020.09.02[한광희] 로그아웃 수정 START -->
+		<!-- <security:logout delete-cookies="JSESSIONID" logout-success-url="/" logout-url="/logout.sgis" invalidate-session="true" /> -->
+		<security:logout delete-cookies="JSESSIONID" logout-success-url="/m2020/map/community/communityMap.sgis" logout-url="/logout.sgis" invalidate-session="true" />
+		<!-- 2020.09.02[한광희] 로그아웃 수정 END -->
+	</security:http>
+	<security:authentication-manager alias="authenticationManager">
+		<security:authentication-provider user-service-ref="loginServiceImpl">
+			<security:password-encoder ref="encoder" />
+		</security:authentication-provider>
+	</security:authentication-manager>
+</beans>

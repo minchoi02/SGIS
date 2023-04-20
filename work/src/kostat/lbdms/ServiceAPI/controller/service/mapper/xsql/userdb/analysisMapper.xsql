@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="analysisMapper">
+	
+	<!-- 임의영역 경계 테이블 생성 -->
+	<update id="createPolyonTable" parameterType="hashmap">
+		CREATE SEQUENCE ${user_id}.${data_nm}_gid_seq START 1;
+		CREATE TABLE	${user_id}.${data_nm}
+		(
+			gid bigint NOT NULL default nextval('${user_id}.${data_nm}_gid_seq'::regclass),
+			geom geometry(Geometry, 5179)
+		)
+		WITH (
+			OIDS = FALSE
+		)
+		TABLESPACE pg_default;
+		ALTER TABLE ${user_id}.${data_nm} OWNER to ${user_id};
+		CREATE INDEX ${user_id}_${data_nm}_index
+	    ON ${user_id}.${data_nm} USING gist
+	    (geom)
+	    TABLESPACE pg_default;
+	</update>
+	
+	<!-- 임의영역 POI 테이블 생성 -->
+	<update id="createPoiTable" parameterType="hashmap">
+		CREATE SEQUENCE ${user_id}.${data_nm}_gid_seq START 1;
+		CREATE TABLE	${user_id}.${data_nm}
+		(
+			gid bigint NOT NULL default nextval('${user_id}.${data_nm}_gid_seq'::regclass),
+			corp_nm character varying, 
+			x character varying,
+			y character varying
+		)
+		WITH (
+			OIDS = FALSE
+		)
+		TABLESPACE pg_default;
+		ALTER TABLE ${user_id}.${data_nm} OWNER to ${user_id};
+	</update>
+	
+	<!-- 임의영역 경계 정보 저장 -->
+	<select id="insertPolyonData" parameterType="hashmap" resultType="hashmap">
+		INSERT INTO ${user_id}.${data_nm}
+		(
+			geom
+		)VALUES (
+			ST_GeomFromText(#{geom}, 5179)
+		)
+		RETURNING pg_total_relation_size('${user_id}.${data_nm}') as size
+	</select>
+	
+	<!-- 임의영역 POI 정보 저장 -->
+	<select id="insertPoiData" parameterType="hashmap" resultType="hashmap">
+		INSERT INTO ${user_id}.${data_nm}
+		(
+				corp_nm
+			, 	x
+			,	y
+		)VALUES (
+				#{corp_nm}
+			,	#{x}
+			,	#{y}
+		)
+		RETURNING pg_total_relation_size('${user_id}.${data_nm}') as size
+	</select>
+	
+	<!-- 경계분석 상세결과 조회 -->
+	<select id="getBoundaryAnalysisResultData" parameterType="hashmap" resultType="hashmap">
+		SELECT
+						COUNT(A.*) OVER() as total
+					,	A.*
+		FROM (
+			SELECT	DISTINCT ON(geom)
+						*
+					,	ST_AsGeoJSON(geom) as geojson
+			FROM ${scheme}.${table_nm}
+		)A
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+	
+	<!-- 보로노이분석 상세결과 조회 -->
+	<select id="getVoronoiAnalysisResultData" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+						COUNT(A.*) OVER() as total
+					,	A.*
+		FROM (
+			SELECT DISTINCT ON(geom)
+						*
+					,   ST_AsGeoJSON(ST_Simplify(geom, 5, true)) as geojson
+					,	ROUND(_area::numeric, 2) as data
+			FROM ${scheme}.${table_nm}
+		)A
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+	
+	<!-- 데이터간연산분석 상세결과 조회 -->
+	<select id="getOperationAnalysisResultData" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+						COUNT(A.*) OVER() as total
+					,	A.*
+		FROM (
+			SELECT  DISTINCT ON(geom)
+							*
+						,   ST_AsGeoJSON(geom) as geojson
+			FROM ${scheme}.${table_nm}
+		)A
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+	
+	<!-- 입지계수분석 상세결과 조회 -->
+	<select id="getLqAnalysisResultData" parameterType="hashmap" resultType="hashmap">
+		SELECT
+						COUNT(A.*) OVER() as total
+					,	A.*
+		FROM (
+			SELECT	DISTINCT ON(geom)
+						*
+					,	ST_AsGeoJSON(geom) as geojson
+			FROM ${scheme}.${table_nm}
+		)A
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+	
+	<!-- 버퍼분석 상세결과 조회 -->
+	<select id="getBufferAnalysisResultData" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+						COUNT(A.*) OVER() as total
+					,	A.*
+		FROM (
+			SELECT DISTINCT ON(geom)
+						*
+					,   ST_AsGeoJSON(geom) as geojson
+			FROM ${scheme}.${table_nm}
+		)A
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+	
+	<!-- 공간자기상관분석 상세결과 조회 -->
+	<select id="getSpatialAnalysisResultData" parameterType="hashmap" resultType="hashmap">
+		SELECT 
+						COUNT(A.*) OVER() as total
+					,	A.*
+		FROM (
+			SELECT DISTINCT ON(geom)
+						*
+					,   ST_AsGeoJSON(geom) as geojson
+					,   area_cd as adm_cd
+					,	area_nm as adm_nm
+			FROM ${scheme}.${table_nm}
+		)A
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+	
+	<!-- 데이터간 연산분석 경계체크 -->
+	<select id="getOperationAnalysisBoundaryCheck" parameterType="hashmap"  resultType="integer">
+		SELECT 
+					COUNT(geom)
+		FROM ${scheme}.${table_nm} 
+		<if test="type == 'isNull'">
+			WHERE data != 0
+		</if>
+		limit 1
+	</select>
+	
+	<!-- 두개 경계가 같은지 체크 -->
+	<select id="getIsBoundarySameCheck" parameterType="hashmap"  resultType="integer">
+		SELECT 
+						COUNT(a.gid)
+		FROM ${scheme1}.${table_nm1}  as a
+		INNER JOIN ${scheme2}.${table_nm2} as b
+		ON a.geom = b.geom where a.data!=0 and b.data!=0 limit 1
+	</select>
+	
+	<!-- 도로망 경계 조회 -->
+	<select id="getRoadPolygonData" parameterType="hashmap"  resultType="hashmap">
+		SELECT 
+						b.objectId
+					,	b.fnode_ as fnode
+					,	b.tnode_ as tnode
+					,	b.node1
+					,	b.node2
+					,	ST_AsGeoJSON(st_transform(b.geom, 5179)) as geojson
+					
+		FROM
+				<choose>
+					<when test="type == 'sido'">
+						kostat.BND_SIDO_PG a
+					</when>
+					<when test="type == 'sgg'">
+						kostat.BND_SIGUNGU_PG a
+					</when>
+					<when test="type == 'dong'">
+						kostat.BND_ADM_DONG_PG a
+					</when>
+				</choose>
+					, postgres.LINK b
+		where
+		
+				<choose>
+					<when test="type == 'sido'">
+						a.sido_cd = #{sido_cd}
+					</when>
+					<when test="type == 'sgg'">
+						a.sigungu_cd = #{sido_cd} || #{sgg_cd}
+					</when>
+					<when test="type == 'dong'">
+						a.sido_cd = #{sido_cd}
+				and 	a.sgg_cd = #{sgg_cd}
+				and   a.emdong_cd = #{dong_cd}
+					</when>
+				</choose>
+				and 	ST_CONTAINS(a.geom, st_transform(b.geom, 5179))
+	</select>
+	
+	<!-- 경계데이터 조회 -->
+	<select id="getBoundaryData" parameterType="hashmap"  resultType="hashmap">
+		SELECT
+						COUNT(A.*) OVER() as total
+					,	A.*
+		FROM (
+			SELECT	DISTINCT ON(geom)
+						*
+					,	ST_AsGeoJSON(geom) as geojson
+			FROM ${scheme}.${table_nm}
+		)A
+		OFFSET #{startIdx} LIMIT #{resultCnt}
+	</select>
+	
+	<!-- 사업체 POI 조회 -->
+	<select id="getCompanyPoiData" parameterType="hashmap"  resultType="hashmap">
+		SELECT 
+						COUNT(*) over() as total
+					,	base_year as year
+					,	corp_nm
+					,	bd_x_coor as x
+					, 	bd_y_coor as y
+					,	adm_cd
+					,	tot_reg_cd
+					,	theme_biz_cd as theme_cd
+					,	ksic_5_cd
+		FROM	kostat.sti_comp_info_${year}
+		WHERE	1=1
+		<choose>
+			<when test="class_cd != null">
+				AND ksic_5_cd LIKE #{class_cd} || '%'
+			</when>
+			<otherwise>
+				AND theme_biz_cd = #{theme_cd}
+			</otherwise>
+		</choose>
+		<choose>
+			<when test="adm_cd.length() == 2">
+				AND sido_cd = #{adm_cd}
+			</when>
+			<when test="adm_cd.length() == 5">
+				AND sgg_cd = #{adm_cd}
+			</when>
+			<when test="adm_cd.length() == 7">
+				AND adm_cd = #{adm_cd}
+			</when>
+			<otherwise>
+				AND tot_reg_cd = #{adm_cd}
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 사용자 POI 조회 -->
+	<select id="getUserPoiData" parameterType="hashmap"  resultType="hashmap">
+		SELECT 
+						*
+		FROM	${scheme}.${table_nm}
+	</select>
+	
+	<update id='setIndustryResultTable' parameterType="hashmap" >
+		CREATE TABLE ${result_table} AS
+		SELECT
+			( ROW_NUMBER() OVER() ) AS gid,
+			corp_nm,
+			A.bd_x_coor x,
+			A.bd_y_coor y,
+			employee_cnt	
+		FROM ( 
+				SELECT * FROM kostat.${data_name}
+				
+				<where>
+				<if test="qrycondition !=null and qrycondition !=''">
+					${ qrycondition } 
+				</if>
+				</where>
+				 
+			  ) AS A , 
+			  ${target_table} AS B
+			  
+		WHERE ST_Contains(B.geom, A.geom)
+		<if test="code != null and code != ''">
+			AND B.${code_col} like #{code} || '%'
+		</if>
+	</update>
+</mapper>

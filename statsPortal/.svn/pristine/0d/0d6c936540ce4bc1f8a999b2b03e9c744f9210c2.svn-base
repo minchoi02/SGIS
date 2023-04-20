@@ -1,0 +1,998 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="totSurvDetail">
+	
+	<!-- 상세페이지 마지막년도 조회 - 2020.08.10	hsJu	신규 -->
+	<select id="getTotLastYear" resultType="String">	
+		SELECT MAX(END_YEAR) as END_YEAR
+		FROM SRV_DT_TOT_SURV_INFO
+		WHERE 1=1
+		AND   detail_search_yn = 'Y'
+	</select>
+		
+	<!-- 상세페이지 목록 조회 - 2020.08.11	hsJu	신규 -->
+	<select id="getTotDetailList" parameterType="hashmap" resultType="hashmap">
+		SELECT DISTINCT(A.SURV_ID)
+			 , A.SURV_NM
+			 , A.SURV_TYPE
+			 , A.START_YEAR
+			 , A.END_YEAR
+			 , ${selYear} AS DATA_YEAR
+			 , A.TOT_SURV_DIV
+			 , A.THEMA
+			 , A.SUB_THEMA
+			 , A.TOT_YN
+			 , A.TMS_YN
+			 , A.TMS_PROVD_CNT
+			 , CASE 
+			 	WHEN A.TMS_PROVD_CNT > '0' THEN A.TMS_PROVD_CNT || '회' ELSE A.END_YEAR
+			   END AS TMS
+			 , A.REGION_CTGRY_START
+			 , A.REGION_CTGRY_END
+			 , A.SPCIFY_REGION
+		  FROM SRV_DT_TOT_SURV_INFO A
+		 INNER JOIN SRV_DT_TOT_SURV_ITEM B ON A.SURV_ID = B.SURV_ID AND B.ITEM_B_CLASS_ID = 'DTL' AND B.DEL_YN = 'N'
+		 WHERE 1=1
+		   AND A.DETAIL_SEARCH_YN = 'Y'
+		   <if test='yearLength != null and yearLength == 4'>
+		   	AND A.START_YEAR &lt;= #{selYear}
+		   	AND A.END_YEAR &gt;= #{selYear}
+		   </if>
+		   <if test='yearLength != null and yearLength != 4'>
+			AND A.TMS_PROVD_CNT &gt;= #{selYear}
+		   </if>
+		   <if test='subThemaList != null and subThemaList != ""'>
+			AND REPLACE(A.SUB_THEMA, ' ', '') IN 
+		   	<foreach collection="subThemaList" item="items" open="(" separator="," close=")"> 
+				#{items}
+		   	</foreach>
+		   </if>
+		   <if test='admCdLength != null and admCdLength  == 2'>
+			<if test='admCdLength != null and admCdLength == "99"'>
+				AND A.REGION_CTGRY_START = '전국' -- 전국
+			</if>
+			<if test='admCdLength != null and admCdLength != "99"'>
+				AND A.REGION_CTGRY_START in ('전국','시도')
+				AND A.REGION_CTGRY_END &lt;&gt; '전국' 
+			</if>
+		   </if>
+		   <if test='admCdLength != null and admCdLength  == 5'>
+			AND A.REGION_CTGRY_START IN ('전국','시도','시군구')
+		 	AND A.REGION_CTGRY_END IN ('시군구','읍면동') 
+		   </if>
+		  <choose>
+			<when test='orderTypeNm == "bigThema"'>
+				ORDER BY A.THEMA ${orderType}
+			</when>
+			<when test='orderTypeNm == "subThema"'>
+				ORDER BY A.SUB_THEMA ${orderType}
+			</when>
+			<when test='orderTypeNm == "endYear"'>
+				ORDER BY A.END_YEAR ${orderType}
+			</when>
+			<when test='orderTypeNm == "tmsProvdCnt"'>
+				ORDER BY A.TMS_PROVD_CNT ${orderType}
+			</when>
+			<when test='orderTypeNm == "tmsYn"'>
+				ORDER BY A.TMS_YN ${orderType}
+			</when>
+			<otherwise>
+				ORDER BY SURV_NM ${orderType}
+			</otherwise>
+		</choose>
+		  LIMIT #{startNum}, #{endNum}
+	</select>
+		
+	<!-- 상세페이지 관심주제 목록 조회 - 2020.08.14	hsJu	신규 -->
+	<select id="getDetailSubThemaList" parameterType="hashmap" resultType="hashmap">	
+	   	SELECT DISTINCT A.SUB_THEMA
+	 	  FROM SRV_DT_TOT_SURV_INFO A
+	 	 INNER JOIN SRV_DT_TOT_SURV_ITEM B ON A.SURV_ID = B.SURV_ID AND B.ITEM_B_CLASS_ID = 'DTL' AND B.DEL_YN = 'N'
+		 WHERE 1=1
+		   AND A.DETAIL_SEARCH_YN = 'Y'
+		<if test='yearLength != null and yearLength == 4'>
+			AND A.START_YEAR &lt;= #{selYear}
+			AND A.END_YEAR &gt;= #{selYear}
+		</if>
+		<if test='yearLength != null and yearLength != 4'>
+			AND A.TMS_PROVD_CNT &gt;= #{selYear}
+		</if>
+		<if test='admCdLength != null and admCdLength  == 2'>
+			<if test='admCdLength != null and admCdLength == "99"'>
+				AND A.REGION_CTGRY_START = '전국' -- 전국
+			</if>
+			<if test='admCdLength != null and admCdLength != "99"'>
+				AND A.REGION_CTGRY_START in ('전국','시도')
+				AND A.REGION_CTGRY_END &lt;&gt; '전국' 
+			</if>
+		</if>
+		<if test='admCdLength != null and admCdLength  == 5'>
+			AND A.REGION_CTGRY_START IN ('전국','시도','시군구')
+			AND A.REGION_CTGRY_END IN ('시군구','읍면동') 
+		</if>
+	</select>
+	
+	<!-- 리스트 목록 건수 -->
+	<select id="getTotDetailListCnt" parameterType="hashmap" resultType="String">
+	   	SELECT COUNT(DISTINCT(A.SURV_ID))
+		  FROM SRV_DT_TOT_SURV_INFO A
+		 INNER JOIN SRV_DT_TOT_SURV_ITEM B ON A.SURV_ID = B.SURV_ID AND B.ITEM_B_CLASS_ID = 'DTL' AND B.DEL_YN = 'N'
+		 WHERE 1=1
+		   AND A.DETAIL_SEARCH_YN = 'Y' -- 상세조회여부
+		<if test='yearLength != null and yearLength == 4'>
+			AND A.START_YEAR &lt;= #{selYear}
+			AND A.END_YEAR &gt;= #{selYear}
+	   	</if>
+	   	<if test='yearLength != null and yearLength != 4'>
+			AND A.TMS_PROVD_CNT &gt;= #{selYear}
+	   	</if>
+		<if test='subThemaList != null and subThemaList != ""'>
+			AND REPLACE(A.SUB_THEMA, ' ', '') IN 
+		   	<foreach collection="subThemaList" item="items" open="(" separator="," close=")"> 
+				#{items}
+		   	</foreach>
+		</if>
+		<if test='admCdLength != null and admCdLength  == 2'>
+			<if test='admCdLength != null and admCdLength == "99"'>
+				AND A.REGION_CTGRY_START = '전국' -- 전국
+			</if>
+			<if test='admCdLength != null and admCdLength != "99"'>
+				AND A.REGION_CTGRY_START in ('전국','시도')
+				AND A.REGION_CTGRY_END &lt;&gt; '전국' 
+			</if>
+		</if>
+		<if test='admCdLength != null and admCdLength  == 5'>
+			AND A.REGION_CTGRY_START IN ('전국','시도','시군구')
+			AND A.REGION_CTGRY_END IN ('시군구','읍면동') 
+		</if>
+	</select>
+	
+	<!-- 맵 정보 조회 -->
+	<select id="getTotDetailMapData" parameterType="hashmap" resultType="hashmap">
+		SELECT A.REGION_CD AS ADM_CD
+			 , A.SURV_ID
+			 , A.REGION_NM
+			 , A.DT
+			 , A.SURV_YEAR
+			 , A.RANK
+			 , NVL(A.IRDSRATE, 0) AS IRDSRATE
+			 , A.CD
+			 , B.UNIT
+			 , C.DATA_NM AS CD_NM
+		  FROM (SELECT REGION_CD
+					 , SURV_ID
+					 , REGION_NM
+					 , DT
+					 , SURV_YEAR
+					 <if test='dispDataType != null'>
+						 <choose>
+						 	<when test='dispDataType == "ITM"'>
+						 		, ITM_CD AS CD
+								, ITM_NM AS CD_NM
+							</when>
+							<when test='dispDataType == "C1"'>
+								, C1 AS CD
+								, C1_NM	AS CD_NM
+							</when>
+							<when test='dispDataType == "C2"'>
+								, C2 AS CD
+								, C2_NM	AS CD_NM
+							</when>
+							<when test='dispDataType == "C3"'>
+								, C3 AS CD
+								, C3_NM	AS CD_NM
+							</when>
+							<otherwise>
+								, '' AS CD
+								, '' AS CD_NM
+							</otherwise>
+						 </choose>
+					 </if>
+					 , UNIT_NM
+					 , RANK
+					 , NVL(IRDSRATE, 0) IRDSRATE
+				  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+				 WHERE 1=1
+			 	 <if test='survId != null'>
+				   	AND SURV_ID = #{survId}
+			     </if>
+			 	 <if test='year != null and year != "" '>
+			 		AND SURV_YEAR = #{year}
+			 	 </if>
+			 	 <if test='level=="sido"'>
+			 	 	AND LENGTH(REGION_CD) = 2
+			 		AND REGION_CD NOT IN ('99', '00')
+			 	 </if>
+			 	 <if test='level=="sgg"'>
+			 	 	<!-- 자치구 -->
+			 	 	<if test='isAtdrc == "false"'>
+				 	 	AND length(REGION_CD) = 5
+						AND REGION_CD LIKE LPAD(#{region_cd},2) ||'%'
+				 	 </if>
+				 	 <!-- 비자치구 -->
+				 	 <if test='isAtdrc == "true"'>
+				 	 	AND length(REGION_CD) = 5
+						AND REGION_CD LIKE LPAD(#{region_cd},4) ||'%'
+						AND REGION_CD != LPAD(#{region_cd},4) ||'0'
+				 	 </if>
+			 	 </if>
+			     <if test='itmDataCd != null'>
+			    	AND ITM_CD IN 
+					<foreach collection="itmDataCd" item="items" open="(" separator="," close=")"> 
+						#{items}
+				 	</foreach>
+			     </if>
+			     <if test='c1DataCd != null'>
+			    	AND C1 IN 
+					<foreach collection="c1DataCd" item="items" open="(" separator="," close=")"> 
+						#{items}
+				 	</foreach>
+			     </if>
+			     <if test='c2DataCd != null'>
+			    	AND C2 IN 
+					<foreach collection="c2DataCd" item="items" open="(" separator="," close=")"> 
+						#{items}
+				 	</foreach>
+			     </if>
+			     <if test='c3DataCd != null'>
+			    	AND C3 IN 
+					<foreach collection="c3DataCd" item="items" open="(" separator="," close=")"> 
+						#{items}
+				 	</foreach>
+			     </if>
+			   ) A
+		INNER JOIN SRV_DT_TOT_SURV_ITEM B ON B.ITEM_SEQ = ${item_seq} AND B.DEL_YN = 'N'
+		INNER JOIN SRV_DT_TOT_SURV_ITEM_DETAIL C ON C.ITEM_SEQ = ${item_seq} AND A.CD = C.DATA_CD AND C.DEL_YN = 'N'
+	</select>
+	
+	<!-- 상세페이지 총조사 시각화 정보 조회 -->
+	<select id="getDetailTotSurvInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT *
+		  FROM SRV_DT_TOT_SURV_INFO
+		 WHERE SURV_ID = #{survId}
+	</select>
+	
+	<!-- 상세페이지 주제별 차트 목록 조회 -->
+	<select id="getTotDetailThemaChartList" parameterType="hashmap" resultType="hashmap">
+		SELECT * 
+		  FROM SRV_DT_TOT_SURV_ITEM
+		 WHERE DEL_YN = 'N'
+		   AND ITEM_B_CLASS_ID = 'DTL'
+		 <if test='survId != null'>
+		   AND SURV_ID = #{survId}
+		 </if>
+		 ORDER BY DISP_RANK
+	</select>
+	
+	<!-- 주제별 차트 관리자 설정 조회조건 조회 -->
+	<select id="getTotDetailThemaChartDetailInfoList" parameterType="hashmap" resultType="hashmap">
+		SELECT A.ITEM_SEQ
+			 , A.ITEM_B_CLASS_ID
+			 , A.SURV_ID
+			 , A.DISP_RANK
+			 , A.CHART_ID
+			 , A.EXP
+			 , A.SOURCE
+			 , A.UNIT
+			 , A.DISP_DATA_TYPE
+			 , B.DATA_TYPE
+			 , B.DATA_CD
+			 , B.DATA_NM
+			 , B.SUBSUM_YN
+		  FROM SRV_DT_TOT_SURV_ITEM A
+		 INNER JOIN SRV_DT_TOT_SURV_ITEM_DETAIL B 
+		 		 ON A.ITEM_SEQ = B.ITEM_SEQ 
+		 		AND B.DEL_YN = 'N'
+		 WHERE A.DEL_YN = 'N'
+		   AND A.ITEM_B_CLASS_ID = 'DTL'
+		   <if test='survId != null'>
+		   	AND A.SURV_ID = #{survId}
+		   </if>
+		   <if test='item_seq != null'>
+		   	AND A.ITEM_SEQ = ${item_seq}
+		   </if>
+		 ORDER BY A.DISP_RANK
+	</select>
+	
+	<!-- 주제별 차트 데이터 조회 -->
+	<select id="getTotDetailThemaChartDataList" parameterType="hashmap" resultType="hashmap">
+		SELECT A.REGION_CD
+			 , A.SURV_ID
+			 , A.REGION_NM
+			 , A.DT
+			 , A.SURV_YEAR
+			 , A.RANK
+			 , A.ITM_CD
+			 , A.C1
+			 , A.C2
+			 , A.C3
+			 <if test='dispDataType != null'>
+			 	, A.DISP_DATA_TYPE
+			 </if>
+			 , NVL(A.IRDSRATE, 0) AS IRDSRATE
+			 , A.CD
+			 , B.UNIT
+			 , C.DATA_NM AS CD_NM
+			 , C.SUBSUM_YN
+		  FROM (SELECT REGION_CD
+					 , SURV_ID
+					 , REGION_NM
+					 , DT
+					 , SURV_YEAR
+					 , ITM_CD
+					 , C1
+					 , C2
+					 , C3
+					 <if test='dispDataType != null'>
+					 , #{dispDataType} AS DISP_DATA_TYPE
+						 <choose>
+						 	<when test='dispDataType == "ITM"'>
+						 		, ITM_CD AS CD
+								, ITM_NM AS CD_NM
+							</when>
+							<when test='dispDataType == "C1"'>
+								, C1 AS CD
+								, C1_NM	AS CD_NM
+							</when>
+							<when test='dispDataType == "C2"'>
+								, C2 AS CD
+								, C2_NM	AS CD_NM
+							</when>
+							<when test='dispDataType == "C3"'>
+								, C3 AS CD
+								, C3_NM	AS CD_NM
+							</when>
+							<otherwise>
+								, "" AS CD
+								, "" AS CD_NM
+							</otherwise>
+						 </choose>
+					 </if>
+					 , UNIT_NM
+					 , RANK
+					 , NVL(IRDSRATE, 0) IRDSRATE
+				  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+				 WHERE 1=1
+			 	 <if test='survId != null'>
+				   	AND SURV_ID = #{survId}
+			     </if>
+			 	 <if test='year != null and year != "" '>
+			 		AND SURV_YEAR = #{year}
+			 	 </if>
+				 <if test='region_cd == "99" or region_cd == "00"'>
+			 		AND region_cd = '00'
+			 	 </if>
+			 	 <if test='region_cd != "99" and region_cd != "00"'>
+			 		AND region_cd = #{region_cd}
+			 	 </if>
+			     <if test='itmDataCd != null'>
+			    	AND ITM_CD IN 
+					<foreach collection="itmDataCd" item="items" open="(" separator="," close=")"> 
+						#{items}
+				 	</foreach>
+			     </if>
+			     <if test='c1DataCd != null'>
+			    	AND C1 IN 
+					<foreach collection="c1DataCd" item="items" open="(" separator="," close=")"> 
+						#{items}
+				 	</foreach>
+			     </if>
+			     <if test='c2DataCd != null'>
+			    	AND C2 IN 
+					<foreach collection="c2DataCd" item="items" open="(" separator="," close=")"> 
+						#{items}
+				 	</foreach>
+			     </if>
+			     <if test='c3DataCd != null'>
+			    	AND C3 IN 
+					<foreach collection="c3DataCd" item="items" open="(" separator="," close=")"> 
+						#{items}
+				 	</foreach>
+			     </if>
+			   ) A
+		INNER JOIN SRV_DT_TOT_SURV_ITEM B ON B.ITEM_SEQ = ${item_seq} AND B.DEL_YN = 'N'
+		INNER JOIN SRV_DT_TOT_SURV_ITEM_DETAIL C ON C.ITEM_SEQ = ${item_seq} AND A.CD = C.DATA_CD AND C.DEL_YN = 'N'
+	</select>
+	
+	<!-- 시계열 차트 데이터 조회 -->
+	<select id="getTotDetailTmsresChartDataList" parameterType="hashmap" resultType="hashmap">
+		SELECT A.REGION_CD
+			 , A.SURV_ID
+			 , A.REGION_NM
+			 , A.DT
+			 , A.SURV_YEAR
+			 , A.RANK
+			 , NVL(A.IRDSRATE, 0) AS IRDSRATE
+			 , A.CD
+			 , B.UNIT
+			 , C.DATA_NM AS CD_NM
+		  FROM (SELECT REGION_CD
+					 , SURV_ID
+					 , REGION_NM
+					 , DT
+					 , SURV_YEAR
+					 <if test='dispDataType != null'>
+						 <choose>
+						 	<when test='dispDataType == "ITM"'>
+						 		, ITM_CD AS CD
+								, ITM_NM AS CD_NM
+							</when>
+							<when test='dispDataType == "C1"'>
+								, C1 AS CD
+								, C1_NM	AS CD_NM
+							</when>
+							<when test='dispDataType == "C2"'>
+								, C2 AS CD
+								, C2_NM	AS CD_NM
+							</when>
+							<when test='dispDataType == "C3"'>
+								, C3 AS CD
+								, C3_NM	AS CD_NM
+							</when>
+							<otherwise>
+								, "" AS CD
+								, "" AS CD_NM
+							</otherwise>
+						 </choose>
+					 </if>
+					 , UNIT_NM
+					 , RANK
+					 , NVL(IRDSRATE, 0) IRDSRATE
+				  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+				 WHERE 1=1
+			 	 <if test='survId != null'>
+				   	AND SURV_ID = #{survId}
+			     </if>
+			 	 <if test='year != null and year != "" '>
+			 		AND SURV_YEAR &lt;= #{year}
+			 	 </if>
+				 <if test='region_cd == "99" or region_cd == "00"'>
+			 		AND region_cd = '00'
+			 	 </if>
+			 	 <if test='region_cd != "99" and region_cd != "00"'>
+			 		AND region_cd = #{region_cd}
+			 	 </if>
+			     <if test='itmDataCd != null'>
+			    	AND ITM_CD IN 
+					<foreach collection="itmDataCd" item="items" open="(" separator="," close=")"> 
+						#{items}
+				 	</foreach>
+			     </if>
+			     <if test='c1DataCd != null'>
+			    	AND C1 IN 
+					<foreach collection="c1DataCd" item="items" open="(" separator="," close=")"> 
+						#{items}
+				 	</foreach>
+			     </if>
+			     <if test='c2DataCd != null'>
+			    	AND C2 IN 
+					<foreach collection="c2DataCd" item="items" open="(" separator="," close=")"> 
+						#{items}
+				 	</foreach>
+			     </if>
+			     <if test='c3DataCd != null'>
+			    	AND C3 IN 
+					<foreach collection="c3DataCd" item="items" open="(" separator="," close=")"> 
+						#{items}
+				 	</foreach>
+			     </if>
+			   ) A
+		INNER JOIN SRV_DT_TOT_SURV_ITEM B ON B.ITEM_SEQ = ${item_seq} AND B.DEL_YN = 'N'
+		INNER JOIN SRV_DT_TOT_SURV_ITEM_DETAIL C ON C.ITEM_SEQ = ${item_seq} AND A.CD = C.DATA_CD AND C.DEL_YN = 'N'
+	</select>
+	
+	<!-- 상세페이지 비자치구 여부 조회 -->
+	<select id="getTotDetailAreaAtdrcCheck" parameterType="hashmap" resultType="String">
+		SELECT NVL(MAX(UPPER_REGION_CD), '')
+		FROM SRV_DT_TOT_SURV_NON_ATDRC 
+		WHERE BASE_YEAR = #{year}
+		  AND REGION_CD = #{region_cd}
+	</select>
+	
+	<!-- 지역비교 차트 데이터 조회 -->
+	<select id="getTotDetailUpperAreaChartDataList" parameterType="hashmap" resultType="hashmap">
+		SELECT A.REGION_CD
+			 , A.SURV_ID
+			 <if test='level=="sido"'>
+			 	, A.REGION_NM
+			 </if>
+			 <if test='level=="sgg"'>
+			 	, A.SIDO_NM || ' ' || A.REGION_NM AS REGION_NM			 
+			 </if>
+			 , A.DT
+			 , A.SURV_YEAR
+			 , A.RANK
+			 , NVL(A.IRDSRATE, 0) AS IRDSRATE
+			 , A.CD
+			 , B.UNIT
+			 , C.DATA_NM AS CD_NM
+		  FROM (SELECT REGION_CD
+					 , SURV_ID
+					 , REGION_NM
+					 <if test='level=="sgg"'>
+					 	<if test='chartType=="now"'>
+						 	<!-- 비자치구 -->
+						 	<if test='isAtdrc == "true"'>
+						 		, (SELECT ADDR 
+						 			 FROM SRV_PG_ATDRCBORD 
+						 			WHERE BASE_YEAR = #{year} 
+						 			  AND SIDO_CD = LPAD(REGION_CD, 2)
+						 			  AND SGG_CD = SUBSTRING(REGION_CD, 3, 2) || '0'
+						 		  ) AS SIDO_NM
+						 	</if>
+						 	<!-- 자치구 -->
+						 	<if test='isAtdrc == "false"'>
+							 	, (SELECT SIDO_NM FROM SRV_PG_SIDOBORD WHERE BASE_YEAR = #{year} AND SIDO_CD = LPAD(REGION_CD, 2)) AS SIDO_NM				 	
+						 	</if>
+					 	</if>
+					 	<if test='chartType=="upper"'>
+							, (SELECT SIDO_NM FROM SRV_PG_SIDOBORD WHERE BASE_YEAR = #{year} AND SIDO_CD = LPAD(REGION_CD, 2)) AS SIDO_NM
+						</if>
+					 </if>
+					 , DT
+					 , SURV_YEAR
+					 <if test='dispDataType != null'>
+						 <choose>
+						 	<when test='dispDataType == "ITM"'>
+						 		, ITM_CD AS CD
+								, ITM_NM AS CD_NM
+							</when>
+							<when test='dispDataType == "C1"'>
+								, C1 AS CD
+								, C1_NM	AS CD_NM
+							</when>
+							<when test='dispDataType == "C2"'>
+								, C2 AS CD
+								, C2_NM	AS CD_NM
+							</when>
+							<when test='dispDataType == "C3"'>
+								, C3 AS CD
+								, C3_NM	AS CD_NM
+							</when>
+							<otherwise>
+								, "" AS CD
+								, "" AS CD_NM
+							</otherwise>
+						 </choose>
+					 </if>
+					 , UNIT_NM
+					 , RANK
+					 , NVL(IRDSRATE, 0) IRDSRATE
+				  FROM SRV_DT_ST_CHART_DET_ITM_RANK
+				 WHERE 1=1
+			 	 <if test='survId != null'>
+				   	AND SURV_ID = #{survId}
+			     </if>
+			 	 <if test='year != null and year != "" '>
+			 		AND SURV_YEAR = #{year}
+			 	 </if>
+			 	 <if test='level=="sido"'>
+					AND REGION_CD NOT IN ('00', '99')
+					AND LENGTH(REGION_CD) = 2
+				 </if>
+				 <if test='level == "sgg"'>
+				 	<!-- 지역비교 -->
+				 	<if test='chartType=="now"'>
+				 		AND LENGTH(REGION_CD) = 5
+						<!-- 비자치구 -->
+					 	<if test='isAtdrc == "true"'>
+							AND REGION_CD IN (SELECT REGION_CD FROM SRV_DT_TOT_SURV_NON_ATDRC WHERE DEL_YN = 'N' AND BASE_YEAR = #{year} AND UPPER_REGION_CD IS NOT NULL)
+						</if>
+						<!-- 자치구 -->
+						<if test='isAtdrc == "false"'>
+							AND REGION_CD NOT IN (SELECT REGION_CD FROM SRV_DT_TOT_SURV_NON_ATDRC WHERE DEL_YN = 'N' AND BASE_YEAR = #{year} AND UPPER_REGION_CD IS NOT NULL)
+						</if>
+				 	</if>
+				 	<!-- 상위지역 -->
+				 	<if test='chartType=="upper"'>
+						<!-- 비자치구 -->
+					 	<if test='isAtdrc == "true"'>
+							AND LENGTH(REGION_CD) = LENGTH(#{region_cd})
+							AND REGION_CD NOT IN (SELECT REGION_CD FROM SRV_DT_TOT_SURV_NON_ATDRC WHERE DEL_YN = 'N' AND BASE_YEAR = #{year} AND UPPER_REGION_CD IS NOT NULL)
+						</if>
+						<!-- 자치구 -->
+						<if test='isAtdrc == "false"'>
+							AND REGION_CD NOT IN ('00', '99')
+							AND LENGTH(REGION_CD) = LENGTH(LPAD(#{region_cd}, 2))
+						</if>				 	
+				 	</if>
+				 </if>
+			     <if test='itmDataCd != null'>
+			    	AND ITM_CD IN 
+					<foreach collection="itmDataCd" item="items" open="(" separator="," close=")"> 
+						#{items}
+				 	</foreach>
+			     </if>
+			     <if test='c1DataCd != null'>
+			    	AND C1 IN 
+					<foreach collection="c1DataCd" item="items" open="(" separator="," close=")"> 
+						#{items}
+				 	</foreach>
+			     </if>
+			     <if test='c2DataCd != null'>
+			    	AND C2 IN 
+					<foreach collection="c2DataCd" item="items" open="(" separator="," close=")"> 
+						#{items}
+				 	</foreach>
+			     </if>
+			     <if test='c3DataCd != null'>
+			    	AND C3 IN 
+					<foreach collection="c3DataCd" item="items" open="(" separator="," close=")"> 
+						#{items}
+				 	</foreach>
+			     </if>
+			   ) A
+		INNER JOIN SRV_DT_TOT_SURV_ITEM B ON B.ITEM_SEQ = ${item_seq} AND B.DEL_YN = 'N'
+		INNER JOIN SRV_DT_TOT_SURV_ITEM_DETAIL C ON C.ITEM_SEQ = ${item_seq} AND A.CD = C.DATA_CD AND C.DEL_YN = 'N'
+		ORDER BY TO_NUMBER(DT) DESC
+	</select>
+				
+	<!-- 상세페이지 표 데이터 조회 -->
+	<select id="getTotDetailTableDataList" parameterType="hashmap" resultType="hashmap">
+		SELECT CD
+			, UNIT
+			, SURV_ID
+			, CD_NM
+			, SOURCE
+			<if test='level=="sgg"'>
+			, SIDO_NM || ' ' || REGION_NM AS REGION_NM
+			</if>
+			<if test='level!="sgg"'>
+			, REGION_NM
+			</if>
+			<foreach collection="yearList" item="items" open="," separator="," close="">
+				MAX("${items}") AS "${items}" 
+		 	</foreach>
+		FROM ( SELECT A.SURV_ID
+					, C.DATA_NM AS CD_NM
+					, B.UNIT
+					, NVL(B.SOURCE, '') AS SOURCE
+					, REGION_NM
+					<if test='level=="sgg"'>
+						<!-- 비자치구 -->
+					 	<if test='isAtdrc == "true"'>
+					 		, (SELECT ADDR 
+					 			 FROM SRV_PG_ATDRCBORD 
+					 			WHERE BASE_YEAR = #{year} 
+					 			  AND SIDO_CD = LPAD(REGION_CD, 2)
+					 			  AND SGG_CD = SUBSTRING(REGION_CD, 3, 2) || '0'
+					 		  ) AS SIDO_NM
+					 	</if>
+					 	<!-- 자치구 -->
+					 	<if test='isAtdrc == "false"'>
+						 	, (SELECT SIDO_NM FROM SRV_PG_SIDOBORD WHERE BASE_YEAR = #{year} AND SIDO_CD = LPAD(REGION_CD, 2)) AS SIDO_NM				 	
+					 	</if>
+					</if>
+					<foreach collection="yearList" item="items" open="," separator="," close="">
+						 DECODE(A.SURV_YEAR, #{items}, DT) AS "${items}"
+				 	</foreach>
+					<if test='dispDataType != null'>
+						<choose>
+					 		<when test='dispDataType == "ITM"'>
+					 			, A.ITM_CD AS CD
+							</when>
+							<when test='dispDataType == "C1"'>
+								, A.C1 AS CD
+							</when>
+							<when test='dispDataType == "C2"'>
+								, A.C2 AS CD
+							</when>
+							<when test='dispDataType == "C3"'>
+								, A.C3 AS CD
+							</when>
+							<otherwise>
+								, "" AS CD
+							</otherwise>
+					 	</choose>
+				 	</if>
+			   FROM SRV_DT_ST_CHART_DET_ITM_RANK A
+			 INNER JOIN SRV_DT_TOT_SURV_ITEM B ON B.ITEM_SEQ = ${item_seq} AND B.DEL_YN = 'N'
+			 INNER JOIN SRV_DT_TOT_SURV_ITEM_DETAIL C ON C.ITEM_SEQ = ${item_seq}
+			 		<if test='dispDataType != null'>
+						<choose>
+					 		<when test='dispDataType == "ITM"'>
+								AND A.ITM_CD = C.DATA_CD
+							</when>
+							<when test='dispDataType == "C1"'>
+								AND A.C1 = C.DATA_CD
+							</when>
+							<when test='dispDataType == "C2"'>
+								AND A.C2 = C.DATA_CD
+							</when>
+							<when test='dispDataType == "C3"'>
+								AND A.C3 = C.DATA_CD
+							</when>
+							<otherwise>
+							</otherwise>
+					 	</choose>
+				 	</if>
+			 		AND C.DEL_YN = 'N'
+			 WHERE 1=1
+			 	 <if test='survId != null'>
+				   	AND A.SURV_ID = #{survId}
+			     </if>
+			     <if test='tms_provd_cnt == "1"'>
+				 	 <if test='year != null and year != "" '>
+				 		AND A.SURV_YEAR = #{year}
+				 	 </if>
+				 </if>
+				 <if test='tms_provd_cnt != "1"'>
+				 	 <if test='year != null and year != "" '>
+				 	 	AND A.SURV_YEAR &lt;= #{year}
+				 	 </if>
+				 </if>
+			 	 <if test='region_cd != "null" and region_cd != ""'>
+			 	 	<if test='region_cd == "99" or region_cd == "00"'>
+			 	 		AND A.REGION_CD IN ('99', '00')
+			 	 	</if>
+			 	 	<if test='region_cd != "99" and region_cd != "00"'>
+			 			AND A.region_cd = #{region_cd}			 	 	
+			 	 	</if>
+			 	 </if>
+			     <if test='itmDataCd != null'>
+			    	AND A.ITM_CD IN 
+					<foreach collection="itmDataCd" item="items" open="(" separator="," close=")"> 
+						#{items}
+				 	</foreach>
+			     </if>
+			     <if test='c1DataCd != null'>
+			    	AND A.C1 IN 
+					<foreach collection="c1DataCd" item="items" open="(" separator="," close=")"> 
+						#{items}
+				 	</foreach>
+			     </if>
+			     <if test='c2DataCd != null'>
+			    	AND A.C2 IN 
+					<foreach collection="c2DataCd" item="items" open="(" separator="," close=")"> 
+						#{items}
+				 	</foreach>
+			     </if>
+			     <if test='c3DataCd != null'>
+			    	AND A.C3 IN 
+					<foreach collection="c3DataCd" item="items" open="(" separator="," close=")"> 
+						#{items}
+				 	</foreach>
+			     </if>
+		    ORDER BY A.SURV_YEAR DESC
+		    	<if test='dispDataType != null'>
+					<choose>
+				 		<when test='dispDataType == "ITM"'>
+							, A.ITM_CD
+						</when>
+						<when test='dispDataType == "C1"'>
+							, A.C1
+						</when>
+						<when test='dispDataType == "C2"'>
+							, A.C2
+						</when>
+						<when test='dispDataType == "C3"'>
+							, A.C3
+						</when>
+						<otherwise>
+						</otherwise>
+				 	</choose>
+			 	</if> 
+			 )
+		GROUP BY CD, UNIT, SURV_ID, CD_NM, SOURCE, 
+				<if test='level=="sgg"'>
+					SIDO_NM || ' ' || REGION_NM
+				</if>
+				<if test='level!="sgg"'>
+					REGION_NM
+				</if>
+	</select>
+	
+	<select id="getDispSrvList" resultType="egovframework.rte.psl.dataaccess.util.EgovMap">
+		SELECT LIST.ORG_ID
+			, LIST.TBL_ID
+			, LIST.STATTB_BEGIN_YEAR
+			, LIST.STATTB_END_YEAR
+			, LIST.UPDT_CYCLE
+			, LIST.REGION_VAR_ORD
+			, LIST.REGION_BEGIN
+			, LIST.REGION_END
+			, LIST.STATTB_URL
+			, LIST.OBJ_NM
+			, LIST.STATTB_YEAR
+			, SETUP.DISP_VAR_ORD
+			, SETUP.DISP_CO
+			, SETUP.CHART_ORD
+			, SETUP.CHART_SNO
+			, SETUP.CHART_NM
+			, SETUP.KOSIS_UNIT_NM
+			, SETUP.KOSIS_UNIT
+			, SETUP.DISP_UNIT_NM
+			, SETUP.DISP_UNIT
+			, SETUP.ALL_DISP_AT
+			, SETUP.CHART_TYPE
+			, DET.OBJ_VAR_ID
+			, DET.ITM_ID
+			, DET.VAR_ORD
+			, DET.SCR_KOR
+			, DET.ALTRTV_DISP_WRD
+			, DET.SUBSUM_YN
+		FROM (
+				SELECT
+					ORG_ID
+					, TBL_ID
+					, STATTB_SOURC
+					, STATTB_CLASS
+					, STATTB_URL
+					, PATH_NM
+					, STATTB_BEGIN_YEAR
+					, STATTB_END_YEAR
+					, REGION_OBJ_VAR_ID
+					, REGION_VAR_ORD
+					, REGION_BEGIN
+					, REGION_END
+					, REG_DT
+					, MOD_DT
+					, DEL_YN
+					, UPDT_CYCLE
+					, DISP_CTGRY
+					, STATTB_ORDER
+					, STATTB_DIV
+					, TBL_NM
+					, MENU_DISP_YN
+					, OBJ_NM
+					, STATTB_YEAR
+					, TBL_ORD
+				FROM SRV_DT_ST_LIST
+				WHERE 1=1
+				<if test='stattbYear != null and stattbYear != ""'>
+					<![CDATA[
+					AND STATTB_BEGIN_YEAR <= #{stattbYear}
+					AND STATTB_END_YEAR >= #{stattbYear}
+					]]>
+				</if>
+				<if test='tblOrd != null and tblOrd != ""'>
+					AND TBL_ORD = #{tblOrd}
+				</if>
+			) LIST
+			, (
+				SELECT
+					ORG_ID
+					, TBL_ID
+					, CHART_ORD
+					, CHART_SNO
+					, DISP_CO
+					, DISP_LV		
+					, DISP_VAR_ORD			
+					, CHART_NM
+					, KOSIS_UNIT_NM
+					, KOSIS_UNIT
+					, DISP_UNIT_NM
+					, DISP_UNIT
+					, ALL_DISP_AT
+					, CHART_TYPE
+				FROM SRV_DT_ST_CHART_ITM_SETUP
+				WHERE 1=1
+				<if test='iemCl != null and iemCl != ""'>
+				  AND IEM_CL = #{iemCl}
+				</if>
+				  AND TOT_SURV_YN = 'Y'
+				  AND DET_YN = 'N'
+			) SETUP
+			, (
+				SELECT
+					ORG_ID
+					, TBL_ID
+					, CHART_ORD
+					, OBJ_VAR_ID
+					, ITM_ID
+					, VAR_ORD
+					, SCR_KOR
+					, ALTRTV_DISP_WRD
+					, SUBSUM_YN
+				FROM SRV_DT_ST_CHART_DET_ITM_SETUP
+				WHERE CHOISE_YN = 'Y'
+				AND DEL_YN = 'N'
+				AND TOT_SURV_YN = 'Y'
+				AND DET_YN = 'N'
+			) DET
+		WHERE LIST.ORG_ID = SETUP.ORG_ID
+		  AND LIST.TBL_ID = SETUP.TBL_ID
+		  AND SETUP.ORG_ID = DET.ORG_ID
+		  AND SETUP.TBL_ID = DET.TBL_ID
+		  AND SETUP.CHART_ORD = DET.CHART_ORD
+	</select>
+	
+	<select id="getDispSrvDetailList" resultType="egovframework.rte.psl.dataaccess.util.EgovMap">
+		SELECT LIST.ORG_ID
+			, LIST.TBL_ID
+			, LIST.STATTB_BEGIN_YEAR
+			, LIST.STATTB_END_YEAR
+			, LIST.UPDT_CYCLE
+			, LIST.REGION_VAR_ORD
+			, LIST.REGION_BEGIN
+			, LIST.REGION_END
+			, LIST.STATTB_URL
+			, LIST.OBJ_NM
+			, LIST.STATTB_YEAR
+			, SETUP.DISP_VAR_ORD
+			, SETUP.DISP_CO
+			, SETUP.CHART_ORD
+			, SETUP.CHART_NM
+			, SETUP.KOSIS_UNIT_NM
+			, SETUP.KOSIS_UNIT
+			, SETUP.DISP_UNIT_NM
+			, SETUP.DISP_UNIT
+			, SETUP.ALL_DISP_AT
+			, SETUP.CHART_TYPE
+			, DET.OBJ_VAR_ID
+			, DET.ITM_ID
+			, DET.VAR_ORD
+			, DET.SCR_KOR
+			, DET.ALTRTV_DISP_WRD
+			, DET.SUBSUM_YN
+		FROM SRV_DT_ST_LIST LIST
+			, (
+				SELECT
+					ORG_ID
+					, TBL_ID
+					, CHART_ORD
+					, DISP_CO
+					, DISP_LV		
+					, DISP_VAR_ORD			
+					, CHART_NM
+					, KOSIS_UNIT_NM
+					, KOSIS_UNIT
+					, DISP_UNIT_NM
+					, DISP_UNIT
+					, ALL_DISP_AT
+					, CHART_TYPE
+				FROM SRV_DT_ST_CHART_ITM_SETUP
+				WHERE ORG_ID = #{org_id_list}
+		  		  AND TBL_ID = #{tbl_id_list}
+				  AND TOT_SURV_YN = 'Y'
+				  AND DET_YN = 'Y'
+			) SETUP
+			, (
+				SELECT
+					ORG_ID
+					, TBL_ID
+					, CHART_ORD
+					, OBJ_VAR_ID
+					, ITM_ID
+					, VAR_ORD
+					, SCR_KOR
+					, ALTRTV_DISP_WRD
+					, SUBSUM_YN
+				FROM SRV_DT_ST_CHART_DET_ITM_SETUP
+				WHERE ORG_ID = #{org_id_list}
+		  		AND TBL_ID = #{tbl_id_list}
+				AND CHOISE_YN = 'Y'
+				AND DEL_YN = 'N'
+				AND TOT_SURV_YN = 'Y'
+				AND DET_YN = 'Y'
+			) DET
+		WHERE LIST.ORG_ID = SETUP.ORG_ID(+)
+		  AND LIST.TBL_ID = SETUP.TBL_ID(+)
+		  AND SETUP.ORG_ID = DET.ORG_ID(+)
+		  AND SETUP.TBL_ID = DET.TBL_ID(+)
+		  AND SETUP.CHART_ORD = DET.CHART_ORD(+)
+		  AND LIST.ORG_ID = #{org_id_list}
+		  AND LIST.TBL_ID = #{tbl_id_list}
+	</select>
+	
+	<select id="getAllTblList" resultType="egovframework.rte.psl.dataaccess.util.EgovMap">
+		SELECT LST.TBL_ID FROM SRV_DT_ST_LIST LST
+			, SRV_DT_ST_CHART_ITM_SETUP STP
+		WHERE LST.ORG_ID = STP.ORG_ID
+		  AND LST.TBL_ID = STP.TBL_ID
+		  AND STP.DET_YN = 'Y'
+		  AND STP.TOT_SURV_YN = 'Y'
+		  AND STP.DEL_YN = 'N'
+	</select>
+	
+	<select id="getAllListIdList" resultType="egovframework.rte.psl.dataaccess.util.EgovMap">
+		SELECT NVL(LST.PATH_NM, LST.PATH_NM||' > ')||LST.TBL_NM AS LIST_NM, LST.LIST_ID FROM SRV_DT_ST_LIST LST
+			, SRV_DT_ST_CHART_ITM_SETUP STP
+		WHERE LST.ORG_ID = STP.ORG_ID
+		  AND LST.TBL_ID = STP.TBL_ID
+		  AND STP.DET_YN = 'Y'
+		  AND STP.TOT_SURV_YN = 'Y'
+		  AND STP.DEL_YN = 'N'
+		GROUP BY NVL(LST.PATH_NM, LST.PATH_NM||' > ')||LST.TBL_NM, LST.LIST_ID
+	</select>
+</mapper>

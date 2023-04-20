@@ -1,0 +1,959 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="wrStatusAnls">
+
+	<!-- 샘플 조회 - 2018.09.13	ywKim	신규/변경 -->
+	<select id="selectCommonCode" parameterType="hashmap" resultType="hashmap">
+
+		SELECT S_CLASS_CD as class_code
+		     , S_CLASS_CD_NM as class_nm
+		  FROM CMM_CD_COMCD
+		 WHERE 1=1
+		   AND B_CLASS_CD = #{b_class_cd}
+		<if test="b_class_cd == 'INDCLA'">
+		   AND LENGTH(s_class_cd) = 1
+		</if>
+		<if test="b_class_cd == 'RCRJSS'">
+		   AND LENGTH(s_class_cd) = 2
+		</if>
+		 ORDER BY S_CLASS_CD_ORDER
+
+	</select>
+
+	<!-- 2019-05-29 [김남민] 구인현황 분석 > 업종별 직종별 등 분석조건을 AND 조건이 가능하게 개선(교차분석) START -->
+	<!-- 구인현황 분석 전체 조회 -->
+	<select id="getStatusAnlsAll" parameterType="hashmap" resultType="hashmap">
+		with w_srv_dt_job_sm_refine as (
+			select
+				row_number() over(partition by jo_no order by create_dt desc) as row_num
+				,a.sido_cd
+				,a.sgg_cd
+				,a.emdong_cd
+				,a.bsnm_no
+				,a.rcrit_psn
+			from
+				srv_dt_job_sm_refine a
+			where 1=1
+			<if test='today != null and today != ""'>
+				and a.create_dt = '${today}'
+			</if>
+			<if test='term_from != null and term_from != ""'>
+				and a.create_dt <![CDATA[>=]]> '${term_from}'
+			</if>
+			<if test='term_to != null and term_to != ""'>
+				and a.create_dt <![CDATA[<=]]> '${term_to}'
+			</if>
+			<if test='sido_cd != null and sido_cd != "99"'>
+				and trim(a.sido_cd) = '${sido_cd}'
+			</if>
+			<if test='sgg_cd != null and sgg_cd != "999"'>
+				and trim(a.sgg_cd) = '${sgg_cd}'
+			</if>
+			<if test='industClassAllYn != "Y" and industClassList != null and industClassList != ""'>
+				<foreach collection="industClassList" item="rs" open="and (" separator="OR" close=")">
+					a.indust_class like '${rs}'||'%'
+				</foreach>
+			</if>
+			<if test='jobClassAllYn != "Y" and jobClassList != null and jobClassList != ""'>
+				<foreach collection="jobClassList" item="rs" open="and (" separator="OR" close=")">
+					a.rcrit_jssfc like '${rs}'||'%'
+				</foreach>
+			</if>
+			<if test='enterpriseTypeAllYn != "Y" and enterpriseTypeList != null and enterpriseTypeList != ""'>
+				<foreach collection="enterpriseTypeList" item="rs" open="and (" separator="OR" close=")">
+					a.entrprs_type like '${rs}'||'%'
+				</foreach>
+			</if>
+			<if test='employmentTypeAllYn != "Y" and employmentTypeList != null and employmentTypeList != ""'>
+				<foreach collection="employmentTypeList" item="rs" open="and (" separator="OR" close=")">
+					a.emplym_type like '${rs}'||'%'
+				</foreach>
+			</if>
+			<if test='wagetyTypeAllYn != "Y" and wagetyType != null and wagetyType != ""'>
+				${wagetyType}
+			</if>
+			<if test='educationLevelAllYn != "Y" and educationLevelList != null and educationLevelList != ""'>
+				<foreach collection="educationLevelList" item="rs" open="and (" separator="OR" close=")">
+					a.acdmcr like '${rs}'||'%'
+				</foreach>
+			</if>
+			<if test='careerLevelAllYn != "Y" and careerLevelList != null and careerLevelList != ""'>
+				<foreach collection="careerLevelList" item="rs" open="and (" separator="OR" close=")">
+					a.career like '${rs}'||'%'
+				</foreach>
+			</if>
+		),
+		w_srv_pg_admbord_sido as (
+			select sido_cd, max(sido_nm) AS sido_nm
+			from srv_pg_admbord
+			where base_year = '${bnd_year}'
+			group by sido_cd
+		),
+		w_srv_pg_admbord_sgg as (
+			select sido_cd, sgg_cd, max(sgg_nm) AS sgg_nm
+			from srv_pg_admbord
+			where base_year = '${bnd_year}'
+			group by sido_cd, sgg_cd
+		),
+		w_srv_pg_admbord_emdong as (
+			select sido_cd, sgg_cd, emdong_cd, max(emdong_nm) AS emdong_nm
+			from srv_pg_admbord
+			where base_year = '${bnd_year}'
+			group by sido_cd, sgg_cd, emdong_cd
+		)
+		select
+			<choose>
+				<when test='sido_cd != null and sido_cd != "99" and sgg_cd != null and sgg_cd != "999"'>
+				a.sido_cd||a.sgg_cd||a.emdong_cd as adm_cd
+				,d.emdong_nm as adm_nm
+				</when>
+				<when test='sido_cd != null and sido_cd != "99"'>
+				a.sido_cd||a.sgg_cd as adm_cd
+				,c.sgg_nm as adm_nm
+				</when>
+				<otherwise>
+				a.sido_cd as adm_cd
+				,b.sido_nm as adm_nm
+			    </otherwise>
+			</choose>
+			<choose>
+				<when test="resultType == 'COR'">
+				,count(distinct a.bsnm_no) as status_anls_all
+				</when>
+				<when test="resultType == 'PSN'">
+				,sum(a.rcrit_psn) as status_anls_all
+				</when>
+				<otherwise>
+				,0 as status_anls_all
+			    </otherwise>
+			</choose>
+		from
+			w_srv_dt_job_sm_refine a
+			left outer join w_srv_pg_admbord_sido b on b.sido_cd = a.sido_cd
+			left outer join w_srv_pg_admbord_sgg c on c.sido_cd = a.sido_cd and c.sgg_cd = a.sgg_cd
+			left outer join w_srv_pg_admbord_emdong d on d.sido_cd = a.sido_cd and d.sgg_cd = a.sgg_cd and d.emdong_cd = a.emdong_cd
+		where 1=1
+			and a.row_num = 1
+			<choose>
+				<when test='sido_cd != null and sido_cd != "99" and sgg_cd != null and sgg_cd != "999"'>
+					and d.emdong_nm is not null
+				</when>
+				<when test='sido_cd != null and sido_cd != "99"'>
+					and c.sgg_nm is not null
+				</when>
+				<otherwise>
+					and b.sido_nm is not null
+				</otherwise>
+			</choose>
+		<choose>
+			<when test='sido_cd != null and sido_cd != "99" and sgg_cd != null and sgg_cd != "999"'>
+				group by a.sido_cd, a.sgg_cd, a.emdong_cd, d.emdong_nm
+			</when>
+			<when test='sido_cd != null and sido_cd != "99"'>
+				group by a.sido_cd, a.sgg_cd, c.sgg_nm
+			</when>
+			<otherwise>
+				group by a.sido_cd, b.sido_nm
+			</otherwise>
+		</choose>
+	</select>
+	<!-- 2019-05-29 [김남민] 구인현황 분석 > 업종별 직종별 등 분석조건을 AND 조건이 가능하게 개선(교차분석) END -->
+
+	<!-- 구인현황 분석 산업분류(업종) 조회 -->
+	<select id="getStatusAnlsIndustryClass" parameterType="hashmap" resultType="hashmap">
+		<!-- 2020.04.23[한광희] 월평균자료 조회 기능 추가 START -->
+		<if test='regDtMonth != null and regDtMonth != "999999"'>
+			SELECT ADM_CD
+				 , ADM_NM
+				 , TRUNC(INDUST_CLASS/B.CNT, 0) AS INDUST_CLASS	<!-- 2020.07.24[한광희] 월평균자료 조회 소수점 제거 -->
+			  FROM (
+		</if>
+		<!-- 2020.04.23[한광희] 월평균자료 조회 기능 추가 END -->
+		SELECT
+		<choose>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) START -->
+			<when test="sgg_cd != null and sgg_cd != '999'">
+			  sido_cd||sgg_cd||emdong_cd as adm_cd
+			 ,(
+			 	select max(emdong_nm)
+			 	  from srv_pg_admbord
+			 	 where 1=1
+			 	   and base_year = #{bnd_year}
+			 	   and sido_cd = a.sido_cd
+			 	   and sgg_cd = a.sgg_cd
+			 	   and emdong_cd = a.emdong_cd
+			 	   /*and sido_cd = a.sido_cd and sgg_cd = a.sgg_cd*/
+			 ) as adm_nm
+			</when>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) END -->
+			<when test="sido_cd != null and sido_cd != '99'">
+			  sido_cd||sgg_cd as adm_cd
+			 ,(
+			 	select max(sgg_nm)
+			 	  from srv_pg_admbord
+			 	 where 1=1
+			 	   and base_year = #{bnd_year}
+			 	   and sido_cd = a.sido_cd
+			 	   and sgg_cd = a.sgg_cd
+			 	   /*and sido_cd = a.sido_cd and sgg_cd = a.sgg_cd*/
+			 ) as adm_nm
+			</when>
+		    <otherwise>
+			  sido_cd as adm_cd
+		 	 , (select max(sido_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd = a.sido_cd) as adm_nm
+		    </otherwise>
+		</choose>
+		<if test="resultType == 'COR'">
+			 , sum(corp_cnt) as indust_class
+		</if>
+		<if test="resultType == 'PSN'">
+			 , sum(rcrit_psn_cnt) as indust_class
+		</if>
+		  FROM srv_dt_job_indust_class_sm a
+		 WHERE 1=1
+		<!-- 2019-05-21 [김남민] 구인현황 분석 > 1주, 1개월, 3개월 등 히든된 기능 안정화 START -->
+		<!-- 2020.04.23[한광희] 월평균자료 조회 기능 추가 START -->
+		<if test='regDtMonth == "999999" or regDtMonth == null'>
+			<if test='today != null and today != ""'>
+				AND reg_dt = #{today}
+			</if>
+		</if>
+		<if test='regDtMonth != null and regDtMonth != "999999"'>
+			AND REG_DT like ${regDtMonth} || '%'
+		</if>
+		<!-- 2020.04.23[한광희] 월평균자료 조회 기능 추가 END -->
+		<if test='term_from != null and term_from != ""'>
+			AND reg_dt <![CDATA[>=]]> #{term_from}
+		</if>
+		<if test='term_to != null and term_to != ""'>
+			AND reg_dt <![CDATA[<=]]> #{term_to}
+		</if>
+		<!-- 2019-05-21 [김남민] 구인현황 분석 > 1주, 1개월, 3개월 등 히든된 기능 안정화 END -->
+		 <!-- choose>
+		 	<when test="term == '1W'">
+		 		AND reg_dt BETWEEN TO_CHAR(TO_DATE(#{today},'yyyymmdd')-6,'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '2W'">
+		 		AND reg_dt BETWEEN TO_CHAR(TO_DATE(#{today},'yyyymmdd')-13,'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '1M'">
+		 		AND reg_dt BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{today},'yyyymmdd'),-1),'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '3M'">
+		 		AND reg_dt BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{today},'yyyymmdd'),-3),'yyyymmdd') AND #{today}
+		 	</when>
+		 </choose-->
+		 <if test="industClassList != null">
+		 <foreach collection="industClassList" item="rs" open="AND (" separator="OR" close=")">
+			indust_class LIKE '${rs}'||'%'
+		</foreach>
+		</if>
+		<if test="sido_cd != null and sido_cd != '99'">
+            <!-- mng_s 20190312 이금은 -->
+			AND trim(sido_cd) = #{sido_cd}
+            <!-- mng_e 20190312 이금은 -->
+		</if>
+		<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) START -->
+		<if test="sgg_cd != null and sgg_cd != '999'">
+			AND trim(sgg_cd) = #{sgg_cd}
+		</if>
+		<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) END -->
+		<choose>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) START -->
+			<when test="sgg_cd != null and sgg_cd != '999'">
+				GROUP BY sido_cd, sgg_cd, emdong_cd
+			</when>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) END -->
+			<when test="sido_cd != null and sido_cd != '99'">
+				GROUP BY sido_cd, sgg_cd
+			</when>
+		    <otherwise>
+				GROUP BY sido_cd
+		    </otherwise>
+		</choose>
+		<!-- 2020.04.23[한광희] 월평균자료 조회 기능 추가 START -->
+		<if test='regDtMonth != null and regDtMonth != "999999"'>
+			)
+			, (SELECT COUNT(*) CNT
+				 FROM (SELECT DISTINCT(REG_DT)
+				 		 FROM SRV_DT_JOB_INDUST_CLASS_SM
+				 		WHERE REG_DT like ${regDtMonth} || '%'
+				 	  )
+			  ) B
+		</if>
+		<!-- 2020.04.23[한광희] 월평균자료 조회 기능 추가 END -->
+	</select>
+
+	<!-- 구인현황 분석 - 직종분류 조회 -->
+	<select id="getStatusAnlsJobClass" parameterType="hashmap" resultType="hashmap">
+		SELECT
+		<choose>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) START -->
+			<when test="sgg_cd != null and sgg_cd != '999'">
+			  sido_cd||sgg_cd||emdong_cd as adm_cd
+			 , (select max(emdong_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd = a.sido_cd and sgg_cd = a.sgg_cd and emdong_cd = a.emdong_cd) as adm_nm
+			</when>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) END -->
+			<when test="sido_cd != null and sido_cd != '99'">
+			  sido_cd||sgg_cd as adm_cd
+			 , (select max(sgg_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd = a.sido_cd and sgg_cd = a.sgg_cd) as adm_nm
+			</when>
+		    <otherwise>
+			  sido_cd as adm_cd
+		 	 , (select max(sido_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd = a.sido_cd) as adm_nm
+		    </otherwise>
+		</choose>
+		<if test="resultType == 'COR'">
+			 , sum(corp_cnt) as rcrit_jssfc
+		</if>
+		<if test="resultType == 'PSN'">
+			 , sum(rcrit_psn_cnt) as rcrit_jssfc
+		</if>
+		  FROM srv_dt_job_jssfc_sm a
+		 WHERE 1=1
+		<!-- 2019-05-21 [김남민] 구인현황 분석 > 1주, 1개월, 3개월 등 히든된 기능 안정화 START -->
+		<if test='today != null and today != ""'>
+			AND reg_dt = #{today}
+		</if>
+		<if test='term_from != null and term_from != ""'>
+			AND reg_dt <![CDATA[>=]]> #{term_from}
+		</if>
+		<if test='term_to != null and term_to != ""'>
+			AND reg_dt <![CDATA[<=]]> #{term_to}
+		</if>
+		<!-- 2019-05-21 [김남민] 구인현황 분석 > 1주, 1개월, 3개월 등 히든된 기능 안정화 END -->
+		 <!-- choose>
+		 	<when test="term == '1W'">
+		 		AND reg_dt BETWEEN TO_CHAR(TO_DATE(#{today},'yyyymmdd')-6,'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '2W'">
+		 		AND reg_dt BETWEEN TO_CHAR(TO_DATE(#{today},'yyyymmdd')-13,'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '1M'">
+		 		AND reg_dt BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{today},'yyyymmdd'),-1),'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '3M'">
+		 		AND reg_dt BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{today},'yyyymmdd'),-3),'yyyymmdd') AND #{today}
+		 	</when>
+		 </choose-->
+		 <if test="jobClassList != null">
+		 <foreach collection="jobClassList" item="rs" open="AND (" separator="OR" close=")">
+			jssfc_class LIKE '${rs}'||'%'
+		</foreach>
+		</if>
+		<if test="sido_cd != null and sido_cd != '99'">
+			AND trim(sido_cd) = #{sido_cd}
+		</if>
+		<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) START -->
+		<if test="sgg_cd != null and sgg_cd != '999'">
+			AND trim(sgg_cd) = #{sgg_cd}
+		</if>
+		<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) END -->
+		<choose>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) START -->
+			<when test="sgg_cd != null and sgg_cd != '999'">
+				GROUP BY sido_cd, sgg_cd, emdong_cd
+			</when>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) END -->
+			<when test="sido_cd != null and sido_cd != '99'">
+				GROUP BY sido_cd, sgg_cd
+			</when>
+		    <otherwise>
+				GROUP BY sido_cd
+		    </otherwise>
+		</choose>
+	</select>
+
+	<!-- 구인현황 분석 - 기업형태 조회 -->
+	<select id="getStatusAnlsEnterpriseType" parameterType="hashmap" resultType="hashmap">
+		SELECT
+		<choose>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) START -->
+			<when test="sgg_cd != null and sgg_cd != '999'">
+			  sido_cd||sgg_cd||emdong_cd as adm_cd
+			 , (select max(emdong_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd = a.sido_cd and sgg_cd = a.sgg_cd and emdong_cd = a.emdong_cd) as adm_nm
+			</when>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) END -->
+			<when test="sido_cd != null and sido_cd != '99'">
+			  sido_cd||sgg_cd as adm_cd
+			 , (select max(sgg_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd = a.sido_cd and sgg_cd = a.sgg_cd) as adm_nm
+			</when>
+		    <otherwise>
+			  sido_cd as adm_cd
+		 	 , (select max(sido_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd = a.sido_cd) as adm_nm
+		    </otherwise>
+		</choose>
+		<if test="resultType == 'COR'">
+			 , sum(corp_cnt) as entrprs_type
+		</if>
+		<if test="resultType == 'PSN'">
+			 , sum(rcrit_psn_cnt) as entrprs_type
+		</if>
+		  FROM srv_dt_job_entrprs_type_sm a
+		 WHERE 1=1
+		<!-- 2019-05-21 [김남민] 구인현황 분석 > 1주, 1개월, 3개월 등 히든된 기능 안정화 START -->
+		<if test='today != null and today != ""'>
+			AND reg_dt = #{today}
+		</if>
+		<if test='term_from != null and term_from != ""'>
+			AND reg_dt <![CDATA[>=]]> #{term_from}
+		</if>
+		<if test='term_to != null and term_to != ""'>
+			AND reg_dt <![CDATA[<=]]> #{term_to}
+		</if>
+		<!-- 2019-05-21 [김남민] 구인현황 분석 > 1주, 1개월, 3개월 등 히든된 기능 안정화 END -->
+		 <!-- choose>
+		 	<when test="term == '1W'">
+		 		AND reg_dt BETWEEN TO_CHAR(TO_DATE(#{today},'yyyymmdd')-6,'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '2W'">
+		 		AND reg_dt BETWEEN TO_CHAR(TO_DATE(#{today},'yyyymmdd')-13,'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '1M'">
+		 		AND reg_dt BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{today},'yyyymmdd'),-1),'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '3M'">
+		 		AND reg_dt BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{today},'yyyymmdd'),-3),'yyyymmdd') AND #{today}
+		 	</when>
+		 </choose-->
+		 <if test="enterpriseTypeList != null">
+		 <foreach collection="enterpriseTypeList" item="rs" open="AND (" separator="OR" close=")">
+			entrprs_type LIKE '${rs}'||'%'
+		</foreach>
+		</if>
+		<if test="sido_cd != null and sido_cd != '99'">
+			AND trim(sido_cd) = #{sido_cd}
+		</if>
+		<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) START -->
+		<if test="sgg_cd != null and sgg_cd != '999'">
+			AND trim(sgg_cd) = #{sgg_cd}
+		</if>
+		<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) END -->
+		<choose>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) START -->
+			<when test="sgg_cd != null and sgg_cd != '999'">
+				GROUP BY sido_cd, sgg_cd, emdong_cd
+			</when>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) END -->
+			<when test="sido_cd != null and sido_cd != '99'">
+				GROUP BY sido_cd, sgg_cd
+			</when>
+		    <otherwise>
+				GROUP BY sido_cd
+		    </otherwise>
+		</choose>
+	</select>
+
+	<!-- 구인현황 분석 - 고용형태 조회 -->
+	<select id="getStatusAnlsEmploymentType" parameterType="hashmap" resultType="hashmap">
+		SELECT
+		<choose>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) START -->
+			<when test="sgg_cd != null and sgg_cd != '999'">
+			  sido_cd||sgg_cd||emdong_cd as adm_cd
+			 , (select max(emdong_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd = a.sido_cd and sgg_cd = a.sgg_cd and emdong_cd = a.emdong_cd) as adm_nm
+			</when>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) END -->
+			<when test="sido_cd != null and sido_cd != '99'">
+			  sido_cd||sgg_cd as adm_cd
+			 , (select max(sgg_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd = a.sido_cd and sgg_cd = a.sgg_cd) as adm_nm
+			</when>
+		    <otherwise>
+			  sido_cd as adm_cd
+		 	 , (select max(sido_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd = a.sido_cd) as adm_nm
+		    </otherwise>
+		</choose>
+		<if test="resultType == 'COR'">
+			 , sum(corp_cnt) as emplym_type
+		</if>
+		<if test="resultType == 'PSN'">
+			 , sum(rcrit_psn_cnt) as emplym_type
+		</if>
+		  FROM srv_dt_job_emplym_type_sm a
+		 WHERE 1=1
+		<!-- 2019-05-21 [김남민] 구인현황 분석 > 1주, 1개월, 3개월 등 히든된 기능 안정화 START -->
+		<if test='today != null and today != ""'>
+			AND reg_dt = #{today}
+		</if>
+		<if test='term_from != null and term_from != ""'>
+			AND reg_dt <![CDATA[>=]]> #{term_from}
+		</if>
+		<if test='term_to != null and term_to != ""'>
+			AND reg_dt <![CDATA[<=]]> #{term_to}
+		</if>
+		<!-- 2019-05-21 [김남민] 구인현황 분석 > 1주, 1개월, 3개월 등 히든된 기능 안정화 END -->
+		 <!-- choose>
+		 	<when test="term == '1W'">
+		 		AND reg_dt BETWEEN TO_CHAR(TO_DATE(#{today},'yyyymmdd')-6,'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '2W'">
+		 		AND reg_dt BETWEEN TO_CHAR(TO_DATE(#{today},'yyyymmdd')-13,'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '1M'">
+		 		AND reg_dt BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{today},'yyyymmdd'),-1),'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '3M'">
+		 		AND reg_dt BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{today},'yyyymmdd'),-3),'yyyymmdd') AND #{today}
+		 	</when>
+		 </choose-->
+		 <if test="employmentTypeList != null">
+		 <foreach collection="employmentTypeList" item="rs" open="AND (" separator="OR" close=")">
+			emplym_type LIKE '${rs}'||'%'
+		</foreach>
+		</if>
+		<if test="sido_cd != null and sido_cd != '99'">
+			AND trim(sido_cd) = #{sido_cd}
+		</if>
+		<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) START -->
+		<if test="sgg_cd != null and sgg_cd != '999'">
+			AND trim(sgg_cd) = #{sgg_cd}
+		</if>
+		<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) END -->
+		<choose>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) START -->
+			<when test="sgg_cd != null and sgg_cd != '999'">
+				GROUP BY sido_cd, sgg_cd, emdong_cd
+			</when>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) END -->
+			<when test="sido_cd != null and sido_cd != '99'">
+				GROUP BY sido_cd, sgg_cd
+			</when>
+		    <otherwise>
+				GROUP BY sido_cd
+		    </otherwise>
+		</choose>
+	</select>
+
+	<!-- 구인현황 분석 - 임금형태 조회 -->
+	<select id="getStatusAnlsWageType" parameterType="hashmap" resultType="hashmap">
+		<!-- SELECT
+		<choose>
+			<when test="sido_cd != null and sido_cd != '99'">
+			  sido_cd||sgg_cd as adm_cd
+			 , (select max(sgg_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd = a.sido_cd and sgg_cd = a.sgg_cd) as adm_nm
+			</when>
+		    <otherwise>
+			  sido_cd as adm_cd
+		 	 , (select max(sido_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd = a.sido_cd) as adm_nm
+		    </otherwise>
+		</choose>
+		<if test="resultType == 'COR'">
+			 , sum(corp_cnt) as wage_type
+		</if>
+		<if test="resultType == 'PSN'">
+			 , sum(rcrit_psn_cnt) as wage_type
+		</if>
+		  FROM srv_dt_job_salary_sm a
+		 WHERE 1=1
+		 <choose>
+		 	<when test="term == '1W'">
+		 		AND reg_dt BETWEEN TO_CHAR(TO_DATE(#{today},'yyyymmdd')-6,'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '2W'">
+		 		AND reg_dt BETWEEN TO_CHAR(TO_DATE(#{today},'yyyymmdd')-13,'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '1M'">
+		 		AND reg_dt BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{today},'yyyymmdd'),-1),'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '3M'">
+		 		AND reg_dt BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{today},'yyyymmdd'),-3),'yyyymmdd') AND #{today}
+		 	</when>
+		 </choose>
+		 <if test="wageTypeList != null">
+		 <foreach collection="wageTypeList" item="rs" open="AND (" separator="OR" close=")">
+			wage_type LIKE '${rs}'||'%'
+		</foreach>
+		</if>
+		<if test="salaryList != null">
+		 <foreach collection="salaryList" item="rs" open="AND (" separator="OR" close=")">
+			salary LIKE '${rs}'||'%'
+		</foreach>
+		</if>
+		<if test="sido_cd != null and sido_cd != '99'">
+			AND trim(sido_cd) = #{sido_cd}
+		</if>
+		<choose>
+			<when test="sido_cd != null and sido_cd != '99'">
+				GROUP BY sido_cd, sgg_cd;
+			</when>
+		    <otherwise>
+				GROUP BY sido_cd
+		    </otherwise>
+		</choose> -->
+		SELECT
+		<choose>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) START -->
+			<when test="sgg_cd != null and sgg_cd != '999'">
+			  sido_cd||sgg_cd||emdong_cd as adm_cd
+			 , (select max(emdong_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd = a.sido_cd and sgg_cd = a.sgg_cd and emdong_cd = a.emdong_cd) as adm_nm
+			</when>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) END -->
+			<when test="sido_cd != null and sido_cd != '99'">
+			  sido_cd||sgg_cd as adm_cd
+			 , (select max(sgg_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd = a.sido_cd and sgg_cd = a.sgg_cd) as adm_nm
+			</when>
+		    <otherwise>
+			  sido_cd as adm_cd
+		 	 , (select max(sido_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd = a.sido_cd) as adm_nm
+		    </otherwise>
+		</choose>
+		<if test="resultType == 'COR'">
+			 , sum(corp_cnt) as wage_type
+		</if>
+		<if test="resultType == 'PSN'">
+			 , sum(rcrit_psn_cnt) as wage_type
+		</if>
+		  FROM srv_dt_job_salary_sm a
+		 WHERE 1=1
+		<!-- 2019-05-21 [김남민] 구인현황 분석 > 1주, 1개월, 3개월 등 히든된 기능 안정화 START -->
+		<if test='today != null and today != ""'>
+			AND reg_dt = #{today}
+		</if>
+		<if test='term_from != null and term_from != ""'>
+			AND reg_dt <![CDATA[>=]]> #{term_from}
+		</if>
+		<if test='term_to != null and term_to != ""'>
+			AND reg_dt <![CDATA[<=]]> #{term_to}
+		</if>
+		<!-- 2019-05-21 [김남민] 구인현황 분석 > 1주, 1개월, 3개월 등 히든된 기능 안정화 END -->
+
+		 <!-- choose>
+		 	<when test="term == '1W'">
+		 		AND reg_dt BETWEEN TO_CHAR(TO_DATE(#{today},'yyyymmdd')-6,'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '2W'">
+		 		AND reg_dt BETWEEN TO_CHAR(TO_DATE(#{today},'yyyymmdd')-13,'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '1M'">
+		 		AND reg_dt BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{today},'yyyymmdd'),-1),'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '3M'">
+		 		AND reg_dt BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{today},'yyyymmdd'),-3),'yyyymmdd') AND #{today}
+		 	</when>
+		 </choose-->
+		 <if test="wageType != null and wageType != ''">
+			AND wage_type = #{wageType}
+		</if>
+		<if test="salary != null and salary != ''">
+			AND salary = #{salary}
+		</if>
+		<!-- 2019-05-17 [김남민] 구인현황 분석 > 임금수준(일급, 시급, 연봉 등)은 OR 조건으로 검색이 가능하게 개선 START -->
+		<if test='wagety2 != null and wagety2 != ""'>
+			${wagety2}
+		</if>
+		<!-- 2019-05-17 [김남민] 구인현황 분석 > 임금수준(일급, 시급, 연봉 등)은 OR 조건으로 검색이 가능하게 개선 END -->
+		<if test="sido_cd != null and sido_cd != '99'">
+			AND trim(sido_cd) = #{sido_cd}
+		</if>
+		<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) START -->
+		<if test="sgg_cd != null and sgg_cd != '999'">
+			AND trim(sgg_cd) = #{sgg_cd}
+		</if>
+		<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) END -->
+		<choose>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) START -->
+			<when test="sgg_cd != null and sgg_cd != '999'">
+				GROUP BY sido_cd, sgg_cd, emdong_cd
+			</when>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) END -->
+			<when test="sido_cd != null and sido_cd != '99'">
+				GROUP BY sido_cd, sgg_cd
+			</when>
+		    <otherwise>
+				GROUP BY sido_cd
+		    </otherwise>
+		</choose>
+	</select>
+
+	<!-- 구인현황 분석 - 학력 조회 -->
+	<select id="getStatusAnlsEducationLevel" parameterType="hashmap" resultType="hashmap">
+		SELECT
+		<choose>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) START -->
+			<when test="sgg_cd != null and sgg_cd != '999'">
+			  sido_cd||sgg_cd||emdong_cd as adm_cd
+			 , (select max(emdong_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd = a.sido_cd and sgg_cd = a.sgg_cd and emdong_cd = a.emdong_cd) as adm_nm
+			</when>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) END -->
+			<when test="sido_cd != null and sido_cd != '99'">
+			  sido_cd||sgg_cd as adm_cd
+			 , (select max(sgg_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd = a.sido_cd and sgg_cd = a.sgg_cd) as adm_nm
+			</when>
+		    <otherwise>
+			  sido_cd as adm_cd
+		 	 , (select max(sido_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd = a.sido_cd) as adm_nm
+		    </otherwise>
+		</choose>
+		<if test="resultType == 'COR'">
+			 , sum(corp_cnt) as acdmcr
+		</if>
+		<if test="resultType == 'PSN'">
+			 , sum(rcrit_psn_cnt) as acdmcr
+		</if>
+		  FROM srv_dt_job_acdmcr_sm a
+		 WHERE 1=1
+		<!-- 2019-05-21 [김남민] 구인현황 분석 > 1주, 1개월, 3개월 등 히든된 기능 안정화 START -->
+		<if test='today != null and today != ""'>
+			AND reg_dt = #{today}
+		</if>
+		<if test='term_from != null and term_from != ""'>
+			AND reg_dt <![CDATA[>=]]> #{term_from}
+		</if>
+		<if test='term_to != null and term_to != ""'>
+			AND reg_dt <![CDATA[<=]]> #{term_to}
+		</if>
+		<!-- 2019-05-21 [김남민] 구인현황 분석 > 1주, 1개월, 3개월 등 히든된 기능 안정화 END -->
+		 <!-- choose>
+		 	<when test="term == '1W'">
+		 		AND reg_dt BETWEEN TO_CHAR(TO_DATE(#{today},'yyyymmdd')-6,'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '2W'">
+		 		AND reg_dt BETWEEN TO_CHAR(TO_DATE(#{today},'yyyymmdd')-13,'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '1M'">
+		 		AND reg_dt BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{today},'yyyymmdd'),-1),'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '3M'">
+		 		AND reg_dt BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{today},'yyyymmdd'),-3),'yyyymmdd') AND #{today}
+		 	</when>
+		 </choose-->
+		 <if test="educationLevelList != null">
+		 <foreach collection="educationLevelList" item="rs" open="AND (" separator="OR" close=")">
+			acdmcr LIKE '${rs}'||'%'
+		</foreach>
+		</if>
+		<if test="sido_cd != null and sido_cd != '99'">
+			AND trim(sido_cd) = #{sido_cd}
+		</if>
+		<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) START -->
+		<if test="sgg_cd != null and sgg_cd != '999'">
+			AND trim(sgg_cd) = #{sgg_cd}
+		</if>
+		<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) END -->
+		<choose>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) START -->
+			<when test="sgg_cd != null and sgg_cd != '999'">
+				GROUP BY sido_cd, sgg_cd, emdong_cd
+			</when>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) END -->
+			<when test="sido_cd != null and sido_cd != '99'">
+				GROUP BY sido_cd, sgg_cd
+			</when>
+		    <otherwise>
+				GROUP BY sido_cd
+		    </otherwise>
+		</choose>
+	</select>
+
+	<!-- 구인현황 분석 - 경력 조회 -->
+	<select id="getStatusAnlsCareerLevel" parameterType="hashmap" resultType="hashmap">
+		SELECT
+		<choose>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) START -->
+			<when test="sgg_cd != null and sgg_cd != '999'">
+			  sido_cd||sgg_cd||emdong_cd as adm_cd
+			 , (select max(emdong_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd = a.sido_cd and sgg_cd = a.sgg_cd and emdong_cd = a.emdong_cd) as adm_nm
+			</when>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) END -->
+			<when test="sido_cd != null and sido_cd != '99'">
+			  sido_cd||sgg_cd as adm_cd
+			 , (select max(sgg_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd = a.sido_cd and sgg_cd = a.sgg_cd) as adm_nm
+			</when>
+		    <otherwise>
+			  sido_cd as adm_cd
+		 	 , (select max(sido_nm) from srv_pg_admbord where base_year = #{bnd_year} and sido_cd = a.sido_cd) as adm_nm
+		    </otherwise>
+		</choose>
+		<if test="resultType == 'COR'">
+			 , sum(corp_cnt) as career
+		</if>
+		<if test="resultType == 'PSN'">
+			 , sum(rcrit_psn_cnt) as career
+		</if>
+		  FROM srv_dt_job_career_sm a
+		 WHERE 1=1
+		<!-- 2019-05-21 [김남민] 구인현황 분석 > 1주, 1개월, 3개월 등 히든된 기능 안정화 START -->
+		<if test='today != null and today != ""'>
+			AND reg_dt = #{today}
+		</if>
+		<if test='term_from != null and term_from != ""'>
+			AND reg_dt <![CDATA[>=]]> #{term_from}
+		</if>
+		<if test='term_to != null and term_to != ""'>
+			AND reg_dt <![CDATA[<=]]> #{term_to}
+		</if>
+		<!-- 2019-05-21 [김남민] 구인현황 분석 > 1주, 1개월, 3개월 등 히든된 기능 안정화 END -->
+		 <!-- choose>
+		 	<when test="term == '1W'">
+		 		AND reg_dt BETWEEN TO_CHAR(TO_DATE(#{today},'yyyymmdd')-6,'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '2W'">
+		 		AND reg_dt BETWEEN TO_CHAR(TO_DATE(#{today},'yyyymmdd')-13,'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '1M'">
+		 		AND reg_dt BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{today},'yyyymmdd'),-1),'yyyymmdd') AND #{today}
+		 	</when>
+		 	<when test="term == '3M'">
+		 		AND reg_dt BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{today},'yyyymmdd'),-3),'yyyymmdd') AND #{today}
+		 	</when>
+		 </choose-->
+		 <if test="careerLevelList != null">
+		 <foreach collection="careerLevelList" item="rs" open="AND (" separator="OR" close=")">
+			career LIKE '${rs}'||'%'
+		</foreach>
+		</if>
+		<if test="sido_cd != null and sido_cd != '99'">
+			AND sido_cd = #{sido_cd}
+		</if>
+		<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) START -->
+		<if test="sgg_cd != null and sgg_cd != '999'">
+			AND sgg_cd = #{sgg_cd}
+		</if>
+		<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) END -->
+		<choose>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) START -->
+			<when test="sgg_cd != null and sgg_cd != '999'">
+				GROUP BY sido_cd, sgg_cd, emdong_cd
+			</when>
+			<!-- 2019-12-26 [김남민] 일자리 맵 > 구인현황 분석 > 지역조건 오류수정 및 조회범위 읍면동 확대 (검색조건이 변하지는 않음) END -->
+			<when test="sido_cd != null and sido_cd != '99'">
+				GROUP BY sido_cd, sgg_cd
+			</when>
+		    <otherwise>
+				GROUP BY sido_cd
+		    </otherwise>
+		</choose>
+	</select>
+
+	<!-- 2021.06.02[hjh] 월평균자료 조회 기능 추가 START -->
+	<!-- 구인현황 분석 월별 조회 -->
+	<select id="getStatusAnlsMnby" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			adm_cd
+			, adm_nm
+<!--			, decode(trunc(indust_class / (to_number(to_char(last_day(to_date(#{regDtMonth} || '01')), 'dd'))), 0), 0, 1, trunc(indust_class / (to_number(to_char(last_day(to_date(#{regDtMonth} || '01')), 'dd'))), 0)) AS indust_class -->
+			, indust_class AS indust_class
+		FROM
+			(
+				SELECT
+					<choose>
+						<when test="sgg_cd != null and sgg_cd != '999'">
+							sido_cd || sgg_cd || emdong_cd AS adm_cd
+							, (
+								SELECT
+									max(emdong_nm)
+								FROM
+									srv_pg_admbord
+								WHERE
+									1 = 1
+									AND base_year = #{bnd_year}
+									AND sido_cd = a.sido_cd
+									AND sgg_cd = a.sgg_cd
+									AND emdong_cd = a.emdong_cd
+							) AS adm_nm
+						</when>
+						<when test="sido_cd != null and sido_cd != '99'">
+							sido_cd || sgg_cd AS adm_cd
+							, (
+								SELECT
+									max(sgg_nm)
+								FROM
+									srv_pg_admbord
+								WHERE
+									1 = 1
+									AND base_year = #{bnd_year}
+									AND sido_cd = a.sido_cd
+									AND sgg_cd = a.sgg_cd
+							) AS adm_nm
+						</when>
+						<otherwise>
+							sido_cd AS adm_cd
+							, (
+								SELECT
+									max(sido_nm)
+								FROM
+									srv_pg_admbord
+								WHERE
+									1 = 1
+									AND base_year = #{bnd_year}
+									AND sido_cd = a.sido_cd
+							) AS adm_nm
+						</otherwise>
+					</choose>
+					<if test="resultType == 'COR'">
+						, sum(corp_cnt) AS indust_class
+					</if>
+					<if test="resultType == 'PSN'">
+						, sum(rcrit_psn_cnt) AS indust_class
+					</if>
+				FROM
+					srv_dt_job_mnby_sm a
+				WHERE
+					1 = 1
+					AND reg_ym = #{regDtMonth}
+					AND bndry_year = (
+						SELECT
+							max(bndry_year)
+						FROM
+							srv_dt_job_mnby_sm
+						WHERE
+							1 = 1
+							AND reg_ym = #{regDtMonth}
+					)
+					<if test="sido_cd != null and sido_cd != '99'">
+						AND trim(sido_cd) = #{sido_cd}
+					</if>
+					<if test="sgg_cd != null and sgg_cd != '999'">
+						AND trim(sgg_cd) = #{sgg_cd}
+					</if>
+				<choose>
+					<when test="sgg_cd != null and sgg_cd != '999'">
+						GROUP BY
+							sido_cd
+							, sgg_cd
+							, emdong_cd
+					</when>
+					<when test="sido_cd != null and sido_cd != '99'">
+						GROUP BY
+							sido_cd
+							, sgg_cd
+					</when>
+					<otherwise>
+						GROUP BY
+							sido_cd
+					</otherwise>
+				</choose>
+			)
+	</select>
+
+	<!-- 월별 경계 등록년 목록-->
+	<select id="getStatusAnlsMnbyRegYearList" parameterType="Map" resultType="Map">
+		SELECT
+			substring(reg_ym, 1, 4) AS reg_year
+		FROM
+			srv_dt_job_mnby_sm
+		GROUP BY
+			substring(reg_ym, 1, 4)
+		ORDER BY
+			substring(reg_ym, 1, 4) DESC
+	</select>
+
+	<!-- 월별 경계 등록월 목록-->
+	<select id="getStatusAnlsMnbyRegMonthList" parameterType="Map" resultType="Map">
+		SELECT
+			substring(reg_ym, 5, 2) AS reg_month
+		FROM
+			srv_dt_job_mnby_sm
+		WHERE
+			1 = 1
+			<if test='searchRegYear != null and searchRegYear != ""'>
+				AND reg_ym LIKE #{searchRegYear} || '%'
+			</if>
+		GROUP BY
+			reg_ym
+		ORDER BY
+			reg_ym ASC
+	</select>
+	<!-- 2021.06.02[hjh] 월평균자료 조회 기능 추가 END -->
+
+</mapper>

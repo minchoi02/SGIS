@@ -1,0 +1,806 @@
+/**
+ * 행정통계시각화 차트 js
+ *
+ * @author : hjh
+ */
+let AdministStatsChart = {};
+
+AdministStatsChart.consts = {
+	/* 색상표 */
+	colors : {
+		teal : [ "#60A8C2", "#0B4C5F" ],
+		green : [ "#D4D05D", "#0B610B" ],
+		purple : [ "#BE86C9", "#3F0099" ],
+		orange : [ "#F5A020", "#CB5B1B" ],
+		red : [ "#ffd75d", "#cd1103" ],
+		black : [ "#D8D8D8", "#0C0C0C" ],
+		blue : [ "#CCCCD6", "#050099" ],
+		skyBlue : [ "#61DBF0", "#006F84" ],
+		jadu : [ "", "#61243B" ]
+	},
+	/* 차트 생성용 */
+	fontFamily : "NanumSquare",
+	fontSize : "11px",
+	dataLabelsFontSize : "11px",
+	exportingFontSize : "10px",
+	exportingDataLabelsFontSize : "8px",
+	textOutline : "1px contrast",
+	/* 차트 색상 그라데이션 opt */
+	perShapeGradient : {
+		x1 : 0,
+		y1 : 0,
+		x2 : 0,
+		y2 : 1
+	},
+	/* 차트 선택 시 변경 색상 */
+	sliceHighlightColor : "#E24F4F"
+};
+
+AdministStatsChart.ui = {
+	/* 차트 색상 초기화용 */
+	chartColorMap : {},
+	/* 차트 생성용 */
+	chart : {
+		chart : {
+			style : {
+				fontFamily : AdministStatsChart.consts.fontFamily
+			}
+		},
+		title : {
+			text : ""
+		},
+		subtitle : {
+			text : ""
+		},
+		credits : {
+			enabled : false
+		},
+		tooltip : {
+			useHTML : true,
+			animation : false,
+			hideDelay : 0,
+			borderWidth : 2,
+			backgroundColor : "#FFFFFF",
+			outside : true,
+			style : {
+				textAlign : "center",
+				zIndex : 100,
+				fontSize : AdministStatsChart.consts.fontSize,
+				fontWeight : "bold",
+				lineHeight : "15px"
+			}
+		},
+		legend : {
+			itemStyle : {
+				cursor : "default",
+				fontSize : AdministStatsChart.consts.fontSize
+			},
+			margin : 0
+		},
+		xAxis : {
+			title : {
+				text : "",
+				enabled : false,
+				style : {
+					fontSize : AdministStatsChart.consts.fontSize,
+					fontWeight : "bold"
+				}
+			},
+			labels : {
+				style : {
+					fontSize : AdministStatsChart.consts.fontSize,
+					fontWeight : "bold"
+				}
+			}
+		},
+		plotOptions : {
+			series : {
+				dataLabels : {
+					enabled : true,
+					crop : false,
+					overflow : "allow",
+					style : {
+						fontSize : AdministStatsChart.consts.dataLabelsFontSize,
+						fontWeight : "bold",
+						lineHeight : "15px"
+					},
+					zIndex : 10
+				}
+			}
+		},
+		exporting : {
+			// sourceWidth : 960,
+			// sourceHeight : 540,
+			fallbackToExportServer : false,
+			enabled : false,
+			allowHTML : true,
+			chartOptions : {
+				title : {
+					style : {
+						fontSize : "14px",
+						fontWeight : "bold"
+					}
+				},
+				chart : {
+					style : {}
+				},
+				legend : {
+					itemStyle : {
+						fontSize : AdministStatsChart.consts.exportingFontSize
+					}
+				},
+				xAxis : {
+					title : {
+						style : {
+							fontSize : AdministStatsChart.consts.exportingFontSize
+						}
+					},
+					labels : {
+						style : {
+							fontSize : AdministStatsChart.consts.exportingFontSize
+						}
+					}
+				},
+				yAxis : {
+					title : {
+						style : {
+							fontSize : AdministStatsChart.consts.exportingFontSize
+						}
+					},
+					labels : {
+						style : {
+							fontSize : AdministStatsChart.consts.exportingFontSize
+						}
+					},
+					stackLabels : {
+						style : {
+							fontSize : AdministStatsChart.consts.exportingDataLabelsFontSize
+						}
+					}
+				},
+				plotOptions : {
+					series : {
+						dataLabels : {
+							style : {
+								fontSize : AdministStatsChart.consts.exportingDataLabelsFontSize,
+								textOutline : AdministStatsChart.consts.textOutline
+							}
+						}
+					},
+					bar : {
+						dataLabels : {
+							style : {
+								color : "#FFFFFF",
+								fontWeight : "bold",
+								fontSize : AdministStatsChart.consts.exportingDataLabelsFontSize,
+								textOutline : AdministStatsChart.consts.textOutline
+							}
+						}
+					},
+					pie : {
+						size : "150%",
+						dataLabels : {
+							style : {
+								fontSize : AdministStatsChart.consts.dataLabelsFontSize,
+								textOutline : AdministStatsChart.consts.textOutline
+							}
+						}
+					},
+					treemap : {
+						dataLabels : {
+							style : {
+								color : "#FFFFFF",
+								fontWeight : "bold",
+								fontSize : AdministStatsChart.consts.exportingDataLabelsFontSize,
+								textOutline : AdministStatsChart.consts.textOutline
+							}
+						}
+					}
+				}
+			}
+		},
+	},
+	/* 차트 생성용 exporting yAxis */
+	exportingYAxis : {
+		title : {
+			style : {
+				fontSize : AdministStatsChart.consts.exportingFontSize
+			}
+		},
+		labels : {
+			style : {
+				fontSize : AdministStatsChart.consts.exportingFontSize
+			}
+		}
+	}
+};
+
+/**
+ * @name : makeChart
+ * @description : 차트 생성
+ * @param data
+ *            json
+ */
+AdministStatsChart.makeChart = function(opt) {
+
+	/* default */
+	opt["chartId"] = $administStatsMap.utils.getObjVal(opt, "chartId", "");
+	opt["chartType"] = $administStatsMap.utils.getObjVal(opt, "chartType", "");
+	opt["series"] = $administStatsMap.utils.getObjVal(opt, "series", {});
+	opt["title"] = $administStatsMap.utils.getObjVal(opt, "title", "");
+	opt["filename"] = $administStatsMap.utils.getObjVal(opt, "filename", (function() {
+		const year = $(".sb_year option:selected").text();
+		const sido = $(".tag_sido:eq(0)").text();
+
+		let filename = "";
+		if (!$administStatsMap.utils.isEmpty(year)) {
+			filename += year + " ";
+		}
+		if (!$administStatsMap.utils.isEmpty(sido)) {
+			filename += sido + " ";
+		}
+		filename += opt["title"];
+		return filename;
+	}()));
+	opt["marginTop"] = $administStatsMap.utils.getObjVal(opt, "marginTop", undefined);
+	/* legend */
+	opt["legend"] = $administStatsMap.utils.getObjVal(opt, "legend", undefined);
+	opt["seriesShowInLegend"] = $administStatsMap.utils.getObjVal(opt, "seriesShowInLegend", false);
+	opt["legendReversed"] = $administStatsMap.utils.getObjVal(opt, "legendReversed", true);
+	opt["legendItemClickEvent"] = $administStatsMap.utils.getObjVal(opt, "legendItemClickEvent", function(event) {
+		return false;
+	});
+	/* xAxis */
+	opt["xAxis"] = $administStatsMap.utils.getObjVal(opt, "xAxis", undefined);
+	
+	/* yAxis */
+	opt["yAxis"] = $administStatsMap.utils.getObjVal(opt, "yAxis", undefined);
+	/* dataLabels */
+	opt["dataLabelsInside"] = $administStatsMap.utils.getObjVal(opt, "dataLabelsInside", false);
+	opt["dataLabelsTextOutline"] = $administStatsMap.utils.getObjVal(opt, "dataLabelsTextOutline", false);
+	opt["dataLabelsAllowOverlap"] = $administStatsMap.utils.getObjVal(opt, "dataLabelsAllowOverlap", true);
+	opt["dataLabelsFormatter"] = $administStatsMap.utils.getObjVal(opt, "dataLabelsFormatter", function(that) {
+		return false;
+	});
+	/* tooltip */
+	opt["annotations"] = $administStatsMap.utils.getObjVal(opt, "annotations", undefined);
+	opt["tooltipPositioner"] = $administStatsMap.utils.getObjVal(opt, "tooltipPositioner", false);
+	opt["tooltipFormatter"] = $administStatsMap.utils.getObjVal(opt, "tooltipFormatter", function(that) {
+		return false;
+	});
+	/* pie */
+	opt["innerSize"] = $administStatsMap.utils.getObjVal(opt, "innerSize", "50%");
+	opt["distance"] = $administStatsMap.utils.getObjVal(opt, "distance", 1);
+	opt["subtitle"] = $administStatsMap.utils.getObjVal(opt, "subtitle", undefined);
+	opt["pie"] = $administStatsMap.utils.getObjVal(opt, "pie", undefined);
+	/* treemap */
+	opt["layoutAlgorithm"] = $administStatsMap.utils.getObjVal(opt, "layoutAlgorithm", "sliceAndDice");
+	/* column, bar */
+	opt["stacking"] = $administStatsMap.utils.getObjVal(opt, "stacking", undefined);
+	/* download */
+	opt["exporting"] = $administStatsMap.utils.getObjVal(opt, "exporting", undefined);
+	opt["isBigExporting"] = $administStatsMap.utils.getObjVal(opt, "isBigExporting", false);
+	opt["exportingDataLabelsFormatter"] = $administStatsMap.utils.getObjVal(opt, "exportingDataLabelsFormatter", undefined);
+	opt["exportingSeries"] = $administStatsMap.utils.getObjVal(opt, "exportingSeries", opt["series"]);
+	opt["exportingShowInLegend"] = $administStatsMap.utils.getObjVal(opt, "exportingShowInLegend", opt["seriesShowInLegend"]);
+	/* click event */
+	opt["cursor"] = $administStatsMap.utils.getObjVal(opt, "cursor", "default");
+	opt["eventClick"] = $administStatsMap.utils.getObjVal(opt, "eventClick", undefined);
+	/* colors */
+	opt["colorAxis"] = $administStatsMap.utils.getObjVal(opt, "colorAxis", undefined);
+	opt["colorByPoint"] = $administStatsMap.utils.getObjVal(opt, "colorByPoint", false);
+	opt["colors"] = $administStatsMap.utils.getObjVal(opt, "colors", (function() {
+		let colors = [];
+		const base = Highcharts.getOptions().colors[0];
+		for (let i = 0; i < 6; i++) {
+			colors.push(Highcharts.color(base).brighten((i - 3) / 7).get());
+		}
+		return colors;
+	}()));
+	/* complete callback */
+	opt["callback"] = $administStatsMap.utils.getObjVal(opt, "callback", function(that) {
+		return false;
+	});
+
+	$("#" + opt["chartId"]).empty();
+	const $parent = $("#" + opt["chartId"]).closest(".row");
+	$parent.find("." + opt["chartId"] + "_title").html(opt["title"]).attr("title", opt["title"].replace("<span>", "").replace("</span>", "").replace("&nbsp;", " "));
+ 	
+	let chart = $.extend(true, _.cloneDeep(AdministStatsChart.ui.chart), {
+		chart : {
+			renderTo : opt["chartId"],
+			type : opt["chartType"],
+			events : opt["events"]
+		},
+		series : opt["series"],
+		tooltip : {
+			enabled : false,
+			/*
+			formatter : function() {
+				return opt["tooltipFormatter"](this);
+			},
+			*/
+		},
+		legend : {
+			reversed : opt["chartType"] == "column" ? false : opt["legendReversed"]
+		},
+		colorAxis : opt["colorAxis"],
+		colors : opt["colors"],
+		yAxis : {
+			title : {
+				text : "",
+				enabled : false
+			},
+			labels : {
+				enabled : false
+			},
+			gridLineWidth : 0
+		},
+		plotOptions : {
+			series : {
+				showInLegend : opt["seriesShowInLegend"],
+				stacking : $administStatsMap.utils.isEmpty(opt["stacking"]) ? undefined : opt["stacking"],
+				cursor : opt["cursor"],
+				dataLabels : {
+					allowOverlap : opt["dataLabelsAllowOverlap"],
+					formatter : function() {
+						return opt["dataLabelsFormatter"](this);
+					},
+					style : {
+						textOutline : false
+					}
+				},
+				events : {
+					click : function(e) {
+					 	const tooltipText = opt["tooltipFormatter"](e);		
+						if(tooltipText && tooltipText !== ""){			 	
+							const tooltip = $("#"+opt["chartId"]).find("[data-type=tooltip]");
+							tooltip.empty();
+							
+							let header = (e.point.name||e.point.category||e.point.series.name).toString().replace(/(<([^>]+)>)/ig,"");
+							
+							if(typeof $administStatsMap !== 'undefined' && $("ul#main-tab li[data-tab-function=mainTab02]").hasClass("on")) {
+								header = header + ' 일자리';
+							}
+
+							if(opt["tooltipHeader"]){
+								const tooltipHeader = opt["tooltipHeader"](e);
+								header = tooltipHeader;
+							}
+							
+							tooltip.append(
+								$("<div/>",{"class":"modal__header d-flex justify-content-between align-items-center"}).append(
+									$("<h3/>",{"class":"modal__tit","text":header}),
+									$("<a/>",{"href":"#","class":"btn__cancel"}).click(function(){
+										$(this).parents('[data-type=tooltip]').hide();
+										return false;
+									}).append($("<span/>",{"class":"btn-close btn-close--black"}))
+								),
+								$("<div/>",{"class":"modal__body"}).append(tooltipText)
+							);
+	
+							tooltip.show();
+						}
+						
+						if ($administStatsMap.utils.isEmpty(opt["eventClick"])) {
+							return false;
+						}			
+						return opt["eventClick"](e, this);
+					},
+					legendItemClick : function(e) {
+						return opt["legendItemClickEvent"](e);
+					}
+				},
+				states : {
+					select : {
+						color : AdministStatsChart.consts.sliceHighlightColor
+					}
+				}
+			},
+			pie : {
+				slicedOffset : 0,
+				innerSize : opt["innerSize"],
+				dataLabels : {
+					distance : opt["distance"],
+					style : {
+						color : "#000000"
+					}
+				},
+				point : {
+					events : {
+						legendItemClick : function(e) {
+							return opt["legendItemClickEvent"](e);
+						}
+					}
+				},
+			},
+			column : {
+				borderRadius : 5,
+				colorByPoint : opt["colorByPoint"],
+				dataLabels : {
+					inside : opt["dataLabelsInside"]
+				}
+			},
+			bar : {
+				borderRadius : 5,
+				colorByPoint : opt["colorByPoint"],
+				dataLabels : {
+					inside : opt["dataLabelsInside"],
+					style : {
+						fontWeight : "bold",
+						color : (function() {
+							if (opt["dataLabelsInside"]) {
+								return "#FFFFFF";
+							} else {
+								return "#000000";
+							}
+						}())
+					}
+				}
+			},
+			treemap : {
+				// allowPointSelect: true,
+				layoutAlgorithm : opt["layoutAlgorithm"],
+				dataLabels : {
+					style : {
+						color : "#FFFFFF",
+					// fontWeight : "normal"
+					}
+				},
+				point : {
+					events : {
+						select : function() {
+							if ($administStatsMap.utils.isEmpty(this.oriColor)) {
+								this.oriColor = this.color;
+							}
+							this.update({
+								color : AdministStatsChart.consts.sliceHighlightColor
+							});
+						},
+						unselect : function() {
+							this.update({
+								color : this.oriColor
+							});
+						}
+					},
+				}
+			}
+		},
+		exporting : {
+			filename : opt["filename"].replace(/ /gi, "_").replace("/4", ""),
+			chartOptions : {
+				title : {
+					text : opt["filename"]
+				},
+				series : opt["exportingSeries"],
+				plotOptions : {
+					series : {
+						dataLabels : {
+							formatter : function() {
+								return $administStatsMap.utils.isEmpty(opt["exportingDataLabelsFormatter"]) ? opt["dataLabelsFormatter"](this) : opt["exportingDataLabelsFormatter"](this);
+							}
+						},
+						showInLegend : opt["exportingShowInLegend"]
+					},
+					bar : {
+						dataLabels : {
+							style : {
+								color : (function() {
+									if (opt["dataLabelsInside"]) {
+										return "#FFFFFF";
+									} else {
+										return "#000000";
+									}
+								}())
+							}
+						}
+					},
+				}
+			}
+		}
+	});
+
+	if (!$administStatsMap.utils.isEmpty(opt["subtitle"])) {
+		chart = $.extend(true, chart, {
+			subtitle : opt["subtitle"]
+		});
+	}
+	if (!$administStatsMap.utils.isEmpty(opt["spacingTop"])) {
+	    chart.chart.spacingTop = opt["spacingTop"];
+	}
+	if (!$administStatsMap.utils.isEmpty(opt["marginTop"])) {
+		chart.chart.marginTop = opt["marginTop"];
+	}
+	if (!$administStatsMap.utils.isEmpty(opt["marginRight"])) {
+		chart.chart.marginRight = opt["marginRight"];
+	}
+	if (!$administStatsMap.utils.isEmpty(opt["scrollablePlotArea"])) {
+		chart.chart.scrollablePlotArea = opt["scrollablePlotArea"];
+	}
+	if (!$administStatsMap.utils.isEmpty(opt["xAxis"])) {
+		chart = $.extend(true, chart, {
+			xAxis : opt["xAxis"]
+		});
+	}
+	if (!$administStatsMap.utils.isEmpty(opt["yAxis"])) {
+		chart = $.extend(true, chart, {
+			yAxis : opt["yAxis"]
+		});
+	}
+	if (!$administStatsMap.utils.isEmpty(opt["annotations"])) {
+		chart = $.extend(true, chart, {
+			annotations : opt["annotations"]
+		});
+	}
+	if (!$administStatsMap.utils.isEmpty(opt["legend"])) {
+		chart = $.extend(true, chart, {
+			legend : opt["legend"]
+		});
+	}
+	if (opt["dataLabelsTextOutline"]) {
+		chart.plotOptions.series.dataLabels.style.textOutline = AdministStatsChart.consts.textOutline;
+	}
+	if ($.inArray(opt["chartType"], [ "treemap" ]) > -1) {
+		delete chart.exporting.chartOptions.xAxis;
+		delete chart.exporting.chartOptions.yAxis;
+	}
+	if (!$administStatsMap.utils.isEmpty(opt["pie"])) {
+		chart = $.extend(true, chart, {
+			plotOptions : {
+				pie : opt["pie"]
+			}
+		});
+	}
+	if (!$administStatsMap.utils.isEmpty(opt["exporting"])) {
+		chart = $.extend(true, chart, {
+			exporting : opt["exporting"]
+		});
+	}
+	
+	if (opt["isBigExporting"]) {
+		chart = $.extend(true, chart, {
+			exporting : {
+				sourceWidth : 960,
+				sourceHeight : 540
+			}
+		});
+	}
+
+	if ($.isFunction(opt["tooltipPositioner"])) {
+		chart.tooltip.positioner = opt["tooltipPositioner"];
+	} else if (opt["tooltipPositioner"]) {
+		if ($.inArray(opt["chartType"], [ "column", "line", "area" ]) > -1) {
+			chart.tooltip.positioner = function(labelWidth, labelHeight, point) {
+				const chartPosition = this.chart.pointer.getChartPosition();
+				const tooltipX = point.plotX;
+				const tooltipY = point.plotY;
+				return {
+					x : chartPosition.left + tooltipX - (labelWidth / 2),
+					y : chartPosition.top + tooltipY + (labelHeight / 4)
+				}
+			}
+		}
+	}
+
+	$administStatsMap.ui.chart[opt["chartId"]] = new Highcharts.Chart(chart, function(chart) {
+		opt["callback"](this, chart);
+		if (!$administStatsMap.utils.isEmpty($administStatsMap.ui.selChartId)) {
+			if ($administStatsMap.ui.selChartId == opt["chartId"]) {
+				chart.series[$administStatsMap.ui.selSeriesIdx].data[$administStatsMap.ui.selDataIdx].select();
+			}
+		}
+	});
+	$("#"+ opt["chartId"]).append("<div data-type='tooltip' class='modal dashboard-layer'></div>");
+
+};
+
+/**
+ * @name : makeCombinationsChart
+ * @description : 복합차트 생성
+ */
+AdministStatsChart.makeCombinationsChart = function(opt) {
+
+	/* default */
+	opt["chartId"] = $administStatsMap.utils.getObjVal(opt, "chartId", "");
+	opt["series"] = $administStatsMap.utils.getObjVal(opt, "series", {});
+	opt["title"] = $administStatsMap.utils.getObjVal(opt, "title", "");
+	opt["filename"] = $administStatsMap.utils.getObjVal(opt, "filename", (function() {
+		const year = $(".sb_year option:selected").text();
+		const sido = $(".tag_sido:eq(0)").text();
+
+		let filename = "";
+		if (!$administStatsMap.utils.isEmpty(year)) {
+			filename += year + " ";
+		}
+		if (!$administStatsMap.utils.isEmpty(sido)) {
+			filename += sido + " ";
+		}
+		filename += opt["title"];
+		return filename;
+	}()));
+	opt["marginTop"] = $administStatsMap.utils.getObjVal(opt, "marginTop", 30);
+	/* xAxis */
+	opt["xAxis"] = $administStatsMap.utils.getObjVal(opt, "xAxis", undefined);
+	/* yAxis */
+	opt["yAxis"] = $administStatsMap.utils.getObjVal(opt, "yAxis", undefined);
+	/* legend */
+	opt["legend"] = $administStatsMap.utils.getObjVal(opt, "legend", undefined);
+	opt["seriesShowInLegend"] = $administStatsMap.utils.getObjVal(opt, "seriesShowInLegend", true);
+	opt["legendItemClickEvent"] = $administStatsMap.utils.getObjVal(opt, "legendItemClickEvent", function(event) {
+		return false;
+	});
+	/* dataLabels */
+	opt["dataLabelsAllowOverlap"] = $administStatsMap.utils.getObjVal(opt, "dataLabelsAllowOverlap", true);
+	/* tooltip */
+	opt["tooltipPositioner"] = $administStatsMap.utils.getObjVal(opt, "tooltipPositioner", false);
+	opt["tooltipShared"] = $administStatsMap.utils.getObjVal(opt, "tooltipShared", false);
+	/* download */
+	opt["exportingSeries"] = $administStatsMap.utils.getObjVal(opt, "exportingSeries", opt["series"]);
+	opt["exportingYAxis"] = $administStatsMap.utils.getObjVal(opt, "exportingYAxis", undefined);
+	/* colors */
+	opt["colors"] = $administStatsMap.utils.getObjVal(opt, "colors", undefined);
+	/* click event */
+	opt["cursor"] = $administStatsMap.utils.getObjVal(opt, "cursor", "default");
+	opt["eventClick"] = $administStatsMap.utils.getObjVal(opt, "eventClick", function(event) {
+		return false;
+	});
+	/* hover event */
+	opt["eventMouseOver"] = $administStatsMap.utils.getObjVal(opt, "eventMouseOver", function(event) {
+		return false;
+	});
+	opt["eventMouseOut"] = $administStatsMap.utils.getObjVal(opt, "eventMouseOut", function(event) {
+		return false;
+	});
+	/* complete callback */
+	opt["callback"] = $administStatsMap.utils.getObjVal(opt, "callback", function(that) {
+		return false;
+	});
+
+	$("#" + opt["chartId"]).empty();
+	const $parent = $("#" + opt["chartId"]).closest(".row");
+	$parent.find("." + opt["chartId"] + "_title").html(opt["title"]).attr("title", opt["title"].replace("<span>", "").replace("</span>", "").replace("&nbsp;", " "));
+
+	let chart = $.extend(true, _.cloneDeep(AdministStatsChart.ui.chart), {
+		chart : {
+			renderTo : opt["chartId"],
+			marginTop : opt["marginTop"]
+		},
+		series : opt["series"],
+		tooltip : {
+			enabled : false
+			/*
+			formatter : function() {
+				return opt["tooltipFormatter"](this);
+			},
+			shared : opt["tooltipShared"],
+			crosshairs : opt["tooltipShared"]
+			*/
+		},
+		plotOptions : {
+			series : {
+				showInLegend : opt["seriesShowInLegend"],
+				cursor : opt["cursor"],
+				dataLabels : {
+					allowOverlap : opt["dataLabelsAllowOverlap"],
+					formatter : function() {
+						return opt["dataLabelsFormatter"](this);
+					}
+				},
+				events : {
+					click : function(e) {
+					 	const tooltipText = opt["tooltipFormatter"](e);		
+						if(tooltipText && tooltipText !== ""){		 	
+							const tooltip = $("#"+opt["chartId"]).find("[data-type=tooltip]");
+							tooltip.empty();
+							
+							let header = (e.point.name||e.point.category||e.point.series.name).toString().replace(/(<([^>]+)>)/ig,"");
+							
+							if(opt["tooltipHeader"]){
+								const tooltipHeader = opt["tooltipHeader"](e);
+								header = tooltipHeader;
+							}
+							
+							tooltip.append(
+								$("<div/>",{"class":"modal__header d-flex justify-content-between align-items-center"}).append(
+									$("<h3/>",{"class":"modal__tit","text":header}),
+									$("<a/>",{"href":"#","class":"btn__cancel"}).click(function(){
+										$(this).parents('[data-type=tooltip]').hide();
+										return false;
+									}).append($("<span/>",{"class":"btn-close btn-close--black"}))
+								),
+								$("<div/>",{"class":"modal__body"}).append(tooltipText)
+							);
+	
+							tooltip.show();
+						}
+						return opt["eventClick"](e, this);
+					},
+					legendItemClick : function(e) {
+						return opt["legendItemClickEvent"](e);
+					},
+					mouseOver : function(e) {
+						return opt["eventMouseOver"](this);
+					},
+					mouseOut : function(e) {
+						return opt["eventMouseOut"](this);
+					}
+				}
+			},
+			line : {
+				marker : {
+					states : {
+						select : {
+							radiusPlus : 1,
+							lineColor : AdministStatsChart.consts.sliceHighlightColor
+						}
+					}
+				}
+			}
+		},
+		exporting : {
+			filename : opt["filename"].replace(/ /gi, "_").replace("/4", ""),
+			chartOptions : {
+				title : {
+					text : opt["filename"],
+				},
+				chart : {
+					marginTop : opt["marginTop"]
+				},
+				series : opt["exportingSeries"]
+			}
+		}
+	});
+	if (!$administStatsMap.utils.isEmpty(opt["xAxis"])) {
+		chart = $.extend(true, chart, {
+			xAxis : opt["xAxis"]
+		});
+	}
+	if (!$administStatsMap.utils.isEmpty(opt["yAxis"])) {
+		chart.yAxis = opt["yAxis"];
+	}
+	chart = $.extend(true, chart, {
+		exporting : {
+			sourceWidth : 960,
+			sourceHeight : 540,
+			chartOptions : {
+				yAxis : (function(exportingYAxis) {
+					if ($.isArray(exportingYAxis)) {
+						$.each(exportingYAxis, function(i, v) {
+							exportingYAxis[i] = $.extend(true, exportingYAxis[i], _.cloneDeep(AdministStatsChart.ui.exportingYAxis));
+						});
+					} else {
+						exportingYAxis = $.extend(true, exportingYAxis, _.cloneDeep(AdministStatsChart.ui.exportingYAxis));
+					}
+					return exportingYAxis;
+				}(!$administStatsMap.utils.isEmpty(opt["exportingYAxis"]) ? opt["exportingYAxis"] : _.cloneDeep(opt["yAxis"])))
+			}
+		},
+	});
+	if (!$administStatsMap.utils.isEmpty(opt["colors"])) {
+		chart.colors = opt["colors"];
+	}
+	if (!$administStatsMap.utils.isEmpty(opt["legend"])) {
+		chart = $.extend(true, chart, {
+			legend : opt["legend"]
+		});
+	}
+	if ($.isFunction(opt["tooltipPositioner"])) {
+		chart.tooltip.positioner = opt["tooltipPositioner"];
+	} else if (opt["tooltipPositioner"]) {
+		chart.tooltip.positioner = function(labelWidth, labelHeight, point) {
+			const chartPosition = this.chart.pointer.getChartPosition();
+			const tooltipX = point.plotX;
+			const tooltipY = point.plotY;
+			return {
+				x : chartPosition.left + tooltipX,
+				y : chartPosition.top + tooltipY + (labelHeight / 2)
+			}
+		}
+	}
+
+	$administStatsMap.ui.chart[opt["chartId"]] = new Highcharts.Chart(chart, function(chart) {
+		opt["callback"](this, chart);
+	});
+	
+	$("#"+ opt["chartId"]).append("<div data-type='tooltip' class='modal dashboard-layer'></div>");
+};

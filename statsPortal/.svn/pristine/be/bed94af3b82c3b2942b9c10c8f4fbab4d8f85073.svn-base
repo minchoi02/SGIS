@@ -1,0 +1,54 @@
+package kostat.sop.ServiceAPI.sbr.mapper;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import egovframework.rte.psl.dataaccess.EgovAbstractMapper;
+import kostat.sop.ServiceAPI.sbr.vo.SbrVo;
+
+/**
+ *  2022년 SGIS고도화 4차 
+ *  @Description 기업생태분석지도
+ *  @author ParkSangeon
+ */
+@Repository( "SbrStatsMapper" )
+public class SbrStatsMapper extends EgovAbstractMapper
+{
+	
+	public List<Map<String, Object>> selectCensusBigThemeInfo() {
+		return selectList("SbrStatsXsql.selectCensusBigThemeInfo");
+	}
+	
+	public List<Map<String, Object>> selectCensusSmallThemeInfo(String b_theme_cd) {
+		HashMap<String, Object> parameter = new HashMap<>();
+		parameter.put("b_theme_cd", b_theme_cd);
+		return selectList("SbrStatsXsql.selectCensusSmallThemeInfo",parameter);
+	}
+
+	public String selectTestData() {
+		// TODO Auto-generated method stub
+		return selectOne("SbrStatsXsql.selectTestData");
+	}
+
+	public List<Map<String, Object>> selectCodeList(SbrVo sbrVo) {
+		// TODO Auto-generated method stub
+		return selectList("SbrStatsXsql.selectCodeList",sbrVo);
+	}
+
+	public List<String> selectCompanyCountByAll() {
+		// TODO Auto-generated method stub
+//		Map<String, String> resultMap = new HashMap<>();
+		return selectList("SbrStatsXsql.selectCompanyCount", null);
+	}
+	
+	public List<String> selectActiveCompanyCount() {
+		return selectList("SbrStatsXsql.activeCompanyCount", null);
+	}
+	
+	
+	
+	
+}

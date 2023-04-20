@@ -1,0 +1,129 @@
+<!-- 
+* 인구피라미트 보고서 출력 팝업 html
+* 
+* history : 나우드림(주), 1.0, 2017/02/07  초기 작성
+* author : 정려진
+* version : 1.0
+* see : 
+*
+//-->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>보고서</title>
+	
+	<link href="/css/jquery-ui-1.10.4.custom.css" rel="stylesheet" type="text/css" />
+	<link href="/css/reportForm.css" rel="stylesheet" type="text/css" />
+	<link rel="stylesheet" type="text/css" href="/css/common.css">
+	<link href="/css/wheelcolorpicker.css" rel="stylesheet" type="text/css" />
+	<script type="text/javascript" src="/js/plugins/jquery-1.11.1.min.js"></script>
+	
+	<link rel="stylesheet" type="text/css" href="/jsp/newpyramid/colorpicker/jquery.minicolors.css"/>
+	<script type="text/javascript" src="/jsp/newpyramid/colorpicker/jquery.minicolors.js"></script>
+	
+	<style type="text/css">
+		#colorUL > li > button{width: 100px;height: 30px;border-radius: 5px;margin: 5px;}
+	</style>
+	
+	<script>
+            var r_parent = window.opener;
+            
+            function setColor( target, color, idx ){
+            	var _color;
+            	
+            	if( idx == 0 ){
+            		r_parent.$pyramid.color1 = $( target ).closest('li').find('button').eq(0).data("color");
+            		r_parent.$pyramid.color2 = $( target ).closest('li').find('button').eq(1).data("color");
+            		
+            		$('.colorpicker1').minicolors('value', r_parent.$pyramid.color1);
+            		$('.colorpicker2').minicolors('value', r_parent.$pyramid.color2);
+            	} else {
+            		_color = color;
+					r_parent.$pyramid["color"+idx] = _color;
+					
+					$('.colorpicker'+idx).minicolors('value', r_parent.$pyramid["color"+idx]);
+            	}
+				
+				r_parent.$pyramid.changeData('2018');
+            }
+            
+            function changeColor(){
+            	var color1 = r_parent.$pyramid.color1; 
+            	//r_parent.$pyramid.color1 = r_parent.$pyramid.color2;
+            	//r_parent.$pyramid.color2 = color1;
+            	
+            	$('.colorpicker1').minicolors('value',r_parent.$pyramid.color2);
+        		$('.colorpicker2').minicolors('value',color1);
+            }
+           
+			$(document).ready(function() {
+				$('.rw_widget_colour1').addClass('rw_hidden'); 
+				$('text').minicolors(); 
+				$('.colorpicker1').minicolors({ 
+					value : '#A7C7D9',
+					change : function( hex, opacity ){
+						setColor( null, hex, 1 );
+					}
+				}); 
+				$('.rw_widget_colour1').removeClass('rw_hidden');
+				
+				$('.rw_widget_colour2').addClass('rw_hidden'); 
+				$('text2').minicolors(); 
+				$('.colorpicker2').minicolors({ 
+					value : '#DDA599',
+					change : function( hex, opacity ){
+						setColor( null, hex, 2 );
+					}
+				});  
+				$('.rw_widget_colour2').removeClass('rw_hidden');
+				
+				var colors1 = ['#A7C7D9','#5B2A72','#235406','#3DB0BD','#4881B5','#1D57A9','#3A5065','#7BAEB2','#6A3E71','#7A7070','#B5B9A2','#566356','#3F4D98','#4A746A','#565699'];
+				var colors2 = ['#DDA599','#6A1E3B','#D3A756','#8CD4D4','#F6CDB9','#DF3E4E','#EDA086','#CBAFD5','#B1CAE8','#E09BAD','#E7E84F','#B33E69','#E47178','#B6DDBE','#8593BF'];
+				
+				var html = '';
+				
+				for( var i=0; i<colors1.length; i++ ){
+					html += '<li>';
+					html += '<button style="background-color:'+ colors1[i] +'" onclick="javascript:setColor(this,\''+colors1[i]+'\',1);" data-color="'+colors1[i]+'"></button>';
+					html += '<button style="background-color:'+ colors2[i] +'" onclick="javascript:setColor(this,\''+colors2[i]+'\',2);" data-color="'+colors2[i]+'"></button>';
+					html += '<button style="border:#666 1px solid;" onclick="javascript:setColor(this,null,0);">변경</button>';
+					html += '</li>';
+				}
+				
+				$("#colorUL").html( html );
+			});
+            
+        </script>
+	
+</head>
+<body>
+	<!-- <div id="mask" style="background:#ffffff;z-index:10000;width:100%;height:100%;">
+		<div id="AlertMessage">보고서 생성중입니다. 잠시만 기다려주세요.</div>
+	</div> -->
+	<div id="wrap">
+		<form class="aui">
+			<label class="rw_widget_colour1">
+				<div class="rw_widget_swatch" style="display:inline-block;">남자 색상</div>
+				<input class="text colorpicker1" type="text" name="rw_widget_colour" value="#A7C7D9"/>
+			</label>
+			
+			<!-- <button onclick="javascript:changeColor();">
+				&nbsp;&nbsp;↔&nbsp;&nbsp;
+			</button> -->
+			
+			<label class="rw_widget_colour2">
+				<div class="rw_widget_swatch2" style="display:inline-block;">여자 색상</div>
+				<input class="text colorpicker2" type="text" name="rw_widget_colour" value="#DDA599"/>
+			</label>
+			
+		</form>
+		<ul id="colorUL">
+			
+		</ul>
+	</div>
+	
+</body>
+</html>

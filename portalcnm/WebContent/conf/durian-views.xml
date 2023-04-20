@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="json" class="com.neighborsystem.durian.restapi.view.JsonFormat">
+		<property name="contentType">
+			<value>text/json;charset=UTF-8</value>
+		</property>
+	</bean>
+	<bean id="api" class="kostat.sop.ServiceAPI.view.ApiFormat">
+		<property name="contentType">
+			<value>text/json;charset=UTF-8</value>
+		</property>
+	</bean>	
+
+	<!--
+	<bean id="geojson" class="kostat.sop.ServiceAPI.view.GeoJsonFormat">
+		<property name="contentType">
+			<value>text/json;charset=UTF-8</value>
+		</property>
+		<property name="charset" value="UTF-8" />
+	</bean>-->
+	<bean id="excel" class="kostat.sop.ServiceAPI.view.ExcelFormat">
+		<property name="contentType">
+			<value>application/vnd.ms-excel</value>
+		</property>
+	</bean>
+</beans>

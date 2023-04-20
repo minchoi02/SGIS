@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="catchmentArea">
+	 <select id="selectFacilityTypeList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			T1.FACTYPE_LCLAS_CD
+			, T1.FACTYPE_LCLAS_NM 
+			, T2.FACTYPE_NM AS NAME
+			, T2.FACTYPE_CD AS CODE
+			, T2.SRV_DIV
+			, C1.S_CLASS_CD_NM as SRV_DIV_NM			
+		FROM SRV_DT_SRVAREA_FACTYPE_LCLAS with (nolock) T1
+		LEFT OUTER JOIN SRV_DT_SRVAREA_FACTYPE with (nolock) T2
+			ON T1.FACTYPE_LCLAS_CD = T2.UPPER_FACTYPE_CD
+		LEFT OUTER JOIN CMM_CD_COMCD with (nolock) C1 
+			ON C1.S_CLASS_CD = T2.SRV_DIV AND C1.B_CLASS_CD = 'SRVA16'			
+		WHERE T1.SRV_YN = 'Y' AND T1.USE_YN = 'Y'
+			AND T2.SRV_YN = 'Y' AND T2.USE_YN = 'Y'
+		ORDER BY T1.ORDER_NO, T2.ORDER_NO
+	</select>
+</mapper>

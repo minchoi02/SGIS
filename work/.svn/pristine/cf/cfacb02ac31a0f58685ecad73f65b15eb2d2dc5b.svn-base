@@ -1,0 +1,744 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!-- <!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">  -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="resourceMapper">
+
+	<resultMap id="rm_resource_list" type="ListTypeResult">
+        <result property="total" column="total"/>
+        <collection property="data" ofType="ResourceVO" javaType="ArrayList" resultMap="rm_resource"/> 
+    </resultMap>
+    
+    <resultMap id="rm_resource" type="ResourceVO">
+        <id property="resource_id"  		column="resource_id"/>
+        <result property="id"    	 		column="resource_id"/>
+        <result property="user_id"    	 	column="user_id"/>
+        <result property="data_nm"    	 	column="data_nm"/>
+        <result property="description"    	column="description"/>
+        <result property="data_size"    	column="data_size"/>
+        <result property="last_used_time"   column="last_used_time"/>
+        <result property="inst_seq"   		column="inst_seq"/>
+        
+        <result property="category1"   		column="category1"/>
+        <result property="category2"   		column="category2"/>
+        <result property="category3"   		column="category3"/>
+        <result property="category4"   		column="category4"/>
+        <result property="data_storage_type"   		column="data_storage_type"/>
+        
+        <result property="inst_schema_nm"   column="inst_schema_nm"/>
+    </resultMap>
+    
+   	<resultMap type="ResourceVO" id="selectResource">
+		<result property="user_id" column="user_id" />
+		<result property="data_storage_type" column="data_storage_type" />
+		<result property="data_path" column="data_path" />
+		<result property="data_size" column="data_size" />
+		<result property="data_cnt" column="data_cnt" />
+		<result property="last_used_time" column="last_used_time" />
+		<result property="category1" column="category1" />
+		<result property="category2" column="category2" />
+		<result property="category3" column="category3" />
+		<result property="category4" column="category4" />
+		<result property="description" column="description" />
+		<result property="relation_resource_id" column="relation_resource_id" />
+		<result property="data_name" column="data_nm" />
+		<result property="action_type" column="action_type" />
+		<result property="download_apply" column="download_apply" />
+		<result property="x_column" column="x_column" />
+		<result property="y_column" column="y_column" />
+		<result property="pos_column_desc" column="pos_column_desc" />
+		<result property="legend_info" column="legend_info" />
+		<result property="delete_status" column="delete_status" />
+		<result property="delete_fail_log" column="delete_fail_log" />
+		<result property="geometry_type" column="geometry_type" />
+    </resultMap>
+    
+    <!-- resource id 조회 -->
+    <select id="selectResourceId" parameterType="hashMap" resultType="int">
+    	SELECT 
+			RESOURCE_ID
+		FROM RESOURCE
+		WHERE DATA_NM = #{data_nm}
+		AND USER_ID = #{user_id}
+		AND DATA_STORAGE_TYPE = #{data_storage_type}
+		<if test="category1 != null and category1 != ''">
+			AND COALESCE(CATEGORY1,'')= #{ category1 }
+		</if>
+		<if test="category2 != null and category2 != ''">
+			AND COALESCE(CATEGORY2,'') = #{ category2 }
+		</if>
+		<if test="category3 != null and category3 != ''">
+			AND COALESCE(CATEGORY3,'') = #{ category3 }
+		</if>
+		<if test="category4 != null and category4 != ''">
+			AND COALESCE(CATEGORY4,'') = #{ category4 }
+		</if>
+		LIMIT 1
+    </select>
+    
+    <!-- resource 상세 조회 -->
+ 	<select id="detailResource" parameterType="int" resultMap="selectResource">
+	 <![CDATA[
+		select 
+			resource_id 			
+			, user_id 			
+			, data_storage_type 	
+			, data_path 			
+			, data_size 			
+			, data_cnt 	
+			, data_create_time		
+			, last_used_time 		
+			, category1 	
+			, category2 	
+			, category3 	
+			, category4 	
+			, description
+			, relation_resource_id
+			, data_nm
+			, action_type
+			, download_apply
+			, x_column
+			, y_column
+			, pos_column_desc
+			, legend_info
+			, delete_status
+			, delete_fail_log
+			, geometry_type
+		from
+			resource
+		where
+			resource_id = #{resource_id}
+	]]>
+ 	</select>
+    
+    <select id="selectResourceIdByPreview" parameterType="hashMap" resultType="String">
+		SELECT resource_id FROM resource
+		WHERE user_id = #{user_id}
+		<if test="data_storage_type == 'HDFS'">
+			<if test="data_path != null">
+				AND data_path = #{data_path}
+			</if>
+		</if>
+		<if test="data_name != null">
+			AND data_nm = #{data_name}
+		</if>
+		<if test=' data_storage_type != null and data_storage_type != "" '>
+			AND data_storage_type = #{data_storage_type}
+		</if>
+		AND inst_share_yn = 'N'
+	</select>
+    
+    <!-- resource id 조회2 -->
+    <select id="selectResourceId2" parameterType="hashMap" resultType="int">
+    	SELECT 
+			RESOURCE_ID
+		FROM RESOURCE
+		WHERE DATA_NM = #{ data_nm }
+		AND USER_ID = #{ user_id }
+		LIMIT 1 	
+    </select>
+	
+	<!-- resource 그룹 데이터 목록 조회 -->
+	<select id="groupDataList" parameterType="ResourceVO" resultMap="rm_resource_list">
+		SELECT b.resource_id
+			 , b.user_id
+			 , b.data_nm
+			 , b.description
+			 , case when b.data_size > cast(1099511627776 as bigint) then round(b.data_size / 1024 / 1024 / 1024 / 1024::numeric, 1) || ' TB'
+					when b.data_size > cast(1073741824 as bigint) then round(b.data_size / 1024 / 1024 / 1024::numeric, 1) || ' GB'
+					when b.data_size > cast(1048576 as bigint) then round(b.data_size / 1024 / 1024::numeric, 1) || ' MB'
+					when b.data_size > cast(1024 as bigint) then round(b.data_size / 1024::numeric, 1) || ' KB'
+					else b.data_size || ' B'
+			   end data_size
+			 , b.last_used_time
+			 , b.category1
+			 , b.category2
+			 , b.category3
+			 , b.category4
+			 , b.data_storage_type
+			 , COUNT(*) OVER() AS total
+			 , a.inst_seq
+			 , ( SELECT schema_nm FROM institution WHERE inst_seq = a.inst_seq) AS inst_schema_nm
+		  FROM member a, resource b
+		 WHERE a.user_id = #{ parsedQuery.user_id }
+		   AND a.inst_seq = b.inst_seq
+		   AND b.inst_share_yn = 'Y'
+		<if test=" parsedQuery!=null ">
+			<if test="parsedQuery.SELECT_START_TIME !=null and parsedQuery.SELECT_END_TIME !=null  ">
+				<![CDATA[ AND ( b.last_used_time BETWEEN #{ parsedQuery.SELECT_START_TIME }::timestamp and (date(#{ parsedQuery.SELECT_END_TIME })+1)::timestamp ) ]]>
+			</if>   
+			<if test="parsedQuery.DATA_NAME != null and parsedQuery.DATA_NAME != ''">
+				AND b.data_nm LIKE '%'|| #{ parsedQuery.DATA_NAME } ||'%'
+			</if>
+			<if test="parsedQuery.DESCRIPTION != null and parsedQuery.DESCRIPTION != ''">
+				AND b.description LIKE '%'|| #{ parsedQuery.DESCRIPTION } ||'%'
+			</if>
+		</if>
+		<choose>
+			<when test="sort == '' || sort == null">
+				ORDER BY b.resource_id DESC
+			</when>
+			<otherwise>
+				ORDER BY ${sort} ${order}
+			</otherwise>
+		</choose>
+		OFFSET #{start} LIMIT #{display}
+	</select>
+	
+	<!-- resource 데이터 삭제 -->
+	<delete id="deleteData" parameterType="ResourceVO">
+		DELETE FROM resource
+		 WHERE resource_id = #{ resource_id }
+	</delete>
+	
+	<!-- 기관 데이터 or 내 데이터 중복 체크 -->
+	<select id="grpDataDupCheck" resultType="int">
+		SELECT COUNT(*)
+		  FROM member a inner join resource b
+		    ON a.user_id = #{ user_id }
+		   AND b.data_storage_type = 'PG'
+		   AND b.data_nm = #{ data_name }
+		   AND b.inst_share_yn = #{ inst_share_yn }
+		   <if test="inst_share_yn.equalsIgnoreCase('Y')">
+		   AND a.inst_seq = b.inst_seq
+		   </if>
+	</select>
+	
+	<!-- resource action_type update -->
+	<update id="updateResourceActionType" parameterType="ResourceVO">
+		UPDATE resource
+		   SET action_type = #{action_type}
+		     , last_used_time = NOW()
+			<if test="category4 != null">
+			 , category4 = #{category4}
+			</if>
+			<if test="data_nm != null">
+			 , data_nm = #{data_nm}
+			</if>
+		 WHERE resource_id = #{resource_id}
+	</update>
+	
+	<!-- resource 데이터 copy -->
+	<insert id="copyResource" parameterType="ResourceVO">
+		<selectKey resultType="string" keyProperty="id" order="BEFORE">
+			SELECT NEXTVAL('resource_resource_id_seq')
+		</selectKey>
+		INSERT INTO resource
+		(
+		    resource_id
+		  , user_id
+		  , data_storage_type
+		  , data_path
+		  , data_cnt
+		  , data_create_time
+		  , last_used_time
+		  , category1
+		  , category2
+		  , category3
+		  , category4
+		  , description
+		  , relation_resource_id
+		  , data_nm
+		  , action_type
+		  , data_size
+		  , download_apply
+		  , x_column
+		  , y_column
+		  , inst_share_yn
+		  , inst_seq
+		) SELECT (#{id}::integer) AS resource_id
+				<choose>
+			    	<when test=" id != null ">
+				    , #{user_id}
+			    	</when>
+			    	<otherwise>
+				    , user_id
+			    	</otherwise>
+			    </choose>
+			    , data_storage_type
+			    , data_path
+			    , data_cnt
+			    , now() AS data_create_time
+			    , now() AS last_used_time
+			    , category1
+			    , category2
+			    , category3
+			    <choose>
+			    	<when test=" category4 != null ">
+				    , #{category4}
+			    	</when>
+			    	<otherwise>
+				    , category4
+			    	</otherwise>
+			    </choose>
+			    , description
+			    , relation_resource_id
+			    <choose>
+			    	<when test=" data_name != null ">
+				    , #{ data_name }
+			    	</when>
+			    	<otherwise>
+				    , #{ data_nm }
+			    	</otherwise>
+			    </choose>
+			    , action_type
+			    , data_size
+			    , download_apply
+			    , x_column
+			    , y_column
+<!-- 			    , #{ inst_share_yn } AS inst_share_yn -->
+<!-- 			    , ( CASE WHEN ( #{ inst_share_yn } = 'Y' ) THEN ( SELECT inst_seq FROM member WHERE user_id = #{ user_id } ) ELSE 0 END )  AS inst_seq -->
+				, inst_share_yn
+				, inst_seq
+			 FROM resource
+			 WHERE 
+			 <choose>
+			 	<when test=" resource_id != null and resource_id != '0' and resource_id != 0 ">
+			 	resource_id = #{resource_id}
+			 	</when>
+			 	<otherwise>
+			 	user_id = #{ user_id } AND data_nm = #{ data_nm }
+			 	OFFSET 0 LIMIT 1
+			 	</otherwise>
+			 </choose>
+	</insert>
+	
+	<!-- resource 데이터 insert-->
+	<insert id="insertResource" parameterType="ResourceDetail">
+		<selectKey resultType="string" keyProperty="resource_id" order="BEFORE">
+			SELECT NEXTVAL('resource_resource_id_seq')
+		</selectKey>
+		INSERT INTO resource
+		(
+		    resource_id
+		  , user_id
+		  , data_storage_type
+		  , data_path
+		  , data_cnt
+		  , data_create_time
+		  , last_used_time
+		  , category1
+		  , category2
+		  , category3
+		  , category4
+		  , description
+		  , relation_resource_id
+		  , data_nm
+		  , action_type
+		  , data_size
+		  , download_apply
+		  , inst_share_yn
+		  , inst_seq
+		) 
+		VALUES
+		(
+			(#{resource_id}::integer)
+		  , #{user_id}
+		  , #{data_storage_type}
+		  , #{data_path}
+		  , #{data_cnt}
+		  , now()
+		  , now()
+		  , #{category1}
+		  , #{category2}
+		  , #{category3}
+		  , #{category4}
+		  , #{description}
+		  , #{relation_resource_id}
+		  , #{data_name}
+		  , #{action_type}
+		  , (#{data_size}::bigint)
+		  , '0'
+		  , 'N'
+		  , 0
+		)
+	</insert>
+	
+	<!-- ( CASE WHEN ( #{ data_name } IS NULL or #{ data_name } = '' ) THEN #{ data_nm } ELSE #{ data_name } END ) -->
+
+
+	<select id="selectCategorize" parameterType="java.util.HashMap" resultType="hashMap">
+		/** selectCategorize **/
+		select 
+			RESOURCE_ID 			  AS  "RESOURCE_ID"
+			, USER_ID 			      AS  "USER_ID" 	
+			, DATA_STORAGE_TYPE 	  AS  "DATA_STORAGE_TYPE"
+			, DATA_PATH 			  AS  "DATA_PATH" 		
+			, DATA_SIZE 			  AS  "DATA_SIZE" 		
+			, DATA_CNT 	              AS  "DATA_CNT" 	       
+			, to_char(DATA_CREATE_TIME, 'YYYY-MM-DD hh24:mi:ss') AS "DATA_CREATE_TIME" 
+			, to_char(LAST_USED_TIME, 'YYYY-MM-DD hh24:mi:ss') AS "LAST_USED_TIME" 
+			, CATEGORY1 	          AS  "CATEGORY1" 	   
+			, CATEGORY2 	          AS  "CATEGORY2" 	   
+			, CATEGORY3 	          AS  "CATEGORY3" 	   
+			, CATEGORY4 	          AS  "CATEGORY4" 	   
+			, DESCRIPTION             AS  "DESCRIPTION"      
+			, RELATION_RESOURCE_ID    AS  "RELATION_RESOURCE"
+			, DATA_NM                 AS  "DATA_NAME"          
+			, ACTION_TYPE             AS  "ACTION_TYPE"      
+			, DOWNLOAD_APPLY          AS  "DOWNLOAD_APPLY"   
+			, LEGEND_INFO             AS  "LEGEND_INFO"      
+			, POS_COLUMN_DESC         AS  "POS_COLUMN_DESC"  
+			, DELETE_STATUS           AS  "DELETE_STATUS"    
+			, DELETE_FAIL_LOG         AS  "DELETE_FAIL_LOG"  
+			, GEOMETRY_TYPE           AS  "GEOMETRY_TYPE"    
+			
+		from
+			resource
+ 		where 1=1
+ 			and inst_share_yn = 'N'	
+ 			<!-- AND category4 != 'ANALYSIS_2016' -->
+ 	 	<if test="CATEGORY1 != null and CATEGORY1 != ''">
+	        and category1 = #{CATEGORY1}
+		</if>
+		<if test="CATEGORY2 != null and CATEGORY2 != ''">
+	        and category2 = #{CATEGORY2}
+		</if>
+		<if test="CATEGORY3 != null and CATEGORY3 != ''">
+			<bind name="category3" value="'%' + _parameter.get('CATEGORY3') + '%'" />
+	        and category3 like #{category3}
+		</if>
+		<if test="CATEGORY4 != null and CATEGORY4 != ''">
+	        and category4 = #{CATEGORY4}
+		</if>
+		<if test="ACTION_TYPE != null and ACTION_TYPE != ''">
+	        and action_type = #{ACTION_TYPE}
+		</if>
+		<if test="USER_ID != null and USER_ID != ''">
+	     	<!-- <bind name="userId" value="'%' + _parameter.get('USER_ID') + '%'" /> -->
+	        <!-- and user_id like #{userId} -->
+	        and user_id = #{USER_ID}
+		</if>
+		<if test="DATA_NAME !=null and DATA_NAME !=''">
+			<bind name="dataName" value="'%' + _parameter.get('DATA_NAME') + '%'" />
+			 and data_nm ilike #{dataName}
+		</if>
+		<if test="DATA_STORAGE_TYPE !=null and DATA_STORAGE_TYPE !=''">
+			<bind name="dataStorageType" value="'%' + _parameter.get('DATA_STORAGE_TYPE') + '%'" />
+			 and data_storage_type like #{dataStorageType}
+		</if>
+		<if test="DESCRIPTION !=null and DESCRIPTION !=''">
+			<bind name="description" value="'%' + _parameter.get('DESCRIPTION') + '%'" />
+			 and description like #{description}
+		</if>
+		<if test="POS_COLUMN_DESC !=null and POS_COLUMN_DESC !=''">
+			<bind name="pos_column_desc" value="'%' + _parameter.get('POS_COLUMN_DESC') + '%'" />
+			 and pos_column_desc like #{pos_column_desc}
+		</if>
+		<if test="DELETE_STATUS != null and DELETE_STATUS != ''">
+	        and delete_status = #{delete_status}
+		</if>
+ 		<if test="DOWNLOAD_APPLY != null and DOWNLOAD_APPLY != ''">
+			AND download_apply = #{DOWNLOAD_APPLY}
+		</if>
+		
+		<if test="GEOMETRY_TYPE != null and GEOMETRY_TYPE != ''">
+			<bind name="geomType" value="'%' + _parameter.get('GEOMETRY_TYPE') + '%'" />
+			and geometry_type like #{geomType}
+		</if>
+		 
+		<if test="SELECT_START_TIME != null and SELECT_START_TIME != ''">
+			AND to_date(to_char(last_used_time, 'yyyy-mm-dd'), 'yyyy-mm-dd') >= to_date(#{SELECT_START_TIME}, 'yyyy-mm-dd')
+		</if>
+		
+		<if test="SELECT_END_TIME != null and SELECT_END_TIME != ''">
+			AND to_date(to_char(last_used_time, 'yyyy-mm-dd'), 'yyyy-mm-dd') <![CDATA[<=]]> to_date(#{SELECT_END_TIME}, 'yyyy-mm-dd')
+		</if>
+		
+		<if test="SORT_COLUMN != null and SORT_COLUMN != ''">
+	        ORDER BY ${SORT_COLUMN} 
+	        <if test="SORT_TYPE == null and SORT_TYPE == ''">
+	        	ASC  
+			</if>
+			<if test="SORT_TYPE == 'ASC'">
+	        	ASC  
+			</if>
+			<if test="SORT_TYPE == 'DESC'">
+	        	DESC  
+			</if>
+		</if>
+		<if test="LIMIT != 0">
+			LIMIT #{LIMIT} 
+		</if>
+		<if test="OFFSET != 0">
+			OFFSET #{OFFSET}
+		</if>
+ 	</select>
+
+	<select id="selectCategorizeCount" parameterType="java.util.HashMap" resultType="int">
+		/** selectCategorizeCount **/
+ 		SELECT COUNT(resource_id) AS COUNT FROM resource
+ 		WHERE 1=1
+		and inst_share_yn = 'N'	
+		<!-- AND category4 != 'ANALYSIS_2016' -->
+	 	<if test="CATEGORY1 != null and CATEGORY1 != ''">
+	        and category1 = #{CATEGORY1}
+		</if>
+		<if test="CATEGORY2 != null and CATEGORY2 != ''">
+	        and category2 = #{CATEGORY2}
+		</if>
+		<if test="CATEGORY3 != null and CATEGORY3 != ''">
+			<bind name="category3" value="'%' + _parameter.get('CATEGORY3') + '%'" />
+	        and category3 like #{category3}
+		</if>
+		<if test="CATEGORY4 != null and CATEGORY4 != ''">
+	        and category4 = #{CATEGORY4}
+		</if>
+		<if test="ACTION_TYPE != null and ACTION_TYPE != ''">
+	        and action_type = #{ACTION_TYPE}
+		</if>
+		<if test="USER_ID != null and USER_ID != ''">
+	        <!-- <bind name="userId" value="'%' + _parameter.get('USER_ID') + '%'" /> -->
+	        <!-- and user_id like #{userId} -->
+	        and user_id = #{USER_ID}
+		</if>
+		<if test="DATA_NAME !=null and DATA_NAME !=''">
+			<bind name="dataName" value="'%' + _parameter.get('DATA_NAME') + '%'" />
+			 and data_nm ilike #{dataName}
+		</if>
+		<if test="DATA_STORAGE_TYPE !=null and DATA_STORAGE_TYPE !=''">
+			<bind name="dataStorageType" value="'%' + _parameter.get('DATA_STORAGE_TYPE') + '%'" />
+			 and data_storage_type like #{dataStorageType}
+		</if>
+		<if test="DESCRIPTION !=null and DESCRIPTION !=''">
+			<bind name="description" value="'%' + _parameter.get('DESCRIPTION') + '%'" />
+			 and description like #{description}
+		</if>
+		<if test="POS_COLUMN_DESC !=null and POS_COLUMN_DESC !=''">
+			<bind name="pos_column_desc" value="'%' + _parameter.get('POS_COLUMN_DESC') + '%'" />
+			 and pos_column_desc like #{pos_column_desc}
+		</if>
+ 		<if test="DOWNLOAD_APPLY != null and DOWNLOAD_APPLY != ''">
+			AND download_apply = #{DOWNLOAD_APPLY}
+		</if>
+		
+		<if test="GEOMETRY_TYPE != null and GEOMETRY_TYPE != ''">
+			<bind name="geomType" value="'%' + _parameter.get('GEOMETRY_TYPE') + '%'" />
+			and geometry_type like #{geomType}
+		</if>
+		 
+		 
+		<if test="SELECT_START_TIME != null and SELECT_START_TIME != ''">
+			AND to_date(to_char(last_used_time, 'yyyy-mm-dd'), 'yyyy-mm-dd') >= to_date(#{SELECT_START_TIME}, 'yyyy-mm-dd')
+		</if>
+		
+		<if test="SELECT_END_TIME != null and SELECT_END_TIME != ''">
+			AND to_date(to_char(last_used_time, 'yyyy-mm-dd'), 'yyyy-mm-dd') <![CDATA[<=]]> to_date(#{SELECT_END_TIME}, 'yyyy-mm-dd')
+		</if>
+		<if test="DELETE_STATUS != null and DELETE_STATUS != ''">
+	        AND delete_status = #{delete_status}
+		</if>
+<!-- 		<if test="SELECT_START_TIME !=null and SELECT_START_TIME !='' and SELECT_END_TIME !=null and SELECT_END_TIME !=''"> -->
+<!-- 			AND last_used_time BETWEEN '${SELECT_START_TIME}' AND '${SELECT_END_TIME}' -->
+<!-- 		</if> -->
+ 	</select>
+ 	
+ 	<select id="selectCategorizeDownload" parameterType="java.util.HashMap" resultType="hashMap">
+ 	
+		select 
+			RESOURCE_ID 			  AS  "RESOURCE_ID"
+			, USER_ID 			      AS  "USER_ID" 	
+			, DATA_STORAGE_TYPE 	  AS  "DATA_STORAGE_TYPE"
+			, DATA_PATH 			  AS  "DATA_PATH" 		
+			, DATA_SIZE 			  AS  "DATA_SIZE" 		
+			, DATA_CNT 	              AS  "DATA_CNT" 	       
+			, to_char(DATA_CREATE_TIME, 'YYYY-MM-DD hh24:mi:ss') AS "DATA_CREATE_TIME" 
+			, to_char(LAST_USED_TIME, 'YYYY-MM-DD hh24:mi:ss') AS "LAST_USED_TIME" 
+			, CATEGORY1 	          AS  "CATEGORY1" 	   
+			, CATEGORY2 	          AS  "CATEGORY2" 	   
+			, CATEGORY3 	          AS  "CATEGORY3" 	   
+			, CATEGORY4 	          AS  "CATEGORY4" 	   
+			, DESCRIPTION             AS  "DESCRIPTION"      
+			, RELATION_RESOURCE_ID    AS  "RELATION_RESOURCE"
+			, DATA_NM                 AS  "DATA_NAME"          
+			, ACTION_TYPE             AS  "ACTION_TYPE"      
+			, DOWNLOAD_APPLY          AS  "DOWNLOAD_APPLY"   
+			, LEGEND_INFO             AS  "LEGEND_INFO"      
+			, POS_COLUMN_DESC         AS  "POS_COLUMN_DESC"  
+			, DELETE_STATUS           AS  "DELETE_STATUS"    
+			, DELETE_FAIL_LOG         AS  "DELETE_FAIL_LOG"  
+			, GEOMETRY_TYPE           AS  "GEOMETRY_TYPE"    
+			
+		from
+			resource
+ 		where 1=1
+ 			and inst_share_yn = 'N'	
+<!--  			AND category4 != 'ANALYSIS_2016' -->
+ 	 	<if test="CATEGORY1 != null and CATEGORY1 != ''">
+	        and category1 = #{CATEGORY1}
+		</if>
+		<if test="CATEGORY2 != null and CATEGORY2 != ''">
+	        and category2 = #{CATEGORY2}
+		</if>
+		<if test="CATEGORY3 != null and CATEGORY3 != ''">
+			<bind name="category3" value="'%' + _parameter.get('CATEGORY3') + '%'" />
+	        and category3 like #{category3}
+		</if>
+		<if test="CATEGORY4 != null and CATEGORY4 != ''">
+	        and category4 = #{CATEGORY4}
+		</if>
+		<if test="ACTION_TYPE != null and ACTION_TYPE != ''">
+	        and action_type = #{ACTION_TYPE}
+		</if>
+		<if test="USER_ID != null and USER_ID != ''">
+	        <!-- <bind name="userId" value="'%' + _parameter.get('USER_ID') + '%'" />
+	        and user_id like #{userId} -->
+	        and user_id = #{USER_ID}
+		</if>
+		<if test="DATA_NAME !=null and DATA_NAME !=''">
+			<bind name="dataName" value="'%' + _parameter.get('DATA_NAME') + '%'" />
+			 and data_nm ilike #{dataName}
+		</if>
+		<if test="DATA_STORAGE_TYPE !=null and DATA_STORAGE_TYPE !=''">
+			<bind name="dataStorageType" value="'%' + _parameter.get('DATA_STORAGE_TYPE') + '%'" />
+			 and data_storage_type like #{dataStorageType}
+		</if>
+		<if test="DESCRIPTION !=null and DESCRIPTION !=''">
+			<bind name="description" value="'%' + _parameter.get('DESCRIPTION') + '%'" />
+			 and description like #{description}
+		</if>
+		<if test="POS_COLUMN_DESC !=null and POS_COLUMN_DESC !=''">
+			<bind name="pos_column_desc" value="'%' + _parameter.get('POS_COLUMN_DESC') + '%'" />
+			 and pos_column_desc like #{pos_column_desc}
+		</if>
+		<if test="DELETE_STATUS != null and DELETE_STATUS != ''">
+	        and delete_status = #{delete_status}
+		</if>
+ 		<if test="DOWNLOAD_APPLY != null and DOWNLOAD_APPLY != ''">
+			AND download_apply = #{DOWNLOAD_APPLY}
+		</if>
+		<if test="SELECT_START_TIME != null and SELECT_START_TIME != ''">
+			AND to_date(to_char(last_used_time, 'yyyy-mm-dd'), 'yyyy-mm-dd') >= to_date(#{SELECT_START_TIME}, 'yyyy-mm-dd')
+		</if>
+		
+		<if test="SELECT_END_TIME != null and SELECT_END_TIME != ''">
+			AND to_date(to_char(last_used_time, 'yyyy-mm-dd'), 'yyyy-mm-dd') <![CDATA[<=]]> to_date(#{SELECT_END_TIME}, 'yyyy-mm-dd')
+		</if>
+		
+		<if test="SORT_COLUMN != null and SORT_COLUMN != ''">
+	        ORDER BY ${SORT_COLUMN} 
+	        <if test="SORT_TYPE == null and SORT_TYPE == ''">
+	        	ASC  
+			</if>
+			<if test="SORT_TYPE == 'ASC'">
+	        	ASC  
+			</if>
+			<if test="SORT_TYPE == 'DESC'">
+	        	DESC  
+			</if>
+		</if>
+		<if test="LIMIT != 0">
+			LIMIT #{LIMIT} 
+		</if>
+		<if test="OFFSET != 0">
+			OFFSET #{OFFSET}
+		</if>
+ 	</select>
+ 	
+ 	<select id="selectCategorizeDownloadCount" parameterType="java.util.HashMap" resultType="int">
+ 		SELECT COUNT(resource_id) AS COUNT FROM resource
+ 		WHERE 1=1
+		and inst_share_yn = 'N'	
+<!-- 		AND category4 != 'ANALYSIS_2016' -->
+	 	<if test="CATEGORY1 != null and CATEGORY1 != ''">
+	        and category1 = #{CATEGORY1}
+		</if>
+		<if test="CATEGORY2 != null and CATEGORY2 != ''">
+	        and category2 = #{CATEGORY2}
+		</if>
+		<if test="CATEGORY3 != null and CATEGORY3 != ''">
+			<bind name="category3" value="'%' + _parameter.get('CATEGORY3') + '%'" />
+	        and category3 like #{category3}
+		</if>
+		<if test="CATEGORY4 != null and CATEGORY4 != ''">
+	        and category4 = #{CATEGORY4}
+		</if>
+		<if test="ACTION_TYPE != null and ACTION_TYPE != ''">
+	        and action_type = #{ACTION_TYPE}
+		</if>
+		<if test="USER_ID != null and USER_ID != ''">
+	       <!-- <bind name="userId" value="'%' + _parameter.get('USER_ID') + '%'" />
+	        and user_id like #{userId} -->
+	        and user_id = #{USER_ID}
+		</if>
+		<if test="DATA_NAME !=null and DATA_NAME !=''">
+			<bind name="dataName" value="'%' + _parameter.get('DATA_NAME') + '%'" />
+			 and data_nm ilike #{dataName}
+		</if>
+		<if test="DATA_STORAGE_TYPE !=null and DATA_STORAGE_TYPE !=''">
+			<bind name="dataStorageType" value="'%' + _parameter.get('DATA_STORAGE_TYPE') + '%'" />
+			 and data_storage_type like #{dataStorageType}
+		</if>
+		<if test="DESCRIPTION !=null and DESCRIPTION !=''">
+			<bind name="description" value="'%' + _parameter.get('DESCRIPTION') + '%'" />
+			 and description like #{description}
+		</if>
+		<if test="POS_COLUMN_DESC !=null and POS_COLUMN_DESC !=''">
+			<bind name="pos_column_desc" value="'%' + _parameter.get('POS_COLUMN_DESC') + '%'" />
+			 and pos_column_desc like #{pos_column_desc}
+		</if>
+ 		<if test="DOWNLOAD_APPLY != null and DOWNLOAD_APPLY != ''">
+			AND download_apply = #{DOWNLOAD_APPLY}
+		</if>
+		<if test="SELECT_START_TIME != null and SELECT_START_TIME != ''">
+			AND to_date(to_char(last_used_time, 'yyyy-mm-dd'), 'yyyy-mm-dd') >= to_date(#{SELECT_START_TIME}, 'yyyy-mm-dd')
+		</if>
+		
+		<if test="SELECT_END_TIME != null and SELECT_END_TIME != ''">
+			AND to_date(to_char(last_used_time, 'yyyy-mm-dd'), 'yyyy-mm-dd') <![CDATA[<=]]> to_date(#{SELECT_END_TIME}, 'yyyy-mm-dd')
+		</if>
+		<if test="DELETE_STATUS != null and DELETE_STATUS != ''">
+	        AND delete_status = #{delete_status}
+		</if>
+<!-- 		<if test="SELECT_START_TIME !=null and SELECT_START_TIME !='' and SELECT_END_TIME !=null and SELECT_END_TIME !=''"> -->
+<!-- 			AND last_used_time BETWEEN '${SELECT_START_TIME}' AND '${SELECT_END_TIME}' -->
+<!-- 		</if> -->
+ 	</select>
+ 	
+ 	<!-- resource 정보 수정 -->
+	<update id="updateResource" parameterType="ResourceDetail">
+		UPDATE resource SET resource_id = (#{resource_id}::integer) 
+			<if test="user_id != null">
+			, user_id = #{user_id}
+			</if>
+			<if test="data_storage_type != null">
+			, data_storage_type = #{data_storage_type}
+			</if>
+			<if test="data_path != null">
+			, data_path = #{data_path}
+			</if>			
+			<if test="data_size != null">
+			, data_size = (#{data_size}::bigint)
+			</if>
+			<if test="data_cnt != null">
+			, data_cnt = #{data_cnt}
+			</if>
+			, last_used_time = now()
+			<if test="category1 != null">
+			, category1 = #{category1}
+			</if>
+			<if test="category2 != null">
+			, category2 = #{category2}
+			</if>
+			<if test="category3 != null">
+			, category3 = #{category3}
+			</if>
+			<if test="category4 != null">
+			, category4 = #{category4}
+			</if>
+			<if test="description != null">
+			, description = #{description}
+			</if>
+			<if test="data_name != null">
+			, data_nm = #{data_name}
+			</if>
+			<if test="action_type != null">
+			, action_type = #{action_type}
+			</if>
+		WHERE
+			resource_id = (#{resource_id}::integer)
+	</update>
+ 	
+ 	
+ 	
+</mapper>

@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="pyramid">
+
+	
+	<select id="excelDown" parameterType="hashmap" resultType="hashmap">
+		select a.sido_cd, b.sido_nm, a.sgg_cd, b.sgg_nm, a.emdong_cd, b.emdong_nm, a.total 
+  from ( 
+		select substr(tot_reg_cd,0,2) as sido_cd, substr(tot_reg_cd,0,5) as sgg_cd, substr(tot_reg_cd,0,7) as emdong_cd
+			 , sum(tot_ppltn) as total 
+		  from srv_dt_totcensus_index where base_year = '2017'	
+		 group by substr(tot_reg_cd,0,2), substr(tot_reg_cd,0,5), substr(tot_reg_cd,0,7)
+		) a left outer join 
+	   ( select sido_cd, (sido_cd||sgg_cd) as sgg_cd, (sido_cd||sgg_cd||emdong_cd) as emdong_cd, sido_nm, sgg_nm, emdong_nm 
+		   from srv_pg_admbord where base_year = '2018' 
+	   ) b 
+	on a.sido_cd = b.sido_cd and a.sgg_cd = b.sgg_cd and a.emdong_cd = b.emdong_cd
+ where a.sido_cd in ('32','33','34','35','36','37','38','39')
+
+
+	</select>
+
+	<!-- test -->
+	<!-- mng_s 2020. 05. 18 j.h.Seok DB표준화 분석지도 테이블 -->
+	<select id="pyramid1" parameterType="hashmap" resultType="hashmap">	
+		    select years, age, sum(m) male, sum(f)female 
+			 from 
+					( select years, age, decode(gender,'남',sum(population)) m, decode(gender,'여',sum(population)) f 
+			     from ( 
+			             select 
+			             	BASE_YEAR as years
+			             	, PPLTN_PYRAMID_AGE as age
+			             	, PPLTN_PYRAMID_GENDER as gender
+			             	, PPLTN_CNT as population 
+			             from 
+			             	SRV_DT_PPLTN_PYRAMID_AGE 
+			             where 
+			             	BASE_YEAR = #{years} and PPLTN_GROWTH_TYPE = #{strType}
+			             ) group by years, age, gender 
+			 ) group by years, age 
+			    order by to_number(replace(replace(age, '세'),'이상')) desc 
+	</select>
+	
+	<select id="yearRatioData" parameterType="hashmap" resultType="hashmap">	
+   			select --nvl(sum(manbirpopu), 0), nvl(sum(womabirnpopu), 0), nvl(sum(manpopu), 0), nvl(sum(womanpopu), 0), nvl(sum(manfupopu), 0), nvl(sum(womanfupopu), 0), 
+                    nvl(round((sum(manfupopu)/sum(manbirpopu))*100,2), 0) as manbir,  
+                    nvl(round((sum(manfupopu)/sum(manpopu))*100,2), 0)  as mannow,   
+                    nvl(round((sum(womanfupopu)/sum(womanbirpopu))*100,2), 0) as wobir,
+                    nvl(round((sum(womanfupopu)/sum(womanpopu))*100,2), 0)    wonow 
+            from ( 
+           select   years,  
+                    sum(manbirpopu) manbirpopu,  
+                    sum(womabirnpopu) womanbirpopu, 
+                    sum(manpopu) manpopu,  
+                    sum(womanpopu) womanpopu, 
+                    sum(manfupopu) manfupopu,  
+                    sum(womanfupopu) womanfupopu 
+            from 
+                    ( 
+                        select  
+                            BASE_YEAR as years, 
+                            case when trim(PPLTN_PYRAMID_GENDER) ='남' and trim(PPLTN_PYRAMID_AGE) =  '0세' and BASE_YEAR = #{birYear} then PPLTN_CNT end manbirpopu, 
+                            case when trim(PPLTN_PYRAMID_GENDER) ='여' and trim(PPLTN_PYRAMID_AGE) =  '0세' and BASE_YEAR = #{birYear}  then PPLTN_CNT end womabirnpopu, 
+                            case when trim(PPLTN_PYRAMID_GENDER) ='남' and trim(PPLTN_PYRAMID_AGE) = to_char(sysdate, 'YYYY') - #{birYear}  ||'세' and BASE_YEAR = to_char(sysdate, 'YYYY') then PPLTN_CNT end manpopu, 
+                            case when trim(PPLTN_PYRAMID_GENDER) ='여' and trim(PPLTN_PYRAMID_AGE) = to_char(sysdate, 'YYYY') - #{birYear}  ||'세' and BASE_YEAR = to_char(sysdate, 'YYYY') then PPLTN_CNT end womanpopu, 
+                            case when trim(PPLTN_PYRAMID_GENDER) ='남' and trim(PPLTN_PYRAMID_AGE) = #{years} - #{birYear} ||'세' and BASE_YEAR = #{years} then PPLTN_CNT end manfupopu, 
+                            case when trim(PPLTN_PYRAMID_GENDER) ='여' and trim(PPLTN_PYRAMID_AGE) = #{years} - #{birYear} ||'세' and BASE_YEAR = #{years} then PPLTN_CNT end womanfupopu 
+                        from SRV_DT_PPLTN_PYRAMID_AGE  
+                        where  PPLTN_GROWTH_TYPE = #{strType} 
+                    ) 
+            group by years 
+            )
+        order by years
+	</select>
+	
+	<select id="pyramid2" parameterType="hashmap" resultType="hashmap">	
+		    select 
+			    a.years, a.ages, m as male, f female, ms, fs 
+			from  
+			    ( 
+			        select years, ages, sum(m) m, sum(f) f  
+			        from  
+			            ( 
+			                select years, ages, decode(gender,'남',sum_population) m  
+			                        , decode(gender,'여', sum_population) f  
+			                from  
+			                    (  select 
+			                    		BASE_YEAR as years
+			                    		, PPLTN_PYRAMID_AGE as ages
+			                    		, PPLTN_PYRAMID_GENDER as gender
+			                    		, sum(PPLTN_CNT) as sum_population  
+			                       from SRV_DT_PPLTN_PYRAMID_SIDO  
+			                       where BASE_YEAR= #{years} 
+			                     	<if  test = "code1 != 0">
+			                        and SIDO_CD = #{code1}  
+			                        </if>
+			                        <!-- code1 -->
+			                        group by BASE_YEAR, PPLTN_PYRAMID_AGE, PPLTN_PYRAMID_GENDER  
+			                    )
+			            )  
+			        group by years, ages  
+			    ) a,  
+			    ( 
+			        select years, ages, sum(m) ms, sum(f) fs  
+			        from  
+			            ( select years, ages, decode(gender,'남',population) m  
+			                   , decode(gender,'여', population) f  
+			              from  
+			                ( 
+			                    select 
+			                    	BASE_YEAR as years
+			                    	, SIDO_NM as region
+			                    	, PPLTN_PYRAMID_GENDER as gender
+			                    	, PPLTN_PYRAMID_AGE as ages
+			                    	, PPLTN_CNT as population  
+			                    from SRV_DT_PPLTN_PYRAMID_SIDO  
+			                    where BASE_YEAR = #{years}
+			                    <if  test = "code2 != 0">
+			                    and SIDO_CD = #{code2}  
+			                    </if>
+			                )
+			            )  
+			        group by years, ages  
+			    ) b  
+			where a.years = b.years(+)
+			and a.ages = b.ages(+)
+			order by to_number(replace(substr(ages,0,2),'-')) desc  
+	</select>
+	
+	<select id="newpyramid2" parameterType="hashmap" resultType="hashmap">	
+		select b.years, a.ages, to_number( a.odr ) as odr, b.m as male, b.f female
+		  from (
+		  		select ages, odr
+		  		  from (
+				  		select PPLTN_PYRAMID_AGE as ages 
+							 , ( case when PPLTN_PYRAMID_AGE like '100%' then 100
+								 else replace(substr(PPLTN_PYRAMID_AGE,0,2),'-') end ) as odr
+				  		  from SRV_DT_PPLTN_PYRAMID_SIDO 
+				  		 group by PPLTN_PYRAMID_AGE 
+		  		  		)
+		  		 order by odr desc
+		  	   ) a, 
+		  	   ( 
+				select years, ages, sum(m) m, sum(f) f
+				  from ( 
+						select years, ages, decode(gender,'남',sum_population) m  
+							 , decode(gender,'여', sum_population) f
+			              from  (
+			              		 select 
+			              		 	BASE_YEAR as years
+			              		 	, PPLTN_PYRAMID_AGE as ages
+			              		 	, PPLTN_PYRAMID_GENDER as gender
+			              		 	, sum(PPLTN_CNT) as sum_population  
+			                       from SRV_DT_PPLTN_PYRAMID_SIDO  
+			                      where BASE_YEAR = #{years}
+			                     	<if  test = "code != null and code != 0">
+			                        and SIDO_CD = #{code}  
+			                        </if>
+			                        group by BASE_YEAR, PPLTN_PYRAMID_AGE, PPLTN_PYRAMID_GENDER
+			                    )
+			            )  
+			      group by years, ages
+			    ) b
+		where a.ages = b.ages(+)
+		order by odr desc
+	</select>
+	
+	<select id="pyramidSidoData" resultType="hashmap">	
+	 select SIDO_CD as region_code, SIDO_NM as region 
+	 from SRV_DT_PPLTN_PYRAMID_SIDO 
+ 	 group by SIDO_CD, SIDO_NM 
+	 order by SIDO_CD	 
+	</select>
+	
+	<select id="pyramidAddData" resultType="hashmap">	
+			select 
+			BASE_YEAR as year
+			, PPLTN_GROWTH_TYPE as type
+			, PPLTN_CNT_SUM as total
+			, PPLTN_CNT_MALE as male
+			, PPLTN_CNT_FEMALE as female
+			, FEMALE_VS_MALE_RATE as sexratio
+			, AVG_AGE as avrage
+		from SRV_DT_PPLTN_PYRAMID_GENDER_RATE
+		where
+			BASE_YEAR = #{years}
+		and PPLTN_GROWTH_TYPE = #{strType}   
+	</select>
+	
+	<!-- mng_e 2020. 05. 18 j.h.Seok DB표준화 분석지도 테이블 -->
+</mapper>

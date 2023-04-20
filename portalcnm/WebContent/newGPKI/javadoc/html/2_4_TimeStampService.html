@@ -1,0 +1,183 @@
+<html>
+<head>
+ <TITLE>ǥ�غ���API JAVA �޴���</TITLE>
+</head>
+</html>
+
+<body>
+<br><br>
+<p>
+
+<table width="100%">
+<tr>
+ <td align=center valign=bottom>
+   <h1>����Ȯ�� ���� �̿��ϱ�</h1>
+ </td>
+</table>
+
+<p>
+<blockquote>
+
+<center>
+
+<table width=90% cellspacing=0 cellpadding=5>
+<tr>
+ <td> ���ڹ����� �ۼ����ڸ� ���� �ð����� ���̳� �Ŀ� �ۼ��� ��ó�� �����ϴ� ���� �����ϰų� ��� ������ ���ڹ����� ������ �־����� �����ϱ� ���� ����Ȯ�� ���񽺸� �̿��Ͽ� ����Ȯ�� ��ū�� �߱� �޴´�. </td> 
+</tr>
+</table>
+
+<br><br>
+
+<table width=90% cellspacing=0 cellpadding=5>
+<tr>
+ <td width=20> <img src="../img/check.gif"> </td>
+ <td> <b>����</b> </td>
+</tr>
+</table>
+
+<br>
+
+<table border=1 width=80% cellspacing=0 cellpadding=5>
+<tr bgcolor=lightgrey>
+ <th align=center width=70%> Ŭ���̾�Ʈ </td> 
+ <th align=center width=30%> &nbsp </td> 
+</tr>
+<tr>
+ <td align=left> ����Ȯ�� ��ū�� �߱� ���� ���ڹ����� ȹ���Ѵ�. </td> 
+ <td align=center> &nbsp </td> 
+</tr>
+<tr>
+ <td align=left> ����Ȯ�� ��ū ��û �޽����� ���Ͽ� ����Ȯ�� ������ ����Ͽ� ����Ȯ�� ��ū�� ����  </td> 
+ <td align=center valign=middle> <img src="../img/left_arrow.gif"> ����Ȯ�� ������ ���<img src="../img/right_arrow.gif"> </td> 
+</tr>
+<tr>
+ <td align=left> ����Ȯ�� �����κ��� ���� ���� �޽����� ó���ϰ� ����Ȯ�� ��ū�� ȹ�� </td> 
+ <td align=center> &nbsp </td> 
+</tr>
+<tr>
+ <td align=left> ����Ȯ�� ��ū�� ������ Ȯ�� </td> 
+ <td align=center> &nbsp </td> 
+</tr>
+</table>
+
+<br><br>
+
+<table width=90% cellspacing=0 cellpadding=5>
+<tr>
+ <td width=20> <img src="../img/check.gif"> </td>
+ <td> <b>���� �ڵ�</b> </td>
+</tr>
+</table>
+
+<br>
+<table border=1 width=80% cellspacing=0 cellpadding=5>
+<tr>
+ <td>
+<pre>
+import com.gpki.gpkiapi.GpkiApi;
+import com.gpki.gpkiapi.cert.X509Certificate;
+import com.gpki.gpkiapi.storage.Disk;
+import com.gpki.gpkiapi.tsa.TimeStamp;
+import com.gpki.gpkiapi.tsa.TimeStampToken;
+import com.gpki.gpkiapi.util.Dump;
+import java.math.BigInteger;
+
+public class TimeStampService {
+	
+	void obtainTimeStampToken() {
+
+		try {
+			// API �ʱ�ȭ
+			GpkiApi.init(".");
+	
+			// ����Ȯ�� ��ū�� �߱� ���� ���ڹ����� ȹ���Ѵ�.
+			byte[] bDocument = Disk.read("./Document.txt");
+			
+			// ���ڹ����� ���� ����Ȯ�� ��ū�� ��û�Ѵ�.
+			TimeStamp timeStamp = new TimeStamp();
+			timeStamp.setMessage(bDocument);
+			TimeStampToken timeStampToken = timeStamp.reqTimeStampToken("152.99.56.61", 80);
+			
+			// ���� ����Ȯ�� ��ū�� ������ Ȯ���Ѵ�.
+			
+			System.out.println("* ����Ȯ�� ��ū ���� ");
+			
+			// 1. ����Ȯ�� ������ �̸�
+			X509Certificate tsaCert = timeStampToken.getTSACert();
+			System.out.println("  [TSA ���� DN] " + tsaCert.getSubjectDN());
+			
+			// 2. ����Ȯ�� ��ū�� �Ϸù�ȣ
+			BigInteger serialNum = timeStampToken.getSerialNumber();
+			
+			System.out.print("  [��ū �Ϸù�ȣ] " + serialNum + "(");
+			
+			byte[] bBuf = serialNum.toByteArray();
+			for (int i=0; i < bBuf.length; i++)
+				System.out.print(Dump.getHexString(bBuf[i]));
+			
+			System.out.println(")");
+			
+			// ����Ȯ�� ��ū ��ð�
+			System.out.println("  [��ū ��ð�] " + timeStampToken.getGeneratedTime());
+			
+			// ����Ȯ�� ��ū �߱� ��å
+			System.out.println("  [��ū �߱���å] " + timeStampToken.getPolicy());
+			
+			// ����Ȯ�� ��ū�� ��û�� �޽����� �ؽ���  ���� ���ؼ� ���� �˰?��
+			System.out.println("  [�ؽ� �˰?��] " + timeStampToken.getHashAlgorithm());
+			
+			// ����Ȯ�� ��ū�� ��û�� �޽����� �ؽ���
+			System.out.print("  [�޽��� �ؽ���] ");
+			
+			bBuf = timeStampToken.getMessageImprint();
+			for (int i=0; i < bBuf.length; i++)
+				System.out.print(Dump.getHexString(bBuf[i]));
+			
+			System.out.println(" ");
+		
+			// ����Ȯ�� ��ū�� ��û�� ���ؼ� ���� ����
+			System.out.print("  [Nonce] ");
+			
+			bBuf = timeStampToken.getNonce();
+			for (int i=0; i < bBuf.length; i++)
+				System.out.print(Dump.getHexString(bBuf[i]));
+			
+			System.out.println(" ");
+			
+		} catch (Exception e) {
+			e.printStackTrace();		
+		}
+	}
+}
+</pre>
+ </td>
+</tr>
+</table>
+
+</blockquote>
+</p>
+
+</center>
+
+<br>
+<hr size=3 noshade>
+<br>
+<table width=100%>
+<tr>
+ <td align=left width=50% rowspan=2>
+   <a href="../index.html"><img src="../img/home.gif" border=0></a>
+ </td>
+ <td align=right width=50%>
+   <font size=2> Copyright &#169; 2003~2006 Government Computerization Center (GCC). </font>
+ </td>
+</tr>
+<tr>
+ <td align=right>
+   <font size=2> All Rights Reserved. </font>
+ </td>
+</tr>
+</table>
+</font>
+
+</body>
+</html>

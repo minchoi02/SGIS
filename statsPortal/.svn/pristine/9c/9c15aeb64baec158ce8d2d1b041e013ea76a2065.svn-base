@@ -1,0 +1,201 @@
+
+<script>
+
+$(document).ready(function(){
+	$(".btn_popup").on("mouseover",function(){
+		var imgName = $(this).attr("src").replace("off", "on");
+		$(this).attr("src" , imgName);
+	});
+	$(".btn_popup").on("mouseout",function(){
+		var imgName = $(this).attr("src").replace("on", "off");
+		$(this).attr("src" , imgName);
+	});
+	$(".bizDetail-btn").on("click",function(){
+		$("#select_popup_layer").hide();
+	});
+});
+</script>
+<body>
+<div id="select_popup_layer" class="popup-layer-content open" style="display:none; overflow:scroll;" onclick="javascript:commonPopupObj.setCookie('select_popup_layer','done', 30);">
+	<div class="directions-details">
+	
+		<button id="close-button" onclick="srvLogWrite('G1', '01', '00', '00', '', '');$('#select_popup_layer').hide();if(!$('.sq02').hasClass('on')){$('.sq02').trigger('click');}" class="Btn-close" type="button">닫기</button>
+		<img usemap="#bizStatsBtn" class="bizStatsPopup" src="../../../images/bizStatsPopup/bizStatsPopup.png" alt=""/>
+		<map name="bizStatsBtn">
+			<area shape="rect" coords="133,291,300,314" href="/view/bizStats/bizStatsMap?biz=0" onfocus="blur();" style="cursor:pointer"/>
+			<area shape="rect" coords="448,288,610,319" href="/view/technicalBiz/technicalBizMap?tec=0" onfocus="blur();" style="cursor:pointer"/>
+		</map>				
+	<!-- <div class="contents-Box">
+		
+			<div class="top-cont">
+				mng_s 20190329 김건민
+				<div class="titles" >				
+				<a href="javascript:void(0);" onclick="javascript:$('#help-indicator').show();$('.btn_popup1').addClass('on');" class="bizDetail-btn" title="생활업종">생활업종
+				<img src="../../../images/bizStatsPopup/btn_off.png" class="btn_popup1" />
+				</a>
+				</div>
+				<div class="titles">
+				<a href="javascript:void(0);" onclick="javascript:$('#technicalBiz_laypopup').show();$('.btn_popup2').addClass('on');" class="bizDetail-btn" title="기술업종">기술업종
+				<img src="../../../images/bizStatsPopup/btn_off.png" class="btn_popup2"/>
+				</a>
+				</div>
+				mng_e 20190329 김건민
+				<div class="info-box">
+					<div>
+						<h3>생활업종 통계현황</h3>
+						<p>지역을 검색하고, 해당 지역의 업종 순위 및 업종별
+							<br /> 인기 지역을 확인할 수 있습니다.</p>
+					</div>
+					<dl class="center_box">
+						<dt>생활업종</dt>
+						<dd>
+							<ul>
+								<li>
+									<button type="button" id="tuto_start_btn" onclick="bizstatssidoStatus();" title="시도별 현황">시도별 현황</button>
+								</li>
+								<li>
+									<button type="button" id="tuto_start_btn" onclick="bizstatsDensity();" title="업종 밀집도">업종 밀집도 변화</button>
+								</li>
+								<li>
+									<button type="button" id="tuto_start_btn" onclick="bizstatssigunguStatus();" title="시군구별 현황">시군구별 현황 </button>
+								</li>
+								2019-04-16 박길섭 시작
+								<li>
+									<button type="button" id="tuto_start_btn" onclick="bizstatsLq();" title="업종 입지계수">업종 입지계수</button>
+								</li>
+								2019-04-16 박길섭 끝
+							</ul>
+						</dd>
+					</dl>
+				</div>
+				<div class="info-box">
+					<div>
+						<h3>기술업종  통계현황</h3>
+						<p>지역을 검색하고 해당 지역의 업종 순위 및 업종별
+							<br /> 인기지역을 확인할 수 있습니다.</p>
+					</div>
+					<dl class="center_box">
+						<dt>기술업종</dt>
+						<dd>
+							<ul>
+								<li>
+									<button type="button" id="tuto_start_btn" onclick="tecnicalsidoStatus();" title="시도별 현황">시도별 현황</button>
+								</li>
+								<li>
+									<button type="button" id="tuto_start_btn" onclick="tecnicalDensity();" title="업종 밀집도 변화">업종 밀집도 변화</button>
+								</li>
+								<li>
+									<button type="button" id="tuto_start_btn" onclick="tecnicalsigunguStatus();" title="시군구별 현황">시군구별 현황 </button>
+								</li>
+								<li>
+									<button type="button" id="tuto_start_btn" onclick="tecnicalLq();" title="업종 입지계수">업종 입지계수</button>
+								</li>
+							</ul>
+						</dd>
+					</dl>
+				</div>
+				
+				<div class="info-box">
+					<div>
+						<h3>업종별 분석지도</h3>
+						<p>원하는 조건에 맞는 생활업종 지역을 찾아보세요.</p>
+					</div>
+					<dl class="center_box">
+						<dt>생활업종</dt>
+						<dd>
+							<ul>
+								<li>
+									<button type="button" id="tuto_start_btn" onclick="bizstatsfinCon();" title="조건별 지역찾기">조건별 지역찾기</button>
+								</li>
+								<li>
+									<button type="button" id="tuto_start_btn" onclick="bizstatsviewCan();" title="후보지 정보보기">후보지 정보보기</button>
+								</li>
+							</ul>
+						</dd>
+					</dl>
+					
+				</div>
+				<div class="info-box">
+					<div>
+						<h3>업종별 분석지도</h3>
+						<p>원하는 조건에 맞는 기술업종 지역을 찾아보세요.</p>
+					</div>
+					
+					<dl class="center_box">
+						<dt>기술업종</dt>
+						<dd>
+							<ul>
+								<li>
+									<button type="button" id="tuto_start_btn" onclick="tecnicalfinCon();" title="조건별 지역찾기">조건별 지역찾기</button>
+								</li>
+							</ul>
+						</dd>
+					</dl>
+				</div>
+				<div class="info-box">
+					<div>
+						<h3>지자체 인허가 통계</h3>
+						<p>지자체 인허가 통계를 확인 할 수 있습니다.</p>
+					</div>
+					<dl>
+						<dt class="none"></dt>
+						<dd>
+							<ul>
+								<li>
+									<button type="button" id="tuto_start_btn" onclick="bizstatsopenStatus();" title="업종별 개업 현황">업종별 개업 현황</button>
+								</li>
+								<li>
+									<button type="button" id="tuto_start_btn" onclick="bizstatsfloatArea();" title="업종별 뜨는 지역">업종별 뜨는 지역</button>
+								</li>
+							</ul>
+						</dd>
+					</dl>
+					<dl>
+						<dt class="none"></dt>
+						<dd>
+							<ul>
+								<li>
+									<button type="button" id="tuto_start_btn" onclick="bizstatsfloatArea();" title="업종별 뜨는 지역">업종별 뜨는 지역</button>
+								</li>
+							</ul>
+						</dd>
+					</dl>
+				</div>
+				<div class="info-box">
+					<div>
+						<h3>기술업종 생태정보 현황</h3>
+						<p>기술업종 생태정보 현황을 를 확인 할 수 있습니다.</p>
+					</div>
+					<dl>
+						<dt></dt>
+						<dd>
+							<ul>
+								<li>
+									<button type="button" id="tuto_start_btn" onclick="tecnicalsupportFa();" title="지원시설 조회">지원시설 조회</button>
+								</li>
+								<li>
+									<button type="button" id="tuto_start_btn" onclick="tecnicalindusComplex();" title="산업단지  조회">산업단지 조회</button>
+								</li>
+							</ul>
+						</dd>
+					</dl>
+					<dl>
+						<dt></dt>
+						<dd>
+							<ul>
+								<li>
+									<button type="button" id="tuto_start_btn" onclick="tecnicalindusComplex();" title="산업단지  조회">산업단지 조회</button>
+								</li>
+							</ul>
+						</dd>
+					</dl>
+				</div>
+			</div>
+			<div class="bottom-notice">
+				<p>이용방법이 너무 어려우시다구요?<span> 먼저, 이용법을 체험해 보세요.</span></p>
+				<a href="javascript:void(0);" onclick="javascript:window.open('/view/newhelp/so_help_10_0');" class="details-btn" title="이용법 상세보기">이용법 상세보기</a>
+			</div>
+		</div> -->
+	</div> 
+</div>
+</body>

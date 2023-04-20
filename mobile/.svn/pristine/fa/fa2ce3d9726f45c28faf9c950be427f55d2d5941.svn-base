@@ -1,0 +1,241 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@include file="/WEB-INF/jsp/m2020/includes/taglib.jsp" %>
+<!DOCTYPE html>
+<html lang="ko">
+	<head>
+		<title>지역현안 소통지도</title>
+		<meta name="title" content="지역현안 소통지도">
+		<meta name="_csrf" name="_csrf" content="${_csrf.token }" />
+		<meta name="_csrf_header" name="_csrf" content="_csrf_header" content=${_csrf.headerName } />
+		<link rel="stylesheet" href="${ctx }/resources/m2020/css/map/community.css" />
+		<link rel="stylesheet" href="${ctx }/resources/m2020/css/map/community_intro.css" />
+		<script>var defaultAdmCd = "${community.adm_cd}",communityForm=false,mapList = ${community.mapListJson },communityMapInfo = ${heumTag:convertJson(community)};</script>
+		<%-- <link rel="stylesheet" href="${ctx }/resources/m2020/plugins/Swiper-3.3.1/css/swiper.min.css"/> --%>
+		<link rel="stylesheet" href="${ctx }/resources/m2020/css/subpage.css"/>
+		<!--
+		<script src="${ctx }/resources/plugins/Swiper-3.3.1/js/swiper.jquery.min.js"></script>
+		 -->
+		 <script src="${ctx }/resources/plugins/jquery.heum.validation.js"></script>
+		<script src="${ctx }/resources/m2020/plugins/swiper.min.js" type="text/javascript"></script>
+		<script src="${ctx }/resources/m2020/plugins/jquery.touchSwipe.min.js" type="text/javascript"></script>
+		<script src="${ctx }/resources/m2020/js/jquery.touchFlow.js" type="text/javascript"></script>
+		<script src="${ctx }/resources/m2020/js/community/map/communityMap.js"></script>
+		<script src="${ctx }/resources/m2020/js/community/map/communityMapPoi.js"></script>
+		<script src="${ctx }/resources/m2020/js/community/map/communityMapApi.js"></script>
+		<script src="${ctx }/resources/m2020/js/community/form.js"></script>
+		<script src="${ctx }/resources/m2020/js/community/view.js"></script>
+		<%-- 20200901 박은식 로그인 유도 팝업 하단 보더 처리(common.css 를 수정하면 다른 페이지에 영향을 줌) start --%>
+		<style>
+			.popContentBox{
+				border-bottom-right-radius: 10px;
+   				border-bottom-left-radius: 10px;
+			}
+		</style>
+		<%-- 20200901 박은식 로그인 유도 팝업 하단 보더 처리(common.css 를 수정하면 다른 페이지에 영향을 줌) end --%>
+	</head>
+	<body>
+
+		<div id="map-container" class="ContArea Community_Insert" style="padding:0;">
+			<div class="Community_cont">
+				<div id="community-info" class="MaptitArea">
+					<div class="Maintit">
+						<h4>${community.cmmnty_map_nm }</h4>
+						<p class="writeName">${community.usr_id }</p> <!-- 개설자 -->
+						<div class="titInfo">
+						<p class="personCount">${community.join_cnt }명</p><!-- 참여인원 -->
+						<p class="DateCount">${community.reg_date }</p> <!-- 개설일-->
+						</div>
+					</div>
+				
+					<div class="Subtit">
+						<h4>${community.intrcn }</h4>
+						<div class="Social">
+							<c:url var="facebookShare" value="https://www.facebook.com/sharer/sharer.php"><c:param name="u" value="${currentUrl }"/></c:url>
+							<c:url var="twitterShare" value="https://twitter.com/intent/tweet"><c:param name="url" value="${currentUrl }"/></c:url> 
+							<button onclick="javascript:srvLogWrite('O0', '10', '02', '03', '페이스북', ''); location.href='${facebookShare }'" class="sns_fb" formtarget="_BLANK" type="button" >
+								<img src="${ctx }/resources/m2020/images/sub/sns_fb.png" alt="페이스북 링크로 이동">
+							</button>
+							<button onclick="javascript:srvLogWrite('O0', '10', '02', '03', '트위터', ''); location.href='${twitterShare }'" class="sns_tw" formtarget="_BLANK">
+								<img src="${ctx }/resources/m2020/images/sub/sns_tw.png" alt="트위터 링크로 이동">
+							</button>
+						</div> 
+					</div>
+				</div>
+				<div style="height:55px;"></div>
+			</div>
+			
+			<div id="map" style="position: absolute; top:101px; left: 0; width: 100%; height: calc(100vh - 300px); z-index: 100;">
+			
+
+			</div>
+			<!-- 2022-12-12 수정 
+			<div class="Community_map" style="width:100%; bottom:0px; position:absolute; z-index:600;"> -->
+			<div class="Community_map" style="width:100%; bottom:0px; position:absolute; z-index:300;">
+				<!-- 범례 start-->
+				<div class="currenPositionWrap" style="margin:0">
+					<div class="databtnWrap mb10">  
+						<!-- 생활환경 정보 START -->
+						<button id="lifeEnvironmentToggle" class="btn_infoView infoOff" style="position:flexed; margin-top: 90px;" title="생활환경종합 팝업 열기 버튼">
+							<svg width="18" height="13" viewBox="0 0 18 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<path d="M13.2237 1.15562C11.7734 0.509204 10.1741 2.01021 9.17043 3.20443C8.16124 2.01021 6.56198 0.509204 5.11713 1.15562C3.23661 1.99377 2.32669 4.36031 3.0822 6.44199C3.83772 8.52366 9.14838 12.2761 9.14838 12.2761C9.14838 12.2761 14.4756 8.52366 15.2146 6.44199C15.9535 4.36031 15.1208 1.99377 13.2237 1.15562Z" stroke="#222222" stroke-linejoin="round"></path>
+								<path d="M0 7.58142H7.03676L8.44302 4.93002L9.75552 9.2851L11.7408 3.98779L12.7004 7.58142H18" fill="white"></path>
+								<path d="M0 7.58142H7.03676L8.44301 4.93002L9.75551 9.2851L11.7408 3.98779L12.7004 7.58142H18" stroke="#222222" stroke-linejoin="round"></path>
+							</svg><br />
+							종합
+									
+						</button> <!-- 2020.09.11[신예리] 웹접근성 문제로 인한 text 추가 -->
+					<!-- 생활환경 정보 END -->
+						<button type="button" name="button" class="dataPoiBtn" id="poiCall" title="관심지점(poi)버튼">
+							<svg width="15" height="16" viewBox="0 0 15 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<path d="M13.6568 15.2588C12.9162 15.2588 12.3135 14.6785 12.3135 13.9655H13.0347C13.0347 14.2958 13.3138 14.5643 13.6568 14.5643C13.9997 14.5643 14.2788 14.2958 14.2788 13.9655C14.2788 13.6356 13.9997 13.3667 13.6568 13.3667H1.34303C1.00019 13.3667 0.721217 13.6356 0.721217 13.9655C0.721217 14.2958 1.00019 14.5643 1.34303 14.5643C1.68587 14.5643 1.965 14.2958 1.965 13.9655H2.68621C2.68621 14.6785 2.08381 15.2588 1.34303 15.2588C0.602398 15.2588 0 14.6785 0 13.9655C0 13.2525 0.602398 12.6726 1.34303 12.6726H13.6568C14.3975 12.6726 15 13.2525 15 13.9655C15 14.6785 14.3975 15.2588 13.6568 15.2588Z" fill="#222222"></path>
+								<path d="M0.719878 13.9653H0V3.91973C0 3.18422 0.60128 2.58602 1.34054 2.58602H2.84483V3.30203H1.34054C0.998332 3.30203 0.719878 3.57944 0.719878 3.91973V13.9653Z" fill="#222222"></path>
+								<path d="M15.0001 13.9653H14.2945V3.91973C14.2945 3.57944 14.0215 3.30203 13.686 3.30203H12.1553V2.58602H13.686C14.4106 2.58602 15.0001 3.18422 15.0001 3.91973V13.9653Z" fill="#222222"></path>
+								<path d="M13.449 10.8623H11.6387V10.0864H13.449V10.8623Z" fill="#222222"></path>
+								<path d="M13.449 11.8965H11.6387V11.1206H13.449V11.8965Z" fill="#222222"></path>
+								<path d="M9.96265 6.34283C10.0056 6.29974 10.0426 6.25208 10.0858 6.20671L9.82715 6.46533C9.87126 6.42223 9.91943 6.38593 9.96265 6.34283Z" fill="#222222"></path>
+								<path d="M5.03639 6.34283C5.08032 6.38593 5.12875 6.42223 5.17268 6.46533L4.91406 6.20671C4.95709 6.25208 4.99336 6.29974 5.03639 6.34283Z" fill="#222222"></path>
+								<path d="M5.28605 1.6107L5.24077 1.65547C4.04406 2.86537 4.04406 4.8391 5.24358 6.05219L7.50043 8.29291L9.76015 6.04939C10.9568 4.83909 10.9568 2.86537 9.75749 1.65267L9.71409 1.6095C8.49477 0.42079 6.50755 0.420392 5.28605 1.6107ZM7.50043 9.31055L4.72935 6.55901C3.25215 5.06492 3.25215 2.63953 4.72653 1.14865L4.7775 1.09828C6.27894 -0.365824 8.72214 -0.365824 10.2236 1.09828L10.2717 1.14585C11.7486 2.63954 11.7486 5.06492 10.2744 6.55581L7.50043 9.31055Z" fill="#222222"></path>
+								<path d="M7.19599 5.68945L5.69043 4.20029L6.19037 3.70598L7.19599 4.70005L8.81118 3.10325L9.31112 3.59757L7.19599 5.68945Z" fill="#222222"></path>
+							</svg><br>관심
+						</button>
+					</div>
+				</div>
+				<!-- 범례 end-->
+				<!-- 2020.09.09[신예리] 이전 버튼 추가 START -->
+				<%-- <div class="sfbFooter"> 
+					<button class="btn_search" type="button" style="width: 100%;" onclick="javascript:srvLogWrite('O0', '10', '02', '05', '', '');location.href='${ctx }/m2020/map/community/communityMap.sgis'">이전</button>
+				</div> --%>
+				<!-- 2020.09.09[신예리] 이전 버튼 추가 END -->
+				<!-- <div class="CommunityList"> -->
+				<div class="CommunityList pd-b0">	<!-- 2022-12-15 class 추가 -->
+				<fmt:parseDate var="endDate" value="${community.prid_estbs_end_date}" pattern="yyyy.MM.dd" />
+				<jsp:useBean id="now" class="java.util.Date" />
+				
+				<div class="Btnarea" id="statsMeCatalogBtn" style="">
+					<!-- <button type="button" class="swiperBtn" name="button" title="결과 목록 토글 버튼"></button> 2020.09.11 [신예리] 웹접근성 문제로 인한 text 추가 -->
+					<div class="communityListTop">			
+						<button class="" type="button" onclick="javascript:srvLogWrite('O0', '10', '02', '05', '', '');location.href='${ctx }/m2020/map/community/communityMap.sgis'"><img src="/mobile/resources/m2021/images/map/i_result--arrow.png" alt="이전" width="20" /></button>	
+						<h4 class="tit swiperBtn2">
+							등록자료 목록(<span id="all-poi-count" class="all-poi-count">${community.join_cnt }</span>)
+							<svg width="14" height="14" viewBox="0 0 14 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 8C6.71875 8 6.46875 7.90625 6.28125 7.71875L1.28125 2.71875C0.875 2.34375 0.875 1.6875 1.28125 1.3125C1.65625 0.90625 2.3125 0.90625 2.6875 1.3125L7 5.59375L11.2812 1.3125C11.6562 0.90625 12.3125 0.90625 12.6875 1.3125C13.0938 1.6875 13.0938 2.34375 12.6875 2.71875L7.6875 7.71875C7.5 7.90625 7.25 8 7 8Z" fill="#4f4f4f"></path></svg>	
+						</h4>
+						
+					<div>
+					</div>
+					<!-- 2020.09.09[한광희] 로그아웃 버튼 추가 START -->
+					<a href="" class="communitylogoutBtn" id="log_in_out" style="display: none;">로그아웃</a>
+					<!-- 2020.09.09[한광희] 로그아웃 버튼 추가 END -->
+					<!-- 소통지도 참여 조건처리 20200720 박은식 start -->
+					<c:choose><c:when test="${endDate < now }">
+							<button class="btn_register" id="poi-register-end-button">의견 등록하기</button>
+						</c:when>
+						<c:when test="${community.regist_yn=='Y'||heumTag:matches(community.cmmnty_partcptn_grant_yn,'M|P|A') }">
+							<button class="btn_register" id="${loggedIn||heumTag:matches(community.cmmnty_partcptn_grant_yn,'M|P|A')?'poi-register-button':'poi-login-button' }">의견 등록하기</button><%-- 20200901 박은식 [id="poi-register-button"] <- 삭제 (id가 중복사용되어 로그인 팝업을 띄우지 않음)--%>
+						</c:when>
+						<c:when test="${community.regist_yn=='D' }">
+							<button class="btn_insert" id="${loggedIn?'poi-register-reject-button':'poi-login-button' }">소통지도 참여하기</button>
+							<script>
+								$("#poi-register-reject-button").click(function(){
+									messageAlert.open("알림", "\"${community.cmmnty_map_nm }\"은 제한된 멤버만 참여 가능합니다. <br>참여승인 반려되었습니다");
+								});
+							</script>
+						</c:when>
+						<c:when test="${community.regist_yn=='W' }">
+							<button class="btn_register" id="poi-register-wait-button">의견 등록하기</button>
+						</c:when>
+						<c:otherwise>
+							<button class="btn_insert" id="${loggedIn?'poi-register-join-button':'poi-login-button' }">소통지도 참여하기</button>
+						</c:otherwise>
+					</c:choose>
+					<!-- 소통지도 참여 조건처리 20200720 박은식 end -->
+					</div>
+				</div>
+								
+					<div id="all-community" class="" style="height: 0px;">	<!-- 2020.09.09[신예리] 이전 버튼 추가로 인한 사이즈 수정 --> 
+						<form id="community-poiList" class="search-result" style="position:relative; z-index:19999;"> 
+							<label for="community-keyword" class="Hidden">검색어입력</label>
+							<input type="hidden" name="id" value="11">
+							<input id="community-keyword" type="text" class="search-bar02" name="keywords" placeholder="검색어입력"> 
+							<button type="submit" class="search-icon" title="검색 버튼"></button> 	<!-- 2020.09.08 [신예리] 대체텍스트 추가 -->
+						</form>
+						
+						<div class="community-tab">
+						<div class="OpenArea Open" >
+							<!-- <div class="List" style="max-height:150px; "><ul></ul></div> -->
+							<div class="List" style="max-height:220px; "><ul></ul></div>
+						<div class="OpenArea">
+							<div class="List" ><ul></ul></div>
+							<input type="text" />
+							<div class="Pasing"></div> 
+						</div> 
+					</div>
+				<c:if test="${(community.regist_yn=='Y'||community.regist_yn=='W')&&community.cmmnty_partcptn_grant_yn=='Y'&&fn:contains(community.approval_distinct,'A')}">
+					<div class="Btn_Group">
+						<button id="drop-user" type="button">탈퇴하기</button>
+					</div>
+					<script>
+						$("#drop-user").click(function(){
+							messageConfirm.open("알림","<span class='community_name'>${community.cmmnty_map_nm }</span><br>소통지도에 탈퇴 하시겠습니까?",[{
+								title:"탈퇴하기",
+								func : function() {
+									$.ajax({
+										type: "POST",
+										url: contextPath+"/community/dropuser.json",
+										data:{
+											id : getParameter("id")
+										},
+										dataType: "json",
+										async : false,
+										success: function(res) {
+											if(res.errCd=="0"){
+												messageAlert.open("알림", "탈퇴 신청이 되었습니다.",function(){
+													location.reload(true);
+												});
+											}else{
+												messageAlert.open("알림", res.errMsg);
+											}
+										},
+										error: function(xhr, status, errorThrown) {
+											messageAlert.open("알림", errorMessage);
+										}
+									});
+								}
+							},{title:"취소하기"}]);
+						});
+						$(document).ready(function(){
+							alert(window.location.href.split('=')[1])
+							$("input[name=id]").val(window.location.href.split('=')[1])
+							
+						}); /* 2020.09.02[한광희] ; 누락으로 수정 */
+					</script>
+				</c:if>	
+							
+							<!-- 2020.09.09[신예리] 이전 버튼 추가로 주석 START -->
+							<%-- <div class="communityListWrap">
+								<a href="${ctx }/m2020/map/community/communityMap.sgis; javascript:srvLogWrite('O0', '10', '02', '05', '', '');" class="communityListBtn">목록보기</a>
+								<c:if test="${community.cmmnty_partcptn_grant_yn == 'N'}">
+									<a href="" class="communitylogoutBtn" id="log_in_out">로그아웃</a>
+								</c:if>
+							</div> --%>
+							<!-- 2020.09.09[신예리] 이전 버튼 추가로 주석 END -->
+					</div> 
+				</div>
+				<!-- 20200902 박은식 리스트 생성 위치 수정 (중복생성됨) start -->
+				<%-- <c:if test="${loggedIn&&!heumTag:matches(community.cmmnty_partcptn_grant_yn,'M|P|A') }">
+					<div id="my-community">
+						<h4><a href="#" data-type="my" data-tab="true">나의 등록자료<span id="my-poi-count">0</span></a></h4>
+						<div class="OpenArea">
+							<div class="List"><ul></ul></div>
+							<div class="Pasing"></div>
+						</div>
+					</div>
+				</c:if> --%>
+				<!-- 20200902 박은식 리스트 생성 위치 수정 (중복생성됨) end -->
+			</div>
+		</div>
+		
+		</div>
+		<%@include file="/WEB-INF/jsp/m2020/map/community/detail.jsp" %>
+		<%@include file="/WEB-INF/jsp/m2020/map/community/form.jsp" %> 
+	</body>
+</html>

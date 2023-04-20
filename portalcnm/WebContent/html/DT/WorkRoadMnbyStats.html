@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>SGIS 관리자사이트(CNM)</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<link rel="stylesheet" href="./../include/css/login.css" />
+<link rel="stylesheet" href="./../include/css/default.css" />
+<script type="text/javascript" src="./../include/js/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="./../include/js/default.js"></script>
+<script type="text/javascript" src="../../js/common/includeHead.js"></script>
+<script src="../../js/common/common.js"></script>
+<script type="text/javascript" src="../../js/DT/WorkRoadMnbyStats.js"></script>
+</head>
+<body>
+	<div class="wrapper">
+		<!-- cls:header start -->
+		<div class="header">
+			<div class="defaultbox">
+				<div class="logo">
+					<a href="#">
+						<img src="/s-portalcnm/html/include/img/pic/pic_logo.png" alt="logo" />
+					</a>
+				</div>
+				<div class="navi"></div>
+			</div>
+			<div class="menuWrapper">
+				<div class="menuCnm">
+					<ul>
+						<li><a>서비스 현황</a></li>
+						<li><a>사용자 현황</a></li>
+						<li><a class="on">서비스 관리</a></li>
+						<li><a>정보 관리</a></li>
+						<li><a>게시판 관리</a></li>
+						<li><a>회원 관리</a></li>
+					</ul>
+				</div>
+			</div>
+			<div class="subMenuWrapper">
+				<div class="subMenu"></div>
+			</div>
+			<!-- cls:header end -->
+		</div>
+		<div class="contents">
+			<!-- cls:left start -->
+			<div class="lefitMenuWrapper">
+				<script type="text/javascript">
+					makeLeftMenu("3", "11", "5"); //탑메뉴순서, 선택된 왼쪽 빅메뉴, 선택된 왼쪽 small메뉴
+				</script>
+			</div>
+			<!-- cls:left end -->
+			<div class="acticle">
+				<div class="location">
+					<p>
+						<a>
+							<img src="../../html/include/img/ico/ico_home.png" alt="home" />
+						</a>
+						<span>
+							<img src="../../html/include/img/ico/ico_navi.png" alt="다음" />
+						</span>
+						<span>서비스관리</span>
+						<span>
+							<img src="../../html/include/img/ico/ico_navi.png" alt="다음" />
+						</span>
+						<span>일자리 맵</span>
+						<span>
+							<img src="../../html/include/img/ico/ico_navi.png" alt="다음" />
+						</span>
+						<span class="fontS">일자리 월별 집계 및 경계 현행화 조회</span>
+					</p>
+				</div>
+				<p class="title01">일자리 월별 집계 및 경계 현행화 조회</p>
+				<div class="tilte03">조회조건</div>
+				<div class="searchBtn04" id="searchButton">
+					<a style="cursor: pointer">
+						<img src="./../include/img/btn/btn_search.png" alt="검색" />
+					</a>
+				</div>
+				<form id="resetForm">
+					<table class="apiTable02" summary="조회조건">
+						<caption>조회조건</caption>
+						<colgroup>
+							<col width="15%" />
+							<col width="50%" />
+							<col width="15%" />
+							<col width="20%" />
+						</colgroup>
+						<tbody>
+							<tr>
+								<th>등록년월</th>
+								<td colspan="3">
+									<select class="input_use31" id="SEARCH_REG_YEAR" style="width: 110px;">
+										<option value="">전체</option>
+									</select>
+									<select class="input_use31" id="SEARCH_REG_MONTH" style="width: 110px;">
+										<option value="">전체</option>
+									</select>
+								</td>
+								<!--
+								<th>조회기준</th>
+								<td>
+									<select class="input_use31" id="SEARCH_STDR_SE" style="width: 110px;">
+										<option value="C">현재 경계</option>
+										<option value="P">변경 전 경계</option>
+									</select>
+								</td>
+								-->
+							</tr>
+							<tr>
+								<th>지역</th>
+								<td>
+									<select class="input_use31" id="SEARCH_SIDO_CD" style="width: 110px;">
+									</select>
+									<select class="input_use31" id="SEARCH_SGG_CD" style="width: 110px;">
+									</select>
+									<select class="input_use31" id="SEARCH_EMDONG_CD" style="width: 110px;">
+									</select>
+								</td>
+								<th>조회단위</th>
+								<td>
+									<select class="input_use31" id="SEARCH_ADDR_CD" style="width: 110px;">
+										<option value="SIDO">시도</option>
+										<option value="SGG">시군구</option>
+										<option value="EMDONG">읍면동</option>
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<th>비교</th>
+								<td colspan="3">
+									<select class="input_use31" id="SEARCH_CORP_CNT_MTCH_YN" style="width: 110px;">
+										<option value="">전체</option>
+										<option value="Y">업체 수 동일</option>
+										<option value="N">업체 수 상이</option>
+									</select>
+									<select class="input_use31" id="SEARCH_LOGIC_OPRTOR" style="width: 110px;">
+										<option value="">선택</option>
+										<option value="A">그리고</option>
+										<option value="O">또는</option>
+									</select>
+									<select class="input_use31" id="SEARCH_RCRIT_PSN_CNT_MTCH_YN" style="width: 110px;">
+										<option value="">전체</option>
+										<option value="Y">구인자 수 동일</option>
+										<option value="N">구인자 수 상이</option>
+									</select>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</form>
+				<div class="tilte03">검색결과</div>
+				<table class="apiTable03" summary="기본정보"></table>
+				<table summary="기본정보" id="searchResultTable"></table>
+				<div class="searchWrapper02" id="noSearchResult" style="margin-top: -95px; border-left: 0; border-top: 0; border-right: 0; position: absolute; height: 30px; padding-top: 0px; text-align: center">검색 결과가 없습니다</div>
+			</div>
+		</div>
+		<!-- cls:footer start -->
+		<div class="footerWrapper"></div>
+
+		<div class="popupWrapper">
+			<div class="aplPopupWrapper">
+				<div class="aplPopupTitle">
+					<div class="myTitleFont" id="popTitle">경계 상세정보</div>
+					<div class="myXbtn">
+						<a style="cursor: pointer">
+							<img src="./../include/img/btn/btn_popupX.png" alt="종료" />
+						</a>
+					</div>
+				</div>
+				<table class="popupTable" summary="경계 상세정보popup" style="margin-bottom: 50px;">
+					<caption>경계 상세정보popup</caption>
+					<thead>
+						<tr>
+							<th style="text-align: center;">등록년월</th>
+							<th style="text-align: center;">경계년도</th>
+							<th style="text-align: center;">시도</th>
+							<th style="text-align: center;">시군구</th>
+							<th style="text-align: center;">읍면동</th>
+							<th style="text-align: center;">업체 수</th>
+							<th style="text-align: center;">구인자 수</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

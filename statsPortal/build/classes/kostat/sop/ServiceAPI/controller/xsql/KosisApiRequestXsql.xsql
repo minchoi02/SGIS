@@ -1,0 +1,655 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kosisApiRequest">
+
+  
+  	<!-- 특정 산업분류의 대분류에 속하는 소분류 테마코드 정보를 조회한다, 전국사업체조사의 테마업종 및 interactiveMapBtn의 createPOIBtn 메서드에서 사용된다. -->
+	<select id="selectData" resultType="hashmap">
+		WITH LST AS (
+			SELECT
+				LST.ORG_ID,
+				LST.TBL_ID,
+				LST.VAR_LVL_CO,
+				LST.OBJ_VAR_ID,
+				LST.ITM_ID,
+				LST.UP_ITM_ID,
+				LST.CHAR_ITM_SN ,
+				LST.SCR_KOR,
+				LST.SCR_ENG,
+				LST.STD_GRP_CD_ID,
+				LST.STD_CD_CN,
+				LST.REF_CD_CN,
+				LST.UNIT_ID,
+				LST.ITM_KD,
+				CLS.VAR_ORD_SN,
+				CLS.LVL_CO
+			FROM
+				(
+				SELECT
+					*
+				FROM
+					TN_ITM_LIST
+				WHERE
+					1 = 1
+					AND ORG_ID = '101'
+					AND TBL_ID = 'DT_1NW1001' ) LST,
+				(
+				SELECT
+					*
+				FROM
+					TN_OBJ_ITM_CLS
+				WHERE
+					1 = 1
+					AND ORG_ID = '101'
+					AND TBL_ID = 'DT_1NW1001' ) CLS
+			WHERE
+				LST.ORG_ID = CLS.ORG_ID
+				AND LST.TBL_ID = CLS.TBL_ID
+				AND LST.VAR_LVL_CO = CLS.VAR_LVL_CO
+				AND LST.OBJ_VAR_ID = CLS.OBJ_VAR_ID
+				AND LST.ORG_ID = '101'
+				AND LST.TBL_ID = 'DT_1NW1001' )
+			SELECT
+				DIM.ITM_RCGN_SN,
+				DIM.ORG_ID,
+				DIM.TBL_ID,
+				DIM.ITM_LVL_CO,
+				LST.OBJ_VAR_ID ,
+				DIM.CHAR_ITM_ID,
+				LST.CHAR_ITM_SN,
+				DT.PRD_DE,
+				DT.SMBL_CN ,
+				(
+				SELECT
+					SCR_KOR
+				FROM
+					LST
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = DIM.CHAR_ITM_ID
+					AND OBJ_VAR_ID = CLS.OBJ_VAR_ID ) AS CHAR_ITM_NM,
+				DIM.CUR_LVL_CO ,
+				(
+				SELECT
+					SCR_KOR
+				FROM
+					LST
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = (
+					SELECT
+						UP_ITM_ID
+					FROM
+						lst
+					WHERE
+						ORG_ID = DIM.ORG_ID
+						AND TBL_ID = DIM.TBL_ID
+						AND ITM_ID = DIM.OV_L1_ID
+						AND VAR_ORD_SN = '1' )
+					AND VAR_ORD_SN = '1' ) AS OV_L1_UP_ITM_KOR ,
+				(
+				SELECT
+					DECODE(UP_ITM_ID, NULL, DECODE(ITM_ID, '00', NULL, '00'), UP_ITM_ID)
+				FROM
+					lst
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = DIM.OV_L1_ID
+					AND VAR_ORD_SN = '1' ) AS OV_L1_UP_ITM_ID ,
+				DIM.OV_L1_CO,
+				DIM.OV_L1_ID ,
+				(
+				SELECT
+					VAR_ORD_SN
+				FROM
+					LST
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = DIM.OV_L1_ID
+					AND VAR_ORD_SN = '1' ) AS OV_L1_ORD ,
+				(
+				SELECT
+					SCR_KOR
+				FROM
+					LST
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = DIM.OV_L1_ID
+					AND VAR_ORD_SN = '1' ) AS OV_L1_KOR ,
+				(
+				SELECT
+					CHAR_ITM_SN
+				FROM
+					LST
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = DIM.OV_L1_ID
+					AND VAR_ORD_SN = '1' ) AS OV_L1_SN ,
+				(
+				SELECT
+					SCR_KOR
+				FROM
+					LST
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = (
+					SELECT
+						UP_ITM_ID
+					FROM
+						lst
+					WHERE
+						ORG_ID = DIM.ORG_ID
+						AND TBL_ID = DIM.TBL_ID
+						AND ITM_ID = DIM.OV_L2_ID
+						AND VAR_ORD_SN = '2' )
+					AND VAR_ORD_SN = '2' ) AS OV_L2_UP_ITM_KOR ,
+				(
+				SELECT
+					DECODE(UP_ITM_ID, NULL, DECODE(ITM_ID, '00', NULL, '00'), UP_ITM_ID)
+				FROM
+					lst
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = DIM.OV_L2_ID
+					AND VAR_ORD_SN = '2' ) AS OV_L2_UP_ITM_ID ,
+				DIM.OV_L2_CO,
+				DIM.OV_L2_ID ,
+				(
+				SELECT
+					VAR_ORD_SN
+				FROM
+					LST
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = DIM.OV_L2_ID
+					AND VAR_ORD_SN = '2' ) AS OV_L2_ORD ,
+				(
+				SELECT
+					SCR_KOR
+				FROM
+					LST
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = DIM.OV_L2_ID
+					AND VAR_ORD_SN = '2' ) AS OV_L2_KOR ,
+				(
+				SELECT
+					CHAR_ITM_SN
+				FROM
+					LST
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = DIM.OV_L2_ID
+					AND VAR_ORD_SN = '2' ) AS OV_L2_SN ,
+				(
+				SELECT
+					SCR_KOR
+				FROM
+					LST
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = (
+					SELECT
+						UP_ITM_ID
+					FROM
+						lst
+					WHERE
+						ORG_ID = DIM.ORG_ID
+						AND TBL_ID = DIM.TBL_ID
+						AND ITM_ID = DIM.OV_L3_ID
+						AND VAR_ORD_SN = '3' )
+					AND VAR_ORD_SN = '3' ) AS OV_L3_UP_ITM_KOR ,
+				(
+				SELECT
+					DECODE(UP_ITM_ID, NULL, DECODE(ITM_ID, '00', NULL, '00'), UP_ITM_ID)
+				FROM
+					lst
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = DIM.OV_L3_ID
+					AND VAR_ORD_SN = '3' ) AS OV_L3_UP_ITM_ID ,
+				DIM.OV_L3_CO,
+				DIM.OV_L3_ID ,
+				(
+				SELECT
+					VAR_ORD_SN
+				FROM
+					LST
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = DIM.OV_L3_ID
+					AND VAR_ORD_SN = '3' ) AS OV_L3_ORD ,
+				(
+				SELECT
+					SCR_KOR
+				FROM
+					LST
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = DIM.OV_L3_ID
+					AND VAR_ORD_SN = '3' ) AS OV_L3_KOR ,
+				(
+				SELECT
+					CHAR_ITM_SN
+				FROM
+					LST
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = DIM.OV_L3_ID
+					AND VAR_ORD_SN = '3' ) AS OV_L3_SN ,
+				(
+				SELECT
+					SCR_KOR
+				FROM
+					LST
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = (
+					SELECT
+						UP_ITM_ID
+					FROM
+						lst
+					WHERE
+						ORG_ID = DIM.ORG_ID
+						AND TBL_ID = DIM.TBL_ID
+						AND ITM_ID = DIM.OV_L4_ID
+						AND VAR_ORD_SN = '4' )
+					AND VAR_ORD_SN = '4' ) AS OV_L4_UP_ITM_KOR ,
+				(
+				SELECT
+					DECODE(UP_ITM_ID, NULL, DECODE(ITM_ID, '00', NULL, '00'), UP_ITM_ID)
+				FROM
+					lst
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = DIM.OV_L4_ID
+					AND VAR_ORD_SN = '4' ) AS OV_L4_UP_ITM_ID ,
+				DIM.OV_L4_CO,
+				DIM.OV_L4_ID ,
+				(
+				SELECT
+					VAR_ORD_SN
+				FROM
+					LST
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = DIM.OV_L4_ID
+					AND VAR_ORD_SN = '4' ) AS OV_L4_ORD ,
+				(
+				SELECT
+					SCR_KOR
+				FROM
+					LST
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = DIM.OV_L4_ID
+					AND VAR_ORD_SN = '4' ) AS OV_L4_KOR ,
+				(
+				SELECT
+					CHAR_ITM_SN
+				FROM
+					LST
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = DIM.OV_L4_ID
+					AND VAR_ORD_SN = '4' ) AS OV_L4_SN ,
+				(
+				SELECT
+					SCR_KOR
+				FROM
+					LST
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = (
+					SELECT
+						UP_ITM_ID
+					FROM
+						lst
+					WHERE
+						ORG_ID = DIM.ORG_ID
+						AND TBL_ID = DIM.TBL_ID
+						AND ITM_ID = DIM.OV_L5_ID
+						AND VAR_ORD_SN = '5' )
+					AND VAR_ORD_SN = '5' ) AS OV_L5_UP_ITM_KOR ,
+				(
+				SELECT
+					DECODE(UP_ITM_ID, NULL, DECODE(ITM_ID, '00', NULL, '00'), UP_ITM_ID)
+				FROM
+					lst
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = DIM.OV_L5_ID
+					AND VAR_ORD_SN = '5' ) AS OV_L5_UP_ITM_ID ,
+				DIM.OV_L5_CO,
+				DIM.OV_L5_ID ,
+				(
+				SELECT
+					VAR_ORD_SN
+				FROM
+					LST
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = DIM.OV_L5_ID
+					AND VAR_ORD_SN = '5' ) AS OV_L5_ORD ,
+				(
+				SELECT
+					SCR_KOR
+				FROM
+					LST
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = DIM.OV_L5_ID
+					AND VAR_ORD_SN = '5' ) AS OV_L5_KOR ,
+				(
+				SELECT
+					CHAR_ITM_SN
+				FROM
+					LST
+				WHERE
+					ORG_ID = DIM.ORG_ID
+					AND TBL_ID = DIM.TBL_ID
+					AND ITM_ID = DIM.OV_L5_ID
+					AND VAR_ORD_SN = '5' ) AS OV_L5_SN ,
+				NVL(NVL(DT.DTVAL_CO, DT.DTVAL_CN), 0) AS DTVAL_CO
+			FROM
+				(
+				SELECT
+					*
+				FROM
+					TN_DIM
+				WHERE
+					1 = 1
+					AND ORG_ID = '101'
+					AND TBL_ID = 'DT_1NW1001' ) DIM,
+				(
+				SELECT
+					*
+				FROM
+					TN_DT
+				WHERE
+					1 = 1
+					AND ORG_ID = '101'
+					AND TBL_ID = 'DT_1NW1001' ) DT,
+				(
+				SELECT
+					*
+				FROM
+					TN_ITM_LIST
+				WHERE
+					1 = 1
+					AND ORG_ID = '101'
+					AND TBL_ID = 'DT_1NW1001' ) LST,
+				(
+				SELECT
+					*
+				FROM
+					TN_OBJ_ITM_CLS
+				WHERE
+					1 = 1
+					AND ORG_ID = '101'
+					AND TBL_ID = 'DT_1NW1001' ) CLS
+			WHERE
+				DIM.ORG_ID = DT.ORG_ID
+				AND DIM.TBL_ID = DT.TBL_ID
+				AND DIM.ORG_ID = LST.ORG_ID
+				AND DIM.TBL_ID = LST.TBL_ID
+				AND DIM.CHAR_ITM_ID = LST.ITM_ID
+				AND LST.ORG_ID = CLS.ORG_ID
+				AND LST.TBL_ID = CLS.TBL_ID
+				AND LST.OBJ_VAR_ID = CLS.OBJ_VAR_ID
+				AND DIM.ITM_RCGN_SN = DT.ITM_RCGN_SN
+				AND DIM.USE_YN = 'Y'
+				AND DIM.ORG_ID = '101'
+				AND DIM.TBL_ID = 'DT_1NW1001'
+				AND DIM.CHAR_ITM_ID = 'T10'
+				AND DT.PRD_DE = '2020'
+				AND DIM.OV_L1_ID = '00'
+	</select>
+
+	
+	<select id="selectStblCategory" resultType="hashmap">
+		SELECT STAT_NM FROM V_LIST_STBL_KOSIS
+			WHERE VW_CD = 'MT_ZTITLE'
+			AND ORG_ID = '101'
+			GROUP BY STAT_NM
+			ORDER BY STAT_NM ASC
+	</select>
+	
+	
+	<select id="getStblList" resultType="hashmap">
+	
+		SELECT '('||PUB.TBL_ID||')'||PUB.TBL_NM AS TBL_NM 
+			   , PUB.ORG_ID
+			   , PUB.TBL_ID
+			   , PUB.STAT_NM
+		       , MAX(CLS.VAR_ORD_SN) AS ITM_LV
+		FROM (	SELECT * 
+		         FROM V_LIST_STBL_PUB
+				 WHERE ORG_ID = '101'
+					   AND VW_CD = 'MT_ZTITLE'
+					<if test='category !="" and category != null'>
+					   AND STAT_NM LIKE '%'||#{category}||'%'
+					</if>
+			 )PUB
+			 ,TN_OBJ_ITM_CLS CLS
+		WHERE PUB.ORG_ID = CLS.ORG_ID(+)
+		      AND PUB.TBL_ID = CLS.TBL_ID(+)
+		GROUP BY '('|| PUB.TBL_ID|| ')'|| PUB.TBL_NM, PUB.ORG_ID, PUB.TBL_ID , PUB.STAT_NM
+		
+	</select>
+	
+	<select id="getStblItmList" resultType="hashmap">
+	
+		WITH LST AS (				
+						SELECT					
+							LST.ORG_ID,			
+							LST.TBL_ID,			
+							LST.VAR_LVL_CO, 	
+							LST.OBJ_VAR_ID, 	
+							LST.ITM_ID,			
+							LST.UP_ITM_ID,		
+							LST.CHAR_ITM_SN, 	
+							LST.SCR_KOR,		
+							LST.SCR_ENG,		
+							LST.STD_GRP_CD_ID,	
+							LST.STD_CD_CN,		
+							LST.REF_CD_CN,		
+							LST.UNIT_ID,		
+							LST.ITM_KD,			
+							CLS.VAR_ORD_SN,		
+							CLS.LVL_CO			
+					FROM (	SELECT * 
+					          FROM TN_ITM_LIST 
+					          WHERE ORG_ID=#{orgId}  
+								    AND TBL_ID IN 
+								   <foreach collection="stblList" item="items" open="(" separator="," close=")">
+								    #{items}
+							       </foreach>
+					)LST,
+					( SELECT * 
+						    FROM TN_OBJ_ITM_CLS 
+						    WHERE ORG_ID=#{orgId}  
+						      AND TBL_ID IN 
+								  <foreach collection="stblList" item="items" open="(" separator="," close=")">
+								    #{items}
+								  </foreach>
+					) CLS
+					WHERE LST.ORG_ID = CLS.ORG_ID(+)
+					  AND LST.TBL_ID = CLS.TBL_ID(+)
+					  AND LST.VAR_LVL_CO = CLS.VAR_LVL_CO(+)
+					  AND LST.OBJ_VAR_ID = CLS.OBJ_VAR_ID(+)
+					  AND LST.ORG_ID = #{orgId}
+					  AND LST.TBL_ID IN 
+					      <foreach collection="stblList" item="items" open="(" separator="," close=")">
+						    #{items}
+						  </foreach>
+					
+					)
+					SELECT
+					LPAD(' ', 2*(LEVEL-1))||ITM_ID AS ITM_LV
+					        , A.*
+					FROM (
+					      SELECT ITM.ORG_ID
+					             , ITM.TBL_ID
+					             , KOS.TBL_NM
+					             , KOS.STAT_NM
+					             , INF.SVC_URL
+					             , KOS.LIST_NM_PATH
+					             , ITM.OBJ_VAR_ID
+					             , ( SELECT MIN(PRD_DE) 
+					                   FROM TN_RECD_PRD 
+					                   WHERE ORG_ID = #{orgId} 
+					                   AND TBL_ID IN 
+					                       <foreach collection="stblList" item="items" open="(" separator="," close=")">
+											   #{items}
+										   </foreach>
+					
+					               ) AS PRD_START_DE
+					             , ( SELECT MAX(PRD_DE) 
+					                   FROM TN_RECD_PRD 
+					                   WHERE ORG_ID = #{orgId}
+					                     AND TBL_ID IN 
+					                     <foreach collection="stblList" item="items" open="(" separator="," close=")">
+											   #{items}
+										 </foreach>
+					
+					               ) AS PRD_END_DE
+					             , ( SELECT PRD_SE 
+					                   FROM TN_RECD_PRD 
+					                   WHERE ORG_ID = #{orgId} 
+					                     AND TBL_ID IN 
+					                   	     <foreach collection="stblList" item="items" open="(" separator="," close=")">
+											    #{items}
+										     </foreach>
+					                     AND ROWNUM = 1
+					               ) AS PRD_SE
+					              , CLS.VAR_ORD_SN
+					              , ITM.CHAR_ITM_SN
+					              , ITM.ITM_ID
+					              , ITM.UP_ITM_ID
+					              , ( SELECT CD_NM
+					                    FROM TC_UNIT
+								        WHERE CD_ID = ITM.UNIT_ID
+					                ) AS UNIT_NM
+								  , ( SELECT CD_CN
+									    FROM TC_UNIT
+									    WHERE CD_ID = ITM.UNIT_ID
+									) AS UNIT_CN
+					              , ( SELECT CD_TP_SE
+										FROM TC_UNIT
+										WHERE CD_ID = ITM.UNIT_ID
+					             	) AS UNIT_TP_SE
+					              , ( SELECT CD_ENG_NM
+									    FROM TC_UNIT
+									   WHERE CD_ID = ITM.UNIT_ID
+					                ) AS UNIT_ENG_NM
+								  , ( SELECT CD_ABBR_NM
+									    FROM TC_UNIT
+										WHERE CD_ID = ITM.UNIT_ID
+									) AS UNIT_ABBR_NM
+								  , ( SELECT CD_ABBR_ENG_NM
+							            FROM TC_UNIT
+							            WHERE CD_ID = ITM.UNIT_ID
+									) AS UNIT_ABBR_ENG_NM
+					              , ITM.FTN_VAL_AT
+					              , ( SELECT SCR_KOR
+					                    FROM LST
+					                    WHERE ORG_ID = ITM.ORG_ID
+											  AND TBL_ID = ITM.TBL_ID
+											  AND ITM_ID = ITM.ITM_ID
+											  AND OBJ_VAR_ID = ITM.OBJ_VAR_ID
+					                ) SCR_KOR
+					        FROM TN_ITM_LIST ITM
+					             , TN_OBJ_ITM_CLS CLS
+					             , ( SELECT ORG_ID
+										    ,TBL_ID
+											,TBL_NM
+											,STAT_NM
+											,LIST_NM_PATH
+									 FROM V_LIST_STBL_KOSIS
+									 WHERE ORG_ID = #{orgId} 
+										   AND TBL_ID IN
+										       <foreach collection="stblList" item="items" open="(" separator="," close=")">
+											     #{items}
+										       </foreach>
+										   AND VW_CD = 'MT_ZTITLE'
+									) KOS
+								 , (	SELECT * 
+								          FROM TN_STBL_INFO 
+								          WHERE ORG_ID =  #{orgId}
+											    AND TBL_ID IN
+											    <foreach collection="stblList" item="items" open="(" separator="," close=")">
+											     #{items}
+										       </foreach>
+											    
+									) INF
+					        WHERE ITM.ORG_ID = CLS.ORG_ID(+)
+								  AND ITM.TBL_ID = CLS.TBL_ID(+)
+								  AND ITM.OBJ_VAR_ID = CLS.OBJ_VAR_ID(+)
+								  AND ITM.ORG_ID = KOS.ORG_ID(+)
+								  AND ITM.TBL_ID = KOS.TBL_ID(+)
+								  AND ITM.ORG_ID = INF.ORG_ID(+)
+								  AND ITM.TBL_ID = INF.TBL_ID(+)
+								  AND ITM.ORG_ID = #{orgId}
+								  AND ITM.TBL_ID IN 	
+							  		  <foreach collection="stblList" item="items" open="(" separator="," close=")">
+										   #{items}
+									  </foreach>
+							ORDER BY CLS.VAR_ORD_SN, ITM.CHAR_ITM_SN
+						 ) A
+					START WITH UP_ITM_ID IS NULL CONNECT BY PRIOR ITM_ID = UP_ITM_ID
+					      AND PRIOR OBJ_VAR_ID = OBJ_VAR_ID
+						  AND LEVEL <![CDATA[<]]> 3
+		
+	</select>
+	
+	
+	<select id="getTotSurvStatValidateParams" resultType="hashmap">
+		SELECT ORG_ID
+			   , TBL_ID
+			   , OBJ_VAR_ID
+			   , SCR_KOR
+			   , VAR_ORD_SN
+		FROM TN_OBJ_ITM_CLS
+		WHERE ORG_ID = #{orgId}
+		      AND TBL_ID IN 
+		         <foreach collection="tbl_id_list" item="items" open="(" separator="," close=")">
+					  #{items}
+			     </foreach>
+	</select>
+	
+	
+	<select id="getTotsurvKosisData" resultType="hashmap" parameterType="hashmap">
+		${sql}
+	</select>
+	
+
+	
+	  
+  
+</mapper>
